@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { importationsApi, shipmentsApi, type ModalChangeLog, type Shipment } from "../api";
-import { modalLabel, shipmentStatusLabel } from "../i18n/glossario";
+import { shipmentsApi, type ModalChangeLog, type Shipment } from "../api";
+import { modalLabel } from "../i18n/glossario";
+import { EmptyState, LoadingState } from "../components";
 
 interface Props {
   importationId: number;
@@ -13,18 +14,63 @@ export function LogisticsPanel({ importationId }: Props) {
   const [shipmentNumber, setShipmentNumber] = useState("");
   const [modal, setModal] = useState("OCEAN");
   const [error, setError] = useState("");
-
-  async function load() {
-    const list = await shipmentsApi.list(importationId);
-    setShipments(list);
-    if (list.length && selectedShip) {
-      setHistory(await shipmentsApi.modalHistory(selectedShip));
-    }
-  }
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    load().catch((e) => setError(e.message));
-  }, [importationId, selectedShip]);
+    if (!importationId || Number.isNaN(importationId)) {
+      setShipments([]);
+      setHistory([]);
+      setSelectedShip(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+    setShipments([]);
+    setHistory([]);
+    setSelectedShip(null);
+    setError("");
+
+    (async () => {
+      try {
+        const list = await shipmentsApi.list(importationId);
+        if (cancelled) return;
+        setShipments(list);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Erro");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [importationId]);
+
+  useEffect(() => {
+    if (!selectedShip) {
+      setHistory([]);
+      return;
+    }
+    shipmentsApi
+      .modalHistory(selectedShip)
+      .then(setHistory)
+      .catch(() => setHistory([]));
+  }, [selectedShip]);
+
+  async function reload() {
+    if (!importationId || Number.isNaN(importationId)) return;
+    setLoading(true);
+    try {
+      setShipments(await shipmentsApi.list(importationId));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function createShipment(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +84,7 @@ export function LogisticsPanel({ importationId }: Props) {
         awb_number: modal === "AIR" ? "AWB-NEW" : undefined,
       });
       setShipmentNumber("");
-      await load();
+      await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro");
     }
@@ -53,14 +99,21 @@ export function LogisticsPanel({ importationId }: Props) {
         comment: "Alteração via UI",
       });
       setSelectedShip(shipmentId);
-      await load();
+      await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro");
     }
   }
 
+  if (loading) {
+    return <LoadingState label="Carregando embarques desta ordem..." />;
+  }
+
   return (
     <div>
+      <p className="meta logistics-scope">
+        Embarques desta ordem · {shipments.length} registro(s)
+      </p>
       {error && <p className="error">{error}</p>}
       <form className="inline-form" onSubmit={createShipment}>
         <input
@@ -76,39 +129,43 @@ export function LogisticsPanel({ importationId }: Props) {
         </select>
         <button type="submit">Novo embarque</button>
       </form>
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Número</th>
-            <th>Modal</th>
-            <th>Modal anterior</th>
-            <th>BL/AWB</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {shipments.map((s) => (
-            <tr key={s.id}>
-              <td>{s.shipment_number}</td>
-              <td>
-                <span className="badge">{modalLabel(s.modal)}</span>
-              </td>
-              <td>{s.modal_previous ? modalLabel(s.modal_previous) : "—"}</td>
-              <td>{s.bl_number || s.awb_number || "—"}</td>
-              <td>
-                <button type="button" onClick={() => setSelectedShip(s.id)}>
-                  Histórico
-                </button>
-                {s.modal === "OCEAN" && (
-                  <button type="button" onClick={() => changeModal(s.id)}>
-                    → AIR
-                  </button>
-                )}
-              </td>
+      {shipments.length === 0 ? (
+        <EmptyState title="Nenhum embarque nesta ordem" description="Registre o primeiro embarque acima." />
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Modal</th>
+              <th>Modal anterior</th>
+              <th>BL/AWB</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {shipments.map((s) => (
+              <tr key={s.id}>
+                <td>{s.shipment_number}</td>
+                <td>
+                  <span className="badge">{modalLabel(s.modal)}</span>
+                </td>
+                <td>{s.modal_previous ? modalLabel(s.modal_previous) : "—"}</td>
+                <td>{s.bl_number || s.awb_number || "—"}</td>
+                <td>
+                  <button type="button" onClick={() => setSelectedShip(s.id)}>
+                    Histórico
+                  </button>
+                  {s.modal === "OCEAN" && (
+                    <button type="button" onClick={() => changeModal(s.id)}>
+                      → AIR
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       {selectedShip && history.length > 0 && (
         <section>
           <h2>Histórico de modal</h2>

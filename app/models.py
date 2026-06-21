@@ -162,6 +162,7 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     ncm: Mapped[str | None] = mapped_column(String(16), nullable=True)
     weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     volume_m3: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    category: Mapped[str] = mapped_column(String(32), nullable=False, default="OTHER")
 
 
 class ImportationOrder(Base, TimestampMixin, SoftDeleteMixin):
@@ -441,6 +442,28 @@ class HeroesImportMapping(Base, TimestampMixin):
     column_mapping: Mapped[dict] = mapped_column(JSONB, nullable=False)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+
+
+class HeroesImportRun(Base, TimestampMixin):
+    __tablename__ = "heroes_import_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    raw_file_id: Mapped[int | None] = mapped_column(ForeignKey("raw_import_files.id"), nullable=True)
+    file_checksum: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    sheet_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    sheet_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    parser_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    order_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="PREVIEW")
+    preview_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    normalized_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    warnings_json: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    errors_json: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    importation_id: Mapped[int | None] = mapped_column(ForeignKey("importation_orders.id"), nullable=True)
+    uploaded_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    committed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class Shipment(Base, TimestampMixin, SoftDeleteMixin):

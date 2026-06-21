@@ -8,6 +8,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import DEFAULT_IMPORT_CURRENCY
+from app.core.currency import normalize_import_currency
 
 from app.models import (
     BrazilCurrentAccount,
@@ -29,6 +30,7 @@ from app.services.dashboard import (
     _divergent_by_importation,
 )
 from app.services.finance import (
+    _d,
     _payment_is_settled,
     invoice_balance,
     invoice_discount_total,
@@ -54,7 +56,7 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
     )
 
     for inv in invoices:
-        cur = inv.currency or importation.currency or DEFAULT_IMPORT_CURRENCY
+        cur = normalize_import_currency(inv.currency or importation.currency)
         bucket = buckets[cur]
         if inv.amount is not None:
             bucket["invoiced"] += inv.amount
@@ -78,7 +80,7 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
         for cur, b in buckets.items()
     }
 
-    primary = importation.currency or DEFAULT_IMPORT_CURRENCY
+    primary = normalize_import_currency(importation.currency)
     multi = len(buckets) > 1
 
     if multi:
@@ -242,7 +244,7 @@ def _build_invoices(db: Session, importation_id: int) -> list[dict]:
                 "invoice_number": inv.invoice_number,
                 "invoice_date": inv.invoice_date,
                 "amount": inv.amount,
-                "currency": inv.currency,
+                "currency": normalize_import_currency(inv.currency),
                 "discount_amount": inv.discount_amount,
                 "balance": invoice_balance(db, inv),
                 "paid_total": invoice_paid_total(db, inv),
@@ -282,7 +284,7 @@ def _build_payments(db: Session, importation_id: int) -> tuple[list[dict], list[
             "amount_foreign": p.amount_foreign,
             "amount_local": p.amount_local,
             "exchange_rate": p.exchange_rate,
-            "currency_foreign": p.currency_foreign,
+            "currency_foreign": normalize_import_currency(p.currency_foreign) if p.currency_foreign else None,
             "receipt_reference": p.receipt_reference,
             "exchange_contract_number": p.exchange_contract_number,
             "settlement_date": p.settlement_date,
@@ -387,6 +389,105 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     }
 
 
+def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dict[int, dict]:
+    """Totais financeiros em lote — evita N+1 na fila operacional."""
+    imp_ids = [i.id for i in imps]
+    if not imp_ids:
+        return {}
+
+    invoices = (
+        db.query(Invoice)
+        .filter(Invoice.importation_id.in_(imp_ids), Invoice.is_active.is_(True))
+        .all()
+    )
+    inv_ids = [i.id for i in invoices]
+    inv_by_imp: dict[int, list[Invoice]] = defaultdict(list)
+    for inv in invoices:
+        inv_by_imp[inv.importation_id].append(inv)
+
+    payments_by_inv: dict[int, list[Payment]] = defaultdict(list)
+    if inv_ids:
+        for p in db.query(Payment).filter(Payment.invoice_id.in_(inv_ids), Payment.is_active.is_(True)).all():
+            payments_by_inv[p.invoice_id].append(p)
+
+    discount_extra_by_inv: dict[int, Decimal] = defaultdict(lambda: Decimal("0"))
+    if inv_ids:
+        for d in db.query(Discount).filter(Discount.invoice_id.in_(inv_ids), Discount.is_active.is_(True)).all():
+            discount_extra_by_inv[d.invoice_id] += _d(d.amount)
+
+    def _paid(inv: Invoice) -> Decimal:
+        return sum(_d(p.amount_foreign) for p in payments_by_inv.get(inv.id, []) if _payment_is_settled(p))
+
+    def _discount(inv: Invoice) -> Decimal:
+        return _d(inv.discount_amount) + discount_extra_by_inv.get(inv.id, Decimal("0"))
+
+    def _balance(bucket: dict) -> str | None:
+        if bucket["has_null_amount"]:
+            return None
+        return str(bucket["invoiced"] - bucket["discounts"] - bucket["paid"])
+
+    out: dict[int, dict] = {}
+    for imp in imps:
+        imp_invs = inv_by_imp.get(imp.id, [])
+        buckets: dict[str, dict] = defaultdict(
+            lambda: {
+                "invoiced": Decimal("0"),
+                "paid": Decimal("0"),
+                "discounts": Decimal("0"),
+                "has_null_amount": False,
+            }
+        )
+        for inv in imp_invs:
+            cur = normalize_import_currency(inv.currency or imp.currency)
+            bucket = buckets[cur]
+            if inv.amount is not None:
+                bucket["invoiced"] += inv.amount
+            else:
+                bucket["has_null_amount"] = True
+            bucket["paid"] += _paid(inv)
+            bucket["discounts"] += _discount(inv)
+
+        primary = normalize_import_currency(imp.currency)
+        multi = len(buckets) > 1
+
+        if multi:
+            totals_by_currency = {
+                cur: {
+                    "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
+                    "total_paid": str(b["paid"]),
+                    "total_discounts": str(b["discounts"]),
+                    "consolidated_balance": _balance(b),
+                }
+                for cur, b in buckets.items()
+            }
+            out[imp.id] = {
+                "currency": primary,
+                "total_invoiced": None,
+                "total_paid": None,
+                "consolidated_balance": None,
+                "totals_by_currency": totals_by_currency,
+            }
+        elif not buckets:
+            out[imp.id] = {
+                "currency": primary,
+                "total_invoiced": None,
+                "total_paid": None,
+                "consolidated_balance": None,
+                "totals_by_currency": None,
+            }
+        else:
+            cur = next(iter(buckets))
+            b = buckets[cur]
+            out[imp.id] = {
+                "currency": cur,
+                "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
+                "total_paid": str(b["paid"]),
+                "consolidated_balance": _balance(b),
+                "totals_by_currency": None,
+            }
+    return out
+
+
 def build_order_queue(db: Session, limit: int = 100) -> dict:
     imps = (
         db.query(ImportationOrder)
@@ -409,8 +510,9 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
     )
 
     items: list[dict] = []
+    financials = _batch_financial_for_queue(db, imps)
     for imp in imps:
-        financial = _financial_totals_by_currency(db, imp)
+        financial = financials.get(imp.id) or _financial_totals_by_currency(db, imp)
         chain = quantity_chain(db, imp.id)
         actions = _pending_actions(db, imp)
         items.append(
@@ -420,7 +522,7 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
                 "supplier_id": imp.supplier_id,
                 "supplier_name": suppliers.get(imp.supplier_id),
                 "status": imp.current_status,
-                "currency": imp.currency,
+                "currency": normalize_import_currency(imp.currency),
                 "total_invoiced": financial["total_invoiced"],
                 "total_paid": financial["total_paid"],
                 "consolidated_balance": financial["consolidated_balance"],

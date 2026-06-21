@@ -46,6 +46,17 @@ export function CustomsStockPanel({ importationId, items }: Props) {
   }
 
   useEffect(() => {
+    if (!importationId || Number.isNaN(importationId)) {
+      setDocs([]);
+      setTaxes([]);
+      setChain([]);
+      setVersions([]);
+      return;
+    }
+    setDocs([]);
+    setTaxes([]);
+    setChain([]);
+    setVersions([]);
     load();
   }, [importationId]);
 

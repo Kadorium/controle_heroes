@@ -4,6 +4,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from app.config import DEFAULT_IMPORT_CURRENCY
+from app.core.currency import normalize_import_currency
 from app.core.enums import CreditStatus, ExchangeRateType
 from app.models import (
     BrazilCurrentAccount,
@@ -98,11 +99,22 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
             }
         )
 
+    if not invoices:
+        return {
+            "importation_id": importation.id,
+            "currency": normalize_import_currency(importation.currency),
+            "total_invoiced": None,
+            "total_paid": None,
+            "total_discounts": None,
+            "consolidated_balance": None,
+            "invoices": [],
+        }
+
     consolidated_balance = None if has_null_amount else total_invoiced - total_discounts - total_paid
 
     return {
         "importation_id": importation.id,
-        "currency": importation.currency,
+        "currency": normalize_import_currency(importation.currency),
         "total_invoiced": str(total_invoiced),
         "total_paid": str(total_paid),
         "total_discounts": str(total_discounts),
@@ -241,7 +253,7 @@ def payments_due_summary(db: Session, *, window_days: int = 7) -> dict:
         elif p.due_date <= window_end:
             due_soon.append(p)
             if p.amount_foreign is not None:
-                cur = p.currency_foreign or p.invoice.currency or DEFAULT_IMPORT_CURRENCY
+                cur = normalize_import_currency(p.currency_foreign or p.invoice.currency)
                 amount_by_currency[cur] = amount_by_currency.get(cur, Decimal("0")) + p.amount_foreign
 
     return {

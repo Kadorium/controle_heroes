@@ -8,6 +8,40 @@ export function emptyDash(value: unknown): string {
   return String(value);
 }
 
+/** Valor monetário com separadores pt-BR (ex.: EUR 175.200,00). */
+export function formatMoney(
+  amount: string | number | null | undefined,
+  currency = "EUR",
+): string {
+  if (amount === null || amount === undefined || amount === "") return EMPTY;
+  const n = typeof amount === "number" ? amount : Number(String(amount).trim());
+  if (Number.isNaN(n)) return emptyDash(amount);
+  const formatted = n.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const cur = _normalizeCurrencyLabel(currency);
+  return cur ? `${cur} ${formatted}` : formatted;
+}
+
+function _normalizeCurrencyLabel(currency: string): string {
+  const c = currency.trim().toUpperCase();
+  if (!c) return "EUR";
+  if (c === "USD") return "EUR";
+  return c;
+}
+
+/** Apenas número formatado pt-BR, sem símbolo de moeda. */
+export function formatAmount(amount: string | number | null | undefined): string {
+  if (amount === null || amount === undefined || amount === "") return EMPTY;
+  const n = typeof amount === "number" ? amount : Number(String(amount).trim());
+  if (Number.isNaN(n)) return emptyDash(amount);
+  return n.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 function lookup(map: Record<string, string>, code: string | null | undefined): string {
   if (!code) return EMPTY;
   const key = code.toUpperCase().trim();
@@ -137,6 +171,24 @@ export function fieldLabel(key: string): string {
   return FIELD_LABELS[key] ?? key;
 }
 
+export function productCategoryLabel(code: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    RACKET: "Raquete",
+    BALL: "Bola",
+    BAG_ACCESSORY: "Bolsa/Acessório",
+    APPAREL: "Roupa",
+    PICKLEBALL: "Pickleball",
+    OTHER: "Outro",
+  };
+  if (!code) return EMPTY;
+  return labels[code.toUpperCase()] ?? code;
+}
+
+/** Label de coluna produto — genérico, não assume raquete. */
+export function productModelLabel(_category?: string | null): string {
+  return "Produto / Modelo";
+}
+
 /** Lista para página de glossário */
 export function glossarySections(): Array<{ title: string; entries: Array<{ code: string; label: string }> }> {
   const toEntries = (map: Record<string, string>) =>
@@ -147,6 +199,17 @@ export function glossarySections(): Array<{ title: string; entries: Array<{ code
     { title: "Tipos de fatura", entries: toEntries(INVOICE_TYPE_LABELS) },
     { title: "Embarques", entries: toEntries(SHIPMENT_STATUS_LABELS) },
     { title: "Modal", entries: toEntries(MODAL_LABELS) },
+    {
+      title: "Categoria de produto",
+      entries: [
+        { code: "RACKET", label: "Raquete" },
+        { code: "BALL", label: "Bola" },
+        { code: "BAG_ACCESSORY", label: "Bolsa/Acessório" },
+        { code: "APPAREL", label: "Roupa" },
+        { code: "PICKLEBALL", label: "Pickleball" },
+        { code: "OTHER", label: "Outro" },
+      ],
+    },
     { title: "Termos de tela", entries: toEntries(FIELD_LABELS) },
   ];
 }

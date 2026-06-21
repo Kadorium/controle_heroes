@@ -15,7 +15,8 @@ import {
   type Payment,
 } from "../../api";
 import { EXPENSE_TYPE_LABELS } from "../../constants/demoScenarios";
-import { invoiceTypeLabel, modalLabel, payStatusLabel, shipmentStatusLabel } from "../../i18n/glossario";
+import { formatMoney, invoiceTypeLabel, modalLabel, payStatusLabel, shipmentStatusLabel } from "../../i18n/glossario";
+import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
 import { fmtDate, isPlannedPayment } from "../../utils/formatDate";
 import { Badge, Button, EmptyState, LoadingState, Table, useToast } from "../../components";
 
@@ -170,8 +171,10 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
       </div>
       {scope.summary && (
         <p className="finance-summary-line">
-          Faturado: {scope.summary.total_invoiced} · Pago: {scope.summary.total_paid} · Descontos:{" "}
-          {scope.summary.total_discounts} · Saldo: {scope.summary.consolidated_balance ?? "—"}
+          Faturado: {formatMoney(scope.summary.total_invoiced, scope.currency ?? DEFAULT_IMPORT_CURRENCY)} · Pago:{" "}
+          {formatMoney(scope.summary.total_paid, scope.currency ?? DEFAULT_IMPORT_CURRENCY)} · Descontos:{" "}
+          {formatMoney(scope.summary.total_discounts, scope.currency ?? DEFAULT_IMPORT_CURRENCY)} · Saldo:{" "}
+          {formatMoney(scope.summary.consolidated_balance, scope.currency ?? DEFAULT_IMPORT_CURRENCY)}
         </p>
       )}
       <form className="inline-form" onSubmit={registerPayment}>

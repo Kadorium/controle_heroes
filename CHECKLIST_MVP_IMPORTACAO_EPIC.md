@@ -2097,10 +2097,160 @@ Regras: planejado = `payment_date` null, sem comprovante; liquidado = `payment_d
 
 ---
 
+## Hardening pós-entrega — Central da Ordem
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| H-001 Bug logística — embarques escopados por ordem | DONE | `GET /api/shipments` exige `importation_id` → 422; seed idempotente; LogisticsPanel reset por ordem |
+| H-002 Bug central zerada (DEMO-02-AIR) | DONE | seed PRO-02 + `FinancialSummary` null sem faturas |
+| H-003 Fila ordens — densidade planilha + sort | DONE | `ImportationsPage.tsx` — zebra, nums, sort ▲▼, meta contagem, `formatMoney` |
+| H-004 Browser manual — roteiro completo | PASS | Dashboard, Demo, Fila 16 ordens, Central DEMO-01, Financeiro banners, Glossário, Histórico |
+| H-005 Auditoria dados honestos | PASS | Sem mock fake; `—` onde null; fila ↔ order-queue |
+| H-006 order-queue performance (batch financial) | DONE | `_batch_financial_for_queue` em `order_central.py` |
+| H-007 E2E flaky — seed único + wait API | DONE | `global-setup.ts`, `retries: 0`, `waitForResponse order-queue` |
+| H-008 Suite obrigatória | PASS | pytest **110**; build OK; Playwright **18/18** retries=0 |
+| H-009 validate-local | PASS | `scripts/validate-local.ps1` |
+
+### Testes hardening
+
+| Suite | Resultado |
+|-------|-----------|
+| pytest | **110 passed** |
+| npm run build | OK |
+| Playwright | **18 passed** (`retries=0`) |
+| validate-local | OK |
+
+### Lacunas P1 (não bloqueiam)
+
+- Crédito por raquete na grade Bloco A
+- Performance `quantity_chain` × N ordens na fila (>25s com 16 ordens demo)
+- Financeiro global carrega todos pagamentos (lento com DB grande)
+
+---
+
+## Fase pós-MVP 5 — Limpeza, taxonomia de produtos e importação Heroes
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| F5-001 Reset operacional seguro | DONE | `scripts/reset_operational_test_data.ps1`, `app/scripts/reset_operational_test_data.py`, `RESET_EPIC_TEST_DATA=1` |
+| F5-002 Tabelas limpas vs preservadas | DONE | Limpa importações+cascata; preserva users/roles/supplier Heroes/produtos |
+| F5-003 Product.category migração 007 | DONE | `alembic/007`, enum RACKET/BALL/BAG_ACCESSORY/APPAREL/PICKLEBALL/OTHER |
+| F5-004 Labels produto (não só raquete) | DONE | `glossario.ts` productCategoryLabel; OrderCentralOverview |
+| F5-005 Parser Heroes XLSX | DONE | `app/services/heroes_xlsx_parser.py` v1.1.0 + `parse_it_number` |
+| F5-006 Upload/preview/commit UI | DONE | `HeroesUploadPage.tsx`, API `/heroes/xlsx/*` |
+| F5-007 Idempotência checksum+sheet | DONE | `heroes_import_runs.idempotency_key` |
+| F5-008 Ordem teste Ordine 758 | DONE | Fixture sintética + E2E; real em `data/raw/` quando disponível |
+| F5-009 Testes parser+categorias+reset | DONE | `test_heroes_xlsx_parser.py`, `test_reset_operational.py` |
+| F5-010 Playwright heroes import | DONE | `e2e/heroes-import.spec.ts` |
+
+### Sheets suportadas
+
+| Tipo | Exemplos | Uso |
+|------|----------|-----|
+| ORDER | Ordine 758, 759, 530 PK | Importação primária com preview |
+| FINANCIAL_ANNUAL | 2025, 2026 | Preview auxiliar pagamentos |
+| LOGISTICS | RITIRI HK | Preview embarque/despacho |
+| RECEIPT_AGGREGATE | RACCHETTE DA RICEVERE | QA/conferência apenas |
+
+### Lacunas P1
+
+- ~~Arquivo real `CONTI ITALIA-BRASILE.xlsx` ainda não no repo~~ → **na raiz do projeto** (gitignored); ver Fase 5.1
+- Sheet financeira: vínculo ordem/fatura ambíguo → só preview
+- Crédito por unidade na grade Bloco A (modelagem)
+- Preço listino/fattura do DA SPEDIRE → preview parseado, commit parcial
+
+---
+
+## Fase pós-MVP 5.1 — Profiling da planilha Heroes e formato canônico
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| F5.1-001 Localização planilha (raiz → data/raw → upload) | DONE | `heroes_workbook_paths.py`; API `/heroes/xlsx/locate`, `/load-local` |
+| F5.1-002 Planilha legada ≠ input oficial | DONE | Profiling/preview only; contrato = Heroes Order Import Format v1 |
+| F5.1-003 Profiling read-only CLI | DONE | `python -m app.scripts.profile_heroes_workbook` |
+| F5.1-004 Profiling API/UI | DONE | `POST /heroes/xlsx/profile`; botão **Analisar planilha** |
+| F5.1-005 Classificação sheets + divergência nome/conteúdo | DONE | 14 sheets detectadas; Ordine 759 → conteúdo 907 |
+| F5.1-006 parse_it_number / datas dd/mm | DONE | `app/core/parse_it.py`; teste `10.000,00 €` → 10000.00 |
+| F5.1-007 Células mescladas | DONE | `heroes_merged_cells.py`; merge count no profiling |
+| F5.1-008 Validação totais + multimoeda | DONE | `total_validation` no profiling; warning EUR+BRL |
+| F5.1-009 Heroes Order Import Format v1 | DONE | `heroes_order_format_v1.py` (Pydantic + export) |
+| F5.1-010 Export normalizado CSV/XLSX | DONE | `POST /heroes/xlsx/export`; UI botões ZIP/XLSX |
+| F5.1-011 Preview duas camadas + confirmação commit | DONE | `HeroesUploadPage.tsx`; `confirm_import` + `confirm_sheet_match` |
+| F5.1-012 .gitignore planilha real | DONE | `CONTI ITALIA-BRASILE.xlsx`, `data/raw/*.xlsx` |
+| F5.1-013 Testes 5.1 | DONE | `test_heroes_workbook_51.py` (17 casos + real workbook) |
+
+### Localização real do arquivo
+
+- **Encontrado:** `CONTI ITALIA-BRASILE.xlsx` na **raiz do projeto** (`C:\Users\ricar\Desktop\projetos\EPIC\Controle\`)
+- Ordem de busca: raiz → `data/raw/` → upload UI
+
+### Sheets detectadas (14)
+
+`RITIRI HK`, `RACCHETTE DA RICEVERE`, `2026`, `2025`, `Ordine 759`, `ordine 132`, `ordine 907`, `FLOKY`, `Ordine 758`, `ordine 908 151`, `ordine 42150`, `Ordine 530 PK`, `2027`, `non graficate 2027`
+
+### Classificação por sheet (profiling real)
+
+| Sheet | Tipo | Ordem (nome) | Ordem (conteúdo) | Divergência | Recomendação |
+|-------|------|--------------|------------------|-------------|--------------|
+| Ordine 758 | ORDER | 758 | 758 | não | importar |
+| Ordine 759 | ORDER | 759 | **907** | **SIM** | revisão manual |
+| ordine 907 | ORDER | 907 | 907 | não | importar |
+| ordine 132 | ORDER | 132 | 132 | não | importar |
+| Ordine 530 PK | ORDER | 530 | 530 | não | importar |
+| ordine 908 151 | ORDER | 908 | 908 | não | revisão manual |
+| ordine 42150 | ORDER | 42150 | 42150 | não | importar |
+| 2025 / 2026 | FINANCIAL_ANNUAL | — | — | — | usar como auxiliar |
+| 2027 / non graficate 2027 | FUTURE_PLANNING | — | — | — | usar só para QA |
+| RITIRI HK | LOGISTICS | — | — | — | usar como auxiliar |
+| RACCHETTE DA RICEVERE | RECEIPT_AGGREGATE | — | — | — | usar só para QA |
+| FLOKY | UNKNOWN | — | — | — | revisão manual |
+
+### Divergências relevantes
+
+- **Ordine 759:** nome da sheet = 759, célula interna = `ordine 907` → exige `confirmed_order_number` antes do commit
+- **ordine 42150:** divergência adicional detectada (conteúdo parcial `28` vs nome) → revisão manual
+- Parser **não confia cegamente** no nome da sheet (`order_number_from_content` prevalece no preview)
+
+### Formato canônico Heroes Order Import Format v1
+
+Blocos: `order`, `invoices`, `invoice_items`, `dispatch_pending`, `payments_preview`, `logistics_preview` — ver `app/services/heroes_order_format_v1.py`
+
+### Ordem escolhida para teste real
+
+- **Primária:** `Ordine 758` (consistência nome/conteúdo, recomendação importar)
+- **Alternativa se divergência:** `ordine 907` (sheet correta para conteúdo erroneamente em 759)
+
+### Lacunas P1 (5.1)
+
+- Export padronizado para Itália (CSV limpo) — pedir exportação futura no formato v1
+- Commit parcial: preços listino/DA SPEDIRE ainda preview-only
+- FLOKY: classificação UNKNOWN — revisão manual
+
+### Testes Fase 5.1
+
+| Suite | Resultado |
+|-------|-----------|
+| pytest | **150 passed** (132 + 18 novos) |
+| Playwright | heroes commit exige confirmação; UI profiling |
+| validate-local | ver execução pós-implementação |
+
+### Próxima etapa recomendada
+
+1. Reset operacional (`RESET_EPIC_TEST_DATA=1`)
+2. Profiling → preview `Ordine 758` → export v1 → revisar warnings
+3. Commit com confirmação → validar Central da Ordem Bloco A/B
+4. QA auxiliar: `RITIRI HK` (produtos não-raquete), `Ordine 759` divergência (não importar sem revisão)
+
+
+---
+
 ## Histórico de atualizações
 
 | Data | Versão | Alteração |
 |---|---|---|
+| 2026-06-21 | 2.3 | Fase pós-MVP 5.1 — profiling planilha real; Heroes Order Import Format v1; parse it-IT; export normalizado; 150 pytest |
+| 2026-06-21 | 2.2 | Fase pós-MVP 5 — reset operacional; Product.category; parser Heroes XLSX; upload/preview; migração 007 |
+| 2026-06-21 | 2.1 | Hardening pós-entrega Central da Ordem — bugs logística/financeiro; fila planilha; batch order-queue; 110 pytest; 18 E2E retries=0 |
 | 2026-06-21 | 2.0 | Fase pós-MVP 4 — Central da Ordem; glossário PT; fila ordens; order-central/order-queue API; 107 pytest; 18 E2E |
 | 2026-06-21 | 1.9 | Fase pós-MVP 3 — UX operacional; UI financeira completa; hub; dashboard widgets; demo guiada; 99 pytest; 9 E2E |
 | 2026-06-21 | 1.8 | Auditoria financeira pós-MVP 2 — CONDITIONAL_PASS; Liquidar UI; demo-06 fix; 93 pytest |

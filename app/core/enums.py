@@ -86,6 +86,35 @@ class ReviewQueueStatus(str, Enum):
 
 class SourceSystem(str, Enum):
     HEROES_SPREADSHEET = "HEROES_SPREADSHEET"
+    HEROES_XLSX = "HEROES_XLSX"
+
+
+class ProductCategory(str, Enum):
+    RACKET = "RACKET"
+    BALL = "BALL"
+    BAG_ACCESSORY = "BAG_ACCESSORY"
+    APPAREL = "APPAREL"
+    PICKLEBALL = "PICKLEBALL"
+    OTHER = "OTHER"
+
+
+class HeroesSheetType(str, Enum):
+    ORDER = "ORDER"
+    FINANCIAL_ANNUAL = "FINANCIAL_ANNUAL"
+    LOGISTICS = "LOGISTICS"
+    RECEIPT_AGGREGATE = "RECEIPT_AGGREGATE"
+    FUTURE_PLANNING = "FUTURE_PLANNING"
+    UNKNOWN = "UNKNOWN"
+
+
+class HeroesImportRunStatus(str, Enum):
+    PREVIEW = "PREVIEW"
+    COMMITTED = "COMMITTED"
+    SUPERSEDED = "SUPERSEDED"
+    FAILED = "FAILED"
+
+
+HEROES_XLSX_PARSER_VERSION = "1.1.0"
 
 
 DEFAULT_HEROES_COLUMN_MAPPING: dict[str, str] = {

@@ -370,13 +370,137 @@ export const importsApi = {
     fd.append("file", file);
     return apiForm<{ id: number; row_count: number | null }>("/api/imports/heroes/upload", fd);
   },
+  locateHeroesWorkbook: () => api<HeroesWorkbookLocateResponse>("/api/imports/heroes/xlsx/locate"),
+  profileHeroesWorkbook: () =>
+    api<HeroesWorkbookProfileResponse>("/api/imports/heroes/xlsx/profile", { method: "POST" }),
+  loadHeroesWorkbookLocal: () =>
+    api<HeroesXlsxUploadResponse>("/api/imports/heroes/xlsx/load-local", { method: "POST" }),
+  uploadHeroesXlsx: (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return apiForm<HeroesXlsxUploadResponse>("/api/imports/heroes/xlsx/upload", fd);
+  },
+  previewHeroesXlsx: (rawFileId: number, sheetName: string, confirmedOrderNumber?: string) =>
+    api<HeroesXlsxPreviewResponse>("/api/imports/heroes/xlsx/preview", {
+      method: "POST",
+      body: JSON.stringify({
+        raw_file_id: rawFileId,
+        sheet_name: sheetName,
+        confirmed_order_number: confirmedOrderNumber ?? null,
+      }),
+    }),
+  commitHeroesXlsx: (
+    runId: number,
+    opts?: {
+      categoryOverrides?: Record<string, string>;
+      confirmedOrderNumber?: string;
+      confirmSheetMatch?: boolean;
+      confirmImport?: boolean;
+    },
+  ) =>
+    api<HeroesXlsxCommitResponse>("/api/imports/heroes/xlsx/commit", {
+      method: "POST",
+      body: JSON.stringify({
+        run_id: runId,
+        category_overrides: opts?.categoryOverrides ?? null,
+        confirmed_order_number: opts?.confirmedOrderNumber ?? null,
+        confirm_sheet_match: opts?.confirmSheetMatch ?? false,
+        confirm_import: opts?.confirmImport ?? false,
+      }),
+    }),
+  exportHeroesNormalized: async (runId: number, format: "xlsx" | "zip" = "xlsx") => {
+    const res = await fetch("/api/imports/heroes/xlsx/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ run_id: runId, format }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.blob();
+  },
+  resetOperational: () => api<Record<string, unknown>>("/api/imports/reset-operational", { method: "POST" }),
   approveStaging: (stagingId: number) =>
     api(`/api/imports/staging/${stagingId}/approve`, { method: "POST" }),
 };
 
+export interface HeroesWorkbookProfileSheet {
+  sheet_name: string;
+  sheet_type: string;
+  order_number_from_sheet_name: string | null;
+  order_number_from_content: string | null;
+  order_number_divergence: boolean;
+  parser_confidence: number;
+  recommendation: string;
+  warnings: string[];
+  merged_cell_count: number;
+}
+
+export interface HeroesWorkbookProfileResponse {
+  profiler_version: string;
+  source_file: string | null;
+  resolved_path: string | null;
+  file_checksum: string;
+  sheet_count: number;
+  sheets: HeroesWorkbookProfileSheet[];
+  database_writes: boolean;
+  read_only_mode: boolean;
+  note: string | null;
+}
+
+export interface HeroesWorkbookLocateResponse {
+  found: boolean;
+  resolved_path: string | null;
+  search_paths: string[];
+}
+
+export interface HeroesXlsxSheetInfo {
+  sheet_name: string;
+  sheet_type: string;
+  order_number_hint: string | null;
+  order_number_from_content?: string | null;
+  order_number_divergence?: boolean;
+  parser_confidence?: number | null;
+  recommendation?: string | null;
+}
+
+export interface HeroesXlsxUploadResponse {
+  raw_file_id: number;
+  file_checksum: string;
+  sheets: HeroesXlsxSheetInfo[];
+  workbook_profile?: HeroesWorkbookProfileResponse | null;
+  source_path?: string | null;
+}
+
+export interface HeroesXlsxPreviewResponse {
+  run_id: number;
+  status: string;
+  sheet_name: string;
+  sheet_type: string;
+  order_number: string | null;
+  order_number_from_sheet_name?: string | null;
+  order_number_from_content?: string | null;
+  order_number_divergence?: boolean;
+  preview: Record<string, unknown>;
+  canonical?: Record<string, unknown> | null;
+  warnings: string[] | null;
+  errors: string[] | null;
+  already_committed: boolean;
+  importation_id: number | null;
+}
+
+export interface HeroesXlsxCommitResponse {
+  importation_id: number;
+  po_number: string;
+  run_id: number;
+}
+
 export const shipmentsApi = {
-  list: (importationId: number) =>
-    api<Shipment[]>(`/api/shipments?importation_id=${importationId}`),
+  list: (importationId: number) => {
+    if (!importationId || Number.isNaN(importationId)) {
+      return Promise.reject(new Error("importation_id obrigatório"));
+    }
+    return api<Shipment[]>(`/api/shipments?importation_id=${importationId}`);
+  },
   create: (data: object) =>
     api<Shipment>("/api/shipments", { method: "POST", body: JSON.stringify(data) }),
   changeModal: (shipmentId: number, data: object) =>

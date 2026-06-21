@@ -25,5 +25,8 @@ backups/attachments/*
 logs/*
 !logs/.gitkeep
 
-*.log
+CONTI ITALIA-BRASILE.xlsx
+data/raw/*.xlsx
+data/raw/CONTI ITALIA-BRASILE.xlsx
+
 .DS_Store

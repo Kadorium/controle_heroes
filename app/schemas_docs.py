@@ -73,6 +73,84 @@ class HeroesMappingResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class HeroesXlsxSheetInfo(BaseModel):
+    sheet_name: str
+    sheet_type: str
+    order_number_hint: str | None = None
+    order_number_from_content: str | None = None
+    order_number_divergence: bool = False
+    parser_confidence: float | None = None
+    recommendation: str | None = None
+
+
+class HeroesWorkbookProfileResponse(BaseModel):
+    profiler_version: str
+    source_file: str | None = None
+    resolved_path: str | None = None
+    file_checksum: str
+    sheet_count: int
+    sheets: list[dict]
+    database_writes: bool = False
+    read_only_mode: bool = True
+    note: str | None = None
+
+
+class HeroesXlsxUploadResponse(BaseModel):
+    raw_file_id: int
+    file_checksum: str
+    sheets: list[HeroesXlsxSheetInfo]
+    workbook_profile: HeroesWorkbookProfileResponse | None = None
+    source_path: str | None = None
+
+
+class HeroesWorkbookLocateResponse(BaseModel):
+    found: bool
+    resolved_path: str | None = None
+    search_paths: list[str]
+
+
+class HeroesXlsxPreviewRequest(BaseModel):
+    raw_file_id: int
+    sheet_name: str
+    confirmed_order_number: str | None = None
+
+
+class HeroesXlsxPreviewResponse(BaseModel):
+    run_id: int
+    status: str
+    sheet_name: str
+    sheet_type: str
+    order_number: str | None
+    order_number_from_sheet_name: str | None = None
+    order_number_from_content: str | None = None
+    order_number_divergence: bool = False
+    preview: dict
+    canonical: dict | None = None
+    warnings: list[str] | None = None
+    errors: list[str] | None = None
+    already_committed: bool = False
+    importation_id: int | None = None
+
+
+class HeroesXlsxCommitRequest(BaseModel):
+    run_id: int
+    category_overrides: dict[str, str] | None = None
+    confirmed_order_number: str | None = None
+    confirm_sheet_match: bool = False
+    confirm_import: bool = False
+
+
+class HeroesXlsxExportRequest(BaseModel):
+    run_id: int
+    format: str = "xlsx"  # xlsx | zip
+
+
+class HeroesXlsxCommitResponse(BaseModel):
+    importation_id: int
+    po_number: str
+    run_id: int
+
+
 class ShipmentCreate(BaseModel):
     importation_id: int
     shipment_number: str

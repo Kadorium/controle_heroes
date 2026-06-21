@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
 import { importationsApi, dashboardApi, suppliersApi, type OrderQueueRow, type Supplier } from "../api";
 import { DEFAULT_IMPORT_CURRENCY } from "../constants/currency";
-import { emptyDash, fieldLabel, statusLabel } from "../i18n/glossario";
+import { emptyDash, fieldLabel, formatMoney, statusLabel } from "../i18n/glossario";
 import { fmtDate } from "../utils/formatDate";
 
 type QuickFilter =
@@ -26,7 +26,22 @@ const FILTERS: { id: QuickFilter; label: string }[] = [
   { id: "closure", label: "Pronto para fechamento" },
 ];
 
-type SortKey = "po_number" | "supplier_name" | "status" | "consolidated_balance" | "updated_at";
+type SortKey =
+  | "po_number"
+  | "supplier_name"
+  | "status"
+  | "total_invoiced"
+  | "total_paid"
+  | "consolidated_balance"
+  | "to_dispatch"
+  | "pending_actions_count"
+  | "updated_at";
+
+
+function sortMark(active: boolean, asc: boolean): string {
+  if (!active) return "";
+  return asc ? " ▲" : " ▼";
+}
 
 function yearFrom(iso: string): string {
   return iso ? iso.slice(0, 4) : emptyDash(null);
@@ -91,7 +106,7 @@ export function ImportationsPage() {
       const sups = await suppliersApi.list();
       setSuppliers(sups);
       try {
-        const queue = await importationsApi.orderQueue(200);
+        const queue = await importationsApi.orderQueue(100);
         setRows(queue.items);
       } catch {
         const dash = await dashboardApi.importations(200);
@@ -173,15 +188,38 @@ export function ImportationsPage() {
           vb = b.status;
           break;
         case "consolidated_balance":
-          va = Number(a.consolidated_balance ?? 0);
-          vb = Number(b.consolidated_balance ?? 0);
+          va = Number(a.consolidated_balance ?? NaN);
+          vb = Number(b.consolidated_balance ?? NaN);
+          break;
+        case "total_invoiced":
+          va = Number(a.total_invoiced ?? NaN);
+          vb = Number(b.total_invoiced ?? NaN);
+          break;
+        case "total_paid":
+          va = Number(a.total_paid ?? NaN);
+          vb = Number(b.total_paid ?? NaN);
+          break;
+        case "to_dispatch":
+          va = a.to_dispatch ?? NaN;
+          vb = b.to_dispatch ?? NaN;
+          break;
+        case "pending_actions_count":
+          va = a.pending_actions_count;
+          vb = b.pending_actions_count;
           break;
         case "updated_at":
           va = a.updated_at ?? a.created_at;
           vb = b.updated_at ?? b.created_at;
           break;
       }
-      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      const cmp =
+        typeof va === "number" && typeof vb === "number" && (Number.isNaN(va) || Number.isNaN(vb))
+          ? (Number.isNaN(va) ? 1 : Number.isNaN(vb) ? -1 : 0)
+          : va < vb
+            ? -1
+            : va > vb
+              ? 1
+              : 0;
       return sortAsc ? cmp : -cmp;
     });
     return list;
@@ -275,32 +313,44 @@ export function ImportationsPage() {
         ))}
       </div>
 
+      <p className="order-queue__meta">
+        {filtered.length} de {rows.length} ordens · clique no cabeçalho para ordenar
+      </p>
+
       {filtered.length === 0 ? (
         <EmptyState title="Nenhuma ordem encontrada" />
       ) : (
         <div className="order-queue__scroll">
-          <Table>
+          <Table className="order-queue__table">
             <thead>
               <tr>
                 <th className="sortable" onClick={() => toggleSort("po_number")}>
-                  Ordem
+                  Ordem{sortMark(sortKey === "po_number", sortAsc)}
                 </th>
                 <th>Ano</th>
                 <th className="sortable" onClick={() => toggleSort("supplier_name")}>
-                  Fornecedor
+                  Fornecedor{sortMark(sortKey === "supplier_name", sortAsc)}
                 </th>
                 <th className="sortable" onClick={() => toggleSort("status")}>
-                  Status
+                  Status{sortMark(sortKey === "status", sortAsc)}
                 </th>
-                <th>Valor faturado</th>
-                <th>Pago</th>
+                <th className="sortable num" onClick={() => toggleSort("total_invoiced")}>
+                  Valor faturado{sortMark(sortKey === "total_invoiced", sortAsc)}
+                </th>
+                <th className="sortable num" onClick={() => toggleSort("total_paid")}>
+                  Pago{sortMark(sortKey === "total_paid", sortAsc)}
+                </th>
                 <th className="sortable num" onClick={() => toggleSort("consolidated_balance")}>
-                  Saldo a pagar
+                  Saldo a pagar{sortMark(sortKey === "consolidated_balance", sortAsc)}
                 </th>
-                <th>A despachar</th>
-                <th>Pendências</th>
+                <th className="sortable num" onClick={() => toggleSort("to_dispatch")}>
+                  A despachar{sortMark(sortKey === "to_dispatch", sortAsc)}
+                </th>
+                <th className="sortable num" onClick={() => toggleSort("pending_actions_count")}>
+                  Pendências{sortMark(sortKey === "pending_actions_count", sortAsc)}
+                </th>
                 <th className="sortable" onClick={() => toggleSort("updated_at")}>
-                  Atualização
+                  Atualização{sortMark(sortKey === "updated_at", sortAsc)}
                 </th>
                 <th></th>
               </tr>
@@ -320,23 +370,11 @@ export function ImportationsPage() {
                   <td>
                     <Badge status={r.status}>{statusLabel(r.status)}</Badge>
                   </td>
-                  <td className="num">
-                    {r.total_invoiced != null
-                      ? `${r.currency} ${Number(r.total_invoiced).toLocaleString("pt-BR")}`
-                      : emptyDash(null)}
-                  </td>
-                  <td className="num">
-                    {r.total_paid != null
-                      ? `${r.currency} ${Number(r.total_paid).toLocaleString("pt-BR")}`
-                      : emptyDash(null)}
-                  </td>
-                  <td className="num">
-                    {r.consolidated_balance != null
-                      ? `${r.currency} ${Number(r.consolidated_balance).toLocaleString("pt-BR")}`
-                      : emptyDash(null)}
-                  </td>
+                  <td className="num">{formatMoney(r.total_invoiced, r.currency)}</td>
+                  <td className="num">{formatMoney(r.total_paid, r.currency)}</td>
+                  <td className="num">{formatMoney(r.consolidated_balance, r.currency)}</td>
                   <td className="num">{r.to_dispatch ?? emptyDash(null)}</td>
-                  <td className="num">{r.pending_actions_count || emptyDash(null)}</td>
+                  <td className="num">{r.pending_actions_count > 0 ? r.pending_actions_count : emptyDash(null)}</td>
                   <td>{fmtDate(r.updated_at ?? r.created_at)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.id}/resumo`)}>

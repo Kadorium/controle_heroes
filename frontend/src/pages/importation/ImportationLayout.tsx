@@ -20,7 +20,8 @@ import {
   type Invoice,
   type Payment,
 } from "../../api";
-import { emptyDash, modalLabel, statusLabel } from "../../i18n/glossario";
+import { emptyDash, formatMoney, modalLabel, statusLabel } from "../../i18n/glossario";
+import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
 import { fmtDate } from "../../utils/formatDate";
 import { IMPORTATION_SIDEBAR_GROUPS, type ImportationOutletContext } from "./types";
 
@@ -147,6 +148,7 @@ export function ImportationLayout() {
   }
 
   const currentRail = railIndex(imp.current_status);
+  const currency = imp.currency || DEFAULT_IMPORT_CURRENCY;
   const outletContext: ImportationOutletContext = {
     id,
     imp,
@@ -213,19 +215,19 @@ export function ImportationLayout() {
       <div className="order-central__kpis">
         <div className="order-central__kpi">
           <span className="order-central__kpi-l">Valor faturado</span>
-          <span className="order-central__kpi-v">{summary?.total_invoiced ?? emptyDash(null)}</span>
+          <span className="order-central__kpi-v">{formatMoney(summary?.total_invoiced, currency)}</span>
         </div>
         <div className="order-central__kpi">
           <span className="order-central__kpi-l">Acconto versado</span>
-          <span className="order-central__kpi-v">{summary?.total_paid ?? emptyDash(null)}</span>
+          <span className="order-central__kpi-v">{formatMoney(summary?.total_paid, currency)}</span>
         </div>
         <div className="order-central__kpi">
           <span className="order-central__kpi-l">Acconto rimasto</span>
-          <span className="order-central__kpi-v">{summary?.consolidated_balance ?? emptyDash(null)}</span>
+          <span className="order-central__kpi-v">{formatMoney(summary?.consolidated_balance, currency)}</span>
         </div>
         <div className="order-central__kpi">
           <span className="order-central__kpi-l">Saldo a pagar</span>
-          <span className="order-central__kpi-v">{summary?.consolidated_balance ?? emptyDash(null)}</span>
+          <span className="order-central__kpi-v">{formatMoney(summary?.consolidated_balance, currency)}</span>
         </div>
         <div className="order-central__kpi">
           <span className="order-central__kpi-l">Próximo vencimento</span>

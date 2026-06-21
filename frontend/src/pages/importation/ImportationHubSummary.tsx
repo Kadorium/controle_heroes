@@ -15,6 +15,7 @@ import {
   type TimelineEvent,
 } from "../../api";
 import { Badge, EmptyState, LoadingState } from "../../components";
+import { formatMoney } from "../../i18n/glossario";
 import { fmtDate, fmtDateTime } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 
@@ -154,7 +155,7 @@ export function ImportationHubSummary({
             <dt>Moeda</dt>
             <dd>{imp.currency}</dd>
             <dt>Saldo consolidado</dt>
-            <dd>{summary?.consolidated_balance ?? "—"}</dd>
+            <dd>{formatMoney(summary?.consolidated_balance, imp.currency)}</dd>
             <dt>Próximo vencimento</dt>
             <dd>
               {nextDue?.due_date ? (

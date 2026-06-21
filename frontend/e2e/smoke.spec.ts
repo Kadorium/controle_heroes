@@ -1,21 +1,12 @@
 import { expect, test } from "@playwright/test";
-
-const ADMIN = { email: "admin@epic.com.br", password: "admin123" };
+import { getDemoImportationId } from "./helpers";
 
 /** Valores fictícios do mock-redesign-v2.html que não devem aparecer como métricas reais. */
 const MOCK_FAKE_VALUES = ["R$ 1,84", "R$ 162,6 mil", "R$ 12.300", "R$ 108,4 mil"];
 
 test.describe("Epic Importações — smoke E2E", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
-    await page.getByLabel(/e-mail|email/i).fill(ADMIN.email);
-    await page.getByLabel(/senha|password/i).fill(ADMIN.password);
-    await page.getByRole("button", { name: /entrar|login/i }).click();
-    await expect(page).toHaveURL(/\/(\?.*)?$/);
-    await page.request.post("/api/demo/seed");
-  });
-
   test("topbar com itens principais", async ({ page }) => {
+    await page.goto("/");
     await expect(page.getByRole("link", { name: "Painel" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Ordens" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Financeiro" })).toBeVisible();
@@ -35,13 +26,16 @@ test.describe("Epic Importações — smoke E2E", () => {
   });
 
   test("lista e detalhe de importação demo", async ({ page }) => {
-    const seedRes = await page.request.post("/api/demo/seed");
-    expect(seedRes.ok()).toBeTruthy();
-
+    const queueReady = page.waitForResponse(
+      (r) => r.url().includes("/api/importations/order-queue") && r.ok(),
+      { timeout: 120_000 }
+    );
     await page.goto("/importacoes", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Fila de ordens|Ordens/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.locator(".order-queue__row, .row__po").first()).toBeVisible({ timeout: 45000 });
-    await page.locator(".order-queue__row").first().click();
+    await queueReady;
+    await expect(page.getByRole("heading", { name: /Fila de ordens/i })).toBeVisible({ timeout: 20000 });
+    const firstRow = page.locator(".order-queue__row").first();
+    await expect(firstRow).toBeVisible({ timeout: 15000 });
+    await firstRow.click();
     const sidebar = page.getByRole("complementary");
     await expect(sidebar.getByRole("link", { name: "Visão Geral", exact: true })).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Faturas e pagamentos" })).toBeVisible();
@@ -52,20 +46,14 @@ test.describe("Epic Importações — smoke E2E", () => {
   });
 
   test("conciliação/fechamento e aduaneiro", async ({ page }) => {
-    await page.request.post("/api/demo/seed");
+    const demoId = await getDemoImportationId(page);
 
-    const impsRes = await page.request.get("/api/importations");
-    expect(impsRes.ok()).toBeTruthy();
-    const imps = await impsRes.json();
-    const demo = imps.find((i: { po_number: string }) => i.po_number.startsWith("DEMO-"));
-    expect(demo?.id).toBeTruthy();
-
-    await page.goto(`/importacoes/${demo.id}/conciliacao`);
+    await page.goto(`/importacoes/${demoId}/conciliacao`);
     await expect(page.getByRole("button", { name: /Executar conciliações/i })).toBeVisible({
       timeout: 15000,
     });
 
-    await page.goto(`/importacoes/${demo.id}/aduaneiro`);
+    await page.goto(`/importacoes/${demoId}/aduaneiro`);
     await expect(page.locator("#di-duimp")).toBeVisible({ timeout: 15000 });
     await expect(page.locator("#landed-cost")).toBeVisible();
   });

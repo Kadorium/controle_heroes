@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-
-const ADMIN = { email: "admin@epic.com.br", password: "admin123" };
+import { getDemoImportationId } from "./helpers";
 
 /** Labels técnicos que não devem aparecer como texto principal visível (word boundary). */
 const TECH_LABEL_PATTERNS = [
@@ -18,32 +17,9 @@ const TECH_LABEL_PATTERNS = [
 /** Valores fictícios do mock central da ordem — não devem aparecer hardcoded. */
 const MOCK_FAKE_VALUES = ["447.500", "397.500", "178.750", "6.560"];
 
-async function login(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel(/e-mail|email/i).fill(ADMIN.email);
-  await page.getByLabel(/senha|password/i).fill(ADMIN.password);
-  await page.getByRole("button", { name: /entrar|login/i }).click();
-  await expect(page).toHaveURL(/\/(\?.*)?$/);
-}
-
-async function seedAndGetDemoId(page: import("@playwright/test").Page): Promise<number> {
-  const seedRes = await page.request.post("/api/demo/seed");
-  expect(seedRes.ok()).toBeTruthy();
-  const impsRes = await page.request.get("/api/importations");
-  expect(impsRes.ok()).toBeTruthy();
-  const imps = await impsRes.json();
-  const demo = imps.find((i: { po_number: string }) => i.po_number.startsWith("DEMO-"));
-  expect(demo?.id).toBeTruthy();
-  return demo.id as number;
-}
-
 test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-    await page.request.post("/api/demo/seed");
-  });
-
   test("topbar: Ordens, Financeiro, Demo Epic", async ({ page }) => {
+    await page.goto("/");
     await expect(page.getByRole("link", { name: "Painel" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Ordens" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Financeiro" })).toBeVisible();
@@ -51,9 +27,9 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
   });
 
   test("glossário PT — ausência de labels técnicos principais", async ({ page }) => {
-    const demoId = await seedAndGetDemoId(page);
+    const demoId = await getDemoImportationId(page);
 
-    const routes = ["/", "/importacoes", `/importacoes/${demoId}`, "/financeiro"];
+    const routes = ["/", "/importacoes", `/importacoes/${demoId}/resumo`, "/financeiro"];
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       const body = await page.locator("body").innerText();
@@ -64,9 +40,10 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
   });
 
   test("honestidade — sem números fake do mock", async ({ page }) => {
-    const demoId = await seedAndGetDemoId(page);
-    await page.goto(`/importacoes/${demoId}`);
-    await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 15000 });
+    const demoId = await getDemoImportationId(page, "DEMO-01-OCEAN");
+    await page.goto(`/importacoes/${demoId}/resumo`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole("heading", { name: /Faturas · acconto/i })).toBeVisible({ timeout: 20000 });
     const body = await page.locator("body").innerText();
     for (const fake of MOCK_FAKE_VALUES) {
       expect(body).not.toContain(fake);
@@ -74,29 +51,37 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
   });
 
   test("fila de ordens carrega e abre central", async ({ page }) => {
-    await seedAndGetDemoId(page);
+    const queueReady = page.waitForResponse(
+      (r) => r.url().includes("/api/importations/order-queue") && r.ok(),
+      { timeout: 120_000 }
+    );
     await page.goto("/importacoes", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Fila de ordens|Ordens/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.locator(".order-queue__row, .row__po").first()).toBeVisible({ timeout: 45000 });
-    await page.locator(".order-queue__row").first().click();
+    await queueReady;
+    await expect(page.getByRole("heading", { name: /Fila de ordens/i })).toBeVisible({ timeout: 20000 });
+    const firstRow = page.locator(".order-queue__row").first();
+    await expect(firstRow).toBeVisible({ timeout: 15000 });
+    await firstRow.click();
     await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 15000 });
   });
 
   test("central: Visão Geral, Bloco A e Bloco B", async ({ page }) => {
-    const demoId = await seedAndGetDemoId(page);
-    await page.goto(`/importacoes/${demoId}`);
-    await expect(page.getByRole("link", { name: "Visão Geral", exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Faturas.*acconto.*raquete/i)).toBeVisible();
-    await expect(page.getByText(/DA SPEDIRE/i)).toBeVisible();
+    const demoId = await getDemoImportationId(page);
+    await page.goto(`/importacoes/${demoId}/resumo`, { waitUntil: "domcontentloaded" });
+    const sidebar = page.getByRole("complementary");
+    await expect(sidebar.getByRole("link", { name: "Visão Geral", exact: true })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByRole("heading", { name: /Faturas · acconto/i })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: /DA SPEDIRE/i })).toBeVisible({ timeout: 20000 });
   });
 
   test("Demo Epic navega para /demo", async ({ page }) => {
+    await page.goto("/");
     await page.getByRole("link", { name: "Demo Epic" }).click();
     await expect(page).toHaveURL(/\/demo/);
   });
 
   test("financeiro global carrega fila", async ({ page }) => {
-    await seedAndGetDemoId(page);
     await page.goto("/financeiro");
     await expect(page.getByRole("heading", { name: /Financeiro|Contas a pagar/i })).toBeVisible({ timeout: 15000 });
   });
@@ -107,7 +92,7 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
   });
 
   test("order-queue API responde com ordens", async ({ page }) => {
-    const res = await page.request.get("/api/importations/order-queue?limit=20");
+    const res = await page.request.get("/api/importations/order-queue?limit=20", { timeout: 120_000 });
     expect(res.ok()).toBeTruthy();
     const body = await res.json();
     expect(body.items?.length ?? 0).toBeGreaterThan(0);

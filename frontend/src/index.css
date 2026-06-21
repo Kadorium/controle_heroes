@@ -1775,12 +1775,31 @@ a.row__po:hover {
   background: var(--color-primary-soft);
 }
 .order-queue__scroll { overflow-x: auto; }
+.order-queue__meta {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+.order-queue__table {
+  font-size: var(--font-size-sm);
+}
+.order-queue__table th,
+.order-queue__table td {
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+.order-queue__table tbody tr:nth-child(even) {
+  background: var(--color-sidebar-bg);
+}
 .order-queue__row { cursor: pointer; }
-.order-queue__row:hover { background: var(--color-sidebar-bg); }
+.order-queue__row:hover { background: var(--color-primary-soft) !important; }
 th.sortable { cursor: pointer; user-select: none; }
-th.num, td.num { text-align: right; }
+th.sortable:hover { color: var(--color-primary-deep); }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
-.order-central__head { margin-bottom: var(--space-4); }
+.heroes-upload__section { margin: var(--space-6) 0; }
+.heroes-upload__preview { border-top: 1px solid var(--color-border); padding-top: var(--space-4); }
+.heroes-upload__products { margin: var(--space-4) 0; }
 .order-central__head-top {
   display: flex;
   flex-wrap: wrap;

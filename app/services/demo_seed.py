@@ -49,6 +49,59 @@ def _product(db: Session, sku: str) -> Product:
     return p
 
 
+def _dedupe_demo_shipments(db: Session, importation_id: int, shipment_number: str) -> None:
+    """Mantém um embarque demo ativo por número — corrige re-seeds acumulados."""
+    rows = (
+        db.query(Shipment)
+        .filter(
+            Shipment.importation_id == importation_id,
+            Shipment.shipment_number == shipment_number,
+            Shipment.is_active.is_(True),
+        )
+        .order_by(Shipment.id)
+        .all()
+    )
+    for extra in rows[1:]:
+        extra.is_active = False
+    if len(rows) > 1:
+        db.flush()
+
+
+def _shipment_if_missing(
+    db: Session,
+    importation_id: int,
+    shipment_number: str,
+    modal: str,
+    user_id: int | None,
+    *,
+    bl_number: str | None = None,
+    awb_number: str | None = None,
+) -> Shipment:
+    existing = (
+        db.query(Shipment)
+        .filter(
+            Shipment.importation_id == importation_id,
+            Shipment.shipment_number == shipment_number,
+            Shipment.is_active.is_(True),
+        )
+        .first()
+    )
+    if existing:
+        _dedupe_demo_shipments(db, importation_id, shipment_number)
+        return existing
+    created = create_shipment(
+        db,
+        importation_id=importation_id,
+        shipment_number=shipment_number,
+        modal=modal,
+        user_id=user_id,
+        bl_number=bl_number,
+        awb_number=awb_number,
+    )
+    _dedupe_demo_shipments(db, importation_id, shipment_number)
+    return created
+
+
 def _imp(
     db: Session,
     po: str,
@@ -122,7 +175,7 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
 
     # 1. Marítima simples
     imp1 = _imp(db, "DEMO-01-OCEAN", supplier, product)
-    create_shipment(
+    _shipment_if_missing(
         db,
         importation_id=imp1.id,
         shipment_number="SH-DEMO-01",
@@ -132,9 +185,9 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
     )
     results["ocean_simple"] = imp1.id
 
-    # 2. Aérea simples
+    # 2. Aérea simples — proforma + item para cenário completo na Central da Ordem
     imp2 = _imp(db, "DEMO-02-AIR", supplier, product)
-    create_shipment(
+    _shipment_if_missing(
         db,
         importation_id=imp2.id,
         shipment_number="SH-DEMO-02",
@@ -142,11 +195,39 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
         user_id=user_id,
         awb_number="AWB-D02",
     )
+    item2 = (
+        db.query(ImportationItem)
+        .filter(ImportationItem.importation_id == imp2.id, ImportationItem.is_active.is_(True))
+        .first()
+    )
+    if item2 and not db.query(Invoice).filter(Invoice.importation_id == imp2.id, Invoice.invoice_number == "PRO-02").first():
+        inv2 = Invoice(
+            importation_id=imp2.id,
+            invoice_type="PROFORMA",
+            invoice_number="PRO-02",
+            amount=Decimal("1000"),
+            currency=DEFAULT_IMPORT_CURRENCY,
+        )
+        db.add(inv2)
+        db.flush()
+        from app.models import InvoiceItem
+
+        db.add(
+            InvoiceItem(
+                invoice_id=inv2.id,
+                importation_item_id=item2.id,
+                product_id=item2.product_id,
+                quantity=100,
+                unit_price=Decimal("10"),
+                amount=Decimal("1000"),
+            )
+        )
+        db.flush()
     results["air_simple"] = imp2.id
 
     # 3. Modal change
     imp3 = _imp(db, "DEMO-03-MODAL", supplier, product)
-    ship3 = create_shipment(
+    ship3 = _shipment_if_missing(
         db,
         importation_id=imp3.id,
         shipment_number="SH-DEMO-03",
@@ -157,9 +238,10 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
     from app.models import ReasonCode
 
     rc = db.query(ReasonCode).filter(ReasonCode.code == "MODAL_CHANGE_URGENCY").first()
-    change_shipment_modal(
-        db, ship3, "AIR", user_id=user_id, reason_code_id=rc.id if rc else None, comment="Urgência demo"
-    )
+    if ship3.modal != "AIR":
+        change_shipment_modal(
+            db, ship3, "AIR", user_id=user_id, reason_code_id=rc.id if rc else None, comment="Urgência demo"
+        )
     results["modal_change"] = imp3.id
 
     # 4. 3 invoices com ANTECIPO

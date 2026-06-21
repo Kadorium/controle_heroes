@@ -5,7 +5,12 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from app.config import DEFAULT_IMPORT_CURRENCY
+from app.core.currency import normalize_import_currency
 from app.core.parse import optional_decimal, optional_int
+
+
+def _currency_validator(v: Any) -> str:
+    return normalize_import_currency(v if v is not None else DEFAULT_IMPORT_CURRENCY)
 
 
 class SupplierCreate(BaseModel):
@@ -16,6 +21,13 @@ class SupplierCreate(BaseModel):
     contact_email: str | None = None
     currency_default: str | None = DEFAULT_IMPORT_CURRENCY
 
+    @field_validator("currency_default", mode="before")
+    @classmethod
+    def normalize_supplier_currency(cls, v: Any) -> str | None:
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return DEFAULT_IMPORT_CURRENCY
+        return normalize_import_currency(v)
+
 
 class SupplierUpdate(BaseModel):
     name: str | None = None
@@ -24,6 +36,13 @@ class SupplierUpdate(BaseModel):
     contact_name: str | None = None
     contact_email: str | None = None
     currency_default: str | None = None
+
+    @field_validator("currency_default", mode="before")
+    @classmethod
+    def normalize_supplier_currency(cls, v: Any) -> str | None:
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        return normalize_import_currency(v)
 
 
 class SupplierResponse(BaseModel):
@@ -36,6 +55,13 @@ class SupplierResponse(BaseModel):
     currency_default: str | None
     is_active: bool
 
+    @field_validator("currency_default", mode="before")
+    @classmethod
+    def normalize_supplier_currency(cls, v: Any) -> str | None:
+        if v is None:
+            return None
+        return normalize_import_currency(v)
+
     model_config = {"from_attributes": True}
 
 
@@ -45,6 +71,7 @@ class ProductCreate(BaseModel):
     ncm: str | None = None
     weight_kg: Any = None
     volume_m3: Any = None
+    category: str | None = "OTHER"
 
     @field_validator("weight_kg", "volume_m3", mode="before")
     @classmethod
@@ -57,6 +84,7 @@ class ProductUpdate(BaseModel):
     ncm: str | None = None
     weight_kg: Any = None
     volume_m3: Any = None
+    category: str | None = None
 
     @field_validator("weight_kg", "volume_m3", mode="before")
     @classmethod
@@ -71,6 +99,7 @@ class ProductResponse(BaseModel):
     ncm: str | None
     weight_kg: Decimal | None
     volume_m3: Decimal | None
+    category: str
     is_active: bool
 
     model_config = {"from_attributes": True}
@@ -103,6 +132,11 @@ class ImportationCreate(BaseModel):
     estimated_total: Any = None
     items: list[ImportationItemCreate] = Field(default_factory=list)
 
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, v: Any) -> str:
+        return _currency_validator(v)
+
     @field_validator("estimated_total", mode="before")
     @classmethod
     def parse_decimal(cls, v: Any) -> Decimal | None:
@@ -120,6 +154,11 @@ class ImportationResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime | None = None
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, v: Any) -> str:
+        return _currency_validator(v)
 
     model_config = {"from_attributes": True}
 
@@ -173,6 +212,11 @@ class InvoiceCreate(BaseModel):
     notes: str | None = None
     items: list[InvoiceItemCreate] = Field(default_factory=list)
 
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, v: Any) -> str:
+        return _currency_validator(v)
+
     @field_validator("amount", "discount_amount", "expected_exchange_rate", mode="before")
     @classmethod
     def parse_decimal(cls, v: Any) -> Decimal | None:
@@ -219,6 +263,11 @@ class InvoiceResponse(BaseModel):
     balance: Decimal | None = None
     paid_total: Decimal | None = None
 
+    @field_validator("currency", mode="before")
+    @classmethod
+    def normalize_currency(cls, v: Any) -> str:
+        return _currency_validator(v)
+
     model_config = {"from_attributes": True}
 
 
@@ -240,6 +289,13 @@ class PaymentCreate(BaseModel):
     bank_name: str | None = None
     receipt_reference: str | None = None
     approved_without_receipt: bool = False
+
+    @field_validator("currency_foreign", mode="before")
+    @classmethod
+    def normalize_currency(cls, v: Any) -> str | None:
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        return normalize_import_currency(v)
 
     @field_validator("amount_foreign", "amount_local", "exchange_rate", mode="before")
     @classmethod
@@ -437,8 +493,8 @@ class ExpenseResponse(BaseModel):
 class FinancialSummaryResponse(BaseModel):
     importation_id: int
     currency: str
-    total_invoiced: str
-    total_paid: str
-    total_discounts: str
-    consolidated_balance: str | None
+    total_invoiced: str | None = None
+    total_paid: str | None = None
+    total_discounts: str | None = None
+    consolidated_balance: str | None = None
     invoices: list[dict]

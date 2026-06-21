@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.models import ImportationOrder, Invoice, Payment, Supplier
+from app.models import ImportationOrder, Invoice, Payment, Shipment, Supplier
 
 
 def _uid() -> str:
@@ -269,3 +269,37 @@ def test_importation_response_includes_updated_at(admin_client, importation_with
     assert res.status_code == 200
     assert "updated_at" in res.json()
     assert res.json()["updated_at"] is not None
+
+
+def test_shipments_list_requires_importation_id(admin_client):
+    res = admin_client.get("/api/shipments")
+    assert res.status_code == 422
+
+
+def test_demo_seed_shipments_idempotent(admin_client, db):
+    from app.services.demo_seed import run_demo_seed
+
+    run_demo_seed(db, user_id=1)
+    count1 = db.query(Shipment).filter(Shipment.shipment_number == "SH-DEMO-02").count()
+    run_demo_seed(db, user_id=1)
+    count2 = db.query(Shipment).filter(Shipment.shipment_number == "SH-DEMO-02").count()
+    assert count1 == count2
+    assert count2 >= 1
+
+
+def test_financial_summary_null_when_no_invoices(admin_client, supplier):
+    r = admin_client.post(
+        "/api/importations",
+        json={
+            "po_number": f"PO-NOINV-{_uid()}",
+            "supplier_id": supplier["id"],
+            "currency": "EUR",
+            "incoterm": "FOB",
+        },
+    )
+    assert r.status_code == 201
+    imp_id = r.json()["id"]
+    summary = admin_client.get(f"/api/finance/importations/{imp_id}/summary").json()
+    assert summary["total_invoiced"] is None
+    assert summary["total_paid"] is None
+    assert summary["consolidated_balance"] is None

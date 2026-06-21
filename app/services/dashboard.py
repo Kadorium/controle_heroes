@@ -9,7 +9,7 @@ from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.config import DEFAULT_IMPORT_CURRENCY
+from app.core.currency import normalize_import_currency
 from app.core.enums import (
     RECONCILIATION_TOLERANCE_AMOUNT,
     CustomsDocumentStatus,
@@ -269,7 +269,7 @@ def get_dashboard_summary(db: Session) -> dict:
     for imp in open_imps:
         summary = importation_financial_summary(db, imp)
         bal = summary["consolidated_balance"]
-        cur = imp.currency or DEFAULT_IMPORT_CURRENCY
+        cur = normalize_import_currency(imp.currency)
         if bal is None:
             has_unknown_balance = True
             open_value_by_currency.setdefault(cur, None)

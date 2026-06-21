@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { importationsApi, type OrderCentralResponse } from "../../api";
 import { Badge, LoadingState } from "../../components";
-import { emptyDash, invoiceTypeLabel, payStatusLabel } from "../../i18n/glossario";
+import { emptyDash, formatMoney, invoiceTypeLabel, payStatusLabel, productModelLabel } from "../../i18n/glossario";
 import { fmtDate } from "../../utils/formatDate";
 
 interface Props {
@@ -53,7 +53,7 @@ export function OrderCentralOverview({ importationId }: Props) {
       model: string;
       acconto: string;
       accontoRimasto: string;
-      creditoRaquete: string;
+      creditoProduto: string;
       creditoAccum: string;
       status: string;
       docs: string;
@@ -62,8 +62,8 @@ export function OrderCentralOverview({ importationId }: Props) {
     }> = [];
     for (const inv of data.invoices) {
       const isAntecipo = inv.invoice_type === "ANTECIPO";
-      const acconto = inv.paid_total ? `${inv.currency} ${inv.paid_total}` : emptyDash(null);
-      const rimasto = inv.balance != null ? `${inv.currency} ${inv.balance}` : emptyDash(null);
+      const acconto = inv.paid_total ? formatMoney(inv.paid_total, inv.currency) : emptyDash(null);
+      const rimasto = inv.balance != null ? formatMoney(inv.balance, inv.currency) : emptyDash(null);
       const status = payStatusLabel(Number(inv.balance ?? 0) === 0 ? "PAID" : "PENDING");
       if (inv.items.length === 0) {
         rows.push({
@@ -74,7 +74,7 @@ export function OrderCentralOverview({ importationId }: Props) {
           model: emptyDash(null),
           acconto,
           accontoRimasto: rimasto,
-          creditoRaquete: emptyDash(null), // dado-pendente: crédito por raquete — P1 modelagem
+          creditoProduto: emptyDash(null), // dado-pendente: crédito por produto — P1 modelagem
           creditoAccum: emptyDash(null),
           status,
           docs: "—",
@@ -92,7 +92,7 @@ export function OrderCentralOverview({ importationId }: Props) {
           model: ii.description ?? ii.product_sku ?? emptyDash(null),
           acconto: idx === 0 ? acconto : "",
           accontoRimasto: idx === 0 ? rimasto : "",
-          creditoRaquete: emptyDash(null),
+          creditoProduto: emptyDash(null),
           creditoAccum: emptyDash(null),
           status: idx === 0 ? status : "",
           docs: idx === 0 ? "—" : "",
@@ -114,7 +114,7 @@ export function OrderCentralOverview({ importationId }: Props) {
     <div className="order-central-overview">
       <div className="sheet">
         <div className="sheet-head">
-          <h3>Faturas · acconto · crédito por raquete</h3>
+          <h3>Faturas · acconto · crédito por produto</h3>
           <span className="sheet-count">{data.invoices.length} faturas</span>
         </div>
         <div className="sheet-scroll">
@@ -124,10 +124,10 @@ export function OrderCentralOverview({ importationId }: Props) {
                 <th>Data</th>
                 <th>Nº fatura</th>
                 <th className="num">Qtd</th>
-                <th>Raquete / Produto</th>
+                <th>{productModelLabel()}</th>
                 <th className="num">Acconto</th>
                 <th className="num">Acconto rimasto</th>
-                <th className="num">Crédito/raquete</th>
+                <th className="num">Crédito/unidade</th>
                 <th className="num">Crédito acumulado</th>
                 <th>Status</th>
                 <th>Docs</th>
@@ -158,7 +158,7 @@ export function OrderCentralOverview({ importationId }: Props) {
                     <td>{r.model}</td>
                     <td className="num c-acconto">{r.acconto ? <LockedCell>{r.acconto}</LockedCell> : ""}</td>
                     <td className="num c-acconto">{r.accontoRimasto ? <LockedCell>{r.accontoRimasto}</LockedCell> : ""}</td>
-                    <td className="num c-credito">{r.creditoRaquete}</td>
+                    <td className="num c-credito">{r.creditoProduto}</td>
                     <td className="num c-accum">{r.creditoAccum}</td>
                     <td>{r.status ? <Badge tone="success">{r.status}</Badge> : ""}</td>
                     <td>{r.docs}</td>
@@ -173,8 +173,8 @@ export function OrderCentralOverview({ importationId }: Props) {
                   {blockARows.reduce((s, r) => s + (r.qty ?? 0), 0) || emptyDash(null)}
                 </td>
                 <td></td>
-                <td className="num">{kpis.total_invoiced ?? emptyDash(null)}</td>
-                <td className="num">{kpis.consolidated_balance ?? emptyDash(null)}</td>
+                <td className="num">{formatMoney(kpis.total_invoiced, kpis.currency)}</td>
+                <td className="num">{formatMoney(kpis.consolidated_balance, kpis.currency)}</td>
                 <td colSpan={4}></td>
               </tr>
             </tfoot>
@@ -192,14 +192,14 @@ export function OrderCentralOverview({ importationId }: Props) {
 
       <div className="sheet">
         <div className="sheet-head">
-          <h3>Por modelo · a despachar · preço e desconto (DA SPEDIRE)</h3>
+          <h3>Por {productModelLabel().toLowerCase()} · a despachar · preço e desconto (DA SPEDIRE)</h3>
           <span className="sheet-count">{models.length} modelos</span>
         </div>
         <div className="sheet-scroll">
           <table className="sheet-table">
             <thead>
               <tr>
-                <th>Modelo</th>
+                <th>{productModelLabel()}</th>
                 <th className="num">A despachar</th>
                 <th className="num">Pedida</th>
                 <th className="num">Faturada</th>

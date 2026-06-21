@@ -28,14 +28,17 @@ router = APIRouter(prefix="/shipments", tags=["shipments"])
 
 @router.get("", response_model=list[ShipmentResponse])
 def list_shipments(
+    importation_id: int,
     db: Session = Depends(get_db),
     _: User = Depends(require_permission(PERM_LOGISTICS_READ)),
-    importation_id: int | None = None,
 ):
-    q = db.query(Shipment).filter(Shipment.is_active.is_(True))
-    if importation_id is not None:
-        q = q.filter(Shipment.importation_id == importation_id)
-    return q.order_by(Shipment.created_at).all()
+    """Lista embarques de uma ordem — importation_id obrigatório (evita vazamento global)."""
+    return (
+        db.query(Shipment)
+        .filter(Shipment.is_active.is_(True), Shipment.importation_id == importation_id)
+        .order_by(Shipment.created_at)
+        .all()
+    )
 
 
 @router.post("", response_model=ShipmentResponse, status_code=status.HTTP_201_CREATED)
