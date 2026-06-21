@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Central da Ordem — Epic</title>
+<style>
+  :root{
+    --primary:#2f5fec; --primary-soft:#eaf0fe; --primary-deep:#1b3fb0;
+    --ink:#0f1729; --ink-2:#475569; --ink-3:#94a3b8;
+    --bg:#f6f8fc; --surface:#fff; --line:#e6eaf2; --line-soft:#eef2f8;
+    --nav-bg:#0f1729; --nav-muted:#7c89a0;
+    --ok-bg:#e7f7ee; --ok-tx:#11824a;
+    --warn-bg:#fdf3d9; --warn-tx:#9a6a00;
+    --danger-bg:#fde8e8; --danger-tx:#b91c1c;
+    --info-bg:#e7eefe; --info-tx:#1b3fb0;
+    --neutral-bg:#eef1f6; --neutral-tx:#475569;
+    /* tons da planilha real */
+    --xls-acconto:#e9e9e9; --xls-credito:#f7d9d9; --xls-accum:#e7f3e0;
+    --r-sm:7px; --r-md:10px; --r-lg:14px;
+    --sh-1:0 1px 2px rgba(15,23,41,.06),0 1px 3px rgba(15,23,41,.04);
+    --sh-2:0 4px 14px rgba(15,23,41,.07);
+    --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:28px;
+    font-family:"Inter","Segoe UI",system-ui,sans-serif; font-feature-settings:"tnum" 1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased;font-size:14px}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .banner{background:#0f1729;color:#cbd5e1;text-align:center;padding:6px 16px;font-size:.78rem}
+  .banner b{color:#fff}
+
+  /* topbar mini */
+  .topbar{background:var(--nav-bg);color:#e2e8f0;display:flex;align-items:center;gap:24px;padding:0 24px;height:52px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.95rem}
+  .brand .logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#4f7cff,#2f5fec);display:grid;place-items:center;color:#fff;font-weight:800}
+  .crumb{color:var(--nav-muted);font-size:.85rem;display:flex;gap:8px;align-items:center}
+  .crumb b{color:#fff;font-weight:600}
+
+  .wrap{max-width:1340px;margin:0 auto;padding:var(--s5)}
+
+  /* ───── header da ordem ───── */
+  .order-head{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1);padding:var(--s5);margin-bottom:var(--s4)}
+  .oh-top{display:flex;align-items:flex-start;gap:var(--s4);flex-wrap:wrap}
+  .oh-back{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2)}
+  .oh-back:hover{border-color:var(--ink-3);color:var(--ink)}
+  .oh-title h1{font-size:1.5rem;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  .oh-title .meta{color:var(--ink-2);font-size:.88rem;margin-top:2px}
+  .oh-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:var(--r-md);font-weight:600;font-size:.85rem;transition:.12s;white-space:nowrap}
+  .btn .ico{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .btn--primary{background:var(--primary);color:#fff;box-shadow:var(--sh-1)} .btn--primary:hover{background:var(--primary-deep)}
+  .btn--ghost{background:var(--surface);color:var(--ink-2);border:1px solid var(--line)} .btn--ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* régua de status */
+  .rail{display:flex;align-items:center;gap:0;margin-top:var(--s5);overflow-x:auto;padding-bottom:4px}
+  .stage{display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .stage .dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;flex:none}
+  .stage.done .dot{background:var(--primary);color:#fff}
+  .stage.now .dot{background:var(--warn-bg);color:var(--warn-tx);box-shadow:0 0 0 3px var(--warn-bg)}
+  .stage.todo .dot{background:var(--neutral-bg);color:var(--ink-3)}
+  .stage .lab{font-size:.78rem;font-weight:600;color:var(--ink-2)}
+  .stage.todo .lab{color:var(--ink-3)}
+  .rail .line{width:34px;height:2px;background:var(--line);flex:none;margin:0 4px}
+  .rail .line.done{background:var(--primary)}
+
+  /* ───── KPI cards ───── */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s3);margin-bottom:var(--s4)}
+  @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s3) var(--s4);box-shadow:var(--sh-1)}
+  .kpi .l{font-size:.74rem;color:var(--ink-2);font-weight:600;display:flex;align-items:center;gap:5px}
+  .kpi .v{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;margin-top:5px}
+  .kpi .s{font-size:.72rem;color:var(--ink-3);margin-top:1px}
+  .kpi.alert .v{color:var(--danger-tx)} .kpi.good .v{color:var(--ok-tx)}
+
+  /* ───── alertas ───── */
+  .alerts{display:flex;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s4)}
+  .alert{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;font-size:.8rem;font-weight:600;border:1px solid transparent}
+  .alert .ico{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+  .a-danger{background:var(--danger-bg);color:var(--danger-tx);border-color:#f6c9c9}
+  .a-warn{background:var(--warn-bg);color:var(--warn-tx);border-color:#f0dca8}
+  .alert:hover{filter:brightness(.97)}
+
+  /* ───── abas ───── */
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:var(--s4);overflow-x:auto}
+  .tab{padding:10px 15px;font-size:.88rem;font-weight:600;color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:var(--primary-deep);border-bottom-color:var(--primary)}
+
+  /* ───── grade planilha ───── */
+  .sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-1);overflow:hidden;margin-bottom:var(--s4)}
+  .sheet-head{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);border-bottom:1px solid var(--line-soft)}
+  .sheet-head h3{font-size:.95rem;font-weight:700}
+  .sheet-head .count{font-size:.74rem;font-weight:700;color:var(--primary-deep);background:var(--primary-soft);padding:2px 9px;border-radius:999px}
+  .sheet-head .right{margin-left:auto;display:flex;gap:6px}
+  .mini{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);font-size:.8rem;font-weight:600;color:var(--ink-2)}
+  .mini:hover{border-color:var(--primary);color:var(--primary)}
+  .mini .ico{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:.84rem;white-space:nowrap}
+  thead th{background:#f8fafc;text-align:left;font-weight:700;color:var(--ink-2);padding:9px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em}
+  th.num,td.num{text-align:right}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+  tbody tr:hover{background:#fafbfe}
+  tbody tr:last-child td{border-bottom:none}
+  .grp-first td{border-top:2px solid var(--line)}
+  td .po{font-weight:700}
+  .editable{position:relative;cursor:text;border-radius:5px}
+  .editable:hover{box-shadow:inset 0 0 0 1px #c5d6fd;background:var(--primary-soft)}
+  .editable::after{content:"✎";position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--primary);opacity:0}
+  .editable:hover::after{opacity:.7}
+  .locked{color:var(--ink);background:repeating-linear-gradient(45deg,transparent,transparent 6px,#f4f6fb 6px,#f4f6fb 7px)}
+  .flag-it{font-size:.64rem;font-weight:700;color:#9a6a00;background:var(--warn-bg);padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:700}
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .b-info{background:var(--info-bg);color:var(--info-tx)} .b-ok{background:var(--ok-bg);color:var(--ok-tx)}
+  .b-warn{background:var(--warn-bg);color:var(--warn-tx)} .b-danger{background:var(--danger-bg);color:var(--danger-tx)}
+  .b-neutral{background:var(--neutral-bg);color:var(--neutral-tx)}
+
+  /* cores de coluna estilo planilha */
+  td.c-acconto{background:#f3f3f3}
+  td.c-credito{background:#fbeeee}
+  td.c-accum{background:#eef6e9}
+  tfoot td{background:#f8fafc;font-weight:800;border-top:2px solid var(--line);padding:10px 12px}
+
+  /* progress mini */
+  .prog{display:flex;align-items:center;gap:8px}
+  .prog .track{width:90px;height:7px;background:var(--line);border-radius:999px;overflow:hidden}
+  .prog .fill{height:100%;background:var(--primary);border-radius:999px}
+  .prog .pct{font-size:.74rem;color:var(--ink-3);font-weight:700}
+
+  .note{font-size:.78rem;color:var(--ink-3);padding:var(--s3) var(--s4)}
+  .legend{display:flex;gap:var(--s4);flex-wrap:wrap;font-size:.76rem;color:var(--ink-2);padding:var(--s3) var(--s4);border-top:1px solid var(--line-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:18px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="banner">Mock estático — <b>Central da Ordem</b> espelhando a planilha real (ordine 758). Não conecta à API.</div>
+
+<header class="topbar">
+  <div class="brand"><span class="logo">E</span> Epic</div>
+  <div class="crumb">Importações <span>›</span> <b>Ordem 758</b></div>
+</header>
+
+<div class="wrap">
+
+  <!-- HEADER DA ORDEM -->
+  <div class="order-head">
+    <div class="oh-top">
+      <button class="oh-back"><svg class="ico" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="oh-title">
+        <h1>Ordem 758 <span class="badge b-warn">Parcialmente faturada · a despachar</span></h1>
+        <div class="meta">Heroes · 2026 · moeda EUR · responsável Ricardo · atualizado hoje 14:20</div>
+      </div>
+      <div class="oh-actions">
+        <button class="btn btn--ghost"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Fatura</button>
+        <button class="btn btn--ghost"><svg class="ico" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pagamento</button>
+        <button class="btn btn--ghost"><svg class="ico" viewBox="0 0 24 24"><path d="M3 7h13l4 4v6H3z"/></svg> Despacho</button>
+        <button class="btn btn--ghost"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Anexar</button>
+        <button class="btn btn--primary"><svg class="ico" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Conciliar / fechar</button>
+      </div>
+    </div>
+
+    <!-- RÉGUA DE STATUS -->
+    <div class="rail">
+      <div class="stage done"><span class="dot">✓</span><span class="lab">Pedido</span></div>
+      <div class="line done"></div>
+      <div class="stage done"><span class="dot">✓</span><span class="lab">Faturado</span></div>
+      <div class="line done"></div>
+      <div class="stage done"><span class="dot">✓</span><span class="lab">Acconto</span></div>
+      <div class="line done"></div>
+      <div class="stage now"><span class="dot">●</span><span class="lab">A despachar</span></div>
+      <div class="line"></div>
+      <div class="stage todo"><span class="dot">4</span><span class="lab">Em trânsito</span></div>
+      <div class="line"></div>
+      <div class="stage todo"><span class="dot">5</span><span class="lab">Aduana</span></div>
+      <div class="line"></div>
+      <div class="stage todo"><span class="dot">6</span><span class="lab">Estoque</span></div>
+      <div class="line"></div>
+      <div class="stage todo"><span class="dot">7</span><span class="lab">Fechado</span></div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi"><div class="l">Valor faturado</div><div class="v">€ 447.500</div><div class="s">15 faturas</div></div>
+    <div class="kpi"><div class="l">Acconto versado</div><div class="v">€ 397.500</div><div class="s">acconto rimasto € 50.000</div></div>
+    <div class="kpi good"><div class="l">Saldo a pagar</div><div class="v">€ 50.000</div><div class="s">próx. 23/jun</div></div>
+    <div class="kpi"><div class="l">Crédito acumulado</div><div class="v">€ 178.750</div><div class="s">Heroes Brasil</div></div>
+    <div class="kpi"><div class="l">A despachar</div><div class="v">300 <span style="font-size:.8rem;color:var(--ink-3)">un</span></div><div class="s">de 6.560 pedidas</div></div>
+    <div class="kpi alert"><div class="l">Pendências</div><div class="v">4</div><div class="s">1 bloqueia fechamento</div></div>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="alerts">
+    <button class="alert a-danger"><svg class="ico" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> DI/DUIMP pendente</button>
+    <button class="alert a-warn"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Pagamento 23/jun vencendo</button>
+    <button class="alert a-warn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 7h13l4 4v6H3z"/></svg> 300 un. "arion" a despachar</button>
+    <button class="alert a-warn"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Fatura 343 sem comprovante</button>
+  </div>
+
+  <!-- ABAS -->
+  <div class="tabs">
+    <button class="tab on">Visão geral</button>
+    <button class="tab">Faturas e pagamentos</button>
+    <button class="tab">Produtos e quantidades</button>
+    <button class="tab">Logística</button>
+    <button class="tab">Crédito / conta corrente</button>
+    <button class="tab">Documentos</button>
+    <button class="tab">Aduana e custos BR</button>
+    <button class="tab">Landed cost</button>
+    <button class="tab">Histórico</button>
+  </div>
+
+  <!-- ───── GRADE 1: FATURAS × QUANTIDADE × RAQUETE (espelha a planilha) ───── -->
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Faturas · acconto · crédito por raquete</h3>
+      <span class="count">espelha a planilha 758</span>
+      <div class="right">
+        <button class="mini"><svg class="ico" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2"/></svg> Filtrar</button>
+        <button class="mini"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Excel</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Nº fatura</th><th class="num">Qtd</th><th>Raquete</th>
+            <th class="num">Acconto</th><th class="num">Acconto rimasto</th>
+            <th class="num">Crédito/raquete</th><th class="num">Crédito acumulado</th>
+            <th>Status</th><th>Docs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="grp-first">
+            <td>06/11/25</td><td class="po">737</td><td class="num">200</td><td>starlight</td>
+            <td class="num c-acconto">€ 10.000</td><td class="num c-acconto">€ 387.500</td>
+            <td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 5.000</td>
+            <td><span class="badge b-ok">Pago</span></td><td><span class="badge b-ok">OK</span></td>
+          </tr>
+          <tr class="grp-first">
+            <td>13/11/25</td><td class="po">742</td><td class="num">100</td><td>starlight</td>
+            <td class="num c-acconto">€ 5.000</td><td class="num c-acconto">€ 382.500</td>
+            <td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 2.500</td>
+            <td><span class="badge b-ok">Pago</span></td><td><span class="badge b-ok">OK</span></td>
+          </tr>
+          <tr class="grp-first">
+            <td>08/01/26</td><td class="po">6</td><td class="num">100</td><td>aura</td>
+            <td class="num c-acconto">€ 5.000</td><td class="num c-acconto" rowspan="3" style="vertical-align:middle">€ 332.500</td>
+            <td class="num c-credito">€ 35,00</td><td class="num c-accum">€ 3.500</td>
+            <td rowspan="3" style="vertical-align:middle"><span class="badge b-ok">Pago</span></td>
+            <td rowspan="3" style="vertical-align:middle"><span class="badge b-ok">OK</span></td>
+          </tr>
+          <tr>
+            <td></td><td></td><td class="num">200</td><td>fierce</td>
+            <td class="num c-acconto">€ 10.000</td>
+            <td class="num c-credito">€ 35,00</td><td class="num c-accum">€ 7.000</td>
+          </tr>
+          <tr>
+            <td></td><td></td><td class="num">200</td><td>bull</td>
+            <td class="num c-acconto">€ 10.000</td>
+            <td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 5.000</td>
+          </tr>
+          <tr class="grp-first">
+            <td>21/01/26</td><td class="po">20</td><td class="num">500</td><td>fierce</td>
+            <td class="num c-acconto" rowspan="5" style="vertical-align:middle">€ 82.500</td>
+            <td class="num c-acconto" rowspan="5" style="vertical-align:middle">€ 230.000</td>
+            <td class="num c-credito">€ 35,00</td><td class="num c-accum">€ 17.500</td>
+            <td rowspan="5" style="vertical-align:middle"><span class="badge b-ok">Pago</span></td>
+            <td rowspan="5" style="vertical-align:middle"><span class="badge b-warn">parcial</span></td>
+          </tr>
+          <tr><td></td><td></td><td class="num">500</td><td>bull 26</td><td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 12.500</td></tr>
+          <tr><td></td><td></td><td class="num">100</td><td>aura</td><td class="num c-credito">€ 35,00</td><td class="num c-accum">€ 3.500</td></tr>
+          <tr><td></td><td></td><td class="num">350</td><td>show 26</td><td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 8.750</td></tr>
+          <tr><td></td><td></td><td class="num">200</td><td>starlight</td><td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 5.000</td></tr>
+          <tr class="grp-first">
+            <td><span class="editable">20/04/26</span></td><td class="po">245</td><td class="num">550</td><td>fierce</td>
+            <td class="num c-acconto" rowspan="2" style="vertical-align:middle">€ 31.500</td>
+            <td class="num c-acconto" rowspan="2" style="vertical-align:middle">€ 92.000</td>
+            <td class="num c-credito">€ 35,00</td><td class="num c-accum">€ 19.250</td>
+            <td rowspan="2" style="vertical-align:middle"><span class="badge b-info">a despachar</span></td>
+            <td rowspan="2" style="vertical-align:middle"><span class="badge b-ok">OK</span></td>
+          </tr>
+          <tr><td></td><td></td><td class="num">80</td><td>show 26</td><td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 2.000</td></tr>
+          <tr class="grp-first">
+            <td>28/05/26</td><td class="po">343</td><td class="num">300</td><td>arion</td>
+            <td class="num c-acconto">€ 15.000</td><td class="num c-acconto">€ 50.000</td>
+            <td class="num c-credito">€ 25,00</td><td class="num c-accum">€ 7.500</td>
+            <td><span class="badge b-info">a despachar</span></td><td><span class="badge b-danger">falta compr.</span></td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">Totais</td>
+            <td class="num">6.560</td><td></td>
+            <td class="num">€ 447.500</td><td class="num">€ 50.000</td>
+            <td></td><td class="num">€ 178.750</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="legend">
+      <span><i style="background:#f3f3f3"></i> acconto (origem Itália)</span>
+      <span><i style="background:#fbeeee"></i> crédito/raquete</span>
+      <span><i style="background:#eef6e9"></i> crédito acumulado</span>
+      <span><span class="flag-it">IT</span> campo da Itália — bloqueado p/ edição direta</span>
+      <span>✎ editável inline (campo Brasil)</span>
+    </div>
+  </div>
+
+  <!-- ───── GRADE 2: resumo por raquete (DA SPEDIRE) ───── -->
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Por modelo · a despachar · preço e desconto</h3>
+      <span class="count">6 modelos</span>
+      <div class="right"><button class="mini"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Excel</button></div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Modelo</th><th class="num">A despachar</th><th class="num">Pedida</th><th class="num">Despachada</th><th>Progresso</th>
+            <th class="num">Preço listino</th><th class="num">Preço fattura</th><th class="num">Sconto</th><th class="num">Acconto</th><th class="num">Crédito rimasto</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>starlight 26</b></td><td class="num">0</td><td class="num">1.550</td><td class="num">1.550</td>
+            <td><div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pct">100%</span></div></td>
+            <td class="num locked">€ 131,66</td><td class="num">€ 106,66</td><td class="num c-credito">€ 25,00</td><td class="num c-acconto">€ 100.000</td><td class="num">€ 0</td></tr>
+          <tr><td><b>aura</b></td><td class="num">0</td><td class="num">360</td><td class="num">360</td>
+            <td><div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pct">100%</span></div></td>
+            <td class="num locked">€ 87,53</td><td class="num">€ 52,53</td><td class="num c-credito">€ 35,00</td><td class="num c-acconto">€ 30.000</td><td class="num">€ 0</td></tr>
+          <tr><td><b>fierce</b></td><td class="num">0</td><td class="num">1.250</td><td class="num">1.250</td>
+            <td><div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pct">100%</span></div></td>
+            <td class="num locked">€ 132,16</td><td class="num">€ 97,16</td><td class="num c-credito">€ 35,00</td><td class="num c-acconto">€ 87.500</td><td class="num">€ 0</td></tr>
+          <tr><td><b>bull 26</b></td><td class="num">0</td><td class="num">700</td><td class="num">700</td>
+            <td><div class="prog"><div class="track"><div class="fill" style="width:100%"></div></div><span class="pct">100%</span></div></td>
+            <td class="num locked">€ 112,12</td><td class="num">€ 87,12</td><td class="num c-credito">€ 25,00</td><td class="num c-acconto">€ 50.000</td><td class="num">€ 0</td></tr>
+          <tr><td><b>arion</b></td><td class="num" style="color:var(--warn-tx);font-weight:800">300</td><td class="num">300</td><td class="num">0</td>
+            <td><div class="prog"><div class="track"><div class="fill" style="width:0%"></div></div><span class="pct">0%</span></div></td>
+            <td class="num locked">—</td><td class="num">—</td><td class="num c-credito">€ 25,00</td><td class="num c-acconto">€ 15.000</td><td class="num">€ 15.000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">A coluna "A despachar" replica o bloco <b>DA SPEDIRE</b> da planilha. "arion" é o único modelo pendente — destacado e ligado ao alerta acima.</div>
+  </div>
+
+</div>
+</body>
+</html>

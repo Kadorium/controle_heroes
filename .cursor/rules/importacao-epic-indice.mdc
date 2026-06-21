@@ -1,0 +1,122 @@
+---
+description: Índice do MVP Importação Epic — roteia tarefas para CURSOR_RULES e CHECKLIST
+alwaysApply: true
+---
+
+# Importação Epic — índice de regras (Cursor)
+
+**Fonte canônica:** leia antes de implementar ou alterar comportamento de negócio.
+
+| Documento | Caminho | Uso |
+|---|---|---|
+| Regras permanentes | `CURSOR_RULES_IMPORTACAO_EPIC.md` | O **como** e **por quê** de cada módulo |
+| Checklist vivo | `CHECKLIST_MVP_IMPORTACAO_EPIC.md` | O **o quê** implementar, status, testes, evidência |
+
+**Não duplique regras aqui.** Use este arquivo só como roteador. Abra a seção indicada em `CURSOR_RULES` e os itens `Fx-xxx` no checklist.
+
+---
+
+## Fluxo obrigatório
+
+1. Identifique a **fase** (0–12) e o **módulo** da tarefa (tabelas abaixo).
+2. Leia as **§** correspondentes em `CURSOR_RULES_IMPORTACAO_EPIC.md`.
+3. Confira itens **P0** no checklist; respeite `BLOCKED` (não contornar).
+4. Após implementar: atualize checklist (`status`, `evidência`, `teste`); item `DONE` exige ambos.
+
+---
+
+## Regras de ouro (sempre ativas)
+
+1. Campo vazio **nunca** vira zero → `null` / `pending_review`.
+2. Dado bruto → staging → revisão → oficial.
+3. Dado oficial: **anular**, nunca deletar fisicamente.
+4. Custo/pagamento/desconto/imposto exige **origem documental**.
+5. Divergência vira **conciliação** ou **review_queue** — não some.
+6. Status muda por **ação controlada** (documental + permissão + conciliação).
+
+---
+
+## Índice por tema → `CURSOR_RULES` §
+
+| Se trabalhar em… | Ler § | Checklist (fase / itens) |
+|---|---|---|
+| Escopo, o que não fazer | §1 | F0-001, F0-002 |
+| Stack, tecnologias, proibições | §2 | F0-003, F0-004 |
+| Servidor local, rede, pastas, porta única | §3 | Fase 1 · F1-001–F1-009 |
+| Camadas bruto/staging/oficial, migrações | §4 | Fase 5 · F5-004–F5-008; F2-014 |
+| Modal, embarques múltiplos, ANTECIPO antecipado | §5 | F3-006, F6-005, F6-006 |
+| Audit log + log técnico | §6 | Fase 2 · F2-006–F2-008 |
+| Backup, restore, Task Scheduler | §7 | F2-010–F2-013, F12-004–F12-005 |
+| Invoices, proforma, tipos, ANTECIPO | §8 | Fase 3 · F3-005–F3-007 |
+| Pagamentos, saldos, comprovantes | §9 | Fase 4 · F4-001–F4-006 |
+| Câmbio versionado por pagamento | §10 | F4-003, F4-004 |
+| Desconto vs crédito vs conta corrente BR | §11 | F4-007–F4-010 |
+| Planejado / revisado / realizado | §12 | Transversal; F9-002 |
+| Logística AIR/OCEAN, troca de modal | §13 | Fase 6 · F6-001–F6-008 |
+| DI/DUIMP, nacionalização, estoque mínimo | §14 | Fases 7–8 · F7-*, F8-* |
+| Quantidades por SKU (pedida→estoque) | §15 | F6-008, F8-004, F10-006 |
+| Landed cost, rateio, versões | §16 | Fase 9 · F9-001–F9-007 |
+| Status, máquina de estados, bloqueios | §17 | F3-008, F11-001, F11-008 |
+| Conciliação, pares, tolerâncias | §18 | Fase 10 · F10-*; **F0-005 BLOCKED** |
+| Fechamento, snapshot, reabertura | §19 | Fase 11 · F11-002–F11-006 |
+| Permissões por ação crítica | §20 | F2-005 |
+| Soft delete / anulação | §21 | F2-014 |
+| Reason codes | §22 | F2-009, F0-010 |
+| Docs obrigatórios por fase | §23 | F5-010 |
+| UI hub relacional, abas do processo | §24 | F3-009, F11-007 |
+| pytest, browser, checklist DONE | §25 | Fase 12 · F12-002–F12-003 |
+| Governança de docs (só 2 .md oficiais) | §26 | — |
+
+---
+
+## Índice por fase de execução → ler primeiro
+
+| Fase | Nome | § principais | Itens checklist |
+|---|---|---|---|
+| 0 | Decisões | §1–§2 | F0-001–F0-010 |
+| 1 | Arquitetura local | §2–§3 | F1-001–F1-009 |
+| 2 | Governança | §3–§7, §20–§22 | F2-001–F2-015 |
+| 3 | Importações / invoices | §5, §8, §17 | F3-001–F3-010 |
+| 4 | Financeiro | §9–§11 | F4-001–F4-013 |
+| 5 | Documentos / Heroes | §4, §23 | F5-001–F5-010; **F5-007 BLOCKED** |
+| 6 | Logística | §5, §13, §15 | F6-001–F6-008 |
+| 7 | Aduana | §14 | F7-001–F7-006 |
+| 8 | Nacionalização / estoque | §14–§15 | F8-001–F8-005 |
+| 9 | Landed cost | §12, §16 | F9-001–F9-007 |
+| 10 | Conciliação | §18 | F10-001–F10-009 |
+| 11 | Fechamento | §17, §19 | F11-001–F11-009 |
+| 12 | Testes / demo | §25, §7 | F12-001–F12-008 |
+
+Ordem de implementação: **0 → 1 → 2 → … → 12**. Não pular fase sem critério de pronto da anterior.
+
+---
+
+## Índice por tipo de arquivo (aprofundar)
+
+| Padrão | § extra recomendadas |
+|---|---|
+| `app/**/*.py`, `alembic/**` | §2, §4, §6, §7, §20–§21 |
+| `frontend/**/*.{ts,tsx}` | §2, §24, §25 |
+| `scripts/**/*.ps1` | §3, §7 |
+| `tests/**` | §25 + § da feature testada |
+| Modelos invoice/payment/câmbio | §8–§11 |
+| Modelos shipment/customs/stock | §13–§15 |
+| Landed cost / conciliação | §16, §18 |
+
+---
+
+## Bloqueios conhecidos (não implementar sem destravar)
+
+| ID | Tema | Ação |
+|---|---|---|
+| F0-005 / L-001 | Tolerâncias conciliação | Aguardar financeiro Epic |
+| F0-006 / L-001 | Planilha Heroes | Aguardar exemplo anonimizado |
+| F0-007 / L-003 | Conta corrente BR / fiscal | Aguardar política |
+
+Ver seção **Relatório de lacunas** em `CHECKLIST_MVP_IMPORTACAO_EPIC.md`.
+
+---
+
+## Stack (resumo — detalhes em §2)
+
+FastAPI + SQLAlchemy + Alembic + Pydantic + PostgreSQL local + React/TS/Vite (build servido pelo backend, **porta única**). **Proibido:** Docker, Next.js, Electron, SQLite/Access/Excel como base, microservices, cloud.

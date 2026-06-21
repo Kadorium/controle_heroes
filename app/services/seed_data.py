@@ -1,0 +1,15 @@
+REASON_CODES_SEED = [
+    ("REOPEN_QTY_DISCREPANCY", "reabertura", "Divergência de quantidade", "Reabrir por divergência de quantidade", False),
+    ("REOPEN_FINANCIAL_DISCREPANCY", "reabertura", "Divergência financeira/cambial", "Reabrir por diferença financeira ou cambial", False),
+    ("REOPEN_DOCUMENT_CORRECTION", "reabertura", "Correção documental", "Reabrir por documento incorreto ou substituído", True),
+    ("CANCEL_SUPPLIER_REQUEST", "cancelamento", "Solicitação do fornecedor", "Cancelamento solicitado pelo fornecedor", True),
+    ("CANCEL_INTERNAL_DECISION", "cancelamento", "Decisão interna", "Cancelamento por decisão interna", True),
+    ("DISCREPANCY_PRICE", "divergencia", "Divergência de preço", "Divergência de preço unitário ou total", True),
+    ("DISCREPANCY_QUANTITY", "divergencia", "Divergência de quantidade", "Divergência de quantidade", True),
+    ("DISCREPANCY_EXCHANGE_RATE", "divergencia", "Divergência cambial", "Divergência de taxa ou contrato de câmbio", True),
+    ("MODAL_CHANGE_COST", "logistica", "Mudança de modal por custo", "Alteração de modal por custo", True),
+    ("MODAL_CHANGE_URGENCY", "logistica", "Mudança de modal por urgência", "Alteração de modal por urgência/prazo", True),
+    ("LANDED_COST_OVERRIDE", "custo", "Override landed cost", "Ajuste manual de landed cost", True),
+    ("OFFICIAL_DOC_REPLACED", "documento", "Documento oficial substituído", "Substituição de documento oficial", True),
+    ("USER_CANCEL", "cancelamento", "Anulação de usuário", "Anulação/inativação de usuário no sistema", True),
+]

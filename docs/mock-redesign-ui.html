@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock — Redesign Epic Importações</title>
+  <style>
+    :root {
+      --color-primary: #2563eb;
+      --color-text: #1a1a2e;
+      --color-text-secondary: #475569;
+      --color-bg: #f4f6fb;
+      --color-surface: #ffffff;
+      --color-border: #e2e8f0;
+      --color-topbar-bg: #1e293b;
+      --color-topbar-text: #f1f5f9;
+      --color-topbar-muted: #94a3b8;
+      --color-sidebar-bg: #f8fafc;
+      --color-sidebar-active-bg: #eff6ff;
+      --color-sidebar-active-border: #2563eb;
+      --badge-info-bg: #dbeafe;
+      --badge-info-text: #1d4ed8;
+      --badge-success-bg: #dcfce7;
+      --badge-success-text: #15803d;
+      --badge-warning-bg: #fef3c7;
+      --badge-warning-text: #b45309;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow-card: 0 8px 24px rgba(26, 26, 46, 0.08);
+      --shadow-topbar: 0 2px 8px rgba(0, 0, 0, 0.15);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .mock-banner {
+      background: #fef3c7;
+      color: #92400e;
+      text-align: center;
+      padding: var(--space-2) var(--space-4);
+      font-size: 0.85rem;
+      border-bottom: 1px solid #fcd34d;
+    }
+
+    /* ── Topbar (AppShell) ── */
+    .topbar {
+      background: var(--color-topbar-bg);
+      color: var(--color-topbar-text);
+      box-shadow: var(--shadow-topbar);
+      padding: var(--space-3) var(--space-5);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .topbar__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 600;
+    }
+
+    .topbar__brand .muted { color: var(--color-topbar-muted); font-weight: 400; }
+
+    .nav-global { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+
+    .nav-global a {
+      color: var(--color-topbar-muted);
+      text-decoration: none;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .nav-global a.active {
+      color: #fff;
+      background: rgba(37, 99, 235, 0.35);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge--info { background: var(--badge-info-bg); color: var(--badge-info-text); }
+    .badge--success { background: var(--badge-success-bg); color: var(--badge-success-text); }
+    .badge--warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); }
+
+    /* ── Main ── */
+    .app-main { padding: var(--space-5); max-width: 1200px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-secondary);
+      margin: var(--space-5) 0 var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 2px dashed var(--color-border);
+    }
+
+    .section-label:first-of-type { margin-top: 0; }
+
+    h1 { font-size: 1.75rem; margin-bottom: var(--space-2); }
+    h2 { font-size: 1.1rem; margin-bottom: var(--space-3); }
+    .meta { color: var(--color-text-secondary); font-size: 0.85rem; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: var(--space-5);
+      margin-bottom: var(--space-4);
+    }
+
+    .card--compact { padding: var(--space-4); }
+
+    .card__title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+      color: var(--color-text-secondary);
+    }
+
+    /* ── Dashboard grid ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .dashboard-card__value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1.2;
+    }
+
+    .dashboard-card__list {
+      list-style: none;
+      padding: 0;
+      margin-top: var(--space-3);
+      font-size: 0.9rem;
+    }
+
+    .dashboard-card__list li { padding: 4px 0; }
+    .dashboard-card__list a { color: var(--color-primary); text-decoration: none; }
+    .dashboard-card__list a:hover { text-decoration: underline; }
+
+    /* ── Importation layout ── */
+    .import-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+
+    .import-header h1 { margin: 0; font-size: 1.4rem; }
+
+    .import-body {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+
+    @media (max-width: 768px) {
+      .import-body { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      background: var(--color-sidebar-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3);
+    }
+
+    .sidebar__group { margin-bottom: var(--space-4); }
+    .sidebar__group:last-child { margin-bottom: 0; }
+
+    .sidebar__label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      padding: var(--space-2) var(--space-3);
+      font-weight: 600;
+    }
+
+    .sidebar__link {
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar__link:hover { background: #eef2ff; }
+    .sidebar__link.active {
+      background: var(--color-sidebar-active-bg);
+      border-left-color: var(--color-sidebar-active-border);
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    /* ── Stacked sections (aduaneiro / conciliação) ── */
+    .anchor-nav {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .anchor-nav a {
+      font-size: 0.85rem;
+      color: var(--color-primary);
+      text-decoration: none;
+      padding: 4px 10px;
+      background: #eff6ff;
+      border-radius: var(--radius-md);
+    }
+
+    .stacked-section {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+
+    .stacked-section h3 { font-size: 1rem; margin-bottom: var(--space-2); }
+
+    /* ── Checklist ── */
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.9rem;
+    }
+
+    .checklist .icon { font-size: 1.1rem; width: 24px; text-align: center; }
+    .checklist a { color: var(--color-primary); text-decoration: none; }
+
+    /* ── Palette reference ── */
+    .palette {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-top: var(--space-3);
+    }
+
+    .swatch {
+      width: 64px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      font-size: 0.65rem;
+      padding: 4px;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn--primary { background: var(--color-primary); color: #fff; }
+    .btn--secondary { background: #e2e8f0; color: var(--color-text); }
+    .btn--ghost { background: transparent; color: var(--color-topbar-muted); border: 1px solid rgba(255,255,255,0.2); }
+
+    footer.mock-footer {
+      text-align: center;
+      padding: var(--space-5);
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mock-banner">
+    Mock estático — ilustra a hierarquia visual do redesign. Não conecta à API.
+    Documentação: <strong>docs/ENTREGA-REDESIGN-FRONTEND.md</strong>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- CAMADA 1: Topbar global escura (AppShell)                  -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span>Epic Importações</span>
+      <span class="muted">— Admin Epic</span>
+      <span class="badge badge--info">admin</span>
+    </div>
+    <nav class="nav-global">
+      <a href="#dashboard" class="active">Dashboard</a>
+      <a href="#importacoes">Importações</a>
+      <a href="#">SKUs</a>
+      <a href="#">Financeiro</a>
+      <a href="#">Documentos</a>
+      <a href="#">Revisão</a>
+      <a href="#">Heroes</a>
+      <button class="btn btn--ghost" style="margin-left:8px">Sair</button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TELA: Dashboard (/)                                   -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="dashboard">
+      <p class="section-label">Tela 1 — Dashboard (/)</p>
+      <h1>Dashboard</h1>
+      <p class="meta">Visão operacional das importações · métricas derivadas no frontend (cap 8 imps)</p>
+
+      <div class="dashboard-grid">
+        <div class="card card--compact">
+          <div class="card__title">Importações abertas</div>
+          <div class="dashboard-card__value">12</div>
+          <ul class="dashboard-card__list">
+            <li><a href="#detalhe">DEMO-04-3INV</a> <span class="meta">— IN_TRANSIT</span></li>
+            <li><a href="#">DEMO-07-DIV</a> <span class="meta">— ARRIVED</span></li>
+            <li><a href="#">DEMO-02-PRO</a> <span class="meta">— PROFORMA_RECEIVED</span></li>
+          </ul>
+        </div>
+
+        <div class="card card--compact">
+          <div class="card__title">Aguardando documento</div>
+          <div class="dashboard-card__value">5</div>
+          <p class="meta">Fila revisão: 2 · Proforma pendente (amostra 8 imps)</p>
+        </div>
+
+        <div class="card card--compact">
+          <div class="card__title">Com divergência</div>
+          <div class="dashboard-card__value">2</div>
+          <ul class="dashboard-card__list">
+            <li><a href="#conciliacao">DEMO-07-DIV</a></li>
+          </ul>
+        </div>
+
+        <div class="card card--compact">
+          <div class="card__title">Próximas do desembaraço</div>
+          <div class="dashboard-card__value">3</div>
+          <ul class="dashboard-card__list">
+            <li><a href="#aduaneiro">DEMO-04-3INV</a></li>
+          </ul>
+        </div>
+
+        <div class="card card--compact">
+          <div class="card__title">Landed cost — est. vs realizado</div>
+          <ul class="dashboard-card__list">
+            <li><a href="#aduaneiro">DEMO-04-3INV</a> <span class="meta">— est. 45000 / LC 47230</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="meta" style="margin-top:16px">Health: ok / DB: connected</p>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TELA: Detalhe importação (ImportationLayout)           -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="detalhe">
+      <p class="section-label">Tela 2 — Detalhe (/importacoes/:id/…)</p>
+
+      <div class="card card--compact">
+        <div class="import-header">
+          <button class="btn btn--secondary">← Voltar</button>
+          <h1>DEMO-04-3INV</h1>
+          <span class="badge badge--info">IN_TRANSIT</span>
+          <span class="meta">USD · FOB</span>
+        </div>
+      </div>
+
+      <div class="import-body">
+        <!-- Sidebar clara (só no detalhe) -->
+        <aside class="sidebar">
+          <div class="sidebar__group">
+            <div class="sidebar__label">Visão geral</div>
+            <a href="#detalhe" class="sidebar__link">Resumo</a>
+            <a href="#" class="sidebar__link">Itens</a>
+            <a href="#" class="sidebar__link">Invoices</a>
+            <a href="#" class="sidebar__link">Financeiro</a>
+          </div>
+          <div class="sidebar__group">
+            <div class="sidebar__label">Operação</div>
+            <a href="#" class="sidebar__link">Logística</a>
+            <a href="#aduaneiro" class="sidebar__link active">Aduaneiro</a>
+          </div>
+          <div class="sidebar__group">
+            <div class="sidebar__label">Fechamento</div>
+            <a href="#conciliacao" class="sidebar__link">Conciliação</a>
+            <a href="#" class="sidebar__link">Documentos</a>
+          </div>
+        </aside>
+
+        <!-- Conteúdo: Aduaneiro empilhado (Etapa 5) -->
+        <div id="aduaneiro">
+          <div class="card">
+            <h2>Aduaneiro</h2>
+            <nav class="anchor-nav">
+              <a href="#di-duimp">DI / DUIMP</a>
+              <a href="#impostos">Impostos</a>
+              <a href="#nacionalizacao">Nacionalização</a>
+              <a href="#landed-cost">Landed cost</a>
+            </nav>
+
+            <div class="stacked-section" id="di-duimp">
+              <h3>DI / DUIMP</h3>
+              <p class="meta">Documentos aduaneiros · staging → official</p>
+            </div>
+            <div class="stacked-section" id="impostos">
+              <h3>Impostos</h3>
+              <p class="meta">II, IPI, PIS, COFINS…</p>
+            </div>
+            <div class="stacked-section" id="nacionalizacao">
+              <h3>Nacionalização</h3>
+              <p class="meta">Quantidades nacionalizadas e estoque</p>
+            </div>
+            <div class="stacked-section" id="landed-cost">
+              <h3>Landed cost</h3>
+              <p class="meta">Versões INITIAL → REV → FINAL</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TELA: Conciliação + Fechamento (Etapa 8)                 -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section id="conciliacao">
+      <p class="section-label">Tela 3 — Conciliação (/importacoes/:id/conciliacao)</p>
+
+      <div class="card">
+        <nav class="anchor-nav">
+          <a href="#sec-conciliacao">Conciliação</a>
+          <a href="#sec-fechamento">Fechamento</a>
+          <a href="#sec-timeline">Timeline</a>
+        </nav>
+
+        <div class="stacked-section" id="sec-conciliacao">
+          <h3>Conciliação</h3>
+          <p class="meta">Executar conciliações · status DIVERGENT / OK</p>
+        </div>
+
+        <div class="stacked-section" id="sec-fechamento">
+          <h3>Fechamento</h3>
+          <p class="meta" style="margin-bottom:12px">Checklist com links para pendências</p>
+          <ul class="checklist">
+            <li><span class="icon" style="color:#15803d">✓</span> <a href="#">Invoices conferidas</a></li>
+            <li><span class="icon" style="color:#15803d">✓</span> <a href="#">Financeiro quitado</a></li>
+            <li><span class="icon" style="color:#b91c1c">✗</span> <a href="#aduaneiro">DI/DUIMP oficial</a></li>
+            <li><span class="icon" style="color:#b45309">⚠</span> <a href="#sec-conciliacao">Conciliações</a> <span class="meta">(1 warning)</span></li>
+          </ul>
+          <button class="btn btn--primary" style="margin-top:16px; opacity:0.5" disabled title="DI/DUIMP oficial">Fechar importação</button>
+          <button class="btn btn--secondary" style="margin-top:16px; margin-left:8px">Reabrir…</button>
+        </div>
+
+        <div class="stacked-section" id="sec-timeline">
+          <h3>Timeline</h3>
+          <p class="meta">Histórico de fechamentos e eventos</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- Referência de tokens                                     -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <section>
+      <p class="section-label">Paleta de tokens CSS</p>
+      <div class="card card--compact">
+        <div class="palette">
+          <div class="swatch" style="background:#1e293b">topbar</div>
+          <div class="swatch" style="background:#2563eb">primary</div>
+          <div class="swatch" style="background:#f8fafc; color:#475569; text-shadow:none">sidebar</div>
+          <div class="swatch" style="background:#dcfce7; color:#15803d; text-shadow:none">success</div>
+          <div class="swatch" style="background:#fef3c7; color:#b45309; text-shadow:none">warning</div>
+          <div class="swatch" style="background:#fee2e2; color:#b91c1c; text-shadow:none">danger</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="mock-footer">
+    Epic Importações — Mock UI Redesign · abra este arquivo diretamente no browser
+  </footer>
+
+</body>
+</html>
