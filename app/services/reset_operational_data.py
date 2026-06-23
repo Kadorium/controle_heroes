@@ -21,6 +21,8 @@ from app.models import (
     ExchangeRate,
     Expense,
     HeroesImportRun,
+    HeroesDispatchPendingItem,
+    HeroesLegacySheetSummary,
     ImportationClosure,
     ImportationItem,
     ImportationOrder,
@@ -185,12 +187,16 @@ def reset_operational_test_data(db: Session, *, skip_backup: bool = False) -> di
         )
         db.execute(delete(Credit))
         db.execute(delete(BrazilCurrentAccount))
+        db.execute(delete(HeroesDispatchPendingItem).where(HeroesDispatchPendingItem.importation_id.in_(imp_ids)))
+        db.execute(delete(HeroesLegacySheetSummary).where(HeroesLegacySheetSummary.importation_id.in_(imp_ids)))
         db.execute(delete(HeroesImportRun).where(HeroesImportRun.importation_id.in_(imp_ids)))
         db.execute(delete(ImportationOrder).where(ImportationOrder.id.in_(imp_ids)))
 
     # Import staging (sem vínculo FK com importations)
     db.execute(delete(ReviewQueueItem))
     db.execute(delete(StagingImportRow))
+    db.execute(delete(HeroesDispatchPendingItem))
+    db.execute(delete(HeroesLegacySheetSummary))
     db.execute(delete(HeroesImportRun))
     db.execute(delete(RawImportFile))
 

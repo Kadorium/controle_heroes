@@ -32,10 +32,10 @@ test.describe("Epic Importações — smoke E2E", () => {
     );
     await page.goto("/importacoes", { waitUntil: "domcontentloaded" });
     await queueReady;
-    await expect(page.getByRole("heading", { name: /Fila de ordens/i })).toBeVisible({ timeout: 20000 });
-    const firstRow = page.locator(".order-queue__row").first();
-    await expect(firstRow).toBeVisible({ timeout: 15000 });
-    await firstRow.click();
+    await expect(page.getByRole("heading", { name: /^Ordens$/i })).toBeVisible({ timeout: 20000 });
+    const firstOpen = page.locator(".sheet-grid__open").first();
+    await expect(firstOpen).toBeVisible({ timeout: 15000 });
+    await firstOpen.click();
     const sidebar = page.getByRole("complementary");
     await expect(sidebar.getByRole("link", { name: "Visão Geral", exact: true })).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Faturas e pagamentos" })).toBeVisible();

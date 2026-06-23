@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date
 from decimal import Decimal
 
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import DEFAULT_IMPORT_CURRENCY
@@ -13,14 +15,19 @@ from app.core.currency import normalize_import_currency
 from app.models import (
     BrazilCurrentAccount,
     Credit,
+    CustomsDocument,
     Discount,
+    HeroesDispatchPendingItem,
+    HeroesLegacySheetSummary,
     ImportationItem,
     ImportationOrder,
     Invoice,
     InvoiceItem,
+    Nationalization,
     Payment,
     Product,
     Shipment,
+    StockEntry,
     Supplier,
 )
 from app.services.dashboard import (
@@ -34,9 +41,11 @@ from app.services.finance import (
     _payment_is_settled,
     invoice_balance,
     invoice_discount_total,
+    invoice_has_settled_payments,
     invoice_paid_total,
 )
 from app.services.nationalization import quantity_chain
+from app.services.order_status_rail import build_status_rail
 
 
 def _financial_totals_by_currency(db: Session, importation: ImportationOrder) -> dict:
@@ -70,15 +79,20 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
             return None
         return str(bucket["invoiced"] - bucket["discounts"] - bucket["paid"])
 
-    totals_by_currency = {
-        cur: {
+    totals_by_currency = {}
+    for cur, b in buckets.items():
+        invs_for_cur = [
+            inv
+            for inv in invoices
+            if normalize_import_currency(inv.currency or importation.currency) == cur
+        ]
+        has_settled = any(invoice_has_settled_payments(db, inv) for inv in invs_for_cur)
+        totals_by_currency[cur] = {
             "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
-            "total_paid": str(b["paid"]),
+            "total_paid": str(b["paid"]) if has_settled else None,
             "total_discounts": str(b["discounts"]),
             "consolidated_balance": _balance(b),
         }
-        for cur, b in buckets.items()
-    }
 
     primary = normalize_import_currency(importation.currency)
     multi = len(buckets) > 1
@@ -143,6 +157,76 @@ def _invoiced_qty_by_item(db: Session, importation_id: int) -> dict[int, int]:
     return dict(totals)
 
 
+def _build_legacy_summary(db: Session, importation_id: int) -> dict | None:
+    row = (
+        db.query(HeroesLegacySheetSummary)
+        .filter(
+            HeroesLegacySheetSummary.importation_id == importation_id,
+            HeroesLegacySheetSummary.is_active.is_(True),
+        )
+        .order_by(HeroesLegacySheetSummary.created_at.desc())
+        .first()
+    )
+    if not row or row.versato_amount is None:
+        return None
+    return {
+        "versato_amount": str(row.versato_amount),
+        "versato_currency": row.versato_currency,
+        "versato_source": f"{row.sheet_name} · {row.versato_source_cell or row.versato_source_row or 'topo'}",
+        "versato_confidence": row.versato_confidence,
+        "sheet_name": row.sheet_name,
+        "source": "planilha Heroes",
+    }
+
+
+def _dispatch_by_product(db: Session, importation_id: int) -> dict[int, HeroesDispatchPendingItem]:
+    rows = (
+        db.query(HeroesDispatchPendingItem)
+        .filter(
+            HeroesDispatchPendingItem.importation_id == importation_id,
+            HeroesDispatchPendingItem.is_active.is_(True),
+        )
+        .all()
+    )
+    by_product: dict[int, HeroesDispatchPendingItem] = {}
+    for r in rows:
+        if r.product_id:
+            by_product[r.product_id] = r
+    return by_product
+
+
+def _build_dispatch_pending_list(db: Session, importation_id: int) -> list[dict]:
+    rows = (
+        db.query(HeroesDispatchPendingItem)
+        .filter(
+            HeroesDispatchPendingItem.importation_id == importation_id,
+            HeroesDispatchPendingItem.is_active.is_(True),
+        )
+        .order_by(HeroesDispatchPendingItem.source_row)
+        .all()
+    )
+    return [
+        {
+            "id": r.id,
+            "product_name_raw": r.product_name_raw,
+            "product_id": r.product_id,
+            "product_category_suggested": r.product_category_suggested,
+            "quantity_to_dispatch": r.quantity_to_dispatch,
+            "price_listino": str(r.price_listino) if r.price_listino is not None else None,
+            "price_fattura": str(r.price_fattura) if r.price_fattura is not None else None,
+            "discount_unit": str(r.discount_unit) if r.discount_unit is not None else None,
+            "acconto_amount": str(r.acconto_amount) if r.acconto_amount is not None else None,
+            "credit_remaining": str(r.credit_remaining) if r.credit_remaining is not None else None,
+            "currency": r.currency,
+            "source_sheet": r.source_sheet,
+            "source_row": r.source_row,
+            "needs_review": r.needs_review,
+            "heroes_source": True,
+        }
+        for r in rows
+    ]
+
+
 def _build_models(db: Session, importation_id: int) -> list[dict]:
     chain = quantity_chain(db, importation_id)
     invoiced_map = _invoiced_qty_by_item(db, importation_id)
@@ -153,6 +237,7 @@ def _build_models(db: Session, importation_id: int) -> list[dict]:
         .all()
     )
     item_by_id = {i.id: i for i in items}
+    dispatch_map = _dispatch_by_product(db, importation_id)
     models: list[dict] = []
 
     for row in chain:
@@ -167,23 +252,43 @@ def _build_models(db: Session, importation_id: int) -> list[dict]:
         elif item and item.supplier_sku:
             label = item.supplier_sku
 
+        da = dispatch_map.get(item.product_id) if item and item.product_id else None
+        dispatch_qty = da.quantity_to_dispatch if da else None
         ordered = row.get("quantity_ordered")
         shipped = row.get("quantity_shipped")
-        to_dispatch = max(0, ordered - shipped) if ordered is not None and shipped is not None else None
+        if ordered is not None and shipped is not None:
+            to_dispatch_val = max(0, ordered - shipped)
+        elif ordered is not None:
+            to_dispatch_val = ordered
+        else:
+            to_dispatch_val = None
+        if dispatch_qty is not None and to_dispatch_val is not None and dispatch_qty != to_dispatch_val:
+            to_dispatch_val = dispatch_qty
+        elif dispatch_qty is not None and to_dispatch_val is None:
+            to_dispatch_val = dispatch_qty
 
-        qty_invoiced = invoiced_map.get(item_id)
         models.append(
             {
                 "importation_item_id": item_id,
                 "product_id": item.product_id if item else None,
                 "supplier_sku": item.supplier_sku if item else None,
+                "description": item.description if item else None,
+                "product_sku": product.sku_code if product else None,
+                "product_category": product.category if product else None,
                 "model_label": label,
                 "quantity_ordered": ordered,
                 "quantity_shipped": shipped,
                 "quantity_nationalized": row.get("quantity_nationalized"),
                 "quantity_stocked": row.get("quantity_stocked"),
                 "quantity_invoiced": invoiced_map.get(item_id),
-                "to_dispatch": to_dispatch,
+                "to_dispatch": to_dispatch_val,
+                "price_listino": str(da.price_listino) if da and da.price_listino is not None else None,
+                "price_fattura": str(da.price_fattura) if da and da.price_fattura is not None else None,
+                "discount_unit": str(da.discount_unit) if da and da.discount_unit is not None else None,
+                "acconto_amount": str(da.acconto_amount) if da and da.acconto_amount is not None else None,
+                "credit_remaining": str(da.credit_remaining) if da and da.credit_remaining is not None else None,
+                "heroes_source": da is not None,
+                "dispatch_needs_review": da.needs_review if da else False,
             }
         )
     return models
@@ -327,6 +432,109 @@ def _pending_actions(db: Session, imp: ImportationOrder) -> list[dict]:
     )
 
 
+def _ship_date(s: Shipment, field: str) -> date | None:
+    if field == "etd":
+        return s.etd_actual or s.etd_planned
+    return s.eta_actual or s.eta_planned
+
+
+def _next_ship_dates(shipments: list[Shipment]) -> tuple[date | None, date | None]:
+    active = [s for s in shipments if s.is_active]
+    etds = [d for s in active if (d := _ship_date(s, "etd"))]
+    etas = [d for s in active if (d := _ship_date(s, "eta"))]
+    return (min(etds) if etds else None, min(etas) if etas else None)
+
+
+def _active_modal(shipments: list[Shipment]) -> str | None:
+    if not shipments:
+        return None
+    for s in shipments:
+        if s.is_active and s.status in ("IN_TRANSIT", "SHIPPED"):
+            return s.modal
+    active = [s for s in shipments if s.is_active]
+    return active[-1].modal if active else None
+
+
+def _open_balance_brl_equivalent(db: Session, importation_id: int) -> str | None:
+    invoices = (
+        db.query(Invoice)
+        .filter(Invoice.importation_id == importation_id, Invoice.is_active.is_(True))
+        .all()
+    )
+    total = Decimal("0")
+    has_open_without_rate = False
+    for inv in invoices:
+        bal = invoice_balance(db, inv)
+        if bal is None or bal <= Decimal("0"):
+            continue
+        if inv.expected_exchange_rate is None:
+            has_open_without_rate = True
+            continue
+        total += bal * inv.expected_exchange_rate
+    if has_open_without_rate and total == Decimal("0"):
+        return None
+    return str(total) if total > Decimal("0") else ("0" if not has_open_without_rate else None)
+
+
+def _build_operational_header(
+    db: Session,
+    imp: ImportationOrder,
+    *,
+    financial: dict,
+    planned: list[dict],
+    shipments: list[Shipment],
+    chain: list[dict],
+    credits: list[Credit],
+    pending_actions_count: int,
+) -> dict:
+    today = date.today()
+    counts = _invoice_counts_for_queue(db, [imp])
+    invoices_count, invoices_settled_count = counts.get(imp.id, (0, 0))
+
+    open_due: list[date] = []
+    overdue_amount = Decimal("0")
+    overdue_count = 0
+    for p in planned:
+        due = p.get("due_date")
+        if not due:
+            continue
+        open_due.append(due)
+        if due < today:
+            overdue_count += 1
+            amt = p.get("amount_foreign")
+            if amt is not None:
+                overdue_amount += _d(amt)
+
+    next_etd, next_eta = _next_ship_dates(shipments)
+    qty_ordered = sum((c.get("quantity_ordered") or 0) for c in chain) if chain else None
+    primary = normalize_import_currency(imp.currency)
+    credit_avail = sum(
+        _d(c.amount_available)
+        for c in credits
+        if normalize_import_currency(c.currency) == primary
+    )
+
+    return {
+        "invoices_count": invoices_count,
+        "invoices_settled_count": invoices_settled_count,
+        "totals_by_currency": financial.get("totals_by_currency"),
+        "total_invoiced": financial.get("total_invoiced"),
+        "total_paid": financial.get("total_paid"),
+        "open_balance": financial.get("consolidated_balance"),
+        "open_balance_brl_equivalent": _open_balance_brl_equivalent(db, imp.id),
+        "next_due_date": min(open_due) if open_due else None,
+        "overdue_count": overdue_count,
+        "overdue_amount_foreign": str(overdue_amount) if overdue_amount > Decimal("0") else None,
+        "next_etd": next_etd,
+        "next_eta": next_eta,
+        "active_modal": _active_modal(shipments),
+        "to_dispatch": _compute_to_dispatch(chain),
+        "quantity_ordered": qty_ordered,
+        "supplier_credit_available": str(credit_avail) if credit_avail > Decimal("0") else None,
+        "pending_actions_count": pending_actions_count,
+    }
+
+
 def build_order_central(db: Session, importation_id: int) -> dict:
     imp = (
         db.query(ImportationOrder)
@@ -340,7 +548,13 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     chain = quantity_chain(db, importation_id)
     financial = _financial_totals_by_currency(db, imp)
     planned, settled = _build_payments(db, importation_id)
-
+    invoices = _build_invoices(db, importation_id)
+    shipments = (
+        db.query(Shipment)
+        .filter(Shipment.importation_id == importation_id, Shipment.is_active.is_(True))
+        .order_by(Shipment.created_at)
+        .all()
+    )
     discounts = (
         db.query(Discount)
         .join(Invoice, Discount.invoice_id == Invoice.id)
@@ -349,35 +563,89 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     )
     credits = (
         db.query(Credit)
-        .filter(
-            Credit.supplier_id == imp.supplier_id,
-            Credit.is_active.is_(True),
-        )
+        .filter(Credit.supplier_id == imp.supplier_id, Credit.is_active.is_(True))
         .all()
     )
     brazil_accounts = (
         db.query(BrazilCurrentAccount)
+        .filter(BrazilCurrentAccount.supplier_id == imp.supplier_id, BrazilCurrentAccount.is_active.is_(True))
+        .all()
+    )
+
+    has_invoices = len(invoices) > 0
+    has_payments = len(settled) > 0
+    has_shipments = len(shipments) > 0
+    shipment_in_transit = has_shipments and any(
+        s.status in ("IN_TRANSIT", "SHIPPED", "DELIVERED") for s in shipments
+    )
+    has_customs = (
+        db.query(CustomsDocument)
         .filter(
-            BrazilCurrentAccount.supplier_id == imp.supplier_id,
-            BrazilCurrentAccount.is_active.is_(True),
+            CustomsDocument.importation_id == importation_id,
+            CustomsDocument.is_active.is_(True),
+            CustomsDocument.approved_at.isnot(None),
         )
-        .all()
+        .count()
+        > 0
     )
-    shipments = (
-        db.query(Shipment)
-        .filter(Shipment.importation_id == importation_id, Shipment.is_active.is_(True))
-        .order_by(Shipment.created_at)
-        .all()
+    has_stock = (
+        db.query(StockEntry)
+        .join(Nationalization, StockEntry.nationalization_id == Nationalization.id)
+        .filter(Nationalization.importation_id == importation_id)
+        .count()
+        > 0
     )
+    is_closed = imp.current_status == "CLOSED"
+    pending = _pending_actions(db, imp)
+    operational_header = _build_operational_header(
+        db,
+        imp,
+        financial=financial,
+        planned=planned,
+        shipments=shipments,
+        chain=chain,
+        credits=credits,
+        pending_actions_count=len(pending),
+    )
+    rail_context = {
+        "invoices_count": operational_header["invoices_count"],
+        "invoices_settled_count": operational_header["invoices_settled_count"],
+        "total_paid": financial.get("total_paid"),
+        "currency": financial.get("currency"),
+        "next_eta": operational_header["next_eta"],
+        "to_dispatch": operational_header["to_dispatch"],
+        "quantity_ordered": operational_header["quantity_ordered"],
+    }
+    status_rail = build_status_rail(
+        imp.current_status,
+        has_invoices=has_invoices,
+        has_payments=has_payments,
+        has_shipments=has_shipments,
+        shipment_in_transit=shipment_in_transit,
+        has_customs=has_customs,
+        has_stock=has_stock,
+        is_closed=is_closed,
+        rail_context=rail_context,
+    )
+    legacy = _build_legacy_summary(db, importation_id)
+    dispatch_pending = _build_dispatch_pending_list(db, importation_id)
+    for alert in status_rail.get("alerts") or []:
+        pending.append({"kind": "status_rail", "label": alert, "detail": None, "tone": "warning"})
 
     return {
         "order": imp,
         "supplier_name": supplier.name if supplier else None,
+        "legacy_sheet_summary": legacy,
+        "dispatch_pending": dispatch_pending,
+        "status_rail": status_rail,
+        "operational_header": operational_header,
         "kpis": {
             **financial,
             "to_dispatch": _compute_to_dispatch(chain),
+            "versato_heroes": legacy.get("versato_amount") if legacy else None,
+            "versato_heroes_currency": legacy.get("versato_currency") if legacy else None,
         },
-        "invoices": _build_invoices(db, importation_id),
+        "invoices": invoices,
         "models": _build_models(db, importation_id),
         "payments_planned": planned,
         "payments_settled": settled,
@@ -385,8 +653,66 @@ def build_order_central(db: Session, importation_id: int) -> dict:
         "supplier_credits": credits,
         "brazil_accounts": brazil_accounts,
         "shipments": shipments,
-        "pending_actions": _pending_actions(db, imp),
+        "pending_actions": pending,
     }
+
+
+def _invoice_counts_for_queue(
+    db: Session, imps: list[ImportationOrder]
+) -> dict[int, tuple[int, int]]:
+    """(total de faturas, faturas quitadas) por ordem — em lote, sem N+1."""
+    imp_ids = [i.id for i in imps]
+    if not imp_ids:
+        return {}
+    invoices = (
+        db.query(
+            Invoice.id,
+            Invoice.importation_id,
+            Invoice.amount,
+            Invoice.discount_amount,
+        )
+        .filter(Invoice.importation_id.in_(imp_ids), Invoice.is_active.is_(True))
+        .all()
+    )
+    inv_ids = [r.id for r in invoices]
+
+    disc_map: dict[int, Decimal] = defaultdict(lambda: Decimal("0"))
+    paid_map: dict[int, Decimal] = defaultdict(lambda: Decimal("0"))
+    if inv_ids:
+        for inv_id, total in (
+            db.query(Discount.invoice_id, func.coalesce(func.sum(Discount.amount), 0))
+            .filter(Discount.invoice_id.in_(inv_ids), Discount.is_active.is_(True))
+            .group_by(Discount.invoice_id)
+            .all()
+        ):
+            disc_map[inv_id] = _d(total)
+
+        settled_cond = or_(
+            Payment.payment_date.isnot(None),
+            Payment.approved_without_receipt.is_(True),
+            func.length(func.coalesce(Payment.receipt_reference, "")) > 0,
+        )
+        for inv_id, total in (
+            db.query(Payment.invoice_id, func.coalesce(func.sum(Payment.amount_foreign), 0))
+            .filter(
+                Payment.invoice_id.in_(inv_ids),
+                Payment.is_active.is_(True),
+                settled_cond,
+            )
+            .group_by(Payment.invoice_id)
+            .all()
+        ):
+            paid_map[inv_id] = _d(total)
+
+    counts: dict[int, list[int]] = defaultdict(lambda: [0, 0])
+    for r in invoices:
+        bucket = counts[r.importation_id]
+        bucket[0] += 1
+        if r.amount is not None:
+            balance = _d(r.amount) - disc_map[r.id] - paid_map[r.id]
+            if balance == Decimal("0"):
+                bucket[1] += 1
+    return {iid: (counts[iid][0], counts[iid][1]) for iid in imp_ids}
 
 
 def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dict[int, dict]:
@@ -511,10 +837,43 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
 
     items: list[dict] = []
     financials = _batch_financial_for_queue(db, imps)
+    invoice_counts = _invoice_counts_for_queue(db, imps)
+    today = date.today()
     for imp in imps:
         financial = financials.get(imp.id) or _financial_totals_by_currency(db, imp)
         chain = quantity_chain(db, imp.id)
         actions = _pending_actions(db, imp)
+        invoiced_map = _invoiced_qty_by_item(db, imp.id)
+
+        qty_ordered = sum((c.get("quantity_ordered") or 0) for c in chain) if chain else None
+        shipped_vals = [c.get("quantity_shipped") for c in chain] if chain else []
+        qty_shipped = (
+            None
+            if not shipped_vals or all(v is None for v in shipped_vals)
+            else sum(v or 0 for v in shipped_vals)
+        )
+        qty_invoiced = sum(invoiced_map.values()) if invoiced_map else None
+        products_count = len(chain)
+
+        invoices_count, invoices_settled_count = invoice_counts.get(imp.id, (0, 0))
+
+        planned_payments = (
+            db.query(Payment)
+            .join(Invoice, Payment.invoice_id == Invoice.id)
+            .filter(
+                Invoice.importation_id == imp.id,
+                Invoice.is_active.is_(True),
+                Payment.is_active.is_(True),
+                Payment.due_date.isnot(None),
+            )
+            .all()
+        )
+        open_due = [p.due_date for p in planned_payments if not _payment_is_settled(p) and p.due_date]
+        next_due = min(open_due) if open_due else None
+        overdue_count = sum(1 for d in open_due if d < today)
+
+        docs_pending = sum(1 for a in actions if a.get("kind") == "customs")
+
         items.append(
             {
                 "id": imp.id,
@@ -528,6 +887,19 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
                 "consolidated_balance": financial["consolidated_balance"],
                 "totals_by_currency": financial.get("totals_by_currency"),
                 "to_dispatch": _compute_to_dispatch(chain),
+                "qty_ordered": qty_ordered,
+                "qty_invoiced": qty_invoiced,
+                "qty_shipped": qty_shipped,
+                "products_count": products_count,
+                "invoices_count": invoices_count,
+                "invoices_settled_count": invoices_settled_count,
+                "docs_pending_count": docs_pending,
+                "next_due_date": next_due,
+                "overdue_count": overdue_count,
+                "priority": imp.priority,
+                "responsible": imp.responsible,
+                "internal_forecast_date": imp.internal_forecast_date,
+                "brazil_operational_notes": imp.brazil_operational_notes,
                 "pending_actions_count": len(actions),
                 "updated_at": imp.updated_at,
                 "created_at": imp.created_at,

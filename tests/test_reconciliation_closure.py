@@ -222,12 +222,20 @@ def test_close_with_approved_variance(admin_client, supplier, product):
         f"/api/customs/documents/{doc['id']}/approve",
         json={"official_data_json": {"number": doc["document_number"]}},
     )
-    admin_client.post(
+    nat = admin_client.post(
         "/api/stock/nationalizations",
         json={
             "importation_id": imp_id,
             "customs_document_id": doc["id"],
             "items": [{"importation_item_id": item["id"], "quantity_nationalized": 90}],
+        },
+    ).json()
+    admin_client.post(
+        "/api/stock/entries",
+        json={
+            "nationalization_id": nat["id"],
+            "importation_item_id": item["id"],
+            "quantity_received": 90,
         },
     )
     lc = admin_client.post(

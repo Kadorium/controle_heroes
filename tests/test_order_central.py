@@ -134,7 +134,7 @@ def test_order_central_quantities_per_model(admin_client, importation_with_item,
     assert len(models) == 1
     m = models[0]
     assert m["quantity_ordered"] == 100
-    assert m["quantity_shipped"] == 0
+    assert m["quantity_shipped"] is None
     assert m["quantity_invoiced"] == 50
     assert m["to_dispatch"] == 100
     assert m["model_label"] == product["sku_code"]
@@ -228,9 +228,9 @@ def test_multi_currency_not_summed_in_single_field(admin_client, db, supplier):
         Invoice(
             importation_id=imp.id,
             invoice_type="PROFORMA",
-            invoice_number=f"USD-{_uid()}",
+            invoice_number=f"BRL-{_uid()}",
             amount=Decimal("1000"),
-            currency="USD",
+            currency="BRL",
             is_active=True,
         )
     )
@@ -253,7 +253,7 @@ def test_multi_currency_not_summed_in_single_field(admin_client, db, supplier):
     assert kpis["total_paid"] is None
     assert kpis["consolidated_balance"] is None
     assert kpis["totals_by_currency"] is not None
-    assert Decimal(kpis["totals_by_currency"]["USD"]["total_invoiced"]) == Decimal("1000")
+    assert Decimal(kpis["totals_by_currency"]["BRL"]["total_invoiced"]) == Decimal("1000")
     assert Decimal(kpis["totals_by_currency"]["EUR"]["total_invoiced"]) == Decimal("500")
 
 
@@ -287,6 +287,50 @@ def test_demo_seed_shipments_idempotent(admin_client, db):
     assert count2 >= 1
 
 
+def test_operational_header_partial_invoices_and_overdue(admin_client, importation_with_item, product):
+    items = admin_client.get(f"/api/importations/{importation_with_item['id']}/items").json()
+    inv1 = _create_invoice_with_item(
+        admin_client,
+        importation_with_item["id"],
+        items[0]["id"],
+        product["id"],
+        amount="1000",
+        expected_exchange_rate="5.00",
+    ).json()
+    _create_invoice_with_item(
+        admin_client,
+        importation_with_item["id"],
+        items[0]["id"],
+        product["id"],
+        amount="500",
+        expected_exchange_rate="5.00",
+    )
+    _pay(admin_client, inv1["id"], "1000")
+
+    overdue = admin_client.post(
+        "/api/finance/payments",
+        json={
+            "invoice_id": inv1["id"],
+            "payment_type": "PARTIAL",
+            "amount_foreign": "200",
+            "due_date": "2020-01-15",
+        },
+    )
+    assert overdue.status_code == 201
+
+    res = admin_client.get(f"/api/importations/{importation_with_item['id']}/order-central")
+    assert res.status_code == 200
+    oh = res.json()["operational_header"]
+    assert oh["invoices_count"] == 2
+    assert oh["invoices_settled_count"] == 1
+    assert oh["overdue_count"] == 1
+    assert Decimal(oh["overdue_amount_foreign"]) == Decimal("200")
+    assert Decimal(oh["open_balance_brl_equivalent"]) == Decimal("2500")
+    rail = res.json()["status_rail"]
+    faturado = next(s for s in rail["stages"] if s["key"] == "faturado")
+    assert faturado["subtitle"] == "1/2 faturas"
+
+
 def test_financial_summary_null_when_no_invoices(admin_client, supplier):
     r = admin_client.post(
         "/api/importations",
@@ -303,3 +347,6 @@ def test_financial_summary_null_when_no_invoices(admin_client, supplier):
     assert summary["total_invoiced"] is None
     assert summary["total_paid"] is None
     assert summary["consolidated_balance"] is None
+    oh = admin_client.get(f"/api/importations/{imp_id}/order-central").json()["operational_header"]
+    assert oh["invoices_count"] == 0
+    assert oh["total_invoiced"] is None

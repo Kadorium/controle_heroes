@@ -21,8 +21,8 @@ export function SuppliersPage() {
     load();
   }, []);
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleCreate(e?: React.FormEvent) {
+    e?.preventDefault();
     setError("");
     try {
       await suppliersApi.create({ name, country: country || undefined });
@@ -42,10 +42,18 @@ export function SuppliersPage() {
       <PageHeader title="Fornecedores" />
       {error && <p className="error">{error}</p>}
 
-      <form className="inline-form" onSubmit={handleCreate}>
+      <form
+        className="inline-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleCreate();
+        }}
+      >
         <input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required />
         <input placeholder="País (opcional)" value={country} onChange={(e) => setCountry(e.target.value)} />
-        <Button type="submit">Cadastrar</Button>
+        <Button type="button" onClick={() => void handleCreate()}>
+          Cadastrar
+        </Button>
       </form>
 
       {rows.length === 0 ? (

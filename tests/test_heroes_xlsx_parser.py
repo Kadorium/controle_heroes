@@ -182,7 +182,7 @@ def test_idempotency_same_sheet(db):
     commit_heroes_import_run(
         db, run1.id, user_id=1,
         confirm_import=True, confirm_sheet_match=True,
-        confirmed_order_number="759",
+        confirmed_order_number="907",
     )
     run2 = preview_xlsx_sheet(
         db, raw_file_id=raw.id, sheet_name="Ordine 759", content=content,

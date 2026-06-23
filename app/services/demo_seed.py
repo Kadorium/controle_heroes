@@ -121,7 +121,7 @@ def _imp(
         currency=DEFAULT_IMPORT_CURRENCY,
         incoterm="FOB",
         estimated_total=Decimal(estimated) if estimated else None,
-        current_status="ARRIVED",
+        current_status="PO_CREATED",
     )
     db.add(imp)
     db.flush()
@@ -168,13 +168,87 @@ def _lc_final(db: Session, imp: ImportationOrder, user_id: int | None) -> Landed
     )
 
 
+def _seed_coherent_demo_order(
+    db: Session,
+    imp: ImportationOrder,
+    product: Product,
+    *,
+    invoice_number: str,
+    amount: str,
+    pay_amount: str | None,
+    status: str,
+) -> None:
+    """Garante fatura + pagamento coerentes com o status declarado (idempotente)."""
+    from app.models import InvoiceItem
+
+    item = (
+        db.query(ImportationItem)
+        .filter(ImportationItem.importation_id == imp.id, ImportationItem.is_active.is_(True))
+        .first()
+    )
+    inv = db.query(Invoice).filter(Invoice.importation_id == imp.id, Invoice.invoice_number == invoice_number).first()
+    if not inv:
+        inv = Invoice(
+            importation_id=imp.id,
+            invoice_type="PROFORMA",
+            invoice_number=invoice_number,
+            amount=Decimal(amount),
+            currency=DEFAULT_IMPORT_CURRENCY,
+        )
+        db.add(inv)
+        db.flush()
+        if item:
+            db.add(
+                InvoiceItem(
+                    invoice_id=inv.id,
+                    importation_item_id=item.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity_ordered,
+                    unit_price=Decimal(amount) / Decimal(item.quantity_ordered or 1),
+                    amount=Decimal(amount),
+                )
+            )
+    elif inv.amount is None:
+        inv.amount = Decimal(amount)
+
+    if pay_amount and not db.query(Payment).filter(Payment.invoice_id == inv.id).first():
+        db.add(
+            Payment(
+                invoice_id=inv.id,
+                payment_type="ADVANCE",
+                payment_date=date.today(),
+                amount_foreign=Decimal(pay_amount),
+                currency_foreign=DEFAULT_IMPORT_CURRENCY,
+                receipt_reference=f"DEMO-{invoice_number}",
+            )
+        )
+
+    imp.current_status = status
+    db.flush()
+
+
+def _ensure_shipment_in_transit(db: Session, importation_id: int, shipment_number: str) -> None:
+    ship = (
+        db.query(Shipment)
+        .filter(
+            Shipment.importation_id == importation_id,
+            Shipment.shipment_number == shipment_number,
+            Shipment.is_active.is_(True),
+        )
+        .first()
+    )
+    if ship and ship.status not in ("IN_TRANSIT", "SHIPPED", "DELIVERED"):
+        ship.status = "IN_TRANSIT"
+        db.flush()
+
+
 def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
     supplier = _supplier(db, "Heroes Demo CN")
     product = _product(db, "DEMO-SKU-001")
     results: dict[str, int] = {}
 
-    # 1. Marítima simples
-    imp1 = _imp(db, "DEMO-01-OCEAN", supplier, product)
+    # 1. Marítima simples — fatura + acconto + em trânsito com embarque
+    imp1 = _imp(db, "DEMO-01-OCEAN", supplier, product, estimated="1000")
     _shipment_if_missing(
         db,
         importation_id=imp1.id,
@@ -183,9 +257,17 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
         user_id=user_id,
         bl_number="BL-D01",
     )
+    _seed_coherent_demo_order(
+        db, imp1, product,
+        invoice_number="PRO-01",
+        amount="1000",
+        pay_amount="400",
+        status="IN_TRANSIT",
+    )
+    _ensure_shipment_in_transit(db, imp1.id, "SH-DEMO-01")
     results["ocean_simple"] = imp1.id
 
-    # 2. Aérea simples — proforma + item para cenário completo na Central da Ordem
+    # 2. Aérea simples — proforma + acconto + em trânsito
     imp2 = _imp(db, "DEMO-02-AIR", supplier, product)
     _shipment_if_missing(
         db,
@@ -195,34 +277,14 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
         user_id=user_id,
         awb_number="AWB-D02",
     )
-    item2 = (
-        db.query(ImportationItem)
-        .filter(ImportationItem.importation_id == imp2.id, ImportationItem.is_active.is_(True))
-        .first()
+    _seed_coherent_demo_order(
+        db, imp2, product,
+        invoice_number="PRO-02",
+        amount="1000",
+        pay_amount="300",
+        status="IN_TRANSIT",
     )
-    if item2 and not db.query(Invoice).filter(Invoice.importation_id == imp2.id, Invoice.invoice_number == "PRO-02").first():
-        inv2 = Invoice(
-            importation_id=imp2.id,
-            invoice_type="PROFORMA",
-            invoice_number="PRO-02",
-            amount=Decimal("1000"),
-            currency=DEFAULT_IMPORT_CURRENCY,
-        )
-        db.add(inv2)
-        db.flush()
-        from app.models import InvoiceItem
-
-        db.add(
-            InvoiceItem(
-                invoice_id=inv2.id,
-                importation_item_id=item2.id,
-                product_id=item2.product_id,
-                quantity=100,
-                unit_price=Decimal("10"),
-                amount=Decimal("1000"),
-            )
-        )
-        db.flush()
+    _ensure_shipment_in_transit(db, imp2.id, "SH-DEMO-02")
     results["air_simple"] = imp2.id
 
     # 3. Modal change
@@ -274,7 +336,7 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
     db.flush()
     results["multi_invoices"] = imp5.id
 
-    # 6. Pagamento parcial
+    # 6. Pagamento parcial — fatura + pagamento coerentes
     imp6 = _imp(db, "DEMO-06-PARTIAL", supplier, product)
     inv6 = Invoice(
         importation_id=imp6.id,
@@ -296,6 +358,8 @@ def run_demo_seed(db: Session, user_id: int | None = None) -> dict[str, int]:
             receipt_reference="DEMO-06-REC",
         )
     )
+    imp6.current_status = "PARTIAL_PAID"
+    db.flush()
     results["partial_payment"] = imp6.id
 
     # 7. FX diff

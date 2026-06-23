@@ -60,7 +60,7 @@ export function HeroesUploadPage() {
       const p = await importsApi.profileHeroesWorkbook();
       setProfile(p);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro no profiling");
+      setError(err instanceof Error ? err.message : "Não foi possível analisar a planilha.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export function HeroesUploadPage() {
     setError("");
     try {
       const result = await importsApi.uploadHeroes(file);
-      setCsvMsg(`CSV importado: ${result.row_count ?? 0} linhas para staging.`);
+      setCsvMsg(`CSV recebido: ${result.row_count ?? 0} linhas enviadas para revisão.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro CSV");
     }
@@ -181,12 +181,24 @@ export function HeroesUploadPage() {
     (preview?.errors?.length ?? 0) === 0 &&
     (!hasDivergence || confirmedOrder === preview?.order_number_from_content || confirmedOrder.length > 0);
 
+  const currentStep = preview ? (canCommit ? 3 : 2) : upload ? 1 : 0;
+  const STEPS = ["Carregar planilha", "Selecionar a aba", "Revisar preview", "Importar"];
+
   return (
     <Card>
       <PageHeader
-        title="Importação Heroes (XLSX/CSV)"
-        subtitle="Planilha legada CONTI ITALIA-BRASILE — profiling e preview obrigatórios. Contrato oficial: Heroes Order Import Format v1."
+        title="Importar planilha Heroes"
+        subtitle="Carregue a planilha legada, revise o que o sistema entendeu e importe. Nada é gravado antes da sua confirmação."
       />
+
+      <div className="ux-steps" style={{ marginBottom: "var(--space-4)" }}>
+        {STEPS.map((s, i) => (
+          <div key={s} className={`ux-step${i === currentStep ? " ux-step--on" : ""}${i < currentStep ? " ux-step--done" : ""}`}>
+            <span className="ux-step__num">{i < currentStep ? "✓" : i + 1}</span>
+            {s}
+          </div>
+        ))}
+      </div>
 
       {error && <p className="error">{error}</p>}
       {csvMsg && <p className="meta">{csvMsg}</p>}
@@ -203,14 +215,14 @@ export function HeroesUploadPage() {
             Carregar da raiz / data/raw
           </Button>
           <Button variant="secondary" onClick={handleAnalyzeOnly} disabled={loading}>
-            Analisar planilha (profiling)
+            Analisar planilha (sem gravar)
           </Button>
           <input type="file" accept=".xlsx,.xlsm" onChange={handleXlsx} />
         </div>
       </section>
 
       <section className="heroes-upload__section">
-        <h3>CSV legado (staging)</h3>
+        <h3>CSV legado (vai para a fila de revisão)</h3>
         <input type="file" accept=".csv" onChange={handleCsv} />
       </section>
 
@@ -398,7 +410,7 @@ export function HeroesUploadPage() {
           </div>
 
           <Button onClick={commitImport} disabled={loading || !canCommit}>
-            Importar ordem (commit)
+            Importar ordem
           </Button>
         </section>
       )}

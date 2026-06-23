@@ -1,0 +1,28 @@
+{
+  "sheet": "Ordine 758",
+  "order_number": "758",
+  "versato_sheet": 397500.0,
+  "invoice_item_count_min": 20,
+  "da_spedire_count_min": 5,
+  "invoice_products": [
+    "arion",
+    "aura",
+    "bull",
+    "bull 26",
+    "fierce",
+    "show 26",
+    "show26",
+    "starlight"
+  ],
+  "da_spedire_products": [
+    "arion",
+    "aura",
+    "bull 26",
+    "fierce",
+    "ison",
+    "rebel",
+    "senna",
+    "show 26",
+    "starlight 26"
+  ]
+}

@@ -16,8 +16,8 @@ test.describe("Epic — UX pós-MVP 3", () => {
     const demoId = await getDemoImportationId(page);
     await page.goto(`/importacoes/${demoId}/resumo`);
     await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole("heading", { name: /Faturas · acconto/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText(/DA SPEDIRE/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Faturas · acconto · crédito por/i })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole("heading", { name: /a despachar · preço e desconto/i })).toBeVisible({ timeout: 20000 });
   });
 
   test("demo guiada abre cenários", async ({ page }) => {

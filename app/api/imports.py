@@ -202,6 +202,7 @@ async def preview_heroes_xlsx(
         order_number_from_sheet_name=preview_data.get("order_number_from_sheet_name"),
         order_number_from_content=preview_data.get("order_number_from_content"),
         order_number_divergence=bool(preview_data.get("order_number_divergence")),
+        review_required=run.review_required or run.status == "REVIEW_REQUIRED",
         preview=preview_data,
         canonical=canonical,
         warnings=run.warnings_json,

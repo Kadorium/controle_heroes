@@ -1,7 +1,7 @@
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -175,6 +175,10 @@ class ImportationOrder(Base, TimestampMixin, SoftDeleteMixin):
     incoterm: Mapped[str | None] = mapped_column(String(16), nullable=True)
     estimated_total: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     current_status: Mapped[str] = mapped_column(String(64), nullable=False, default="PO_CREATED")
+    brazil_operational_notes: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    priority: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    responsible: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    internal_forecast_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reopened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -464,6 +468,49 @@ class HeroesImportRun(Base, TimestampMixin):
     importation_id: Mapped[int | None] = mapped_column(ForeignKey("importation_orders.id"), nullable=True)
     uploaded_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     committed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    confirmed_order_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    review_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+
+class HeroesLegacySheetSummary(Base, TimestampMixin):
+    __tablename__ = "heroes_legacy_sheet_summaries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    importation_id: Mapped[int] = mapped_column(ForeignKey("importation_orders.id"), nullable=False, index=True)
+    heroes_import_run_id: Mapped[int] = mapped_column(ForeignKey("heroes_import_runs.id"), nullable=False, index=True)
+    sheet_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    versato_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    versato_currency: Mapped[str] = mapped_column(String(8), nullable=False, default="EUR")
+    versato_source_row: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    versato_source_cell: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    versato_raw_value: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    versato_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    parser_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class HeroesDispatchPendingItem(Base, TimestampMixin):
+    __tablename__ = "heroes_dispatch_pending_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    importation_id: Mapped[int] = mapped_column(ForeignKey("importation_orders.id"), nullable=False, index=True)
+    heroes_import_run_id: Mapped[int] = mapped_column(ForeignKey("heroes_import_runs.id"), nullable=False, index=True)
+    product_name_raw: Mapped[str] = mapped_column(String(256), nullable=False)
+    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id"), nullable=True)
+    product_category_suggested: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    quantity_to_dispatch: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    price_listino: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    price_fattura: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    discount_unit: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    acconto_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    credit_remaining: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, default="EUR")
+    source_sheet: Mapped[str] = mapped_column(String(128), nullable=False)
+    source_row: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    parser_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    raw_values: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class Shipment(Base, TimestampMixin, SoftDeleteMixin):

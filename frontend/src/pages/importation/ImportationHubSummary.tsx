@@ -16,6 +16,7 @@ import {
 } from "../../api";
 import { Badge, EmptyState, LoadingState } from "../../components";
 import { formatMoney } from "../../i18n/glossario";
+import { normalizeImportCurrency } from "../../constants/currency";
 import { fmtDate, fmtDateTime } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 
@@ -153,9 +154,9 @@ export function ImportationHubSummary({
           <h2 className="hub-card__title">Resumo financeiro</h2>
           <dl className="hub-dl">
             <dt>Moeda</dt>
-            <dd>{imp.currency}</dd>
+            <dd>{normalizeImportCurrency(imp.currency)}</dd>
             <dt>Saldo consolidado</dt>
-            <dd>{formatMoney(summary?.consolidated_balance, imp.currency)}</dd>
+            <dd>{formatMoney(summary?.consolidated_balance, normalizeImportCurrency(imp.currency))}</dd>
             <dt>Próximo vencimento</dt>
             <dd>
               {nextDue?.due_date ? (

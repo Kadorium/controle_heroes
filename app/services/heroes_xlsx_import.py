@@ -7,8 +7,9 @@ from pathlib import Path
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from app.core.enums import HeroesImportRunStatus, SourceSystem
+from app.core.enums import HeroesImportRunStatus
 from app.models import HeroesImportRun, RawImportFile
+from app.services.heroes_conflict import apply_run_review_state
 from app.services.heroes_import import compute_file_hash, save_raw_import_file
 from app.services.heroes_workbook_paths import HEROES_WORKBOOK_FILENAME, resolve_heroes_workbook_path
 from app.services.heroes_workbook_profiler import profile_workbook_bytes, profile_workbook_file
@@ -64,7 +65,7 @@ def register_workbook_bytes(
         file_hash=file_hash,
         storage_path=storage_path,
         original_filename=filename,
-        source_system=SourceSystem.HEROES_XLSX.value,
+        source_system="HEROES_XLSX",
         imported_by_id=user_id,
     )
     db.add(raw)
@@ -124,15 +125,26 @@ def preview_xlsx_sheet(
     file_hash = compute_file_hash(content)
     idem = make_idempotency_key(file_hash, sheet_name)
 
-    existing = db.query(HeroesImportRun).filter(HeroesImportRun.idempotency_key == idem).first()
-    if existing and confirmed_order_number is None:
-        return existing
-
     preview = parse_xlsx_sheet(content, sheet_name, file_checksum=file_hash)
     preview["source_file"] = filename
     if confirmed_order_number:
         preview["confirmed_order_number"] = confirmed_order_number
         preview["order_number"] = confirmed_order_number
+
+    existing = db.query(HeroesImportRun).filter(HeroesImportRun.idempotency_key == idem).first()
+    if existing and confirmed_order_number is None:
+        if existing.status == HeroesImportRunStatus.COMMITTED.value or existing.importation_id:
+            if existing.importation_id and existing.status != HeroesImportRunStatus.COMMITTED.value:
+                existing.status = HeroesImportRunStatus.COMMITTED.value
+                db.commit()
+                db.refresh(existing)
+            return existing
+        apply_run_review_state(existing, preview, confirmed_order_number=None)
+        existing.preview_json = preview
+        existing.warnings_json = preview.get("warnings")
+        db.commit()
+        db.refresh(existing)
+        return existing
 
     run = HeroesImportRun(
         raw_file_id=raw_file_id,
@@ -148,8 +160,17 @@ def preview_xlsx_sheet(
         warnings_json=preview.get("warnings"),
         errors_json=preview.get("errors"),
         uploaded_by_id=user_id,
+        confirmed_order_number=confirmed_order_number,
     )
+    apply_run_review_state(run, preview, confirmed_order_number=confirmed_order_number)
+
     if existing:
+        if existing.status == HeroesImportRunStatus.COMMITTED.value or existing.importation_id:
+            if existing.importation_id and existing.status != HeroesImportRunStatus.COMMITTED.value:
+                existing.status = HeroesImportRunStatus.COMMITTED.value
+                db.commit()
+                db.refresh(existing)
+            return existing
         for attr in (
             "sheet_type",
             "parser_version",
@@ -158,8 +179,11 @@ def preview_xlsx_sheet(
             "preview_json",
             "warnings_json",
             "errors_json",
+            "confirmed_order_number",
+            "review_required",
         ):
             setattr(existing, attr, getattr(run, attr))
+        apply_run_review_state(existing, preview, confirmed_order_number=confirmed_order_number)
         db.commit()
         db.refresh(existing)
         return existing

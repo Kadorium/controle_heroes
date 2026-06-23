@@ -3,23 +3,36 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.enums import IMPORTATION_TRANSITIONS
 from app.core.permissions import PERM_IMPORTATION_READ, PERM_IMPORTATION_WRITE
 from app.database import get_db
 from app.dependencies import require_permission
 from app.models import ImportationItem, ImportationOrder, Supplier, User
 from app.schemas_import import (
+    AllowedTransitionItem,
+    AllowedTransitionsResponse,
+    BrazilOperationalNotesUpdate,
     CancelRequest,
     ImportationCreate,
     ImportationItemCreate,
+    ImportationItemMappingUpdate,
     ImportationItemResponse,
     ImportationResponse,
+    ItalyFieldOverrideRequest,
+    ItalyFieldOverrideResponse,
     StatusTransitionRequest,
 )
 from app.schemas_order_central import OrderCentralResponse, OrderQueueResponse
 from app.services.auth import write_audit_log
 from app.services.importation_guard import ImportationLockedError, assert_importation_editable
+from app.services.italy_override import ItalyOverrideError, apply_italy_field_override
 from app.services.order_central import build_order_central, build_order_queue
-from app.services.status import InvalidStatusTransition, transition_importation_status
+from app.services.status import (
+    InvalidStatusTransition,
+    check_required_documents,
+    transition_importation_status,
+    validate_transition,
+)
 
 router = APIRouter(prefix="/importations", tags=["importations"])
 
@@ -55,7 +68,7 @@ def create_importation(
     if not supplier:
         raise HTTPException(status_code=404, detail="Fornecedor não encontrado")
     if db.query(ImportationOrder).filter(ImportationOrder.po_number == payload.po_number).first():
-        raise HTTPException(status_code=409, detail="PO já existe")
+        raise HTTPException(status_code=409, detail="Já existe uma ordem com esse número.")
 
     imp = ImportationOrder(
         po_number=payload.po_number,
@@ -151,6 +164,27 @@ def add_item(
     return item
 
 
+@router.get("/{importation_id}/allowed-transitions", response_model=AllowedTransitionsResponse)
+def get_allowed_transitions(
+    importation_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_IMPORTATION_READ)),
+):
+    imp = db.query(ImportationOrder).filter(ImportationOrder.id == importation_id).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    candidates = IMPORTATION_TRANSITIONS.get(imp.current_status, [])
+    transitions: list[AllowedTransitionItem] = []
+    for st in candidates:
+        try:
+            validate_transition(imp.current_status, st)
+            check_required_documents(db, importation_id, st)
+            transitions.append(AllowedTransitionItem(status=st, blocked=False, block_reason=None))
+        except InvalidStatusTransition as e:
+            transitions.append(AllowedTransitionItem(status=st, blocked=True, block_reason=str(e)))
+    return AllowedTransitionsResponse(current_status=imp.current_status, transitions=transitions)
+
+
 @router.post("/{importation_id}/transition", response_model=ImportationResponse)
 def transition_status(
     importation_id: int,
@@ -172,6 +206,123 @@ def transition_status(
             db, imp, payload.new_status, user_id=current_user.id, reason=payload.reason
         )
     except InvalidStatusTransition as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.patch("/{importation_id}/brazil-fields", response_model=ImportationResponse)
+def update_brazil_fields(
+    importation_id: int,
+    payload: BrazilOperationalNotesUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        assert_importation_editable(imp)
+    except ImportationLockedError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    changes = payload.model_dump(exclude_unset=True)
+    if not changes:
+        return imp
+    for field, new_value in changes.items():
+        old_value = getattr(imp, field, None)
+        if old_value == new_value:
+            continue
+        setattr(imp, field, new_value)
+        write_audit_log(
+            db,
+            user_id=current_user.id,
+            entity_type="importation_order",
+            entity_id=str(imp.id),
+            action="update_brazil_field",
+            field_changed=field,
+            old_value=None if old_value is None else str(old_value),
+            new_value=None if new_value is None else str(new_value),
+        )
+    db.commit()
+    db.refresh(imp)
+    return imp
+
+
+@router.patch("/{importation_id}/items/{item_id}", response_model=ImportationItemResponse)
+def update_item_mapping(
+    importation_id: int,
+    item_id: int,
+    payload: ImportationItemMappingUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        assert_importation_editable(imp)
+    except ImportationLockedError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    item = db.query(ImportationItem).filter(
+        ImportationItem.id == item_id,
+        ImportationItem.importation_id == importation_id,
+        ImportationItem.is_active.is_(True),
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item da ordem não encontrado")
+    changes = payload.model_dump(exclude_unset=True)
+    for field, new_value in changes.items():
+        old_value = getattr(item, field, None)
+        if old_value == new_value:
+            continue
+        setattr(item, field, new_value)
+        write_audit_log(
+            db,
+            user_id=current_user.id,
+            entity_type="importation_item",
+            entity_id=str(item.id),
+            action="update_item_mapping",
+            field_changed=field,
+            old_value=None if old_value is None else str(old_value),
+            new_value=None if new_value is None else str(new_value),
+        )
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.post("/{importation_id}/italy-overrides", response_model=ItalyFieldOverrideResponse)
+def italy_field_override(
+    importation_id: int,
+    payload: ItalyFieldOverrideRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        assert_importation_editable(imp)
+    except ImportationLockedError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    try:
+        result = apply_italy_field_override(
+            db,
+            importation_id=importation_id,
+            entity_type=payload.entity_type,
+            entity_id=payload.entity_id,
+            field_name=payload.field_name,
+            new_value=payload.new_value,
+            reason=payload.reason,
+            attachment_id=payload.attachment_id,
+            user_id=current_user.id,
+        )
+        return ItalyFieldOverrideResponse(**result)
+    except ItalyOverrideError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 

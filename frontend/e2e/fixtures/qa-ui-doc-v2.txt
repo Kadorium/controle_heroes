@@ -1,0 +1,3 @@
+QA UI Rodada 3 — documento fixture versão 2 (substituição)
+PO: QA-UI-002
+Reupload com document_key para versionamento.

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
 from app.config import DEFAULT_IMPORT_CURRENCY
-from app.core.enums import HeroesImportRunStatus, InvoiceType, ProductCategory
-from app.core.parse import optional_decimal, optional_int
+from app.core.enums import HeroesImportRunStatus, InvoiceType
+from app.core.parse import optional_int
 from app.models import (
     HeroesImportRun,
     ImportationItem,
@@ -21,6 +20,13 @@ from app.models import (
     Supplier,
 )
 from app.services.auth import write_audit_log
+from app.services.heroes_conflict import validate_commit_allowed
+from app.services.heroes_legacy_persist import (
+    ensure_heroes_legacy_persisted,
+    persist_dispatch_pending_items,
+    persist_legacy_sheet_summary,
+)
+from app.services.heroes_order_format_v1 import preview_to_canonical
 from app.services.product_category import suggest_product_category
 
 
@@ -72,9 +78,37 @@ def commit_heroes_import_run(
     run = db.query(HeroesImportRun).filter(HeroesImportRun.id == run_id).first()
     if not run:
         raise ValueError("Import run não encontrado")
+
+    preview = run.preview_json or {}
+
+    if run.importation_id:
+        existing = db.query(ImportationOrder).filter(ImportationOrder.id == run.importation_id).first()
+        if existing:
+            if run.status != HeroesImportRunStatus.COMMITTED.value:
+                run.status = HeroesImportRunStatus.COMMITTED.value
+            ensure_heroes_legacy_persisted(
+                db,
+                importation_id=existing.id,
+                run_id=run.id,
+                sheet_name=run.sheet_name,
+                preview=preview,
+            )
+            db.commit()
+            db.refresh(existing)
+            return existing
+
     if run.status == HeroesImportRunStatus.COMMITTED.value:
         existing = db.query(ImportationOrder).filter(ImportationOrder.id == run.importation_id).first()
         if existing:
+            ensure_heroes_legacy_persisted(
+                db,
+                importation_id=existing.id,
+                run_id=run.id,
+                sheet_name=run.sheet_name,
+                preview=preview,
+            )
+            db.commit()
+            db.refresh(existing)
             return existing
         raise ValueError("Run já commitado mas ordem não encontrada")
 
@@ -82,27 +116,23 @@ def commit_heroes_import_run(
     if preview.get("errors"):
         raise ValueError("Preview contém erros — corrija antes de importar")
 
-    if not confirm_import:
-        raise ValueError("Confirme a importação explicitamente (confirm_import=true)")
-    if not confirm_sheet_match:
-        raise ValueError("Confirme que a sheet selecionada está correta (confirm_sheet_match=true)")
+    block = validate_commit_allowed(
+        db,
+        preview,
+        confirmed_order_number=confirmed_order_number,
+        confirm_import=confirm_import,
+        confirm_sheet_match=confirm_sheet_match,
+    )
+    if block:
+        raise ValueError(block)
 
-    order_number = confirmed_order_number or preview.get("confirmed_order_number") or preview.get("order_number") or run.order_number
-    if not order_number:
-        raise ValueError("Número da ordem não detectado — informe confirmed_order_number")
-
-    if preview.get("order_number_divergence") and not confirmed_order_number:
-        raise ValueError(
-            "Divergência entre nome da sheet e conteúdo — informe confirmed_order_number antes do commit"
-        )
-
+    order_number = (
+        confirmed_order_number
+        or preview.get("confirmed_order_number")
+        or preview.get("order_number")
+        or run.order_number
+    )
     po_number = f"HEROES-{order_number}"
-    existing = db.query(ImportationOrder).filter(ImportationOrder.po_number == po_number).first()
-    if existing:
-        raise ValueError(
-            f"Ordem {po_number} já existe (id={existing.id}). "
-            "Use reset operacional ou escolha atualizar staging."
-        )
 
     supplier = _get_heroes_supplier(db)
     imp = ImportationOrder(
@@ -118,6 +148,7 @@ def commit_heroes_import_run(
 
     product_cache: dict[str, Product] = {}
     item_by_product: dict[str, ImportationItem] = {}
+    product_id_by_name: dict[str, int] = {}
 
     def get_or_create_product(name: str) -> Product:
         if name in product_cache:
@@ -132,6 +163,7 @@ def commit_heroes_import_run(
         elif category_overrides and name in category_overrides:
             prod.category = category_overrides[name]
         product_cache[name] = prod
+        product_id_by_name[name] = prod.id
         return prod
 
     invoice_cache: dict[str, Invoice] = {}
@@ -181,6 +213,8 @@ def commit_heroes_import_run(
             cur = item_by_product[name].quantity_ordered
             item_by_product[name].quantity_ordered = (cur or 0) + qty
 
+        from app.core.parse import optional_decimal
+
         acconto = optional_decimal(row.get("acconto_amount"))
         if acconto is not None and acconto > 0:
             inv_date = row.get("invoice_date")
@@ -221,10 +255,29 @@ def commit_heroes_import_run(
             cur = item_by_product[name].quantity_ordered
             item_by_product[name].quantity_ordered = max(cur or 0, qty)
 
+    persist_legacy_sheet_summary(
+        db,
+        importation_id=imp.id,
+        run_id=run.id,
+        sheet_name=run.sheet_name,
+        preview=preview,
+    )
+    persist_dispatch_pending_items(
+        db,
+        importation_id=imp.id,
+        run_id=run.id,
+        sheet_name=run.sheet_name,
+        preview=preview,
+        product_id_by_name=product_id_by_name,
+    )
+
+    canonical = preview_to_canonical(preview, source_file=run.original_filename)
     run.status = HeroesImportRunStatus.COMMITTED.value
     run.importation_id = imp.id
     run.committed_at = datetime.now(timezone.utc)
-    run.normalized_json = {"po_number": po_number, "importation_id": imp.id}
+    run.confirmed_order_number = order_number
+    run.review_required = False
+    run.normalized_json = canonical
 
     write_audit_log(
         db,

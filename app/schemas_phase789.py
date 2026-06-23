@@ -105,9 +105,9 @@ class QuantityDiscrepancyCreate(BaseModel):
 class QuantityChainResponse(BaseModel):
     importation_item_id: int
     quantity_ordered: int | None
-    quantity_shipped: int
-    quantity_nationalized: int
-    quantity_stocked: int
+    quantity_shipped: int | None = None
+    quantity_nationalized: int | None = None
+    quantity_stocked: int | None = None
     difference_ordered_stocked: int | None
 
 

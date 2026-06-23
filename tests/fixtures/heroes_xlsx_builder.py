@@ -14,6 +14,7 @@ def build_ordine_758_xlsx() -> bytes:
     ws.title = "Ordine 758"
 
     ws["A1"] = "versato"
+    ws["B1"] = 397500
     ws["A2"] = "ordine 758"
     headers = [
         "data",
@@ -71,7 +72,7 @@ def build_ordine_759_xlsx() -> bytes:
     wb = Workbook()
     ws = wb.active
     ws.title = "Ordine 759"
-    ws["A2"] = "ordine 759"
+    ws["A2"] = "ordine 907"
     headers = ["data", "n* fattura", "quantità", "articolo", "acconto", "acconto rimasto"]
     for ci, h in enumerate(headers, 1):
         ws.cell(row=4, column=ci, value=h)

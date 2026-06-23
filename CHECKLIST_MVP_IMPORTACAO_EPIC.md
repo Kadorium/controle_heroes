@@ -1,7 +1,7 @@
 # Checklist MVP — Módulo de Importação Epic
 
 **Versão:** 1.0  
-**Última atualização:** 2026-06-21 (Fase pós-MVP 4 — Central da Ordem estilo planilha v2.0)  
+**Última atualização:** 2026-06-22 (Integridade régua de status + interatividade Visão Geral)  
 **Status:** Checklist vivo — plano central de execução do projeto
 
 **Legenda de colunas:** cada item lista ID · Módulo · Regra/Requisito · Prioridade · Status · Dependência · Evidência · Teste · Observação
@@ -1388,11 +1388,11 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Módulo:** Demo operacional
 - **Regra/Requisito:** Demo end-to-end: Heroes → staging → importação → pagamento → embarque → aduana → LC → conciliação → fechamento
 - **Prioridade:** P0
-- **Status:** PARTIAL
+- **Status:** DONE
 - **Dependência:** Fases 1–11
-- **Evidência:** massa demo + fluxo fechamento testado em pytest
-- **Teste:** roteiro coberto por `_full_close_setup` + browser
-- **Observação:** Gravação formal do roteiro — opcional
+- **Evidência:** [docs/QA_UI_E2E_BASE_LIMPA_ORDEM_REAL.md](docs/QA_UI_E2E_BASE_LIMPA_ORDEM_REAL.md) — Rodada 3: QA-UI-002 (ID 157) PASS; fechamento UI + reabertura; lacunas R3-LAC-001–005
+- **Teste:** `frontend/e2e/qa-rodada3-e2e-completo.spec.ts` **13 passed**; pytest reconciliação + QA rodada2 **18 passed**
+- **Observação:** Rodadas 1–2 pré-requisito; estoque/versionamento doc parcialmente API por lacuna UI
 
 ### F12-007
 - **Módulo:** Critérios de pronto MVP
@@ -2241,6 +2241,310 @@ Blocos: `order`, `invoices`, `invoice_items`, `dispatch_pending`, `payments_prev
 3. Commit com confirmação → validar Central da Ordem Bloco A/B
 4. QA auxiliar: `RITIRI HK` (produtos não-raquete), `Ordine 759` divergência (não importar sem revisão)
 
+---
+
+## Fase pós-MVP 5.2 — Teste real controlado Ordine 758
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| F5.2-001 Reset operacional seguro | DONE | `RESET_EPIC_TEST_DATA=1`; 17 importações removidas; users/roles/Heroes preservados |
+| F5.2-002 Planilha real na raiz | DONE | `CONTI ITALIA-BRASILE.xlsx` em `C:\Users\ricar\Desktop\projetos\EPIC\Controle\` (.gitignore) |
+| F5.2-003 Profiling real 14 sheets | DONE | `python -m app.scripts.profile_heroes_workbook --json`; Ordine 758 → importar conf 0.9 |
+| F5.2-004 E2E central-ordem-checkpoint | DONE | Headings Bloco A/B atualizados; `demo/seed` no global-setup; 9 testes passam retries=0 |
+| F5.2-005 E2E Heroes com planilha real | DONE | `heroes-import.spec.ts` → load-local + preview + commit 758; probe via `/locate` |
+| F5.2-006 Parser DA SPEDIRE (merge fix) | DONE | `heroes_merged_cells.py` não sobrescreve células preenchidas; 9 produtos DA SPEDIRE |
+| F5.2-007 Preview Ordine 758 sem commit | DONE | 28 invoice_items; 9 dispatch_pending; preview-only |
+| F5.2-008 Export v1 | DONE | XLSX + ZIP > mínimo; `test_export_v1_ordine_758` |
+| F5.2-009 Commit único Ordine 758 | DONE | `HEROES-758`; 14 faturas; 28 invoice_items; `heroes_import_run` |
+| F5.2-010 Idempotência | DONE | Recommit mesmo run → mesmo importation_id; novo run → bloqueio "já existe" |
+| F5.2-011 Central da Ordem dados reais | DONE | Modelos STARLIGHT/AURA/FIERCE/BULL-26/SHOW-26/ARION; sem mock fake |
+| F5.2-012 QA sheets auxiliares (sem commit) | DONE | RITIRI HK=LOGISTICS; Ordine 759 divergência 759/907; 2026=FINANCIAL_ANNUAL |
+| F5.2-013 Snapshot pós-commit | DONE | `tests/fixtures/ordine_758_import_snapshot.json` + `ordine_758_planilha_reference.json` |
+| F5.2-014 Testes 5.2 | DONE | `test_heroes_ordine_758_real.py` (11 casos); **164 pytest** total |
+| F5.2-015 validate-local verde | DONE | 164 pytest + build + **20 E2E** + health OK |
+
+### Reset executado
+
+- Script: `scripts/reset_operational_test_data.ps1` com `RESET_EPIC_TEST_DATA=1`
+- Backup: `backups/db/epic_importacao_20260621_205707.sql`
+- `importations_removed: 17`; dashboard e rotas `/importacoes`, `/financeiro`, `/cadastros/heroes` OK
+
+### Profiling (14 sheets)
+
+| Sheet | Tipo | Ordem conteúdo | Conf | Recomendação |
+|-------|------|----------------|------|--------------|
+| Ordine 758 | ORDER | 758 | 0.9 | **importar** (escolhida) |
+| Ordine 759 | ORDER | **907** | 0.20 | revisão manual — **NÃO importada** |
+| ordine 907 | ORDER | 907 | 1.0 | **NÃO importada** (risco duplicação com 759) |
+| RITIRI HK | LOGISTICS | — | — | auxiliar (preview only) |
+| 2025 / 2026 | FINANCIAL_ANNUAL | — | — | auxiliar (preview only) |
+
+### Conferência P0 — planilha vs importado
+
+| Campo | Planilha 758 | Importado | Confere? |
+|-------|--------------|-----------|----------|
+| Número ordem | 758 | HEROES-758 | ✅ |
+| Moeda | EUR | EUR | ✅ |
+| Produtos (starlight, aura, fierce, bull, show, arion) | presentes | modelos SKU reais, não "raquete genérica" | ✅ |
+| Invoice items | 28 linhas | 28 invoice_items / 14 faturas | ✅ |
+| DA SPEDIRE produtos | 9 (starlight 26…rebel) | 9 dispatch_pending no preview | ✅ |
+| Qty starlight (faturas) | 2000 | 2000 (soma item_quantity) | ✅ |
+| Qty fierce | 1750 | 1750 | ✅ |
+| Versato topo | 397.500 | — na Central | ⚠️ lacuna P1 (não persistido) |
+| Preço listino/fattura DA SPEDIRE | parseado | — na Central | ⚠️ lacuna P1 (preview-only) |
+| Acconto rimasto última linha | ~50.000 (arion) | acconto_remaining parseado 50000 | ✅ parse |
+| Números mock fake | ausentes | ausentes no order-central | ✅ |
+
+### Bugs corrigidos (5.2)
+
+1. **E2E central-ordem-checkpoint:** labels Bloco A/B desatualizados + seed DEMO ausente após reset
+2. **E2E Heroes skipped:** probe `raw_file_id=0` retornava 404 → trocado por `GET /locate`
+3. **DA SPEDIRE vazio:** merges propagavam "DA SPEDIRE" sobre nomes de produto → fix em `heroes_merged_cells.py`
+
+### Lacunas remanescentes
+
+- Versato total da ordem não persiste no commit (P1)
+- Preços listino/fattura e crédito por unidade: parseados, não gravados (P1 — conhecido da 5.1)
+- Ordine 759 / ordine 907: bloqueadas nesta fase (regra explícita)
+- Importação em massa: **fora de escopo**
+
+### Testes finais
+
+| Suite | Resultado |
+|-------|-----------|
+| pytest | **164 passed** |
+| npm run build | OK |
+| Playwright `--retries=0` | **20 passed** (incl. central + Heroes 758 real) |
+| validate-local | **OK** |
+| Alembic head | **008** |
+
+### Próxima etapa recomendada
+
+1. Modelar persistência de versato + preços DA SPEDIRE no commit (P1)
+2. Decidir política consciente para ordine 907 vs Ordine 759 (uma fonte, bloquear a outra)
+3. QA RITIRI HK com commit isolado (logística) após política de produtos não-raquete
+4. **Não** avançar importação em massa até P1 de persistência resolvido
+
+---
+
+## Fase pós-MVP 5.3 — Versato, DA SPEDIRE e política de conflito
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| F5.3-001 Migração 009 — legacy + dispatch | DONE | `heroes_legacy_sheet_summaries`, `heroes_dispatch_pending_items`; `confirmed_order_number`, `review_required` em `heroes_import_runs`; `brazil_operational_notes` |
+| F5.3-002 Persistir versato (Opção A) | DONE | `persist_legacy_sheet_summary`; **não** cria `Payment` oficial |
+| F5.3-003 Expor versato no order-central | DONE | `legacy_sheet_summary.*`, KPI `versato_heroes`; UI "Versato Heroes" + tooltip |
+| F5.3-004 Persistir DA SPEDIRE | DONE | `heroes_dispatch_pending_items` — listino, fattura, sconto, acconto, crédito rimasto, qty |
+| F5.3-005 Bloco B Central preenchido | DONE | merge por `product_id`; flag `heroes_source` / tooltip `H` |
+| F5.3-006 Política sheet vs conteúdo | DONE | `REVIEW_REQUIRED`; commit bloqueado sem `confirmed_order_number` |
+| F5.3-007 Ordine 759 vs 907 | DONE | preview divergência; commit bloqueado; duplicação `HEROES-907` bloqueada |
+| F5.3-008 Idempotência + backfill | DONE | recommit preenche legacy/dispatch ausentes; run órfão (`importation_id` + PREVIEW) reparado |
+| F5.3-009 Régua de status honesta | DONE | `order_status_rail.py` — ✓ só com dado; `declared_without_data` + alertas |
+| F5.3-010 Seed demo coerente | DONE | DEMO-01/DEMO-02: fatura + acconto + embarque alinhados ao status |
+| F5.3-011 Notas operacionais Brasil | DONE | `PATCH /api/importations/{id}/brazil-fields`; campo editável na Visão Geral |
+| F5.3-012 Testes backend 5.3 | DONE | `tests/test_heroes_postmvp_53.py` (14 casos); **178 pytest** total |
+| F5.3-013 E2E 5.3 | DONE | `heroes-import.spec.ts` Versato + Bloco B + Ordine 759; **21 E2E** retries=0 |
+| F5.3-014 validate-local | DONE | pytest + build + E2E + health OK |
+| F5.3-015 Sem importação em massa | DONE | escopo explícito — manual, revisado, auditável |
+
+### Campos persistidos
+
+| Campo | Tabela / origem | Exibição Central |
+|-------|-----------------|------------------|
+| `versato_amount` | `heroes_legacy_sheet_summaries` | KPI + linha "Versato Heroes" |
+| `price_listino`, `price_fattura` | `heroes_dispatch_pending_items` | Bloco B colunas preço |
+| `discount_unit`, `acconto_amount`, `credit_remaining` | idem | Bloco B |
+| `quantity_to_dispatch` | idem | Bloco B "A despachar" |
+
+### Regras de negócio
+
+1. `versato` = fato importado Heroes; **não** pagamento liquidado sem comprovante.
+2. DA SPEDIRE = pendente informado pela planilha; **não** substitui shipment oficial.
+3. `confirmed_order_number` é a fonte oficial; divergência sheet/conteúdo → `REVIEW_REQUIRED`.
+4. Unicidade operacional: `HEROES-{n}` + supplier Heroes — bloqueia duplicação.
+5. Idempotência: `file_checksum` + `sheet_name` + `confirmed_order_number` + `parser_version`.
+6. Campo vazio permanece `null`/`—`, nunca zero.
+
+### Política 759 vs 907
+
+- Sheet `Ordine 759` com conteúdo `ordine 907` → `order_number_divergence=true`, `review_required`.
+- Commit sem `confirmed_order_number` → HTTP 400.
+- Confirmar como `907` com `HEROES-907` existente → bloqueio; opções: comparar, staging, cancelar.
+- **Nunca** duas ordens oficiais para o mesmo número interno.
+
+### Bugs corrigidos (5.3)
+
+1. **`HeroesDispatchPendingItem` + SoftDeleteMixin** — coluna `cancelled_at` inexistente → 500 no order-central; removido mixin, mantido `is_active`.
+2. **Run órfão PREVIEW + `importation_id`** — preview podia resetar status; commit/recommit agora repara e faz backfill legacy.
+3. **Régua demo mentindo** — etapas ✓ sem fatura/pagamento/embarque → derivada de dados reais.
+4. **Reset operacional FK** — delete legacy/dispatch antes de `heroes_import_runs`.
+
+### Lacunas remanescentes
+
+- Crédito/unidade e crédito acumulado por produto — modelagem contábil P1 (continua `—` honesto).
+- Status operacional preliminar Brasil — edição inline pendente de endpoint de transição controlada.
+- Override Itália (valor fatura, nº fatura) — só via modal com motivo + anexo (próxima fase).
+- Importação em massa — **fora de escopo**.
+
+### Testes finais
+
+| Suite | Resultado |
+|-------|-----------|
+| pytest | **178 passed** |
+| npm run build | OK |
+| Playwright `--retries=0` | **21 passed** |
+| validate-local | **OK** |
+| Alembic head | **009** |
+
+### Próxima etapa recomendada
+
+1. Modelagem crédito/unidade e crédito acumulado (política contábil Epic).
+2. Endpoint seguro para status operacional preliminar Brasil (transições + AuditLog).
+3. QA commit isolado `RITIRI HK` (logística) após política produtos não-raquete.
+4. **Não** avançar importação em massa.
+
+
+---
+
+## Integridade da régua de status e interatividade da Visão Geral
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| SR-001 Régua derivada de dados reais | DONE | `order_status_rail.py` — ✓ só com dado; `declared_without_data` + alertas |
+| SR-002 Remoção fallback falso no frontend | DONE | `ImportationLayout` usa só `status_rail` da API (sem `railIndex` local) |
+| SR-003 CSS etapa declarada sem dado | DONE | `.order-central__stage--declared_without_data` — borda tracejada + `!` |
+| SR-004 Seed demo coerente | DONE | `_seed_coherent_demo_order` idempotente; DEMO-01/02 + shipment IN_TRANSIT |
+| SR-005 Status operacional Brasil | DONE | `GET allowed-transitions` + `POST transition` com motivo de bloqueio |
+| SR-006 Observação Brasil editável | DONE | `PATCH brazil-fields` + AuditLog; reflete sem reload |
+| SR-007 Override campo Itália | DONE | `POST italy-overrides` — motivo + anexo + AuditLog; modal na Visão Geral |
+| SR-008 Campos pendentes listados | DONE | UI: data prevista, SKU mapeado — "Edição pendente de endpoint seguro" |
+| SR-009 Testes backend | DONE | `tests/test_status_rail_integrity.py` (11 casos); **189 pytest** total (+11) |
+| SR-010 E2E interatividade | DONE | `status-rail-interactivity.spec.ts` — **27 E2E** total (+6, 2 skip condicional) |
+
+### Fonte da régua
+
+| Antes | Depois |
+|-------|--------|
+| `current_status` + `railIndex()` no frontend marcava etapas anteriores como ✓ | Backend `build_status_rail()` valida `current_status` contra dados reais (faturas, pagamentos, embarques, aduana, estoque) |
+
+### Seed demo corrigido
+
+- **DEMO-01-OCEAN**, **DEMO-02-AIR**: fatura + acconto + embarque `IN_TRANSIT` reaplicados em re-seed
+- **DEMO-06-PARTIAL**: status `PARTIAL_PAID` alinhado a fatura + pagamento
+
+### Campos editáveis na Visão Geral
+
+- Status operacional (dropdown → transição controlada)
+- Observação operacional Brasil (inline + AuditLog)
+- Override Itália via modal (nº fatura, quantidade — motivo + anexo)
+
+### Campos bloqueados (sem endpoint)
+
+- Data prevista de embarque
+- SKU mapeado por item
+
+### Lacunas remanescentes
+
+- Endpoints para data prevista e SKU mapeado
+- Status `CLOSED` / aduana / estoque na régua dependem de dados ainda esparsos em alguns demos avançados
+
+### Próxima etapa recomendada
+
+1. Endpoints Brasil para data prevista e SKU mapeado
+2. Retomar Fase Heroes 5.4 (crédito/unidade) ou RITIRI HK isolado
+
+
+---
+
+## Fase pós-MVP 6 — Reformulação UX operacional estilo planilha (2026-06-22)
+
+Objetivo de produto: transformar o sistema em ferramenta de trabalho estilo planilha,
+com a **Ordem** como tela central, reduzindo navegação e cliques e habilitando edição inline.
+
+### Etapa A — Auditoria UI (antes)
+
+| Ação | Cliques antes | Percepção antes |
+|------|---------------|-----------------|
+| Criar ordem manual simples | sem caminho rápido (só fluxo completo por abas) | formulário/ERP técnico |
+| Adicionar fatura/item | abrir ordem → aba Faturas → form | ERP por abas |
+| Registrar/liquidar pagamento | abrir ordem → aba Financeiro → form | ERP por abas |
+| Ver "a despachar" (DA SPEDIRE) | abrir ordem → aba Logística | navegação extra |
+| Entender pendência de fechamento | abrir ordem → aba Conciliação | navegação extra |
+| Editar prioridade/responsável/observação | sem campo (inexistente) | impossível |
+
+Percepção geral antes: **ERP técnico por abas**, sem grade editável, sem visão única da ordem.
+
+### Etapa B — Plano P0/P1/P2 (problema → correção → etapa)
+
+| Prio | Problema | Correção | Etapa |
+|------|----------|----------|-------|
+| P0 | Lista de ordens não-planilha, sem edição | Grade densa com header/coluna fixos, zebra, totais no rodapé, edição inline | C |
+| P0 | Ordem fragmentada em abas | Central da Ordem em seções empilhadas na 1ª tela | D |
+| P0 | Campos operacionais Brasil inexistentes | Migração 010 + endpoints PATCH + edição inline | I |
+| P1 | Criar ordem sem caminho rápido | Nova ordem planilha única (tabela itens + Heroes default + totais live) | E |
+| P1 | Financeiro pouco acionável | Inline due/comprovante + Liquidar na ordem e no global | F |
+| P2 | Heroes sem orientação | Stepper guiado de 4 passos | H |
+| P2 | Mensagens técnicas (PO/staging/commit/profiling) | Varredura de terminologia operacional | terminologia |
+
+### Etapa C–I — Entregas
+
+| Item | Status | Evidência / teste |
+|------|--------|-------------------|
+| UX6-C Grade /importacoes estilo planilha | DONE | `ImportationsPage.tsx` (`.sheet-grid`, header/coluna fixos, totais por moeda, filtros, export); E2E "grade densa" |
+| UX6-D Central em seções empilhadas | DONE | `OrderCentralOverview.tsx` (resumo operacional, faturas+itens, pagamentos, DA SPEDIRE, modelos, documentos, histórico); E2E "seções empilhadas" |
+| UX6-E Nova ordem planilha | DONE | `NovaOrdemModal.tsx` (tabela itens, `ProductCombobox`, Heroes default + dedupe, totais live, `create+items[]`, financeiro opcional); E2E `nova-ordem-planilha.spec.ts`, `nova-ordem-regression.spec.ts` |
+| UX6-F Financeiro acionável | DONE | inline due/comprovante + Liquidar em `OrderCentralOverview` e `FinancePage`; E2E "adicionar pagamento planejado e liquidar" |
+| UX6-G Dashboard filas de ação | DONE | `DashboardPage` roteia ações ao bloco correto da ordem |
+| UX6-H Heroes stepper guiado | DONE | `HeroesUploadPage.tsx` (`.ux-steps`, 4 passos); E2E "fluxo guiado com stepper" |
+| UX6-I Migração 010 + endpoints + queue enriquecido | DONE | `010_order_operational_fields.py`; PATCH `/brazil-fields` (priority/responsible/internal_forecast_date + AuditLog por campo); PATCH `/items/{id}` (SKU/descrição); `order-queue` com qty pedida/faturada/despachada, produtos, docs, próx. venc., vencidos |
+| UX6-J Edição inline (EditableCell) | DONE | `EditableCell.tsx` (Enter salva, Esc cancela, blur salva, feedback ✓/!) |
+| UX6-K Terminologia operacional | DONE | "Já existe uma ordem com esse número"; "Não foi possível analisar a planilha"; "enviadas para revisão"; "sem gravar"; "vai para a fila de revisão" |
+| UX6-L Faturas como etapas (antecipo/chegada/saldo 30-60d) | DONE | `OrderCentralOverview`: faixa `.inv-stage` + coluna Etapa; `ImportationsPage`: coluna Faturas `quitadas/total`; queue `invoices_count`/`invoices_settled_count` (lote, sem N+1); E2E "faturas como etapas" e "contador de faturas" |
+
+### Campos editáveis inline
+
+- **Grade /importacoes:** prioridade, responsável, previsão interna, observação operacional
+- **Central da Ordem (cabeçalho):** status operacional (transição permitida), prioridade, responsável, previsão interna, observação
+- **Central — Pagamentos:** vencimento (planejado), comprovante/referência (liquidado), ação **Liquidar**
+- **Central — Modelos:** SKU mapeado, categoria do produto (quando há produto mapeado)
+
+### Campos bloqueados (origem Itália)
+
+- Nº fatura, quantidade, acconto, preços/sconto — somente via **override auditado** (motivo + anexo) com `IT`/tooltip humano
+
+### Cliques depois (principais ações)
+
+| Ação | Cliques depois |
+|------|----------------|
+| Criar ordem manual simples | 2 (Nova ordem → preencher planilha → Criar e abrir) |
+| Adicionar pagamento planejado + liquidar | 2 na própria Central (sem trocar de tela) |
+| Editar prioridade/responsável/observação | 1 na célula (grade ou cabeçalho) |
+| Ver DA SPEDIRE / entender pendência | 0 navegações extra (tudo na 1ª tela da ordem) |
+
+### Validação
+
+| Item | Resultado |
+|------|-----------|
+| pytest | **199 passed** (+11: `tests/test_postmvp6_ux.py`) |
+| npm run build | OK |
+| Playwright `--retries=0` | **35 passed**, 2 skip condicional (+10 em `ux-postmvp6-planilha.spec.ts`) |
+| Alembic head | **010** |
+
+### Veredito
+
+- **Produto:** PASS — ordem como tela central, grade editável estilo planilha, criação rápida (<2 min), DA SPEDIRE e pendências na 1ª tela, mensagens operacionais.
+- **Técnico:** PASS — 198 pytest, build OK, 33 E2E `retries=0`, migração 010 aplicada.
+
+### Escopo NÃO incluído (conforme controle)
+
+Importação em massa, nova conciliação automática, integração externa, copiar/colar em massa, drag-and-drop, permissões avançadas, reescrita total do design system.
+
+### Próxima etapa recomendada
+
+1. Tab para próxima célula editável na grade (navegação tipo planilha).
+2. Endpoint dedicado para data prevista de embarque.
+3. Modelagem crédito/unidade (política contábil Epic).
+
 
 ---
 
@@ -2248,6 +2552,15 @@ Blocos: `order`, `invoices`, `invoice_items`, `dispatch_pending`, `payments_prev
 
 | Data | Versão | Alteração |
 |---|---|---|
+| 2026-06-23 | 3.2 | Rodada 3 QA E2E A–L: QA-UI-002 (ID 157) PASS; fechamento UI + reabertura; Playwright 13 passed; F12-006 DONE; lacunas R3-LAC-001–005; fix QTY_CHAIN OK upsert |
+| 2026-06-23 | 3.1 | Rodada combinada BLOCO 2: Nova Ordem planilha (tabela itens, ProductCombobox, Heroes default, totais live); UX6-E atualizado; E2E anti-regressão ordem completa |
+| 2026-06-23 | 3.0 | Rodada 2 QA: correção QA-HIGH-001/002, QA-MED-001–004; pytest 204 (+5); build OK; distinção null vs zero no dado; F12-006 PARTIAL (E2E completo = Rodada 3) |
+| 2026-06-23 | 2.9 | QA UI E2E base limpa — ordem QA-UI-001 (ID 44); CONDITIONAL_PASS; F12-006 PARTIAL; anti-fake sem mock; 2 HIGH (0 em vazio); evidência docs/QA_UI_E2E_BASE_LIMPA_ORDEM_REAL.md |
+| 2026-06-22 | 2.8 | Fase pós-MVP 6.1 — faturas como etapas (antecipo/chegada/saldo 30-60d); faixa de etapas na Central; coluna Faturas quitadas/total na grade; queue em lote; 199 pytest; 35 E2E |
+| 2026-06-22 | 2.7 | Fase pós-MVP 6 — UX operacional estilo planilha; grade densa editável; Central em seções; nova ordem 2 caminhos; migração 010; 198 pytest; 33 E2E |
+| 2026-06-22 | 2.6 | Régua de status honesta + interatividade Visão Geral; 189 pytest; 27 E2E |
+| 2026-06-21 | 2.5 | Fase pós-MVP 5.3 — versato + DA SPEDIRE persistidos; política 759/907; régua honesta; 178 pytest; 21 E2E |
+| 2026-06-21 | 2.4 | Fase pós-MVP 5.2 — teste real Ordine 758; fix E2E + DA SPEDIRE merge; 164 pytest; 20 E2E; validate-local OK |
 | 2026-06-21 | 2.3 | Fase pós-MVP 5.1 — profiling planilha real; Heroes Order Import Format v1; parse it-IT; export normalizado; 150 pytest |
 | 2026-06-21 | 2.2 | Fase pós-MVP 5 — reset operacional; Product.category; parser Heroes XLSX; upload/preview; migração 007 |
 | 2026-06-21 | 2.1 | Hardening pós-entrega Central da Ordem — bugs logística/financeiro; fila planilha; batch order-queue; 110 pytest; 18 E2E retries=0 |

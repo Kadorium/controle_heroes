@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Button, EmptyState, LoadingState, PageHeader, Table } from "../components";
+import { Badge, Button, EditableCell, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
 import {
   financeApi,
   importationsApi,
@@ -25,37 +25,42 @@ interface PayRow {
 
 export function FinancePage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [rows, setRows] = useState<PayRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<PayFilter>("all");
+
+  const load = useCallback(async () => {
+    const [imps, invs, pays, sups] = await Promise.all([
+      importationsApi.list(),
+      invoicesApi.list(),
+      financeApi.listPayments(),
+      suppliersApi.list(),
+    ]);
+    const impMap = Object.fromEntries(imps.map((i) => [i.id, i]));
+    const supMap = Object.fromEntries(sups.map((s) => [s.id, s.name]));
+    const invMap = Object.fromEntries(invs.map((i) => [i.id, i]));
+    const built: PayRow[] = pays
+      .filter((p) => p.is_active)
+      .map((p) => {
+        const inv = invMap[p.invoice_id];
+        const imp = inv ? impMap[inv.importation_id] : undefined;
+        return {
+          payment: p,
+          invoice: inv!,
+          importation: imp!,
+          supplierName: imp ? supMap[imp.supplier_id] ?? "—" : "—",
+        };
+      })
+      .filter((r) => r.invoice && r.importation);
+    setRows(built);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [imps, invs, pays, sups] = await Promise.all([
-          importationsApi.list(),
-          invoicesApi.list(),
-          financeApi.listPayments(),
-          suppliersApi.list(),
-        ]);
-        const impMap = Object.fromEntries(imps.map((i) => [i.id, i]));
-        const supMap = Object.fromEntries(sups.map((s) => [s.id, s.name]));
-        const invMap = Object.fromEntries(invs.map((i) => [i.id, i]));
-        const built: PayRow[] = pays
-          .filter((p) => p.is_active)
-          .map((p) => {
-            const inv = invMap[p.invoice_id];
-            const imp = inv ? impMap[inv.importation_id] : undefined;
-            return {
-              payment: p,
-              invoice: inv!,
-              importation: imp!,
-              supplierName: imp ? supMap[imp.supplier_id] ?? "—" : "—",
-            };
-          })
-          .filter((r) => r.invoice && r.importation);
-        if (!cancelled) setRows(built);
+        await load();
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -63,7 +68,25 @@ export function FinancePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [load]);
+
+  async function liquidate(p: Payment) {
+    try {
+      await financeApi.updatePayment(p.id, {
+        payment_date: new Date().toISOString().slice(0, 10),
+        receipt_reference: `LIQ-${p.id}`,
+      });
+      toast.success("Pagamento liquidado");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível liquidar o pagamento.");
+    }
+  }
+
+  async function savePayment(p: Payment, patch: Record<string, string | null>) {
+    await financeApi.updatePayment(p.id, patch);
+    await load();
+  }
 
   const filtered = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -161,7 +184,11 @@ export function FinancePage() {
                   : payStatusLabel(p.payment_date ? "SETTLED" : "PENDING");
                 return (
                   <tr key={p.id}>
-                    <td>{p.due_date ? fmtDate(p.due_date) : emptyDash(null)}</td>
+                    <td>
+                      {planned ? (
+                        <EditableCell type="date" value={p.due_date ?? ""} display={p.due_date ? fmtDate(p.due_date) : undefined} onSave={(v) => savePayment(p, { due_date: v || null })} />
+                      ) : (p.due_date ? fmtDate(p.due_date) : emptyDash(null))}
+                    </td>
                     <td>{r.invoice.invoice_number}</td>
                     <td>
                       <button
@@ -180,11 +207,18 @@ export function FinancePage() {
                       <Badge status={planned ? "PENDING" : "FULL_PAID"}>{status}</Badge>
                     </td>
                     <td>{emptyDash(null)}</td>
-                    <td>{p.receipt_reference ? "Sim" : "Não"}</td>
                     <td>
-                      <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.importation.id}/financeiro`)}>
-                        Abrir
-                      </Button>
+                      {planned ? emptyDash(null) : (
+                        <EditableCell value={p.receipt_reference ?? ""} onSave={(v) => savePayment(p, { receipt_reference: v || null })} placeholder="referência" />
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {planned && (
+                          <Button variant="secondary" className="ui-btn--sm" onClick={() => liquidate(p)}>Liquidar</Button>
+                        )}
+                        <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.importation.id}/financeiro`)}>Abrir</Button>
+                      </div>
                     </td>
                   </tr>
                 );

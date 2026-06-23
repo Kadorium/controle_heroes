@@ -43,6 +43,31 @@ def _stock_total(db: Session, importation_item_id: int, exclude_entry_id: int | 
     return int(q.scalar() or 0)
 
 
+def _nationalized_total_for_display(db: Session, importation_item_id: int) -> int | None:
+    """None = nacionalização ainda não registrada; 0 = registro com quantidade zero."""
+    has_row = (
+        db.query(NationalizationItem.id)
+        .join(Nationalization)
+        .filter(NationalizationItem.importation_item_id == importation_item_id)
+        .first()
+    )
+    if not has_row:
+        return None
+    return _nationalized_total(db, importation_item_id)
+
+
+def _stock_total_for_display(db: Session, importation_item_id: int) -> int | None:
+    """None = estoque ainda não recebido; 0 = entrada com quantidade zero."""
+    has_row = (
+        db.query(StockEntry.id)
+        .filter(StockEntry.importation_item_id == importation_item_id)
+        .first()
+    )
+    if not has_row:
+        return None
+    return _stock_total(db, importation_item_id)
+
+
 def create_nationalization(
     db: Session,
     *,
@@ -188,14 +213,14 @@ def quantity_chain(db: Session, importation_id: int) -> list[dict]:
         .filter(ImportationItem.importation_id == importation_id, ImportationItem.is_active.is_(True))
         .all()
     )
-    from app.services.logistics import _shipped_total
+    from app.services.logistics import _shipped_total_for_display
 
     result = []
     for item in items:
         ordered = item.quantity_ordered
-        shipped = _shipped_total(db, item.id)
-        nationalized = _nationalized_total(db, item.id)
-        stocked = _stock_total(db, item.id)
+        shipped = _shipped_total_for_display(db, item.id)
+        nationalized = _nationalized_total_for_display(db, item.id)
+        stocked = _stock_total_for_display(db, item.id)
         result.append(
             {
                 "importation_item_id": item.id,
@@ -203,7 +228,9 @@ def quantity_chain(db: Session, importation_id: int) -> list[dict]:
                 "quantity_shipped": shipped,
                 "quantity_nationalized": nationalized,
                 "quantity_stocked": stocked,
-                "difference_ordered_stocked": (stocked - ordered) if ordered is not None else None,
+                "difference_ordered_stocked": (stocked - ordered)
+                if ordered is not None and stocked is not None
+                else None,
             }
         )
     return result

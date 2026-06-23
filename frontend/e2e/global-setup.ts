@@ -30,6 +30,13 @@ async function globalSetup(_config: FullConfig) {
   }
 
   await context.storageState({ path: "e2e/.auth/admin.json" });
+
+  // Garante massa DEMO para testes de Central da Ordem (idempotente)
+  const seedRes = await page.request.post("/api/demo/seed");
+  if (!seedRes.ok()) {
+    console.warn("demo/seed falhou — testes de central podem falhar se base estiver vazia");
+  }
+
   await browser.close();
 }
 

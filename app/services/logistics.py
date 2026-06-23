@@ -25,6 +25,21 @@ def _shipped_total(db: Session, importation_item_id: int, exclude_shipment_item_
     return int(q.scalar() or 0)
 
 
+def _shipped_total_for_display(db: Session, importation_item_id: int) -> int | None:
+    """None = etapa ainda não iniciada; 0 = embarque registrado com quantidade zero."""
+    has_row = (
+        db.query(ShipmentItem.id)
+        .filter(
+            ShipmentItem.importation_item_id == importation_item_id,
+            ShipmentItem.is_active.is_(True),
+        )
+        .first()
+    )
+    if not has_row:
+        return None
+    return _shipped_total(db, importation_item_id)
+
+
 def validate_shipment_quantity(
     db: Session,
     importation_item: ImportationItem,

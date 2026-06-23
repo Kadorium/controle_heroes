@@ -20,6 +20,7 @@ export interface Product {
   sku_code: string;
   description: string;
   ncm: string | null;
+  category?: string | null;
   is_active: boolean;
 }
 
@@ -31,9 +32,20 @@ export interface Importation {
   incoterm: string | null;
   estimated_total: string | null;
   current_status: string;
+  brazil_operational_notes?: string | null;
+  priority?: string | null;
+  responsible?: string | null;
+  internal_forecast_date?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string | null;
+}
+
+export interface BrazilFieldsUpdate {
+  brazil_operational_notes?: string | null;
+  priority?: string | null;
+  responsible?: string | null;
+  internal_forecast_date?: string | null;
 }
 
 export interface OrderQueueRow {
@@ -46,7 +58,21 @@ export interface OrderQueueRow {
   total_invoiced: string | null;
   total_paid: string | null;
   consolidated_balance: string | null;
+  totals_by_currency?: Record<string, { total_invoiced: string | null; total_paid: string | null; consolidated_balance: string | null }> | null;
   to_dispatch: number | null;
+  qty_ordered?: number | null;
+  qty_invoiced?: number | null;
+  qty_shipped?: number | null;
+  products_count?: number;
+  invoices_count?: number;
+  invoices_settled_count?: number;
+  docs_pending_count?: number;
+  next_due_date?: string | null;
+  overdue_count?: number;
+  priority?: string | null;
+  responsible?: string | null;
+  internal_forecast_date?: string | null;
+  brazil_operational_notes?: string | null;
   pending_actions_count: number;
   updated_at: string | null;
   created_at: string;
@@ -85,6 +111,9 @@ export interface OrderCentralModel {
   importation_item_id: number;
   product_id: number | null;
   supplier_sku: string | null;
+  description?: string | null;
+  product_sku?: string | null;
+  product_category?: string | null;
   model_label: string | null;
   quantity_ordered: number | null;
   quantity_shipped: number | null;
@@ -92,17 +121,81 @@ export interface OrderCentralModel {
   quantity_stocked: number | null;
   quantity_invoiced: number | null;
   to_dispatch: number | null;
+  price_listino?: string | null;
+  price_fattura?: string | null;
+  discount_unit?: string | null;
+  acconto_amount?: string | null;
+  credit_remaining?: string | null;
+  heroes_source?: boolean;
+  dispatch_needs_review?: boolean;
+}
+
+export interface LegacySheetSummary {
+  versato_amount: string | null;
+  versato_currency: string | null;
+  versato_source: string | null;
+  versato_confidence: number | null;
+  sheet_name: string | null;
+  source: string;
+}
+
+export interface StatusRailStage {
+  key: string;
+  label: string;
+  state: "done" | "now" | "todo" | "declared_without_data";
+  data_supported: boolean;
+  status_declared: boolean;
+  subtitle?: string | null;
+}
+
+export interface CurrencyTotals {
+  total_invoiced: string | null;
+  total_paid: string | null;
+  total_discounts: string | null;
+  consolidated_balance: string | null;
+}
+
+export interface OperationalHeader {
+  invoices_count: number;
+  invoices_settled_count: number;
+  totals_by_currency: Record<string, CurrencyTotals> | null;
+  total_invoiced: string | null;
+  total_paid: string | null;
+  open_balance: string | null;
+  open_balance_brl_equivalent: string | null;
+  next_due_date: string | null;
+  overdue_count: number;
+  overdue_amount_foreign: string | null;
+  next_etd: string | null;
+  next_eta: string | null;
+  active_modal: string | null;
+  to_dispatch: number | null;
+  quantity_ordered: number | null;
+  supplier_credit_available: string | null;
+  pending_actions_count: number;
+}
+
+export interface StatusRail {
+  stages: StatusRailStage[];
+  current_index: number;
+  alerts: string[];
 }
 
 export interface OrderCentralResponse {
   order: Importation;
   supplier_name: string | null;
+  legacy_sheet_summary: LegacySheetSummary | null;
+  dispatch_pending: Array<Record<string, unknown>>;
+  status_rail: StatusRail | null;
+  operational_header: OperationalHeader;
   kpis: {
     currency: string;
     total_invoiced: string | null;
     total_paid: string | null;
     consolidated_balance: string | null;
     to_dispatch: number | null;
+    versato_heroes?: string | null;
+    versato_heroes_currency?: string | null;
   };
   invoices: OrderCentralInvoice[];
   models: OrderCentralModel[];
@@ -115,8 +208,12 @@ export interface ImportationItem {
   id: number;
   importation_id: number;
   product_id: number | null;
+  supplier_sku?: string | null;
+  description?: string | null;
   quantity_ordered: number | null;
   unit_price_foreign: string | null;
+  discount_amount_foreign?: string | null;
+  is_active?: boolean;
 }
 
 export interface Invoice {
@@ -264,8 +361,10 @@ export const suppliersApi = {
 
 export const productsApi = {
   list: () => api<Product[]>("/api/products"),
-  create: (data: { sku_code: string; description: string; ncm?: string }) =>
+  create: (data: { sku_code: string; description: string; ncm?: string; category?: string }) =>
     api<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: number, data: { description?: string; ncm?: string; category?: string }) =>
+    api<Product>(`/api/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 };
 
 export const importationsApi = {
@@ -276,10 +375,50 @@ export const importationsApi = {
   orderQueue: (limit = 200) => api<OrderQueueResponse>(`/api/importations/order-queue?limit=${limit}`),
   create: (data: object) =>
     api<Importation>("/api/importations", { method: "POST", body: JSON.stringify(data) }),
-  transition: (id: number, new_status: string) =>
+  transition: (id: number, new_status: string, reason?: string | null) =>
     api<Importation>(`/api/importations/${id}/transition`, {
       method: "POST",
-      body: JSON.stringify({ new_status }),
+      body: JSON.stringify({ new_status, reason: reason ?? null }),
+    }),
+  allowedTransitions: (id: number) =>
+    api<{ current_status: string; transitions: Array<{ status: string; blocked: boolean; block_reason: string | null }> }>(
+      `/api/importations/${id}/allowed-transitions`
+    ),
+  italyOverride: (id: number, data: {
+    entity_type: "invoice" | "invoice_item";
+    entity_id: number;
+    field_name: string;
+    new_value: string;
+    reason: string;
+    attachment_id: number;
+  }) =>
+    api<{ entity_type: string; entity_id: number; field_name: string; old_value: string | null; new_value: string }>(
+      `/api/importations/${id}/italy-overrides`,
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+  updateBrazilNotes: (id: number, brazil_operational_notes: string | null) =>
+    api<Importation>(`/api/importations/${id}/brazil-fields`, {
+      method: "PATCH",
+      body: JSON.stringify({ brazil_operational_notes }),
+    }),
+  updateBrazilFields: (id: number, data: BrazilFieldsUpdate) =>
+    api<Importation>(`/api/importations/${id}/brazil-fields`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  addItem: (id: number, data: object) =>
+    api<ImportationItem>(`/api/importations/${id}/items`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateItemMapping: (
+    id: number,
+    itemId: number,
+    data: { product_id?: number | null; description?: string | null; supplier_sku?: string | null },
+  ) =>
+    api<ImportationItem>(`/api/importations/${id}/items/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     }),
 };
 

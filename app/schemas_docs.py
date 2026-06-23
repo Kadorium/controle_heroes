@@ -124,6 +124,7 @@ class HeroesXlsxPreviewResponse(BaseModel):
     order_number_from_sheet_name: str | None = None
     order_number_from_content: str | None = None
     order_number_divergence: bool = False
+    review_required: bool = False
     preview: dict
     canonical: dict | None = None
     warnings: list[str] | None = None

@@ -320,30 +320,34 @@ def run_reconciliations(db: Session, importation_id: int) -> list[Reconciliation
     for row in chain:
         ordered = row["quantity_ordered"] or 0
         stocked = row["quantity_stocked"]
-        if ordered != stocked:
-            variance = Decimal(stocked - ordered)
+        if stocked is None:
+            continue
+        variance = Decimal(stocked - ordered)
+        if variance == 0:
+            status, severity = ReconciliationStatus.OK.value, "WARNING"
+        else:
             status, severity = _status_for_variance(variance, Decimal(ordered or 1), Decimal("0"))
-            results.append(
-                _upsert_reconciliation(
-                    db,
-                    importation_id=importation_id,
-                    pair_type=ReconciliationPairType.QTY_CHAIN.value,
-                    label=f"Qty item {row['importation_item_id']}: pedida→estocada",
-                    source_a_label="Pedida",
-                    source_a_value=str(ordered),
-                    source_b_label="Estocada",
-                    source_b_value=str(stocked),
-                    variance_value=variance,
-                    tolerance_value=Decimal("0"),
-                    status=status,
-                    severity=severity,
-                    entity_ref=f"item:{row['importation_item_id']}",
-                    details={
-                        "shipped": row["quantity_shipped"],
-                        "nationalized": row["quantity_nationalized"],
-                    },
-                )
+        results.append(
+            _upsert_reconciliation(
+                db,
+                importation_id=importation_id,
+                pair_type=ReconciliationPairType.QTY_CHAIN.value,
+                label=f"Qty item {row['importation_item_id']}: pedida→estocada",
+                source_a_label="Pedida",
+                source_a_value=str(ordered),
+                source_b_label="Estocada",
+                source_b_value=str(stocked),
+                variance_value=variance,
+                tolerance_value=Decimal("0"),
+                status=status,
+                severity=severity,
+                entity_ref=f"item:{row['importation_item_id']}",
+                details={
+                    "shipped": row["quantity_shipped"],
+                    "nationalized": row["quantity_nationalized"],
+                },
             )
+        )
 
     lc_final = (
         db.query(LandedCostVersion)

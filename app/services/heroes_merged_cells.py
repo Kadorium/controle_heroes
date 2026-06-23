@@ -44,6 +44,9 @@ def apply_merged_cells_to_grid(grid: list[list[Any]], ws: Worksheet) -> int:
                 ci = c - 1
                 if r == min_row and c == min_col:
                     continue
+                existing = grid[ri][ci]
+                if existing is not None and str(existing).strip():
+                    continue
                 grid[ri][ci] = anchor_val
 
     return len(merges)

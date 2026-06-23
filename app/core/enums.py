@@ -109,6 +109,7 @@ class HeroesSheetType(str, Enum):
 
 class HeroesImportRunStatus(str, Enum):
     PREVIEW = "PREVIEW"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
     COMMITTED = "COMMITTED"
     SUPERSEDED = "SUPERSEDED"
     FAILED = "FAILED"

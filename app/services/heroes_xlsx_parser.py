@@ -136,6 +136,41 @@ def _order_from_sheet_content(grid: list[list[Any]]) -> str | None:
     return None
 
 
+def _parse_versato(grid: list[list[Any]]) -> dict[str, Any] | None:
+    """Extrai versato do topo da sheet — informação legada, não pagamento."""
+    for ri, row in enumerate(grid[:10]):
+        for ci, cell in enumerate(row[:12]):
+            label = _norm_header(cell)
+            if label == "versato" or label.startswith("versato "):
+                for cj in range(ci + 1, min(ci + 5, len(row))):
+                    num = parse_it_number(row[cj])
+                    if num is not None and num > 0:
+                        col_letter = chr(ord("A") + cj) if cj < 26 else f"col{cj}"
+                        return {
+                            "versato_amount": str(num),
+                            "versato_currency": "EUR",
+                            "versato_source_row": ri + 1,
+                            "versato_source_cell": f"{col_letter}{ri + 1}",
+                            "versato_raw_value": _cell_str(row[cj]),
+                            "versato_confidence": 0.9,
+                        }
+                if ri + 1 < len(grid):
+                    below = grid[ri + 1]
+                    if ci < len(below):
+                        num = parse_it_number(below[ci])
+                        if num is not None and num > 0:
+                            col_letter = chr(ord("A") + ci) if ci < 26 else f"col{ci}"
+                            return {
+                                "versato_amount": str(num),
+                                "versato_currency": "EUR",
+                                "versato_source_row": ri + 2,
+                                "versato_source_cell": f"{col_letter}{ri + 2}",
+                                "versato_raw_value": _cell_str(below[ci]),
+                                "versato_confidence": 0.85,
+                            }
+    return None
+
+
 def _find_order_numbers(grid: list[list[Any]], sheet_name: str) -> dict[str, Any]:
     from_name = _order_from_sheet_name(sheet_name)
     from_content = _order_from_sheet_content(grid)
@@ -281,44 +316,89 @@ def _parse_da_spedire(grid: list[list[Any]]) -> tuple[list[dict], list[str]]:
             if cell and "DA SPEDIRE" in str(cell).upper():
                 start = ri
                 break
+        if start is not None:
+            break
 
     if start is None:
         return [], ["Bloco DA SPEDIRE não encontrado"]
 
     header_row = None
     col_map: dict[str, int] = {}
-    for ri in range(start + 1, min(start + 5, len(grid))):
+    for ri in range(start, min(start + 5, len(grid))):
         row = grid[ri]
         headers = {_norm_header(c): ci for ci, c in enumerate(row) if c is not None}
-        if any("prodotto" in k or "racchetta" in k or "articolo" in k for k in headers):
-            header_row = ri
-            for k, ci in headers.items():
-                if "racchetta" in k or "articolo" in k or "prodotto" in k:
-                    col_map["product"] = ci
-                elif "quantit" in k or "q.tà" in k:
-                    col_map["quantity"] = ci
-                elif "listino" in k or "prezzo listino" in k:
-                    col_map["price_listino"] = ci
-                elif "fattura" in k and "prezzo" in k:
-                    col_map["invoice_price"] = ci
-                elif "sconto" in k or "discount" in k:
-                    col_map["discount"] = ci
-                elif k == "acconto" or (k.startswith("acconto") and "riman" not in k):
-                    col_map["acconto"] = ci
-                elif "credito" in k and "riman" in k:
-                    col_map["credit_remaining"] = ci
-                elif "note" in k:
-                    col_map["notes"] = ci
-            break
+        has_product_header = any("prodotto" in k or "racchetta" in k or "articolo" in k for k in headers)
+        has_price_header = any("listino" in k for k in headers) or any(
+            "fattura" in k and "prezzo" in k for k in headers
+        )
+        if not has_product_header and not has_price_header:
+            continue
+        header_row = ri
+        for k, ci in headers.items():
+            if "racchetta" in k or "articolo" in k or "prodotto" in k:
+                col_map["product"] = ci
+            elif "quantit" in k or "q.tà" in k:
+                col_map["quantity"] = ci
+            elif "listino" in k:
+                col_map["price_listino"] = ci
+            elif "fattura" in k and "prezzo" in k:
+                col_map["invoice_price"] = ci
+            elif "sconto" in k or "discount" in k:
+                col_map["discount"] = ci
+            elif "acconto" in k and "riman" not in k and "credito" not in k:
+                col_map["acconto"] = ci
+            elif "credito" in k and "riman" in k:
+                col_map["credit_remaining"] = ci
+            elif "note" in k:
+                col_map["notes"] = ci
+        break
 
     if header_row is None:
+        return [], ["Cabeçalho DA SPEDIRE não encontrado"]
+
+    if "product" not in col_map:
+        for dr in range(header_row + 1, min(header_row + 10, len(grid))):
+            data_row = grid[dr]
+            for ci, cell in enumerate(data_row):
+                s = _cell_str(cell)
+                if not s:
+                    continue
+                h = _norm_header(cell)
+                if h in ("da spedire",) or "listino" in h or ("prezzo" in h and "fattura" in h):
+                    continue
+                if parse_it_number(cell) is not None and not isinstance(cell, str):
+                    continue
+                col_map["product"] = ci
+                break
+            if "product" in col_map:
+                break
+
+    if "quantity" not in col_map and "product" in col_map:
+        pi = col_map["product"]
+        used_cols = set(col_map.values())
+        for dr in range(header_row + 1, min(header_row + 10, len(grid))):
+            data_row = grid[dr]
+            for ci, cell in enumerate(data_row):
+                if ci == pi or ci in used_cols:
+                    continue
+                qty = optional_int(cell)
+                if qty is not None and qty <= 10_000:
+                    col_map["quantity"] = ci
+                    break
+            if "quantity" in col_map:
+                break
+
+    if header_row is None or "product" not in col_map:
         return [], ["Cabeçalho DA SPEDIRE não encontrado"]
 
     rows_out: list[dict] = []
     for ri in range(header_row + 1, len(grid)):
         row = grid[ri]
         product = _cell_str(_get_col(row, col_map, "product"))
-        if not product:
+        if not product or _norm_header(product) == "da spedire":
+            continue
+        listino_raw = _get_col(row, col_map, "price_listino")
+        if isinstance(listino_raw, str) and "listino" in _norm_header(listino_raw):
             continue
         qty = optional_int(_get_col(row, col_map, "quantity"))
         cat, conf, rev = suggest_product_category(product)
@@ -339,7 +419,19 @@ def _parse_da_spedire(grid: list[list[Any]]) -> tuple[list[dict], list[str]]:
                 "raw_values": [str(c) if c is not None else "" for c in row],
             }
         )
-    return rows_out, warnings
+
+    deduped: dict[str, dict] = {}
+    for row in rows_out:
+        key = row["product_name_raw"].lower().strip()
+        prev = deduped.get(key)
+        if prev is None:
+            deduped[key] = row
+            continue
+        prev_score = (prev.get("quantity_to_dispatch") or 0, 1 if prev.get("price_listino") else 0)
+        row_score = (row.get("quantity_to_dispatch") or 0, 1 if row.get("price_listino") else 0)
+        if row_score > prev_score:
+            deduped[key] = row
+    return list(deduped.values()), warnings
 
 
 def _parse_financial_sheet(grid: list[list[Any]], sheet_name: str) -> dict[str, Any]:
@@ -449,6 +541,7 @@ def parse_xlsx_sheet(content: bytes, sheet_name: str, *, file_checksum: str | No
         "order_number_from_content": order_info["order_number_from_content"],
         "order_number_divergence": order_info["order_number_divergence"],
         "confirmed_order_number": None,
+        "legacy_sheet_summary": None,
         "supplier": "Heroes Itália",
         "currency": "EUR",
         "merged_cell_count": merged_count,
@@ -464,6 +557,7 @@ def parse_xlsx_sheet(content: bytes, sheet_name: str, *, file_checksum: str | No
     }
 
     if sheet_type == HeroesSheetType.ORDER.value:
+        result["legacy_sheet_summary"] = _parse_versato(grid)
         items, w, e = _parse_invoice_block(grid, sheet_name)
         result["invoice_items"] = items
         warnings.extend(w)

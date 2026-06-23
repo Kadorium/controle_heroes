@@ -151,6 +151,10 @@ class ImportationResponse(BaseModel):
     incoterm: str | None
     estimated_total: Decimal | None
     current_status: str
+    brazil_operational_notes: str | None = None
+    priority: str | None = None
+    responsible: str | None = None
+    internal_forecast_date: date | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime | None = None
@@ -180,6 +184,52 @@ class ImportationItemResponse(BaseModel):
 class StatusTransitionRequest(BaseModel):
     new_status: str
     reason: str | None = None
+
+
+class BrazilOperationalNotesUpdate(BaseModel):
+    """Campos Brasil editáveis inline. Use exclude_unset para update parcial."""
+
+    brazil_operational_notes: str | None = None
+    priority: str | None = None
+    responsible: str | None = None
+    internal_forecast_date: date | None = None
+
+
+class ImportationItemMappingUpdate(BaseModel):
+    """Mapeamento Brasil de SKU/produto e descrição de um item da ordem."""
+
+    product_id: int | None = None
+    description: str | None = None
+    supplier_sku: str | None = None
+
+
+class AllowedTransitionItem(BaseModel):
+    status: str
+    blocked: bool
+    block_reason: str | None = None
+
+
+class AllowedTransitionsResponse(BaseModel):
+    current_status: str
+    transitions: list[AllowedTransitionItem]
+
+
+class ItalyFieldOverrideRequest(BaseModel):
+    entity_type: str = Field(pattern="^(invoice|invoice_item)$")
+    entity_id: int
+    field_name: str
+    new_value: str
+    reason: str = Field(min_length=3, max_length=512)
+    attachment_id: int
+
+
+class ItalyFieldOverrideResponse(BaseModel):
+    entity_type: str
+    entity_id: int
+    field_name: str
+    old_value: str | None
+    new_value: str
+    attachment_id: int
 
 
 class InvoiceItemCreate(BaseModel):

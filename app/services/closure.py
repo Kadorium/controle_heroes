@@ -93,7 +93,7 @@ def get_close_checklist(db: Session, importation_id: int) -> list[dict]:
     checks.append({"id": "landed_cost", "label": "Landed cost FINAL calculado", "passed": lc_final is not None})
 
     chain = quantity_chain(db, importation_id)
-    nat_ok = any(c["quantity_nationalized"] > 0 for c in chain) if chain else False
+    nat_ok = any((c.get("quantity_nationalized") or 0) > 0 for c in chain) if chain else False
     checks.append({"id": "nationalization", "label": "Nacionalização registrada", "passed": nat_ok})
 
     blocking = blocking_reconciliations(db, importation_id)

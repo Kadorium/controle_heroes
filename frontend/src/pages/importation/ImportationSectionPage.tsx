@@ -6,7 +6,7 @@ import { fmtDateTime } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 import { ImportationFinanceSection } from "./ImportationFinanceSection";
 import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
-import { fieldLabel, invoiceTypeLabel } from "../../i18n/glossario";
+import { fieldLabel, formatUnitPrice, invoiceTypeLabel } from "../../i18n/glossario";
 import { OrderCentralOverview } from "./OrderCentralOverview";
 import { CustomsStockPanel } from "../CustomsStockPanel";
 import { LogisticsPanel } from "../LogisticsPanel";
@@ -65,7 +65,7 @@ export function ImportationSectionPage({ section }: Props) {
             {items.map((it) => (
               <tr key={it.id}>
                 <td>{it.quantity_ordered ?? "—"}</td>
-                <td>{it.unit_price_foreign ?? "—"}</td>
+                <td>{it.unit_price_foreign != null ? formatUnitPrice(it.unit_price_foreign) : "—"}</td>
               </tr>
             ))}
           </tbody>

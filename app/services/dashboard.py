@@ -200,7 +200,7 @@ def _count_closure_pending(db: Session, imp: ImportationOrder) -> int:
         pending += 1
 
     chain = quantity_chain(db, imp.id)
-    nat_ok = any(c["quantity_nationalized"] > 0 for c in chain) if chain else False
+    nat_ok = any((c.get("quantity_nationalized") or 0) > 0 for c in chain) if chain else False
     if not nat_ok:
         pending += 1
 
@@ -364,7 +364,7 @@ def _pending_payments_for_importation(db: Session, imp: ImportationOrder, summar
                         "invoice_number": inv["invoice_number"],
                         "invoice_type": inv["invoice_type"],
                         "balance": str(p.amount_foreign) if p.amount_foreign is not None else bal,
-                        "currency": p.currency_foreign or summary["currency"],
+                        "currency": normalize_import_currency(p.currency_foreign or summary["currency"]),
                         "due_date": due,
                         "is_overdue": p.due_date is not None and p.due_date < today,
                     }
@@ -377,7 +377,7 @@ def _pending_payments_for_importation(db: Session, imp: ImportationOrder, summar
                     "invoice_number": inv["invoice_number"],
                     "invoice_type": inv["invoice_type"],
                     "balance": bal,
-                    "currency": summary["currency"],
+                    "currency": normalize_import_currency(summary["currency"]),
                     "due_date": None,
                     "is_overdue": False,
                 }
@@ -436,7 +436,7 @@ def get_dashboard_importations(db: Session, *, list_limit: int = 100) -> dict:
                 "po_number": imp.po_number,
                 "status": imp.current_status,
                 "supplier_name": suppliers.get(imp.supplier_id, "—"),
-                "currency": imp.currency,
+                "currency": normalize_import_currency(imp.currency),
                 "created_at": imp.created_at.isoformat() if isinstance(imp.created_at, datetime) else str(imp.created_at),
                 "modal": modal,
                 "stage_index": stage_index_of(imp.current_status),

@@ -8,6 +8,25 @@ export function emptyDash(value: unknown): string {
   return String(value);
 }
 
+/** Valor monetário com locale explícito (it-IT para EUR, pt-BR para BRL). */
+export function formatMoneyLocale(
+  amount: string | number | null | undefined,
+  currency: string,
+  locale: "pt-BR" | "it-IT",
+): string {
+  if (amount === null || amount === undefined || amount === "") return EMPTY;
+  const n = typeof amount === "number" ? amount : Number(String(amount).trim());
+  if (Number.isNaN(n)) return emptyDash(amount);
+  const cur = currency.trim().toUpperCase();
+  const code = cur === "BRL" ? "BRL" : "EUR";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: code,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
 /** Valor monetário com separadores pt-BR (ex.: EUR 175.200,00). */
 export function formatMoney(
   amount: string | number | null | undefined,
@@ -40,6 +59,11 @@ export function formatAmount(amount: string | number | null | undefined): string
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+/** Preço unitário operacional (2 casas, pt-BR). */
+export function formatUnitPrice(amount: string | number | null | undefined): string {
+  return formatAmount(amount);
 }
 
 function lookup(map: Record<string, string>, code: string | null | undefined): string {

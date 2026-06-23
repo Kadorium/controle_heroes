@@ -43,7 +43,7 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
     const demoId = await getDemoImportationId(page, "DEMO-01-OCEAN");
     await page.goto(`/importacoes/${demoId}/resumo`, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 30000 });
-    await expect(page.getByRole("heading", { name: /Faturas · acconto/i })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: /Faturas · acconto · crédito por/i })).toBeVisible({ timeout: 20000 });
     const body = await page.locator("body").innerText();
     for (const fake of MOCK_FAKE_VALUES) {
       expect(body).not.toContain(fake);
@@ -57,11 +57,22 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
     );
     await page.goto("/importacoes", { waitUntil: "domcontentloaded" });
     await queueReady;
-    await expect(page.getByRole("heading", { name: /Fila de ordens/i })).toBeVisible({ timeout: 20000 });
-    const firstRow = page.locator(".order-queue__row").first();
-    await expect(firstRow).toBeVisible({ timeout: 15000 });
-    await firstRow.click();
+    await expect(page.getByRole("heading", { name: /^Ordens$/i })).toBeVisible({ timeout: 20000 });
+    const firstOpen = page.locator(".sheet-grid__open").first();
+    await expect(firstOpen).toBeVisible({ timeout: 15000 });
+    await firstOpen.click();
     await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 15000 });
+  });
+
+  test("central: painel operacional EUR+BRL e régua compacta", async ({ page }) => {
+    const demoId = await getDemoImportationId(page);
+    await page.goto(`/importacoes/${demoId}/resumo`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /Central da Ordem/i })).toBeVisible({ timeout: 30000 });
+    await expect(page.locator(".oc-operational-header")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText("Pagamentos", { exact: true })).toBeVisible();
+    await expect(page.getByText("Logística", { exact: true })).toBeVisible();
+    await expect(page.getByText("Prazos", { exact: true })).toBeVisible();
+    await expect(page.locator(".order-central__rail--compact")).toBeVisible();
   });
 
   test("central: Visão Geral, Bloco A e Bloco B", async ({ page }) => {
@@ -71,8 +82,10 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
     await expect(sidebar.getByRole("link", { name: "Visão Geral", exact: true })).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.getByRole("heading", { name: /Faturas · acconto/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole("heading", { name: /DA SPEDIRE/i })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: /Faturas · acconto · crédito por/i })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole("heading", { name: /a despachar · preço e desconto/i })).toBeVisible({
+      timeout: 20000,
+    });
   });
 
   test("Demo Epic navega para /demo", async ({ page }) => {

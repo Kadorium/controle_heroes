@@ -32,6 +32,16 @@ def _payment_is_settled(p: Payment) -> bool:
     )
 
 
+def invoice_has_settled_payments(db: Session, invoice: Invoice) -> bool:
+    """True se a fatura tem ao menos um pagamento liquidado (não só planejado)."""
+    payments = (
+        db.query(Payment)
+        .filter(Payment.invoice_id == invoice.id, Payment.is_active.is_(True))
+        .all()
+    )
+    return any(_payment_is_settled(p) for p in payments)
+
+
 def invoice_discount_total(db: Session, invoice: Invoice) -> Decimal:
     total = _d(invoice.discount_amount)
     discounts = (
@@ -74,10 +84,14 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
     total_discounts = Decimal("0")
     total_balance = Decimal("0")
     has_null_amount = False
+    has_any_settled = False
     invoice_summaries = []
 
     for inv in invoices:
         paid = invoice_paid_total(db, inv)
+        settled = invoice_has_settled_payments(db, inv)
+        if settled:
+            has_any_settled = True
         disc = invoice_discount_total(db, inv)
         bal = invoice_balance(db, inv)
         if inv.amount is not None:
@@ -93,7 +107,7 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
                 "invoice_number": inv.invoice_number,
                 "invoice_type": inv.invoice_type,
                 "amount": str(inv.amount) if inv.amount is not None else None,
-                "paid": str(paid),
+                "paid": str(paid) if settled else None,
                 "discounts": str(disc),
                 "balance": str(bal) if bal is not None else None,
             }
@@ -116,7 +130,7 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
         "importation_id": importation.id,
         "currency": normalize_import_currency(importation.currency),
         "total_invoiced": str(total_invoiced),
-        "total_paid": str(total_paid),
+        "total_paid": str(total_paid) if has_any_settled else None,
         "total_discounts": str(total_discounts),
         "consolidated_balance": str(consolidated_balance) if consolidated_balance is not None else None,
         "invoices": invoice_summaries,

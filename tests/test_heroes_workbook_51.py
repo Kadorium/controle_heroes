@@ -133,11 +133,11 @@ def test_profiling_no_db_writes():
 def test_parser_content_order_over_name_on_divergence():
     """Conteúdo prevalece sobre nome da sheet para order_number."""
     content = build_ordine_759_xlsx()
-    wb_content = content
-    # Simula divergência: renomear sheet mas conteúdo diz 759 — ok
-    preview = parse_xlsx_sheet(wb_content, "Ordine 759")
-    assert preview["order_number_from_content"] == "759"
-    assert preview["order_number_divergence"] is False
+    preview = parse_xlsx_sheet(content, "Ordine 759")
+    assert preview["order_number_from_sheet_name"] == "759"
+    assert preview["order_number_from_content"] == "907"
+    assert preview["order_number_divergence"] is True
+    assert preview["order_number"] == "907"
 
 
 def test_articolo_header_not_racket_only():

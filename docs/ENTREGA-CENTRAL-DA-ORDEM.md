@@ -187,8 +187,15 @@ Classes em `frontend/src/index.css`:
 | Meta | Fornecedor, ano, moeda, incoterm |
 | Ações rápidas | Fatura, Pagamento, Despacho, Anexar, Conciliar/fechar → navegam para aba/hash |
 | Régua horizontal | Pedido → Faturado → Acconto → A despachar → Em trânsito → Aduana → Estoque → Fechado |
-| KPIs | Faturado, pago, saldo, a despachar, pendências, próximo vencimento |
+| KPIs | *(substituído em jun/2026 — ver abaixo)* |
 | Alertas acionáveis | Pagamento vencido/a vencer, sem comprovante, a despachar, DI/DUIMP, landed cost, divergência, fechamento |
+
+#### Header operacional v2 (jun/2026)
+
+- **Fonte única:** `GET /api/importations/{id}/order-central` → `operational_header` + `status_rail` (sem `financeApi.summary` no topo).
+- **Painel 3 colunas:** `OrderCentralOperationalHeader.tsx` — Pagamentos (EUR it-IT + BRL pt-BR), Logística (ETA/ETD/modal), Prazos (vencimentos/atrasos).
+- **Contexto compartilhado:** `OrderCentralContext` — um fetch para Layout + Visão Geral.
+- **Régua compacta:** `.order-central__rail--compact` com `subtitle` por estágio (ex.: `2/3 faturas`, `ETA 15/08`).
 
 A régua deriva de `current_status` mapeado em `RAIL_STAGES` (estados `done` / `now` / `todo`).
 
