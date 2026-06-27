@@ -228,6 +228,10 @@ export function ImportationLayout() {
               importationId={id}
               header={operationalHeader}
               estimatedTotal={imp.estimated_total}
+              versatoTotal={
+                orderCentral?.kpis.versato_heroes ??
+                orderCentral?.legacy_sheet_summary?.versato_amount
+              }
               currency={currency}
               models={orderCentral?.models}
               items={items}

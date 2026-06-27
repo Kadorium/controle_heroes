@@ -44,6 +44,7 @@ from app.services.product_catalog import (
     list_product_audit,
     list_product_catalog,
     list_product_cost_history,
+    list_product_groups,
     list_product_orders,
     list_products_for_combobox,
     product_used_in_importations,
@@ -52,6 +53,15 @@ from app.services.product_catalog import (
 from app.services.product_import import commit_product_import, export_products_xlsx, preview_product_import
 
 router = APIRouter(prefix="/products", tags=["products"])
+
+
+@router.get("/groups", response_model=list[str])
+def product_groups(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_IMPORTATION_READ)),
+    visibility: str = Query("active", pattern="^(active|archived|cancelled|all)$"),
+) -> list[str]:
+    return list_product_groups(db, visibility=visibility)
 
 
 @router.get("/catalog", response_model=ProductCatalogResponse)

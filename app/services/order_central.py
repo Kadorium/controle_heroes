@@ -545,11 +545,15 @@ def _build_finance_operational(
     db: Session,
     imp: ImportationOrder,
     financial: dict,
+    *,
+    legacy_versato: Decimal | None = None,
+    mark_rate: Decimal | None = None,
 ) -> dict[str, str | None]:
     """Totais operacionais: ordem, faturado, liquidado e saldos (EUR + BRL)."""
     from app.services.fx_pnl import _get_provision_rate
 
     opening = _get_provision_rate(db, imp.id)
+    brl_rate = mark_rate or opening
     invoices = (
         db.query(Invoice)
         .filter(Invoice.importation_id == imp.id, Invoice.is_active.is_(True))
@@ -579,10 +583,6 @@ def _build_finance_operational(
             open_eur_sum += bal
             has_open_eur = True
 
-    order_total_eur: Decimal | None = imp.estimated_total
-    if order_total_eur is None and has_invoiced_eur:
-        order_total_eur = invoiced_eur + open_eur_sum
-
     open_eur: Decimal | None = None
     if financial.get("consolidated_balance") is not None:
         open_eur = Decimal(financial["consolidated_balance"])
@@ -590,10 +590,6 @@ def _build_finance_operational(
         open_eur = open_eur_sum
     elif has_open_eur:
         open_eur = open_eur_sum
-
-    remaining_eur: Decimal | None = None
-    if order_total_eur is not None and has_invoiced_eur:
-        remaining_eur = max(Decimal("0"), order_total_eur - invoiced_eur)
 
     settled_eur = Decimal("0")
     has_settled_eur = False
@@ -603,6 +599,19 @@ def _build_finance_operational(
         settled_eur += invoice_paid_total(db, inv)
     if not has_settled_eur:
         settled_eur = None
+
+    order_total_eur: Decimal | None = imp.estimated_total
+    if order_total_eur is None and legacy_versato is not None:
+        order_total_eur = legacy_versato
+    if order_total_eur is None and has_invoiced_eur:
+        order_total_eur = invoiced_eur + open_eur_sum
+    if order_total_eur is None and settled_eur is not None:
+        open_part = open_eur if open_eur is not None else Decimal("0")
+        order_total_eur = settled_eur + open_part
+
+    remaining_eur: Decimal | None = None
+    if order_total_eur is not None and has_invoiced_eur:
+        remaining_eur = max(Decimal("0"), order_total_eur - invoiced_eur)
 
     settled_brl = Decimal("0")
     has_settled_brl = False
@@ -631,16 +640,16 @@ def _build_finance_operational(
             has_settled_brl = True
 
     order_total_brl: Decimal | None = None
-    if order_total_eur is not None and opening is not None:
-        order_total_brl = order_total_eur * opening
+    if order_total_eur is not None and brl_rate is not None:
+        order_total_brl = order_total_eur * brl_rate
 
     remaining_brl: Decimal | None = None
-    if remaining_eur is not None and opening is not None:
-        remaining_brl = remaining_eur * opening
+    if remaining_eur is not None and brl_rate is not None:
+        remaining_brl = remaining_eur * brl_rate
 
     open_brl = _open_balance_brl_equivalent(db, imp.id)
-    if open_brl is None and open_eur is not None and opening is not None:
-        open_brl = str(open_eur * opening)
+    if open_brl is None and open_eur is not None and brl_rate is not None:
+        open_brl = str(open_eur * brl_rate)
 
     return {
         "order_total_eur": str(order_total_eur) if order_total_eur is not None else None,
@@ -667,6 +676,7 @@ def _build_operational_header(
     chain: list[dict],
     credits: list[Credit],
     pending_actions_count: int,
+    legacy_versato: Decimal | None = None,
 ) -> dict:
     today = date.today()
     counts = _invoice_counts_for_queue(db, [imp])
@@ -694,7 +704,13 @@ def _build_operational_header(
     except Exception:
         mark_rate = None
     fx_pnl = compute_fx_pnl(db, imp.id, mark_rate=mark_rate)
-    finance_ops = _build_finance_operational(db, imp, financial)
+    finance_ops = _build_finance_operational(
+        db,
+        imp,
+        financial,
+        legacy_versato=legacy_versato,
+        mark_rate=mark_rate,
+    )
 
     return {
         "invoices_count": invoices_count,
@@ -779,6 +795,8 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     )
     is_closed = imp.current_status == "CLOSED"
     pending = _pending_actions(db, imp)
+    legacy = _build_legacy_summary(db, importation_id)
+    legacy_versato = Decimal(legacy["versato_amount"]) if legacy and legacy.get("versato_amount") else None
     operational_header = _build_operational_header(
         db,
         imp,
@@ -788,6 +806,7 @@ def build_order_central(db: Session, importation_id: int) -> dict:
         chain=chain,
         credits=credits,
         pending_actions_count=len(pending),
+        legacy_versato=legacy_versato,
     )
     rail_context = {
         "invoices_count": operational_header["invoices_count"],
@@ -809,7 +828,6 @@ def build_order_central(db: Session, importation_id: int) -> dict:
         is_closed=is_closed,
         rail_context=rail_context,
     )
-    legacy = _build_legacy_summary(db, importation_id)
     dispatch_pending = _build_dispatch_pending_list(db, importation_id)
     for alert in status_rail.get("alerts") or []:
         pending.append({"kind": "status_rail", "label": alert, "detail": None, "tone": "warning"})

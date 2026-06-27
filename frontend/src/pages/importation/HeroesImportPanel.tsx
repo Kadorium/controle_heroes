@@ -95,8 +95,12 @@ export function HeroesImportPanel({ importationId, onCommitted }: Props) {
 
       {pending && (
         <p className="meta">
-          {run.sku_review_open_count} produto(s) aguardam vínculo de SKU na{" "}
-          <a href="/revisao">fila de revisão</a> antes do commit.
+          {run.sku_review_open_count} grupo(s) de SKU aguardam vínculo
+          {run.sku_review_line_count > 0
+            ? ` (${run.sku_review_line_count} linha(s) na planilha)`
+            : ""}{" "}
+          na{" "}
+          <a href={`/revisao?heroes_run_id=${run.run_id}`}>fila de revisão</a> antes do commit.
         </p>
       )}
 

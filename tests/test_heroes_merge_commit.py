@@ -6,13 +6,58 @@ import uuid
 
 import pytest
 
+from sqlalchemy import func
+
 from app.config import ROOT_DIR
 from app.core.enums import HeroesImportRunStatus
-from app.models import ImportationItem, ImportationOrder, Invoice, Payment, Product
+from app.models import ImportationItem, ImportationOrder, Invoice, Payment, Product, StagingImportRow
+from app.core.enums import StagingRowStatus
 from app.services.heroes_workbook_paths import HEROES_WORKBOOK_FILENAME
 from tests.fixtures.heroes_xlsx_builder import build_ordine_758_xlsx
 
 REAL_WORKBOOK = ROOT_DIR / HEROES_WORKBOOK_FILENAME
+
+
+def _resolve_all_open_staging(admin_client, db, raw_id: int, *, show_product_id: int | None = None) -> None:
+    """Resolve grupos staging pendentes (isolamento entre testes)."""
+    from app.services.heroes_product_match import match_product
+
+    pending = (
+        db.query(StagingImportRow)
+        .filter(
+            StagingImportRow.raw_file_id == raw_id,
+            StagingImportRow.status == StagingRowStatus.PENDING_REVIEW.value,
+        )
+        .all()
+    )
+    for staging in pending:
+        data = staging.parsed_data_json or {}
+        product_id = None
+        if show_product_id and data.get("canonical_key") == "show|2026":
+            product_id = show_product_id
+        else:
+            name = str(data.get("product_name_raw") or "item")
+            matched = match_product(db, name)
+            if matched:
+                product_id = matched.id
+            else:
+                existing = db.query(Product).filter(Product.supplier_code == name.lower()).first()
+                if existing:
+                    product_id = existing.id
+                else:
+                    p = Product(
+                        sku_code=f"TST-{uuid.uuid4().hex[:5]}",
+                        description=name,
+                        supplier_code=name.lower(),
+                    )
+                    db.add(p)
+                    db.flush()
+                    product_id = p.id
+        db.commit()
+        admin_client.patch(
+            f"/api/imports/staging/{staging.id}/resolve-sku",
+            json={"product_id": product_id},
+        )
 
 
 @pytest.fixture()
@@ -126,14 +171,19 @@ def test_b2_merge_commit_preserves_po_and_creates_entities(admin_client, db):
 
 def test_b2_preexisting_item_qty_summed(admin_client, db):
     content = build_ordine_758_xlsx()
-    imp, link, _ = _manual_order_with_link(admin_client, db, content)
+    imp, link, raw_id = _manual_order_with_link(admin_client, db, content)
     star = Product(
         sku_code=f"STAR-{uuid.uuid4().hex[:6]}",
         description="STARLIGHT 300",
-        supplier_code="starlight 300",
+        supplier_code=f"starlight-300-{uuid.uuid4().hex[:6]}",
     )
     db.add(star)
     db.flush()
+    for other in db.query(Product).filter(
+        func.lower(Product.description) == "starlight 300",
+        Product.id != star.id,
+    ):
+        other.is_active = False
     db.add(
         ImportationItem(
             importation_id=imp["id"],
@@ -150,10 +200,19 @@ def test_b2_preexisting_item_qty_summed(admin_client, db):
     ):
         if not db.query(Product).filter(Product.supplier_code == code).first():
             db.add(Product(sku_code=f"SKU-{uuid.uuid4().hex[:5]}", description=name, supplier_code=code))
+    show = Product(
+        sku_code=f"SHOW-{uuid.uuid4().hex[:5]}",
+        description="SHOW 2026",
+        category="RACKET",
+        launch_date=__import__("datetime").date(2026, 1, 1),
+    )
+    db.add(show)
     db.commit()
 
     prev = admin_client.get(f"/api/importations/{imp['id']}/heroes-import/preview")
     assert prev.status_code == 200
+    _resolve_all_open_staging(admin_client, db, raw_id, show_product_id=show.id)
+    admin_client.get(f"/api/importations/{imp['id']}/heroes-import/preview")
 
     commit = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
@@ -173,7 +232,7 @@ def test_b2_preexisting_item_qty_summed(admin_client, db):
 def test_b_merge_invoice_conflict_warning(admin_client, db):
     """Fatura já cadastrada na ordem manual → warning, sem duplicar Invoice."""
     content = build_ordine_758_xlsx()
-    imp, _, _ = _manual_order_with_link(admin_client, db, content)
+    imp, _, raw_id = _manual_order_with_link(admin_client, db, content)
     db.add(
         Invoice(
             importation_id=imp["id"],
@@ -190,11 +249,28 @@ def test_b_merge_invoice_conflict_warning(admin_client, db):
     ):
         if not db.query(Product).filter(Product.supplier_code == code).first():
             db.add(Product(sku_code=f"SKU-{uuid.uuid4().hex[:5]}", description=name, supplier_code=code))
+    show = Product(
+        sku_code=f"SHOW-{uuid.uuid4().hex[:5]}",
+        description="SHOW 2026",
+        category="RACKET",
+        launch_date=__import__("datetime").date(2026, 1, 1),
+    )
+    db.add(show)
     db.commit()
 
     prev = admin_client.get(f"/api/importations/{imp['id']}/heroes-import/preview")
     assert prev.status_code == 200
-    if prev.json().get("sku_review_open_count", 0) > 0:
+    _resolve_all_open_staging(admin_client, db, raw_id, show_product_id=show.id)
+    admin_client.get(f"/api/importations/{imp['id']}/heroes-import/preview")
+    open_after = (
+        db.query(StagingImportRow)
+        .filter(
+            StagingImportRow.raw_file_id == raw_id,
+            StagingImportRow.status == StagingRowStatus.PENDING_REVIEW.value,
+        )
+        .count()
+    )
+    if open_after > 0:
         pytest.skip("SKUs pendentes no cadastro de teste")
 
     commit = admin_client.post(

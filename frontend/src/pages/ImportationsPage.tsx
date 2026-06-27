@@ -92,6 +92,9 @@ export function ImportationsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("po_number");
   const [sortAsc, setSortAsc] = useState(true);
   const [showNew, setShowNew] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<OrderQueueRow | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -226,6 +229,25 @@ export function ImportationsPage() {
     else { setSortKey(key); setSortAsc(true); }
   }
 
+  async function confirmDeleteOrder() {
+    if (!deleteTarget || deleteReason.trim().length < 3) {
+      toast.error("Informe o motivo (mín. 3 caracteres)");
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await importationsApi.cancel(deleteTarget.id, deleteReason.trim());
+      setRows((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      toast.success(`Ordem ${deleteTarget.po_number} excluída`);
+      setDeleteTarget(null);
+      setDeleteReason("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível excluir a ordem");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <Card>
@@ -353,7 +375,21 @@ export function ImportationsPage() {
                     <td>{fmtDate(r.updated_at ?? r.created_at)}</td>
                     <td>{r.supplier_name ?? emptyDash(null)}</td>
                     <td>
-                      <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.id}/resumo`)}>Abrir</Button>
+                      <div className="order-queue__row-actions">
+                        <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.id}/resumo`)}>
+                          Abrir
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="ui-btn--sm ui-btn--danger"
+                          onClick={() => {
+                            setDeleteTarget(r);
+                            setDeleteReason("");
+                          }}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -384,6 +420,38 @@ export function ImportationsPage() {
             navigate(`/importacoes/${id}/resumo`);
           }}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="modal-back" onClick={() => !deleteLoading && setDeleteTarget(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Excluir ordem {deleteTarget.po_number}</h3>
+            <p className="meta">
+              A ordem será anulada e sairá da lista. Pagamentos, faturas e histórico permanecem registrados.
+            </p>
+            <label>
+              Motivo da exclusão
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                rows={3}
+                placeholder="Ex.: ordem de teste"
+              />
+            </label>
+            <div className="modal-actions">
+              <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>
+                Cancelar
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => void confirmDeleteOrder()}
+                disabled={deleteLoading || deleteReason.trim().length < 3}
+              >
+                {deleteLoading ? "Excluindo…" : "Confirmar exclusão"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </Card>
   );

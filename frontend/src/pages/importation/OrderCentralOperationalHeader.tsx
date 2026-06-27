@@ -1,89 +1,27 @@
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ImportationItem, OperationalHeader, OrderCentralInvoice, OrderCentralModel } from "../../api";
 import { FxPnlPanel } from "../../components/FxPnlPanel";
 import { emptyDash, formatMoney, formatMoneyLocale, formatUnitPrice, modalLabel } from "../../i18n/glossario";
 import { fmtDate } from "../../utils/formatDate";
+import {
+  buildItemPreviewRows,
+  estimateItemPreviewRowCount,
+  resolveFinance,
+} from "./orderCentralOperationalHeaderUtils";
 
-const MAX_ITEM_ROWS = 5;
+const DEFAULT_ITEM_ROWS = 6;
+const FALLBACK_ROW_HEIGHT_PX = 22;
 
 interface Props {
   importationId: number;
   header: OperationalHeader;
   estimatedTotal?: string | null;
+  versatoTotal?: string | null;
   currency?: string;
   models?: OrderCentralModel[];
   items?: ImportationItem[];
   invoices?: OrderCentralInvoice[];
-}
-
-interface ItemPreviewRow {
-  key: number;
-  label: string;
-  qty: number | null;
-  unitPrice: string | null;
-  paid: string | null;
-}
-
-function buildItemPreviewRows(
-  models: OrderCentralModel[] | undefined,
-  items: ImportationItem[] | undefined,
-  invoices: OrderCentralInvoice[] | undefined,
-): ItemPreviewRow[] {
-  const itemById = new Map((items ?? []).map((i) => [i.id, i]));
-  const seen = new Set<number>();
-
-  const pushRow = (row: ItemPreviewRow) => {
-    if (seen.has(row.key)) return;
-    seen.add(row.key);
-    rows.push(row);
-  };
-
-  const rows: ItemPreviewRow[] = [];
-
-  if (models && models.length > 0) {
-    for (const m of models) {
-      pushRow({
-        key: m.importation_item_id,
-        label: m.model_label ?? m.description ?? m.supplier_sku ?? m.product_sku ?? "—",
-        qty: m.quantity_ordered,
-        unitPrice: m.price_fattura ?? itemById.get(m.importation_item_id)?.unit_price_foreign ?? null,
-        paid: m.acconto_amount ?? null,
-      });
-    }
-  }
-
-  for (const it of items ?? []) {
-    pushRow({
-      key: it.id,
-      label: it.description ?? it.supplier_sku ?? "—",
-      qty: it.quantity_ordered,
-      unitPrice: it.unit_price_foreign ?? null,
-      paid: null,
-    });
-  }
-
-  for (const inv of invoices ?? []) {
-    for (const ii of inv.items ?? []) {
-      const key = ii.importation_item_id ?? ii.id;
-      pushRow({
-        key,
-        label: ii.description ?? ii.product_sku ?? inv.invoice_number,
-        qty: ii.quantity,
-        unitPrice: ii.unit_price,
-        paid: ii.amount ?? inv.paid_total,
-      });
-    }
-  }
-
-  return rows;
-}
-
-function pick(...vals: (string | null | undefined)[]): string | null {
-  for (const v of vals) {
-    if (v != null && v !== "") return v;
-  }
-  return null;
 }
 
 function eurVal(v: string | null) {
@@ -92,64 +30,6 @@ function eurVal(v: string | null) {
 
 function brlVal(v: string | null) {
   return v != null ? formatMoneyLocale(v, "BRL", "pt-BR") : emptyDash(null);
-}
-
-function resolveFinance(header: OperationalHeader, estimatedTotal?: string | null) {
-  const eur = header.totals_by_currency?.EUR;
-  const opening = header.opening_exchange_rate ?? null;
-
-  const orderTotalEur = pick(header.order_total_eur, estimatedTotal);
-  const orderTotalBrl = pick(
-    header.order_total_brl,
-    orderTotalEur && opening ? String(Number(orderTotalEur) * Number(opening)) : null,
-  );
-
-  const invoicedEur = pick(header.invoiced_eur, header.total_invoiced, eur?.total_invoiced);
-  const invoicedBrl = pick(
-    header.invoiced_brl,
-    invoicedEur && opening ? String(Number(invoicedEur) * Number(opening)) : null,
-  );
-
-  const settledEur = pick(header.settled_eur, header.total_paid, eur?.total_paid);
-  const settledBrl = pick(header.settled_brl);
-
-  const remainingEur = pick(
-    header.remaining_to_invoice_eur,
-    orderTotalEur && invoicedEur
-      ? String(Math.max(0, Number(orderTotalEur) - Number(invoicedEur)))
-      : null,
-  );
-  const remainingBrl = pick(
-    header.remaining_to_invoice_brl,
-    remainingEur && opening ? String(Number(remainingEur) * Number(opening)) : null,
-  );
-
-  const balanceEur = pick(header.balance_to_settle_eur, header.open_balance, eur?.consolidated_balance);
-  const avgInvRate =
-    invoicedEur && invoicedBrl && Number(invoicedEur) > 0
-      ? Number(invoicedBrl) / Number(invoicedEur)
-      : opening != null
-        ? Number(opening)
-        : null;
-  const balanceBrl = pick(
-    header.balance_to_settle_brl,
-    header.open_balance_brl_equivalent,
-    balanceEur && avgInvRate != null ? String(Number(balanceEur) * avgInvRate) : null,
-  );
-
-  return {
-    opening,
-    orderTotalEur,
-    orderTotalBrl,
-    invoicedEur,
-    invoicedBrl,
-    settledEur,
-    settledBrl,
-    remainingEur,
-    remainingBrl,
-    balanceEur,
-    balanceBrl,
-  };
 }
 
 function MoneyPair({
@@ -175,13 +55,17 @@ export function OrderCentralOperationalHeader({
   importationId,
   header,
   estimatedTotal,
+  versatoTotal,
   currency = "EUR",
   models,
   items,
   invoices,
 }: Props) {
   const navigate = useNavigate();
-  const fin = resolveFinance(header, estimatedTotal);
+  const itemsColRef = useRef<HTMLDivElement>(null);
+  const [maxItemRows, setMaxItemRows] = useState(DEFAULT_ITEM_ROWS);
+
+  const fin = resolveFinance(header, estimatedTotal, versatoTotal);
   const qtyOrdered = header.quantity_ordered;
   const toDispatch = header.to_dispatch ?? 0;
   const shipped =
@@ -191,16 +75,39 @@ export function OrderCentralOperationalHeader({
     () => buildItemPreviewRows(models, items, invoices),
     [models, items, invoices],
   );
-  const itemPreview = itemRows.slice(0, MAX_ITEM_ROWS);
+  const itemPreview = itemRows.slice(0, maxItemRows);
   const itemOverflow = itemRows.length - itemPreview.length;
 
   const openInvoiceLabel = header.next_open_invoice_number;
   const openInvoiceDue = header.next_due_date;
   const openInvoiceBalance = header.next_open_invoice_balance;
+  const hasInvoiceFooter = Boolean(openInvoiceDue || openInvoiceLabel || openInvoiceBalance);
 
-  const openingHint = fin.opening ? `câmbio abertura ${fin.opening}` : "câmbio abertura";
+  useLayoutEffect(() => {
+    const col = itemsColRef.current;
+    if (!col) return;
 
-  const goItems = () => navigate(`/importacoes/${importationId}/resumo`);
+    const measure = () => {
+      const style = getComputedStyle(col);
+      const padY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      const footer = col.querySelector(".oc-items-preview-footer") as HTMLElement | null;
+      const footerH = footer?.offsetHeight ?? 0;
+      const thead = col.querySelector(".oc-items-preview thead") as HTMLElement | null;
+      const theadH = thead?.offsetHeight ?? 22;
+      const sampleRow = col.querySelector(".oc-items-preview tbody tr") as HTMLElement | null;
+      const rowH = sampleRow?.offsetHeight ?? FALLBACK_ROW_HEIGHT_PX;
+      setMaxItemRows(
+        estimateItemPreviewRowCount(col.clientHeight, padY, footerH, theadH, rowH),
+      );
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(col);
+    return () => ro.disconnect();
+  }, [itemRows.length, hasInvoiceFooter]);
+
+  const goItems = () => navigate(`/importacoes/${importationId}/itens`);
   const goInvoices = () =>
     navigate(
       openInvoiceLabel
@@ -220,14 +127,14 @@ export function OrderCentralOperationalHeader({
         <div className="oc-finance-total">
           <span className="oc-finance-total__label">Total da ordem</span>
           <div className="oc-finance-pair oc-finance-pair--hero">
-            <MoneyPair eur={fin.orderTotalEur} brl={fin.orderTotalBrl} brlHint={openingHint} />
+            <MoneyPair eur={fin.orderTotalEur} brl={fin.orderTotalBrl} brlHint={fin.brlHint} />
           </div>
         </div>
 
         <div className="oc-finance-total oc-finance-total--sub">
           <span className="oc-finance-total__label">A faturar</span>
           <div className="oc-finance-pair">
-            <MoneyPair eur={fin.remainingEur} brl={fin.remainingBrl} brlHint={openingHint} />
+            <MoneyPair eur={fin.remainingEur} brl={fin.remainingBrl} brlHint={fin.brlHint} />
           </div>
         </div>
 
@@ -240,13 +147,13 @@ export function OrderCentralOperationalHeader({
 
             <span className="oc-finance-invoiced__label">Faturado</span>
             <span className="oc-finance-invoiced__eur">{eurVal(fin.invoicedEur)}</span>
-            <span className="oc-finance-invoiced__brl" title="previsto por fatura">
+            <span className="oc-finance-invoiced__brl" title={fin.brlHint}>
               {brlVal(fin.invoicedBrl)}
             </span>
 
             <span className="oc-finance-invoiced__label">Liquidado</span>
             <span className="oc-finance-invoiced__eur">{eurVal(fin.settledEur)}</span>
-            <span className="oc-finance-invoiced__brl" title="BRL efetivo pago">
+            <span className="oc-finance-invoiced__brl" title={fin.brlHint}>
               {brlVal(fin.settledBrl)}
             </span>
 
@@ -256,7 +163,7 @@ export function OrderCentralOperationalHeader({
             <span className="oc-finance-invoiced__eur oc-finance-invoiced__eur--emph">
               {eurVal(fin.balanceEur)}
             </span>
-            <span className="oc-finance-invoiced__brl oc-finance-invoiced__brl--emph" title="previsto em aberto">
+            <span className="oc-finance-invoiced__brl oc-finance-invoiced__brl--emph" title={fin.brlHint}>
               {brlVal(fin.balanceBrl)}
             </span>
           </div>
@@ -292,6 +199,7 @@ export function OrderCentralOperationalHeader({
       </button>
 
       <div
+        ref={itemsColRef}
         role="button"
         tabIndex={0}
         className={`oc-operational-header__col oc-operational-header__col--items${
@@ -305,49 +213,56 @@ export function OrderCentralOperationalHeader({
           }
         }}
       >
+        <span className="oc-operational-header__label">Itens</span>
         {itemPreview.length === 0 ? (
           <span className="oc-operational-header__subs">sem itens na ordem</span>
         ) : (
-          <table className="oc-items-preview">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th className="num">Qtd</th>
-                <th className="num">Preço un.</th>
-                <th className="num">Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itemPreview.map((row) => (
-                <tr key={row.key}>
-                  <td className="oc-items-preview__item" title={row.label}>
-                    {row.label}
-                  </td>
-                  <td className="num">{row.qty ?? emptyDash(null)}</td>
-                  <td className="num">{formatUnitPrice(row.unitPrice)}</td>
-                  <td className="num">{formatMoney(row.paid, currency)}</td>
+          <div className="oc-items-preview-wrap">
+            <table className="oc-items-preview">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th className="num">Qtd</th>
+                  <th className="num">Preço un.</th>
+                  <th className="num">Valor</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {itemPreview.map((row) => (
+                  <tr key={row.key}>
+                    <td className="oc-items-preview__item" title={row.label}>
+                      {row.label}
+                    </td>
+                    <td className="num">{row.qty ?? emptyDash(null)}</td>
+                    <td className="num">{formatUnitPrice(row.unitPrice)}</td>
+                    <td className="num">{formatMoney(row.paid, currency)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        {itemOverflow > 0 && (
-          <span className="oc-operational-header__meta">+{itemOverflow} item(ns) · ver resumo</span>
-        )}
-        {(openInvoiceDue || openInvoiceLabel || openInvoiceBalance) && (
-          <button
-            type="button"
-            className="oc-open-invoice-deadline"
-            onClick={(e) => {
-              e.stopPropagation();
-              goInvoices();
-            }}
-          >
-            {openInvoiceLabel ? `${openInvoiceLabel} · ` : ""}
-            {openInvoiceDue ? `venc. ${fmtDate(openInvoiceDue)}` : "fatura em aberto"}
-            {openInvoiceBalance ? ` · ${formatMoney(openInvoiceBalance, currency)}` : ""}
-          </button>
-        )}
+        <div className="oc-items-preview-footer">
+          {itemOverflow > 0 && (
+            <span className="oc-operational-header__meta oc-items-preview-more">
+              +{itemOverflow} item(ns) · ver produtos
+            </span>
+          )}
+          {hasInvoiceFooter && (
+            <button
+              type="button"
+              className="oc-open-invoice-deadline"
+              onClick={(e) => {
+                e.stopPropagation();
+                goInvoices();
+              }}
+            >
+              {openInvoiceLabel ? `${openInvoiceLabel} · ` : ""}
+              {openInvoiceDue ? `venc. ${fmtDate(openInvoiceDue)}` : "fatura em aberto"}
+              {openInvoiceBalance ? ` · ${formatMoney(openInvoiceBalance, currency)}` : ""}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

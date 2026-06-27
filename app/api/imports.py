@@ -365,6 +365,8 @@ def resolve_staging_sku_endpoint(
             staging_id,
             product_id=payload.product_id,
             user_id=current_user.id,
+            save_aliases=payload.save_aliases,
+            extra_aliases=payload.extra_aliases or None,
         )
         write_audit_log(
             db,

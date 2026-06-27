@@ -57,6 +57,10 @@ export interface Product {
   last_importation_po?: string | null;
   last_landed_cost_unit?: string | null;
   orders_count?: number;
+  qty_ordered?: number;
+  qty_in_transit?: number;
+  qty_nationalization?: number;
+  qty_stock?: number;
   archived_at?: string | null;
   archive_reason?: string | null;
   cancelled_at?: string | null;
@@ -519,6 +523,7 @@ export const productsApi = {
   catalog: (params?: {
     q?: string;
     visibility?: string;
+    product_group?: string;
     quick_filter?: string;
     sort?: string;
     sort_dir?: string;
@@ -528,6 +533,7 @@ export const productsApi = {
     const sp = new URLSearchParams();
     if (params?.q) sp.set("q", params.q);
     if (params?.visibility) sp.set("visibility", params.visibility);
+    if (params?.product_group) sp.set("product_group", params.product_group);
     if (params?.quick_filter) sp.set("quick_filter", params.quick_filter);
     if (params?.sort) sp.set("sort", params.sort);
     if (params?.sort_dir) sp.set("sort_dir", params.sort_dir);
@@ -536,6 +542,7 @@ export const productsApi = {
     const q = sp.toString();
     return api<ProductCatalogResponse>(`/api/products/catalog${q ? `?${q}` : ""}`);
   },
+  groups: () => api<string[]>("/api/products/groups"),
   detail: (id: number) => api<Product>(`/api/products/${id}/detail`),
   create: (data: object) => api<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
   update: (id: number, data: object) =>
@@ -670,6 +677,11 @@ export const importationsApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+  cancel: (id: number, reason: string) =>
+    api<Importation>(`/api/importations/${id}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
 };
 
 export const invoicesApi = {
@@ -729,6 +741,7 @@ export interface HeroesImportRunResponse {
   errors?: string[] | null;
   sku_review_pending: boolean;
   sku_review_open_count: number;
+  sku_review_line_count: number;
   merge_warnings: string[];
 }
 
@@ -787,10 +800,21 @@ export const documentsApi = {
 
 export const importsApi = {
   reviewQueue: () => api<ReviewQueueItem[]>("/api/imports/review-queue"),
-  resolveStagingSku: (stagingId: number, productId: number) =>
+  resolveStagingSku: (
+    stagingId: number,
+    productId: number,
+    opts?: { saveAliases?: boolean; extraAliases?: string[] },
+  ) =>
     api<{ id: number; parsed_data_json: Record<string, unknown> }>(
       `/api/imports/staging/${stagingId}/resolve-sku`,
-      { method: "PATCH", body: JSON.stringify({ product_id: productId }) },
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          product_id: productId,
+          save_aliases: opts?.saveAliases ?? true,
+          extra_aliases: opts?.extraAliases ?? [],
+        }),
+      },
     ),
   uploadHeroes: (file: File) => {
     const fd = new FormData();

@@ -1655,6 +1655,21 @@ a.row__po:hover {
 .bulk-action-bar__count { font-weight: 600; }
 .bulk-action-bar__buttons { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-left: auto; }
 .product-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; }
+.product-column-picker { max-width: 360px; }
+.product-column-picker__list {
+  list-style: none;
+  margin: var(--space-4) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.product-column-picker__list label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
 .product-detail { margin-top: var(--space-2); }
 .product-detail__header { margin-bottom: var(--space-4); }
 .tab-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
@@ -1888,6 +1903,12 @@ a.row__po:hover {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
+.order-queue__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
 .order-queue__table {
   font-size: var(--font-size-sm);
 }
@@ -1908,6 +1929,60 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .heroes-upload__section { margin: var(--space-6) 0; }
 .heroes-upload__preview { border-top: 1px solid var(--color-border); padding-top: var(--space-4); }
 .heroes-upload__products { margin: var(--space-4) 0; }
+.heroes-upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.heroes-upload__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.heroes-upload__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 36rem;
+}
+.heroes-upload__confirm-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+.heroes-upload__confirm-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+}
+.heroes-upload__confirm-item span {
+  line-height: 1.35;
+}
+.heroes-upload__order-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 20rem;
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+.heroes-upload__order-field input {
+  width: 100%;
+  margin-bottom: 0;
+}
+.heroes-upload__footer-error {
+  width: 100%;
+  margin: 0;
+}
 .order-central__head-top {
   display: flex;
   flex-wrap: wrap;
@@ -1976,6 +2051,7 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
   margin-top: var(--space-4);
+  align-items: stretch;
 }
 .oc-operational-header__col--finance {
   grid-column: span 1;
@@ -2135,6 +2211,21 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   line-height: 1.35;
 }
 .oc-operational-header__col--items {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.oc-items-preview-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.oc-items-preview-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+.oc-items-preview-more {
   cursor: pointer;
 }
 .oc-items-preview {
@@ -2473,6 +2564,23 @@ td.c-accum { background: #eef6e9; }
 
 /* toolbar grade */
 .sheet-toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin: var(--space-3) 0; }
+.sheet-toolbar__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; width: 100%; }
+.sheet-toolbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.sheet-toolbar__select {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font: inherit;
+  min-width: 200px;
+}
 .sheet-toolbar .spacer { flex: 1; }
 .sheet-toolbar input[type="text"], .sheet-toolbar input.search {
   padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 8px; min-width: 220px;

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.parse import optional_decimal
 from app.models import Product
 from app.services.product_catalog import LIFECYCLE_ACTIVE
+from app.services.product_name_normalize import clean_product_description
 
 REQUIRED_COLUMNS = {"sku_code", "description", "product_group", "lifecycle_status"}
 OPTIONAL_COLUMNS = {
@@ -82,6 +83,11 @@ def _canonical_import_row(row: dict[str, str]) -> dict[str, str]:
     status_raw = out.get("lifecycle_status", "").upper()
     out["lifecycle_status"] = LIFECYCLE_ALIASES.get(status_raw, status_raw or LIFECYCLE_ACTIVE)
     out["launch_date"] = _normalize_launch_date(out.get("launch_date", "")) or ""
+    desc_raw = out.get("description", "")
+    cleaned_desc, desc_year = clean_product_description(desc_raw)
+    out["description"] = cleaned_desc
+    if not out["launch_date"] and desc_year is not None:
+        out["launch_date"] = f"{desc_year}-01-01"
     country = out.get("country_of_origin", "").upper()
     if country == "ITALIA":
         out["country_of_origin"] = "IT"

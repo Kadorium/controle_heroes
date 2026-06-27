@@ -148,6 +148,10 @@ class ProductCatalogRow(ProductResponse):
     last_importation_po: str | None = None
     last_landed_cost_unit: Decimal | None = None
     orders_count: int = 0
+    qty_ordered: int = 0
+    qty_in_transit: int = 0
+    qty_nationalization: int = 0
+    qty_stock: int = 0
 
 
 class ProductCatalogResponse(BaseModel):
@@ -395,11 +399,14 @@ class HeroesImportRunResponse(BaseModel):
     errors: list | None = None
     sku_review_pending: bool = False
     sku_review_open_count: int = 0
+    sku_review_line_count: int = 0
     merge_warnings: list[str] = Field(default_factory=list)
 
 
 class ResolveStagingSkuRequest(BaseModel):
     product_id: int
+    save_aliases: bool = True
+    extra_aliases: list[str] = Field(default_factory=list)
 
 
 class ItalyFieldOverrideRequest(BaseModel):

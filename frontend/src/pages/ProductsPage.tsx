@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Badge, Button, Card, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
+import { useAuth } from "../context/AuthContext";
 import { productsApi, type Product } from "../api";
 import { ProductBulkActionBar } from "./products/ProductBulkActionBar";
 import { ProductBulkConfirmModal } from "./products/ProductBulkConfirmModal";
+import { ProductColumnPicker } from "./products/ProductColumnPicker";
 import { ProductImportModal } from "./products/ProductImportModal";
 import { ProductQuickDrawer } from "./products/ProductQuickDrawer";
 import { useProductSelection } from "./products/useProductSelection";
+import {
+  loadVisibleColumns,
+  PRODUCT_COLUMN_LABELS,
+  saveVisibleColumns,
+  type ProductColumnId,
+} from "./products/productColumnPrefs";
 import {
   exportProductsCsv,
   formatBulkResult,
@@ -15,7 +23,6 @@ import {
   sortProducts,
   type BulkAction,
   type QuickFilter,
-  type Visibility,
 } from "./products/productCatalogUtils";
 
 const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
@@ -25,35 +32,52 @@ const QUICK_FILTERS: { id: QuickFilter; label: string }[] = [
   { id: "no_weight_volume", label: "Sem peso/volume" },
   { id: "no_supplier", label: "Sem fornecedor" },
   { id: "fiscal_review", label: "Fiscal a revisar" },
-  { id: "discontinued", label: "Descontinuados" },
-];
-
-const VISIBILITY_OPTIONS: { id: Visibility; label: string }[] = [
-  { id: "active", label: "Operacionais" },
-  { id: "archived", label: "Arquivados" },
-  { id: "cancelled", label: "Anulados" },
-  { id: "all", label: "Todos" },
 ];
 
 type SortKey = "sku_code" | "description" | "product_group" | "lifecycle_status" | "ncm";
+
+const SORTABLE_COLUMNS: Partial<Record<ProductColumnId, SortKey>> = {
+  sku: "sku_code",
+  name: "description",
+  group: "product_group",
+  status: "lifecycle_status",
+  ncm: "ncm",
+};
 
 function sortMark(active: boolean, asc: boolean): string {
   if (!active) return "";
   return asc ? " ▲" : " ▼";
 }
 
+function formatLaunchDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString("pt-BR");
+}
+
+function formatQty(value: number | null | undefined): string {
+  if (value == null || value === 0) return "—";
+  return String(value);
+}
+
 export function ProductsPage() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const [rows, setRows] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [visibility, setVisibility] = useState<Visibility>("active");
+  const [productGroup, setProductGroup] = useState("");
+  const [groups, setGroups] = useState<string[]>([]);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("sku_code");
   const [sortAsc, setSortAsc] = useState(true);
+  const [visibleColumns, setVisibleColumns] = useState<ProductColumnId[]>(() =>
+    loadVisibleColumns(user?.id),
+  );
+  const [columnPickerOpen, setColumnPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<Product | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -63,13 +87,22 @@ export function ProductsPage() {
 
   const selection = useProductSelection(rows);
 
+  useEffect(() => {
+    setVisibleColumns(loadVisibleColumns(user?.id));
+  }, [user?.id]);
+
+  useEffect(() => {
+    void productsApi.groups().then(setGroups).catch(() => setGroups([]));
+  }, []);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const data = await productsApi.catalog({
         q: search.trim() || undefined,
-        visibility,
+        visibility: "active",
+        product_group: productGroup || undefined,
         quick_filter: quickFilter === "all" ? undefined : quickFilter,
         sort: sortKey,
         sort_dir: sortAsc ? "asc" : "desc",
@@ -82,7 +115,7 @@ export function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, visibility, quickFilter, sortKey, sortAsc]);
+  }, [search, productGroup, quickFilter, sortKey, sortAsc]);
 
   useEffect(() => {
     void load();
@@ -101,6 +134,11 @@ export function ProductsPage() {
   function openDrawer(product: Product | null) {
     setSelected(product);
     setDrawerOpen(true);
+  }
+
+  function updateColumns(cols: ProductColumnId[]) {
+    setVisibleColumns(cols);
+    saveVisibleColumns(user?.id, cols);
   }
 
   async function runBulkConfirm() {
@@ -141,7 +179,7 @@ export function ProductsPage() {
 
   async function exportXlsx() {
     try {
-      const blob = await productsApi.exportBlob("xlsx", visibility);
+      const blob = await productsApi.exportBlob("xlsx", "active");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -155,12 +193,91 @@ export function ProductsPage() {
 
   const bulkEligible = bulkAction ? selection.eligibleFor(bulkAction) : { eligible: [], ineligible: [] };
 
+  function renderHeader(col: ProductColumnId) {
+    const sortField = SORTABLE_COLUMNS[col];
+    if (sortField) {
+      return (
+        <button type="button" className="th-sort" onClick={() => toggleSort(sortField)}>
+          {PRODUCT_COLUMN_LABELS[col]}
+          {sortMark(sortKey === sortField, sortAsc)}
+        </button>
+      );
+    }
+    return PRODUCT_COLUMN_LABELS[col];
+  }
+
+  function renderCell(col: ProductColumnId, p: Product) {
+    switch (col) {
+      case "photo":
+        return p.photo_attachment_id ? (
+          <img
+            className="product-thumb"
+            src={`/api/documents/${p.photo_attachment_id}/download`}
+            alt=""
+          />
+        ) : (
+          "—"
+        );
+      case "sku":
+        return (
+          <Link
+            to={`/cadastros/produtos/${p.id}`}
+            className="link-btn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {p.sku_code}
+          </Link>
+        );
+      case "supplier_code":
+        return p.supplier_code ?? "—";
+      case "name":
+        return p.description;
+      case "group":
+        return p.product_group ?? "—";
+      case "subgroup":
+        return p.product_subgroup ?? "—";
+      case "status":
+        return STATUS_LABELS[p.lifecycle_status ?? "ACTIVE"] ?? p.lifecycle_status;
+      case "ncm":
+        return p.ncm ?? "—";
+      case "supplier":
+        return p.default_supplier_name ?? "—";
+      case "launch_date":
+        return formatLaunchDate(p.launch_date);
+      case "pending":
+        return (
+          <div className="chip-row">
+            {(p.pending_flags ?? []).map((f) => (
+              <Badge key={f} tone="warning">
+                {PENDING_LABELS[f] ?? f}
+              </Badge>
+            ))}
+          </div>
+        );
+      case "orders":
+        return <span className="num">{p.orders_count ?? 0}</span>;
+      case "qty_ordered":
+        return <span className="num">{formatQty(p.qty_ordered)}</span>;
+      case "qty_in_transit":
+        return <span className="num">{formatQty(p.qty_in_transit)}</span>;
+      case "qty_nationalization":
+        return <span className="num">{formatQty(p.qty_nationalization)}</span>;
+      case "qty_stock":
+        return <span className="num">{formatQty(p.qty_stock)}</span>;
+      default:
+        return "—";
+    }
+  }
+
   return (
     <Card>
       <PageHeader
         title="Produtos"
         actions={
           <>
+            <Button variant="secondary" onClick={() => setColumnPickerOpen(true)}>
+              Colunas
+            </Button>
             <Button onClick={() => openDrawer(null)}>Novo produto</Button>
             <Button variant="secondary" onClick={() => setImportOpen(true)}>
               Importar
@@ -196,20 +313,26 @@ export function ProductsPage() {
             </button>
           ))}
         </div>
-        <div className="order-queue__filters">
-          {VISIBILITY_OPTIONS.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              className={`chip-btn${visibility === v.id ? " chip-btn--active" : ""}`}
-              onClick={() => setVisibility(v.id)}
+        <div className="sheet-toolbar__row">
+          <label className="sheet-toolbar__field">
+            Grupo
+            <select
+              className="sheet-toolbar__select"
+              value={productGroup}
+              onChange={(e) => setProductGroup(e.target.value)}
             >
-              {v.label}
-            </button>
-          ))}
+              <option value="">Todos</option>
+              {groups.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <p className="meta">
-          {displayed.length} de {total} produto(s)
+          {displayed.length} de {total} produto(s) ativos
+          {productGroup ? ` · ${productGroup}` : ""}
         </p>
       </div>
 
@@ -236,36 +359,9 @@ export function ProductsPage() {
                     aria-label="Selecionar todos"
                   />
                 </th>
-                <th>Foto</th>
-                <th>
-                  <button type="button" className="th-sort" onClick={() => toggleSort("sku_code")}>
-                    SKU{sortMark(sortKey === "sku_code", sortAsc)}
-                  </button>
-                </th>
-                <th>Cód. fornecedor</th>
-                <th>
-                  <button type="button" className="th-sort" onClick={() => toggleSort("description")}>
-                    Nome{sortMark(sortKey === "description", sortAsc)}
-                  </button>
-                </th>
-                <th>
-                  <button type="button" className="th-sort" onClick={() => toggleSort("product_group")}>
-                    Grupo{sortMark(sortKey === "product_group", sortAsc)}
-                  </button>
-                </th>
-                <th>
-                  <button type="button" className="th-sort" onClick={() => toggleSort("lifecycle_status")}>
-                    Status{sortMark(sortKey === "lifecycle_status", sortAsc)}
-                  </button>
-                </th>
-                <th>
-                  <button type="button" className="th-sort" onClick={() => toggleSort("ncm")}>
-                    NCM{sortMark(sortKey === "ncm", sortAsc)}
-                  </button>
-                </th>
-                <th>Fornecedor</th>
-                <th>Pendências</th>
-                <th>Ordens</th>
+                {visibleColumns.map((col) => (
+                  <th key={col}>{renderHeader(col)}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -284,48 +380,22 @@ export function ProductsPage() {
                       aria-label={`Selecionar ${p.sku_code}`}
                     />
                   </td>
-                  <td>
-                    {p.photo_attachment_id ? (
-                      <img
-                        className="product-thumb"
-                        src={`/api/documents/${p.photo_attachment_id}/download`}
-                        alt=""
-                      />
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td>
-                    <Link
-                      to={`/cadastros/produtos/${p.id}`}
-                      className="link-btn"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {p.sku_code}
-                    </Link>
-                  </td>
-                  <td>{p.supplier_code ?? "—"}</td>
-                  <td>{p.description}</td>
-                  <td>{p.product_group ?? "—"}</td>
-                  <td>{STATUS_LABELS[p.lifecycle_status ?? "ACTIVE"] ?? p.lifecycle_status}</td>
-                  <td>{p.ncm ?? "—"}</td>
-                  <td>{p.default_supplier_name ?? "—"}</td>
-                  <td>
-                    <div className="chip-row">
-                      {(p.pending_flags ?? []).map((f) => (
-                        <Badge key={f} tone="warning">
-                          {PENDING_LABELS[f] ?? f}
-                        </Badge>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="num">{p.orders_count ?? 0}</td>
+                  {visibleColumns.map((col) => (
+                    <td key={col}>{renderCell(col, p)}</td>
+                  ))}
                 </tr>
               ))}
             </tbody>
           </Table>
         </div>
       )}
+
+      <ProductColumnPicker
+        open={columnPickerOpen}
+        visible={visibleColumns}
+        onChange={updateColumns}
+        onClose={() => setColumnPickerOpen(false)}
+      />
 
       <ProductQuickDrawer
         open={drawerOpen}

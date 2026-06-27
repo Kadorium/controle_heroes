@@ -1,18 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   importsApi,
   type HeroesWorkbookProfileResponse,
   type HeroesXlsxPreviewResponse,
+  type HeroesXlsxSheetInfo,
   type HeroesXlsxUploadResponse,
 } from "../api";
-import { Button, Card, LoadingState, PageHeader } from "../components";
+import { Button, Card, LoadingState, PageHeader, useToast } from "../components";
 import { emptyDash, productCategoryLabel } from "../i18n/glossario";
 
 const CATEGORY_OPTIONS = ["RACKET", "BALL", "BAG_ACCESSORY", "APPAREL", "PICKLEBALL", "OTHER"] as const;
 
+function resolveOrderNumberForSheet(
+  sheets: HeroesXlsxSheetInfo[],
+  sheetName: string,
+): string {
+  const sheet = sheets.find((s) => s.sheet_name === sheetName);
+  if (!sheet) return "";
+  return String(sheet.order_number_from_content || sheet.order_number_hint || "").trim();
+}
+
+function resolveOrderFromPreview(
+  p: HeroesXlsxPreviewResponse,
+  sheetFallback: string,
+): string {
+  return (
+    p.order_number_from_content?.trim() ||
+    p.order_number_from_sheet_name?.trim() ||
+    p.order_number?.trim() ||
+    sheetFallback
+  );
+}
+
 export function HeroesUploadPage() {
   const navigate = useNavigate();
+  const toast = useToast();
+  const footerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [locateMsg, setLocateMsg] = useState("");
@@ -38,6 +62,16 @@ export function HeroesUploadPage() {
       })
       .catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!upload || !selectedSheet) return;
+    const ord = resolveOrderNumberForSheet(upload.sheets, selectedSheet);
+    if (ord) setConfirmedOrder(ord);
+    setPreview(null);
+    setConfirmSheet(false);
+    setConfirmImport(false);
+    setError("");
+  }, [selectedSheet, upload?.raw_file_id]);
 
   async function handleLoadLocal() {
     setError("");
@@ -74,13 +108,9 @@ export function HeroesUploadPage() {
       res.sheets.find((s) => s.sheet_type === "ORDER") ??
       res.sheets[0];
     if (orderSheet) {
-      const name = "sheet_name" in orderSheet ? orderSheet.sheet_name : orderSheet.sheet_name;
+      const name = orderSheet.sheet_name;
       setSelectedSheet(name);
-      const ord =
-        ("order_number_from_content" in orderSheet && orderSheet.order_number_from_content) ||
-        orderSheet.order_number_hint ||
-        "";
-      setConfirmedOrder(String(ord));
+      setConfirmedOrder(resolveOrderNumberForSheet(res.sheets, name));
     }
   }
 
@@ -117,19 +147,22 @@ export function HeroesUploadPage() {
     if (!upload || !selectedSheet) return;
     setLoading(true);
     setError("");
+    const sheetOrder = resolveOrderNumberForSheet(upload.sheets, selectedSheet);
     try {
       const p = await importsApi.previewHeroesXlsx(
         upload.raw_file_id,
         selectedSheet,
-        confirmedOrder || undefined,
+        sheetOrder || undefined,
       );
       setPreview(p);
-      if (!confirmedOrder && p.order_number) setConfirmedOrder(p.order_number);
+      setConfirmedOrder(resolveOrderFromPreview(p, sheetOrder));
       if (p.already_committed && p.importation_id) {
         navigate(`/importacoes/${p.importation_id}/resumo`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro no preview");
+      const msg = err instanceof Error ? err.message : "Erro no preview";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -148,7 +181,10 @@ export function HeroesUploadPage() {
       });
       navigate(`/importacoes/${res.importation_id}/resumo`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao importar");
+      const msg = err instanceof Error ? err.message : "Erro ao importar";
+      setError(msg);
+      toast.error(msg);
+      footerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } finally {
       setLoading(false);
     }
@@ -200,7 +236,7 @@ export function HeroesUploadPage() {
         ))}
       </div>
 
-      {error && <p className="error">{error}</p>}
+      {error && !preview && <p className="error">{error}</p>}
       {csvMsg && <p className="meta">{csvMsg}</p>}
       {locateMsg && <p className="meta">{locateMsg}</p>}
 
@@ -308,13 +344,25 @@ export function HeroesUploadPage() {
             </p>
           ))}
 
-          <label>
-            Confirmar número da ordem:{" "}
+          <label className="heroes-upload__order-field">
+            Confirmar número da ordem
             <input
               value={confirmedOrder}
               onChange={(e) => setConfirmedOrder(e.target.value)}
-              placeholder={preview.order_number ?? "ex.: 758"}
+              placeholder={
+                preview.order_number_from_sheet_name ??
+                preview.order_number ??
+                "ex.: 758"
+              }
             />
+            {preview.order_number_from_sheet_name && (
+              <span className="meta">
+                Sheet «{preview.sheet_name}» → ordine {preview.order_number_from_sheet_name}
+                {preview.order_number_from_content &&
+                  preview.order_number_from_content !== preview.order_number_from_sheet_name &&
+                  ` · conteúdo ${preview.order_number_from_content}`}
+              </span>
+            )}
           </label>
 
           <p className="order-queue__meta">
@@ -389,29 +437,36 @@ export function HeroesUploadPage() {
             </table>
           </div>
 
-          <div className="heroes-upload__actions">
-            <Button variant="secondary" onClick={() => exportNormalized("xlsx")}>
-              Baixar preview XLSX (v1)
-            </Button>
-            <Button variant="secondary" onClick={() => exportNormalized("zip")}>
-              Exportar CSVs (ZIP)
+          <div className="heroes-upload__footer" ref={footerRef}>
+            {error && (
+              <p className="error heroes-upload__footer-error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="heroes-upload__actions">
+              <Button variant="secondary" onClick={() => exportNormalized("xlsx")}>
+                Baixar preview XLSX (v1)
+              </Button>
+              <Button variant="secondary" onClick={() => exportNormalized("zip")}>
+                Exportar CSVs (ZIP)
+              </Button>
+            </div>
+
+            <div className="heroes-upload__confirm">
+              <label className="heroes-upload__confirm-item">
+                <input type="checkbox" checked={confirmSheet} onChange={(e) => setConfirmSheet(e.target.checked)} />
+                <span>Confirmo que a sheet selecionada está correta</span>
+              </label>
+              <label className="heroes-upload__confirm-item">
+                <input type="checkbox" checked={confirmImport} onChange={(e) => setConfirmImport(e.target.checked)} />
+                <span>Confirmo importação após revisão do preview</span>
+              </label>
+            </div>
+
+            <Button onClick={commitImport} disabled={loading || !canCommit}>
+              Importar ordem
             </Button>
           </div>
-
-          <div className="heroes-upload__confirm">
-            <label>
-              <input type="checkbox" checked={confirmSheet} onChange={(e) => setConfirmSheet(e.target.checked)} />
-              Confirmo que a sheet selecionada está correta
-            </label>
-            <label>
-              <input type="checkbox" checked={confirmImport} onChange={(e) => setConfirmImport(e.target.checked)} />
-              Confirmo importação após revisão do preview
-            </label>
-          </div>
-
-          <Button onClick={commitImport} disabled={loading || !canCommit}>
-            Importar ordem
-          </Button>
         </section>
       )}
     </Card>

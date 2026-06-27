@@ -319,10 +319,10 @@ O import reconhece também cabeçalhos como `sku_sugerido`, `nome_produto`, `gru
 Ordens criadas via **Nova Ordem** com planilha Heroes vinculada exibem o painel **Planilha Heroes** na Central (`HeroesImportPanel`):
 
 1. **Preview** — parser no run `ATTACHED` da ordem (não use `/imports/heroes/xlsx/preview` no mesmo arquivo — retorna 409).
-2. **SKUs** — racchetta da planilha casa com `supplier_code` (prioridade), depois `sku_code`, depois `description` (case-insensitive). Sem match → fila `/revisao` (`issue_type=SKU_UNRESOLVED`).
-3. **Commit** — bloqueado enquanto houver SKU pendente; após vínculo, merge cria faturas/pagamentos/itens na ordem manual existente.
+2. **SKUs** — racchettas com grafias equivalentes (`show`, `show 26`, `show26`) são **agrupadas** por chave canônica (base + ano; sem ano → ano corrente). Ao vincular na `/revisao`, marque **Salvar grafias no produto** para persistir o de-para em `commercial_notes` (`HEROES_ALIASES:`).
+3. **Commit** — bloqueado enquanto houver grupo pendente; após vincular uma vez por grupo, merge cria faturas/pagamentos/itens na ordem manual existente.
 
-Cadastre `supplier_code` com o nome Heroes (ex.: `starlight`, `aura power`) para minimizar pendências na fila.
+Cadastre `description` alinhada ao nome Heroes (ex.: `SHOW 2026`, `AURA`) para maximizar sugestões automáticas na fila.
 
 ---
 

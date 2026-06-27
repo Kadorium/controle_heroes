@@ -33,6 +33,7 @@ from app.services.heroes_legacy_persist import (
 )
 from app.services.heroes_order_format_v1 import preview_to_canonical
 from app.services.heroes_product_match import match_product
+from app.services.heroes_xlsx_staging import find_staging_for_alias
 from app.services.heroes_xlsx_guard import assert_heroes_commit_allowed
 from app.services.heroes_xlsx_staging import count_open_sku_reviews_for_run
 from app.services.product_category import suggest_product_category
@@ -81,21 +82,13 @@ def _find_staging_for_row(
     product_name_raw: str,
     sheet_row: int | None,
 ) -> StagingImportRow | None:
-    rows = (
-        db.query(StagingImportRow)
-        .filter(StagingImportRow.raw_file_id == raw_file_id)
-        .all()
+    return find_staging_for_alias(
+        db,
+        raw_file_id=raw_file_id,
+        run_id=run_id,
+        product_name_raw=product_name_raw,
+        sheet_row=sheet_row,
     )
-    for staging in rows:
-        data = staging.parsed_data_json or {}
-        if data.get("heroes_run_id") != run_id:
-            continue
-        if data.get("product_name_raw") != product_name_raw:
-            continue
-        if sheet_row is not None and data.get("sheet_row") != sheet_row:
-            continue
-        return staging
-    return None
 
 
 def _enqueue_merge_conflict(

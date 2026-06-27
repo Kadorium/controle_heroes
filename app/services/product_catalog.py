@@ -134,12 +134,67 @@ def validate_product_for_usage(
         )
 
 
+def list_product_groups(db: Session, *, visibility: str = "active") -> list[str]:
+    rows = (
+        _base_catalog_query(db, visibility)
+        .with_entities(Product.product_group)
+        .distinct()
+        .order_by(Product.product_group)
+        .all()
+    )
+    return [r[0] for r in rows if r[0]]
+
+
+def _aggregate_product_quantities(db: Session, product_ids: list[int]) -> dict[int, dict[str, int]]:
+    """Soma quantidades por estágio da cadeia pedido→trânsito→nacionalização→estoque."""
+    from app.services.logistics import _shipped_total_for_display
+    from app.services.nationalization import _nationalized_total_for_display, _stock_total_for_display
+
+    empty = {"qty_ordered": 0, "qty_in_transit": 0, "qty_nationalization": 0, "qty_stock": 0}
+    if not product_ids:
+        return {}
+
+    result = {pid: dict(empty) for pid in product_ids}
+    items = (
+        db.query(ImportationItem)
+        .filter(
+            ImportationItem.product_id.in_(product_ids),
+            ImportationItem.is_active.is_(True),
+        )
+        .all()
+    )
+    for item in items:
+        pid = item.product_id
+        if pid is None:
+            continue
+        ordered = item.quantity_ordered or 0
+        shipped = _shipped_total_for_display(db, item.id)
+        nationalized = _nationalized_total_for_display(db, item.id)
+        stocked = _stock_total_for_display(db, item.id)
+
+        bucket = result.setdefault(pid, dict(empty))
+        bucket["qty_ordered"] += ordered
+
+        if stocked is not None:
+            bucket["qty_stock"] += stocked
+
+        if shipped is not None and shipped > 0:
+            nat = nationalized if nationalized is not None else 0
+            bucket["qty_in_transit"] += max(0, shipped - nat)
+
+        if nationalized is not None:
+            stk = stocked if stocked is not None else 0
+            bucket["qty_nationalization"] += max(0, nationalized - stk)
+
+    return result
+
+
 def _base_catalog_query(db: Session, visibility: str = "active"):
     q = db.query(Product).options(joinedload(Product.default_supplier))
     if visibility == "active":
         q = q.filter(
             Product.is_active.is_(True),
-            Product.lifecycle_status.in_([LIFECYCLE_ACTIVE, LIFECYCLE_DISCONTINUED]),
+            Product.lifecycle_status == LIFECYCLE_ACTIVE,
         )
     elif visibility == "archived":
         q = q.filter(Product.is_active.is_(True), Product.lifecycle_status == LIFECYCLE_ARCHIVED)
@@ -252,6 +307,9 @@ def list_product_catalog(
             if pid:
                 order_counts[pid] = cnt
 
+    qty_by_product = _aggregate_product_quantities(db, product_ids)
+    qty_defaults = {"qty_ordered": 0, "qty_in_transit": 0, "qty_nationalization": 0, "qty_stock": 0}
+
     items: list[dict] = []
     for p in products:
         has_photo = p.id in photo_set
@@ -285,6 +343,7 @@ def list_product_catalog(
                 "last_importation_po": imp[1] if imp else None,
                 "last_landed_cost_unit": last_lc.get(p.id),
                 "orders_count": order_counts.get(p.id, 0),
+                **{**qty_defaults, **qty_by_product.get(p.id, {})},
             }
         )
 
@@ -347,6 +406,7 @@ def get_product_detail(db: Session, product_id: int) -> dict | None:
         .order_by(LandedCostVersion.created_at.desc())
         .first()
     )
+    qty_defaults = {"qty_ordered": 0, "qty_in_transit": 0, "qty_nationalization": 0, "qty_stock": 0}
     return {
         "id": product.id,
         "sku_code": product.sku_code,
@@ -375,6 +435,7 @@ def get_product_detail(db: Session, product_id: int) -> dict | None:
         "last_importation_po": imp_row[1] if imp_row else None,
         "last_landed_cost_unit": lc_row[0] if lc_row else None,
         "orders_count": orders_count,
+        **{**qty_defaults, **_aggregate_product_quantities(db, [product_id]).get(product_id, {})},
         "archived_at": product.archived_at,
         "archive_reason": product.archive_reason,
         "cancelled_at": product.cancelled_at,

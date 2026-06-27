@@ -341,6 +341,7 @@ def _heroes_run_response(run) -> HeroesImportRunResponse:
         errors=run.errors_json,
         sku_review_pending=bool(preview.get("sku_review_pending")),
         sku_review_open_count=int(preview.get("sku_review_open_count") or 0),
+        sku_review_line_count=int(preview.get("sku_review_line_count") or 0),
         merge_warnings=list(preview.get("merge_warnings") or []),
     )
 

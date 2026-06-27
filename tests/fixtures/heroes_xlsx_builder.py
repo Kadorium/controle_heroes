@@ -33,6 +33,10 @@ def build_ordine_758_xlsx() -> bytes:
         (None, None, 5, "AURA POWER", None, None, 2.5),
         (datetime(2025, 4, 1), "F-101", 20, "palline beach", 200, None, None),
         (datetime(2025, 4, 15), "F-102", 3, "WASHBAG EPIC", None, None, None),
+        (datetime(2025, 5, 1), "F-103", 100, "show 26", 1000, None, None),
+        (datetime(2025, 5, 2), "F-104", 80, "show26", None, None, None),
+        (datetime(2025, 5, 3), "F-105", 40, "show-26", 500, None, None),
+        (datetime(2025, 5, 4), "F-106", 60, "show", None, None, None),
     ]
     for ri, row in enumerate(rows, 5):
         for ci, val in enumerate(row, 1):
