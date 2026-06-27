@@ -15,6 +15,25 @@ class ModalChangeError(Exception):
     pass
 
 
+class ShipmentUpdateError(Exception):
+    pass
+
+
+_VALID_SHIPMENT_STATUSES = frozenset(
+    {"PLANNED", "BOOKED", "SHIPPED", "IN_TRANSIT", "ARRIVED", "DELIVERED", "CANCELLED"}
+)
+
+_STATUS_ORDER = {
+    "PLANNED": 0,
+    "BOOKED": 1,
+    "SHIPPED": 2,
+    "IN_TRANSIT": 3,
+    "ARRIVED": 4,
+    "DELIVERED": 5,
+    "CANCELLED": 99,
+}
+
+
 def _shipped_total(db: Session, importation_item_id: int, exclude_shipment_item_id: int | None = None) -> int:
     q = db.query(func.coalesce(func.sum(ShipmentItem.quantity_shipped), 0)).filter(
         ShipmentItem.importation_item_id == importation_item_id,
@@ -196,6 +215,92 @@ def change_shipment_modal(
         db.refresh(shipment)
         return shipment
 
+    db.refresh(shipment)
+    return shipment
+
+
+def list_shipment_items(db: Session, shipment_id: int) -> list[dict]:
+    rows = (
+        db.query(ShipmentItem, ImportationItem)
+        .join(ImportationItem, ShipmentItem.importation_item_id == ImportationItem.id)
+        .filter(ShipmentItem.shipment_id == shipment_id, ShipmentItem.is_active.is_(True))
+        .all()
+    )
+    return [
+        {
+            "id": si.id,
+            "shipment_id": si.shipment_id,
+            "importation_item_id": si.importation_item_id,
+            "quantity_shipped": si.quantity_shipped,
+            "supplier_sku": ii.supplier_sku,
+            "description": ii.description,
+        }
+        for si, ii in rows
+    ]
+
+
+def update_shipment(
+    db: Session,
+    shipment: Shipment,
+    *,
+    user_id: int | None,
+    **fields,
+) -> Shipment:
+    changes: dict[str, tuple[str | None, str | None]] = {}
+    if "status" in fields and fields["status"] is not None:
+        new_status = fields["status"]
+        if new_status not in _VALID_SHIPMENT_STATUSES:
+            raise ShipmentUpdateError(f"Status inválido: {new_status}")
+        old_status = shipment.status
+        if old_status != new_status and old_status != "CANCELLED":
+            old_ord = _STATUS_ORDER.get(old_status, 0)
+            new_ord = _STATUS_ORDER.get(new_status, 0)
+            if new_status != "CANCELLED" and new_ord < old_ord:
+                raise ShipmentUpdateError(
+                    f"Transição de status inválida: {old_status} → {new_status}"
+                )
+        if old_status != new_status:
+            changes["status"] = (old_status, new_status)
+            shipment.status = new_status
+
+    scalar_fields = (
+        "bl_number",
+        "awb_number",
+        "container_number",
+        "etd_planned",
+        "eta_planned",
+        "etd_actual",
+        "eta_actual",
+        "freight_amount",
+        "freight_currency",
+    )
+    for key in scalar_fields:
+        if key not in fields:
+            continue
+        new_val = fields[key]
+        old_val = getattr(shipment, key)
+        if old_val != new_val:
+            changes[key] = (
+                str(old_val) if old_val is not None else None,
+                str(new_val) if new_val is not None else None,
+            )
+            setattr(shipment, key, new_val)
+
+    if not changes:
+        return shipment
+
+    for field, (old_v, new_v) in changes.items():
+        write_audit_log(
+            db,
+            user_id=user_id,
+            entity_type="shipment",
+            entity_id=str(shipment.id),
+            action="update",
+            field_changed=field,
+            old_value=old_v,
+            new_value=new_v,
+        )
+    db.commit()
     db.refresh(shipment)
     return shipment
 

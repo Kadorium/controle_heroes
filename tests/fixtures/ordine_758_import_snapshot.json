@@ -18,10 +18,10 @@
       "responsible": null,
       "internal_forecast_date": null,
       "is_active": true,
-      "created_at": "2026-06-23T02:26:29.543507-03:00",
-      "updated_at": "2026-06-23T02:26:29.543507-03:00"
+      "created_at": "2026-06-25T23:28:11.770854-03:00",
+      "updated_at": "2026-06-25T23:28:11.770854-03:00"
     },
-    "supplier_name": "Sup f3949e4d",
+    "supplier_name": "Sup 14a71e2a",
     "legacy_sheet_summary": {
       "versato_amount": "397500.0000",
       "versato_currency": "EUR",
@@ -192,60 +192,87 @@
           "label": "Pedido",
           "state": "done",
           "data_supported": true,
-          "status_declared": true
+          "status_declared": true,
+          "subtitle": null
         },
         {
           "key": "faturado",
           "label": "Faturado",
           "state": "done",
           "data_supported": true,
-          "status_declared": true
+          "status_declared": true,
+          "subtitle": "0/14 faturas"
         },
         {
           "key": "acconto",
           "label": "Acconto",
           "state": "done",
           "data_supported": true,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": "EUR 347500.0000 versato"
         },
         {
           "key": "despachar",
           "label": "A despachar",
           "state": "todo",
           "data_supported": false,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": "0/8650 un."
         },
         {
           "key": "transito",
           "label": "Em trânsito",
           "state": "todo",
           "data_supported": false,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": "0/8650 un."
         },
         {
           "key": "aduana",
           "label": "Aduana",
           "state": "todo",
           "data_supported": false,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": null
         },
         {
           "key": "estoque",
           "label": "Estoque",
           "state": "todo",
           "data_supported": false,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": null
         },
         {
           "key": "fechado",
           "label": "Fechado",
           "state": "todo",
           "data_supported": false,
-          "status_declared": false
+          "status_declared": false,
+          "subtitle": null
         }
       ],
       "current_index": 2,
       "alerts": []
+    },
+    "operational_header": {
+      "invoices_count": 14,
+      "invoices_settled_count": 0,
+      "totals_by_currency": null,
+      "total_invoiced": null,
+      "total_paid": "347500.0000",
+      "open_balance": null,
+      "open_balance_brl_equivalent": "0",
+      "next_due_date": null,
+      "overdue_count": 0,
+      "overdue_amount_foreign": null,
+      "next_etd": null,
+      "next_eta": null,
+      "active_modal": null,
+      "to_dispatch": 8650,
+      "quantity_ordered": 8650,
+      "supplier_credit_available": null,
+      "pending_actions_count": 1
     },
     "kpis": {
       "currency": "EUR",

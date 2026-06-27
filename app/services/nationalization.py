@@ -214,6 +214,7 @@ def quantity_chain(db: Session, importation_id: int) -> list[dict]:
         .all()
     )
     from app.services.logistics import _shipped_total_for_display
+    from app.services.entreposto import entreposto_balance_for_display, entreposto_consumed_for_display
 
     result = []
     for item in items:
@@ -221,6 +222,8 @@ def quantity_chain(db: Session, importation_id: int) -> list[dict]:
         shipped = _shipped_total_for_display(db, item.id)
         nationalized = _nationalized_total_for_display(db, item.id)
         stocked = _stock_total_for_display(db, item.id)
+        entreposto_bal = entreposto_balance_for_display(db, item.id)
+        entreposto_cons = entreposto_consumed_for_display(db, item.id)
         result.append(
             {
                 "importation_item_id": item.id,
@@ -228,6 +231,8 @@ def quantity_chain(db: Session, importation_id: int) -> list[dict]:
                 "quantity_shipped": shipped,
                 "quantity_nationalized": nationalized,
                 "quantity_stocked": stocked,
+                "quantity_entreposto_balance": entreposto_bal,
+                "quantity_entreposto_consumed": entreposto_cons,
                 "difference_ordered_stocked": (stocked - ordered)
                 if ordered is not None and stocked is not None
                 else None,

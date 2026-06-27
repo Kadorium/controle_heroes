@@ -99,6 +99,7 @@ export interface OrderCentralInvoice {
   invoice_type: string;
   invoice_number: string;
   invoice_date: string | null;
+  payment_due_date?: string | null;
   amount: string | null;
   currency: string;
   discount_amount: string | null;
@@ -166,6 +167,8 @@ export interface OperationalHeader {
   next_due_date: string | null;
   overdue_count: number;
   overdue_amount_foreign: string | null;
+  next_open_invoice_number?: string | null;
+  next_open_invoice_balance?: string | null;
   next_etd: string | null;
   next_eta: string | null;
   active_modal: string | null;
@@ -173,6 +176,30 @@ export interface OperationalHeader {
   quantity_ordered: number | null;
   supplier_credit_available: string | null;
   pending_actions_count: number;
+  fx_pnl?: FxPnlBlock | null;
+  order_total_eur?: string | null;
+  order_total_brl?: string | null;
+  invoiced_eur?: string | null;
+  invoiced_brl?: string | null;
+  settled_eur?: string | null;
+  settled_brl?: string | null;
+  remaining_to_invoice_eur?: string | null;
+  remaining_to_invoice_brl?: string | null;
+  balance_to_settle_eur?: string | null;
+  balance_to_settle_brl?: string | null;
+  opening_exchange_rate?: string | null;
+}
+
+export interface FxPnlBlock {
+  label: string;
+  disclaimer: string;
+  provision_rate?: string | null;
+  mark_rate?: string | null;
+  orders_with_pnl?: number | null;
+  pnl_realized_brl: string | null;
+  pnl_planned_brl: string | null;
+  pnl_unrealized_brl: string | null;
+  pnl_total_brl: string | null;
 }
 
 export interface StatusRail {
@@ -187,7 +214,7 @@ export interface OrderCentralResponse {
   legacy_sheet_summary: LegacySheetSummary | null;
   dispatch_pending: Array<Record<string, unknown>>;
   status_rail: StatusRail | null;
-  operational_header: OperationalHeader;
+  operational_header?: OperationalHeader | null;
   kpis: {
     currency: string;
     total_invoiced: string | null;
@@ -202,6 +229,24 @@ export interface OrderCentralResponse {
   payments_planned: Payment[];
   payments_settled: Payment[];
   pending_actions: Array<{ kind: string; label: string; detail: string | null; tone: string }>;
+  shipments?: OrderCentralShipment[];
+}
+
+export interface OrderCentralShipment {
+  id: number;
+  importation_id: number;
+  shipment_number: string;
+  modal: string;
+  modal_previous: string | null;
+  bl_number: string | null;
+  awb_number: string | null;
+  container_number: string | null;
+  status: string;
+  etd_planned: string | null;
+  eta_planned: string | null;
+  etd_actual: string | null;
+  eta_actual: string | null;
+  is_active: boolean;
 }
 
 export interface ImportationItem {
@@ -331,7 +376,19 @@ async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Erro HTTP ${res.status}`);
+    const detail = (body as { detail?: unknown }).detail;
+    let message: string;
+    if (typeof detail === "string") {
+      message =
+        detail === "Not Found"
+          ? `Recurso não encontrado (${path}). Reinicie o backend e execute alembic upgrade head.`
+          : detail;
+    } else if (Array.isArray(detail)) {
+      message = detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join("; ") || `Erro HTTP ${res.status}`;
+    } else {
+      message = `Erro HTTP ${res.status} (${path})`;
+    }
+    throw new Error(message);
   }
   return res.json() as Promise<T>;
 }
@@ -474,7 +531,24 @@ export interface Shipment {
   modal_previous: string | null;
   bl_number: string | null;
   awb_number: string | null;
+  container_number: string | null;
   status: string;
+  etd_planned: string | null;
+  eta_planned: string | null;
+  etd_actual: string | null;
+  eta_actual: string | null;
+  freight_amount: string | null;
+  freight_currency: string | null;
+  is_active: boolean;
+}
+
+export interface ShipmentItem {
+  id: number;
+  shipment_id: number;
+  importation_item_id: number;
+  quantity_shipped: number | null;
+  supplier_sku?: string | null;
+  description?: string | null;
 }
 
 export interface ModalChangeLog {
@@ -640,8 +714,17 @@ export const shipmentsApi = {
     }
     return api<Shipment[]>(`/api/shipments?importation_id=${importationId}`);
   },
+  get: (shipmentId: number) => api<Shipment>(`/api/shipments/${shipmentId}`),
   create: (data: object) =>
     api<Shipment>("/api/shipments", { method: "POST", body: JSON.stringify(data) }),
+  update: (shipmentId: number, data: object) =>
+    api<Shipment>(`/api/shipments/${shipmentId}`, { method: "PATCH", body: JSON.stringify(data) }),
+  listItems: (shipmentId: number) => api<ShipmentItem[]>(`/api/shipments/${shipmentId}/items`),
+  addItem: (shipmentId: number, data: object) =>
+    api<ShipmentItem>(`/api/shipments/${shipmentId}/items`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   changeModal: (shipmentId: number, data: object) =>
     api<Shipment>(`/api/shipments/${shipmentId}/change-modal`, {
       method: "POST",
@@ -655,7 +738,24 @@ export const shipmentsApi = {
     ),
 };
 
+export interface FxReference {
+  currency_from: string;
+  currency_to: string;
+  rate: string | null;
+  rate_date: string | null;
+  source: string | null;
+  disclaimer: string;
+  errors?: string[] | null;
+}
+
 export const financeApi = {
+  fxReference: (currencyFrom = "EUR", currencyTo = "BRL") =>
+    api<FxReference>(
+      `/api/finance/fx-reference?currency_from=${encodeURIComponent(currencyFrom)}&currency_to=${encodeURIComponent(currencyTo)}`,
+    ),
+  fxPnlSummary: () => api<FxPnlBlock>("/api/finance/fx-pnl/summary"),
+  fxPnlForImportation: (importationId: number) =>
+    api<FxPnlBlock>(`/api/finance/importations/${importationId}/fx-pnl`),
   summary: (importationId: number) =>
     api<FinancialSummary>(`/api/finance/importations/${importationId}/summary`),
   createPayment: (data: object) =>
@@ -726,10 +826,23 @@ export interface Tax {
 export interface QuantityChain {
   importation_item_id: number;
   quantity_ordered: number | null;
-  quantity_shipped: number;
-  quantity_nationalized: number;
-  quantity_stocked: number;
+  quantity_shipped: number | null;
+  quantity_nationalized: number | null;
+  quantity_stocked: number | null;
+  quantity_entreposto_balance: number | null;
+  quantity_entreposto_consumed: number | null;
   difference_ordered_stocked: number | null;
+}
+
+export interface EntrepostoMovement {
+  id: number;
+  importation_id: number;
+  importation_item_id: number;
+  movement_type: string;
+  quantity: number;
+  event_date: string | null;
+  shipment_id: number | null;
+  notes: string | null;
 }
 
 export interface LandedCostVersion {
@@ -769,8 +882,19 @@ export const customsApi = {
 export const stockApi = {
   quantityChain: (importationId: number) =>
     api<QuantityChain[]>(`/api/stock/importations/${importationId}/quantity-chain`),
+  listEntrepostoMovements: (importationId: number) =>
+    api<EntrepostoMovement[]>(`/api/stock/importations/${importationId}/entreposto-movements`),
+  createEntrepostoMovement: (data: object) =>
+    api<EntrepostoMovement>("/api/stock/entreposto-movements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   createNationalization: (data: object) =>
     api("/api/stock/nationalizations", { method: "POST", body: JSON.stringify(data) }),
+  listNationalizations: (importationId: number) =>
+    api<Array<{ id: number; importation_id: number; customs_document_id: number }>>(
+      `/api/stock/nationalizations?importation_id=${importationId}`,
+    ),
   createStockEntry: (data: object) =>
     api("/api/stock/entries", { method: "POST", body: JSON.stringify(data) }),
 };

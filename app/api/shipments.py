@@ -11,16 +11,21 @@ from app.schemas_docs import (
     QuantitySummaryResponse,
     ShipmentCreate,
     ShipmentItemCreate,
+    ShipmentItemDetailResponse,
     ShipmentItemResponse,
     ShipmentResponse,
+    ShipmentUpdate,
 )
 from app.services.logistics import (
     ModalChangeError,
     QuantityExceededError,
+    ShipmentUpdateError,
     add_shipment_item,
     change_shipment_modal,
     create_shipment,
+    list_shipment_items,
     quantity_summary,
+    update_shipment,
 )
 
 router = APIRouter(prefix="/shipments", tags=["shipments"])
@@ -78,6 +83,39 @@ def get_shipment(
     if not s:
         raise HTTPException(status_code=404, detail="Embarque não encontrado")
     return s
+
+
+@router.get("/{shipment_id}/items", response_model=list[ShipmentItemDetailResponse])
+def get_shipment_items(
+    shipment_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_LOGISTICS_READ)),
+):
+    shipment = db.query(Shipment).filter(Shipment.id == shipment_id, Shipment.is_active.is_(True)).first()
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Embarque não encontrado")
+    return list_shipment_items(db, shipment_id)
+
+
+@router.patch("/{shipment_id}", response_model=ShipmentResponse)
+def patch_shipment(
+    shipment_id: int,
+    payload: ShipmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_LOGISTICS_WRITE)),
+):
+    shipment = db.query(Shipment).filter(Shipment.id == shipment_id, Shipment.is_active.is_(True)).first()
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Embarque não encontrado")
+    try:
+        return update_shipment(
+            db,
+            shipment,
+            user_id=current_user.id,
+            **payload.model_dump(exclude_unset=True),
+        )
+    except ShipmentUpdateError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{shipment_id}/items", response_model=ShipmentItemResponse, status_code=status.HTTP_201_CREATED)

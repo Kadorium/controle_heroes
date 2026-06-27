@@ -32,10 +32,9 @@ export const IMPORTATION_SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       { path: "invoices", label: "Faturas e pagamentos" },
       { path: "itens", label: "Produtos e quantidades" },
-      { path: "logistica", label: "Logística" },
+      { path: "logistica", label: "Logística e nacionalização" },
       { path: "financeiro", label: "Crédito / conta corrente" },
       { path: "documentos", label: "Documentos" },
-      { path: "aduaneiro", label: "Aduana e custos BR" },
     ],
   },
   {
@@ -69,17 +68,17 @@ export interface ChecklistItem {
 export const CHECKLIST_ROUTE_MAP: Record<string, (id: number) => string> = {
   invoices: (id) => `/importacoes/${id}/invoices`,
   finance: (id) => `/importacoes/${id}/financeiro`,
-  customs: (id) => `/importacoes/${id}/aduaneiro#di-duimp`,
+  customs: (id) => `/importacoes/${id}/logistica#aduana`,
   proforma: (id) => `/importacoes/${id}/documentos`,
-  landed_cost: (id) => `/importacoes/${id}/aduaneiro#landed-cost`,
-  nationalization: (id) => `/importacoes/${id}/aduaneiro#nacionalizacao`,
+  landed_cost: (id) => `/importacoes/${id}/logistica#landed-cost`,
+  nationalization: (id) => `/importacoes/${id}/logistica#nacionalizacao`,
   reconciliations: (id) => `/importacoes/${id}/conciliacao#conciliacao`,
   closure: (id) => `/importacoes/${id}/conciliacao#fechamento`,
   divergencia: (id) => `/importacoes/${id}/conciliacao#conciliacao`,
-  "DI/DUIMP": (id) => `/importacoes/${id}/aduaneiro#di-duimp`,
+  "DI/DUIMP": (id) => `/importacoes/${id}/logistica#aduana`,
 };
 
 export const ACTION_ROUTE_MAP: Record<string, (id: number) => string> = {
   ...CHECKLIST_ROUTE_MAP,
-  customs: (id) => `/importacoes/${id}/aduaneiro#di-duimp`,
+  customs: (id) => `/importacoes/${id}/logistica#aduana`,
 };

@@ -9,6 +9,7 @@ import {
   type Discount,
   type Expense,
   type FinancialSummary,
+  type FxPnlBlock,
   type Importation,
   type ImportationItem,
   type Invoice,
@@ -19,6 +20,7 @@ import { formatMoney, invoiceTypeLabel, modalLabel, payStatusLabel, shipmentStat
 import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
 import { fmtDate, isPlannedPayment } from "../../utils/formatDate";
 import { Badge, Button, EmptyState, LoadingState, Table, useToast } from "../../components";
+import { FxPnlPanel } from "../../components/FxPnlPanel";
 
 export type FinanceTab = "pagamentos" | "descontos" | "creditos" | "conta-br" | "despesas";
 
@@ -86,6 +88,7 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
   const [receiptRef, setReceiptRef] = useState("");
   const [plannedOnly, setPlannedOnly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fxPnl, setFxPnl] = useState<FxPnlBlock | null>(null);
 
   const impId = scope.mode === "importation" ? scope.importationId : Number(selectedImp);
 
@@ -121,6 +124,17 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
     });
   }, [impId, scope.mode, scope.invoices, loadPayments]);
 
+  useEffect(() => {
+    if (scope.mode !== "importation" || !scope.importationId) {
+      setFxPnl(null);
+      return;
+    }
+    financeApi
+      .fxPnlForImportation(scope.importationId)
+      .then(setFxPnl)
+      .catch(() => setFxPnl(null));
+  }, [scope.mode, scope.importationId]);
+
   async function registerPayment(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -148,9 +162,18 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
 
   async function liquidatePayment(p: Payment) {
     try {
+      const inv = invoices.find((i) => i.id === p.invoice_id);
+      let exchangeRate: string | undefined = inv?.expected_exchange_rate ?? undefined;
+      try {
+        const ref = await financeApi.fxReference();
+        if (ref.rate) exchangeRate = ref.rate;
+      } catch {
+        /* mantém câmbio da fatura */
+      }
       await financeApi.updatePayment(p.id, {
         payment_date: new Date().toISOString().slice(0, 10),
         receipt_reference: `LIQ-${p.id}`,
+        ...(exchangeRate ? { exchange_rate: exchangeRate } : {}),
       });
       toast.success("Pagamento liquidado");
       await loadPayments(invoices);
@@ -164,11 +187,7 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
 
   return (
     <section className="finance-panel">
-      <div className="finance-banners">
-        <InfoBanner>Planejado não reduz saldo · Liquidado reduz.</InfoBanner>
-        <InfoBanner>Crédito ≠ desconto — crédito é saldo do fornecedor; desconto reduz valor da fatura.</InfoBanner>
-        <InfoBanner>Vencimento ≠ data real de pagamento — use a coluna &quot;Pago em&quot; para liquidação.</InfoBanner>
-      </div>
+      {scope.mode === "importation" && <FxPnlPanel pnl={fxPnl} />}
       {scope.summary && (
         <p className="finance-summary-line">
           Faturado: {formatMoney(scope.summary.total_invoiced, scope.currency ?? DEFAULT_IMPORT_CURRENCY)} · Pago:{" "}
@@ -241,7 +260,7 @@ export function PaymentsPanel({ scope }: { scope: Scope }) {
                 <td>{p.payment_date ? "Liquidado" : p.due_date ? "Planejado" : "Pendente"}</td>
                 <td>{fmtDate(p.due_date)}</td>
                 <td>{fmtDate(p.payment_date)}</td>
-                <td>{p.amount_foreign ?? "—"}</td>
+                <td className="num">{formatMoney(p.amount_foreign, p.currency_foreign ?? scope.currency ?? DEFAULT_IMPORT_CURRENCY)}</td>
                 <td>
                   {isPlannedPayment(p) ? (
                     <Button type="button" variant="secondary" onClick={() => liquidatePayment(p)}>
@@ -404,9 +423,7 @@ export function DiscountsPanel({ scope }: { scope: Scope }) {
               <tr key={d.id}>
                 <td>{invoiceLabel(d.invoice_id)}</td>
                 <td>{d.discount_type}</td>
-                <td>
-                  {d.amount ?? "—"} {d.currency}
-                </td>
+                <td className="num">{formatMoney(d.amount, d.currency)}</td>
                 <td>{d.reason ?? "—"}</td>
                 <td>{d.source_document_ref ?? "—"}</td>
               </tr>
@@ -506,11 +523,9 @@ export function CreditsPanel({ scope }: { scope: Scope }) {
             {credits.map((c) => (
               <tr key={c.id}>
                 <td>{c.id}</td>
-                <td>
-                  {c.amount} {c.currency}
-                </td>
-                <td>{c.amount_used ?? "—"}</td>
-                <td>{c.amount_available}</td>
+                <td className="num">{formatMoney(c.amount, c.currency)}</td>
+                <td className="num">{formatMoney(c.amount_used, c.currency)}</td>
+                <td className="num">{formatMoney(c.amount_available, c.currency)}</td>
                 <td>
                   <Badge
                     tone={
@@ -678,12 +693,10 @@ export function BrazilAccountPanel({ scope }: { scope: Scope }) {
             {accounts.map((a) => (
               <tr key={a.id}>
                 <td>{a.description}</td>
-                <td>
-                  {a.amount} {a.currency}
-                </td>
-                <td>{a.financial_impact_estimated ?? "—"}</td>
-                <td>{a.fiscal_impact_estimated ?? "—"}</td>
-                <td>{a.amount_available}</td>
+                <td className="num">{formatMoney(a.amount, a.currency)}</td>
+                <td className="num">{formatMoney(a.financial_impact_estimated, a.currency)}</td>
+                <td className="num">{formatMoney(a.fiscal_impact_estimated, a.currency)}</td>
+                <td className="num">{formatMoney(a.amount_available, a.currency)}</td>
                 <td>{a.status}</td>
               </tr>
             ))}
@@ -833,9 +846,7 @@ export function ExpensesPanel({ scope }: { scope: Scope }) {
               <tr key={ex.id}>
                 <td>{EXPENSE_TYPE_LABELS[ex.expense_type] ?? ex.expense_type}</td>
                 <td>{ex.description ?? "—"}</td>
-                <td>
-                  {ex.amount ?? "—"} {ex.currency}
-                </td>
+                <td className="num">{formatMoney(ex.amount, ex.currency)}</td>
                 <td>{ex.is_included_in_landed_cost ? "Sim" : "Não"}</td>
                 <td>{ex.source_document_ref ?? "—"}</td>
               </tr>

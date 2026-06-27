@@ -191,6 +191,7 @@ class ImportationOrder(Base, TimestampMixin, SoftDeleteMixin):
     customs_documents: Mapped[list["CustomsDocument"]] = relationship(back_populates="importation")
     taxes: Mapped[list["Tax"]] = relationship(back_populates="importation")
     nationalizations: Mapped[list["Nationalization"]] = relationship(back_populates="importation")
+    entreposto_movements: Mapped[list["EntrepostoMovement"]] = relationship(back_populates="importation")
     landed_cost_versions: Mapped[list["LandedCostVersion"]] = relationship(back_populates="importation")
     reconciliations: Mapped[list["Reconciliation"]] = relationship(back_populates="importation")
     closures: Mapped[list["ImportationClosure"]] = relationship(back_populates="importation")
@@ -650,6 +651,25 @@ class StockEntry(Base, TimestampMixin):
     created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
     nationalization: Mapped["Nationalization"] = relationship(back_populates="stock_entries")
+
+
+class EntrepostoMovement(Base, TimestampMixin, SoftDeleteMixin):
+    __tablename__ = "entreposto_movements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    importation_id: Mapped[int] = mapped_column(ForeignKey("importation_orders.id"), nullable=False, index=True)
+    importation_item_id: Mapped[int] = mapped_column(ForeignKey("importation_items.id"), nullable=False, index=True)
+    movement_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    event_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    shipment_id: Mapped[int | None] = mapped_column(ForeignKey("shipments.id"), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reason_code_id: Mapped[int | None] = mapped_column(ForeignKey("reason_codes.id"), nullable=True)
+    created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+
+    importation: Mapped["ImportationOrder"] = relationship(back_populates="entreposto_movements")
+    importation_item: Mapped["ImportationItem"] = relationship()
+    shipment: Mapped["Shipment | None"] = relationship()
 
 
 class QuantityDiscrepancy(Base, TimestampMixin):

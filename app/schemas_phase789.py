@@ -108,7 +108,33 @@ class QuantityChainResponse(BaseModel):
     quantity_shipped: int | None = None
     quantity_nationalized: int | None = None
     quantity_stocked: int | None = None
+    quantity_entreposto_balance: int | None = None
+    quantity_entreposto_consumed: int | None = None
     difference_ordered_stocked: int | None
+
+
+class EntrepostoMovementCreate(BaseModel):
+    importation_id: int
+    importation_item_id: int
+    movement_type: str
+    quantity: int
+    event_date: date | None = None
+    shipment_id: int | None = None
+    notes: str | None = None
+    reason_code: str | None = None
+
+
+class EntrepostoMovementResponse(BaseModel):
+    id: int
+    importation_id: int
+    importation_item_id: int
+    movement_type: str
+    quantity: int
+    event_date: date | None = None
+    shipment_id: int | None = None
+    notes: str | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class LandedCostCreate(BaseModel):

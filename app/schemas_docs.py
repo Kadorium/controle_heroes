@@ -199,6 +199,19 @@ class ShipmentResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ShipmentUpdate(BaseModel):
+    status: str | None = None
+    bl_number: str | None = None
+    awb_number: str | None = None
+    container_number: str | None = None
+    etd_planned: date | None = None
+    eta_planned: date | None = None
+    etd_actual: date | None = None
+    eta_actual: date | None = None
+    freight_amount: Decimal | None = None
+    freight_currency: str | None = None
+
+
 class ShipmentItemResponse(BaseModel):
     id: int
     shipment_id: int
@@ -206,6 +219,11 @@ class ShipmentItemResponse(BaseModel):
     quantity_shipped: int | None
 
     model_config = {"from_attributes": True}
+
+
+class ShipmentItemDetailResponse(ShipmentItemResponse):
+    supplier_sku: str | None = None
+    description: str | None = None
 
 
 class ModalChangeLogResponse(BaseModel):

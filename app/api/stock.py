@@ -6,6 +6,8 @@ from app.database import get_db
 from app.dependencies import require_permission
 from app.models import Nationalization, ReasonCode, User
 from app.schemas_phase789 import (
+    EntrepostoMovementCreate,
+    EntrepostoMovementResponse,
     NationalizationCreate,
     NationalizationResponse,
     QuantityChainResponse,
@@ -13,6 +15,7 @@ from app.schemas_phase789 import (
     StockEntryCreate,
     StockEntryResponse,
 )
+from app.services.entreposto import EntrepostoError, create_entreposto_movement, list_entreposto_movements
 from app.services.nationalization import (
     NationalizationError,
     StockEntryError,
@@ -90,6 +93,42 @@ def get_quantity_chain(
     _: User = Depends(require_permission(PERM_STOCK_READ)),
 ):
     return quantity_chain(db, importation_id)
+
+
+@router.get("/importations/{importation_id}/entreposto-movements", response_model=list[EntrepostoMovementResponse])
+def get_entreposto_movements(
+    importation_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_STOCK_READ)),
+):
+    return list_entreposto_movements(db, importation_id)
+
+
+@router.post("/entreposto-movements", response_model=EntrepostoMovementResponse, status_code=status.HTTP_201_CREATED)
+def post_entreposto_movement(
+    payload: EntrepostoMovementCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_STOCK_WRITE)),
+):
+    reason_code_id = None
+    if payload.reason_code:
+        rc = db.query(ReasonCode).filter(ReasonCode.code == payload.reason_code).first()
+        reason_code_id = rc.id if rc else None
+    try:
+        return create_entreposto_movement(
+            db,
+            importation_id=payload.importation_id,
+            importation_item_id=payload.importation_item_id,
+            movement_type=payload.movement_type,
+            quantity=payload.quantity,
+            user_id=current_user.id,
+            event_date=payload.event_date,
+            shipment_id=payload.shipment_id,
+            notes=payload.notes,
+            reason_code_id=reason_code_id,
+        )
+    except EntrepostoError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/discrepancies", status_code=status.HTTP_201_CREATED)

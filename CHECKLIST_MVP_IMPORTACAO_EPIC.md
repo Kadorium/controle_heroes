@@ -560,8 +560,8 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P1
 - **Status:** DONE
 - **Dependência:** F3-003–F3-007
-- **Evidência:** `ImportationsPage.tsx`; hub `ImportationLayout.tsx` + `ImportationSectionPage.tsx` (rotas `/importacoes/:id/{resumo|itens|invoices|financeiro|documentos|logistica|aduaneiro|conciliacao}`); topbar v2 (4 itens)
-- **Teste:** Browser Cursor 2026-06-21 — login; lista 16 DEMO; deep-link DEMO-01-OCEAN resumo; DEMO-04-3INV invoices (ANTECIPO); abas internas OK
+- **Evidência:** `ImportationsPage.tsx`; hub `ImportationLayout.tsx` + `ImportationSectionPage.tsx` (rotas `/importacoes/:id/{resumo|itens|invoices|financeiro|documentos|logistica|aduaneiro|conciliacao}`); topbar v2 (4 itens); Central Resumo `+ Nova fatura` (`OrderCentralOverview.tsx` + `InvoiceAmountField` + `novaOrdemInvoice.ts`) — fatura EUR, pagamento planejado BRL, numeração PO+letra
+- **Teste:** Browser Cursor 2026-06-21 — login; lista 16 DEMO; deep-link DEMO-01-OCEAN resumo; DEMO-04-3INV invoices (ANTECIPO); abas internas OK; `novaOrdemInvoice.test.ts` (10 testes); build frontend OK 2026-06-23
 - **Observação:** Redesign v2 — ver seção Auditoria UI v2
 
 ### F3-010
@@ -640,8 +640,8 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** DONE
 - **Dependência:** F4-005
-- **Evidência:** `importation_financial_summary`; endpoint `/finance/importations/{id}/summary`
-- **Teste:** `test_consolidated_balance`; browser aba Financeiro no detalhe
+- **Evidência:** `importation_financial_summary`; endpoint `/finance/importations/{id}/summary`; PnL Cambial operacional `app/services/fx_pnl.py` + `GET /finance/fx-pnl/summary` + `GET /finance/importations/{id}/fx-pnl`; UI `FxPnlPanel` (header, Resumo, Financeiro ordem, `FinancePage`)
+- **Teste:** `test_consolidated_balance`; `test_fx_pnl.py` (4 testes); browser aba Financeiro no detalhe
 - **Observação:** —
 
 ### F4-007
@@ -896,13 +896,23 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 
 ### F6-007
 - **Módulo:** UI logística
-- **Regra/Requisito:** Aba Logística; histórico alterações modal
+- **Regra/Requisito:** Página unificada logística → nacionalização → estoque; trilha SKU por fase; embarques com alocação por item; trânsito; entreposto
 - **Prioridade:** P1
 - **Status:** DONE
-- **Dependência:** F6-001–F6-006
-- **Evidência:** `LogisticsPanel.tsx`; `/importacoes/:id/logistica`
-- **Teste:** Browser 2026-06-21 — DEMO-03-MODAL logística (embarques + botões Histórico); pytest `test_ocean_to_air_modal_change_with_reason`, `test_modal_change_without_reason_blocked`
-- **Observação:** —
+- **Dependência:** F6-001–F6-006, F6-009
+- **Evidência:** `LogisticsWorkflowPage.tsx`; `/importacoes/:id/logistica`; redirect `/aduaneiro` → `#aduana`; `GET/PATCH /api/shipments`
+- **Teste:** pytest `test_get_shipment_items`, `test_patch_shipment_status_and_dates`; build frontend OK
+- **Observação:** Substitui `LogisticsPanel` minimalista
+
+### F6-009
+- **Módulo:** Entreposto
+- **Regra/Requisito:** Movimentos RECEIPT/CONSUMPTION por SKU; saldo entreposto na quantity_chain; não exceder embarcado − nacionalizado
+- **Prioridade:** P1
+- **Status:** DONE
+- **Dependência:** F6-002, F8-004
+- **Evidência:** `EntrepostoMovement` model; `app/services/entreposto.py`; migração `012`; `EntrepostoSection.tsx`
+- **Teste:** pytest `tests/test_entreposto.py` — 3 testes PASSED
+- **Observação:** Consumo no entreposto ≠ estoque Epic
 
 ### F6-008
 - **Módulo:** Quantidade embarcada

@@ -70,6 +70,11 @@ class ShipmentModal(str, Enum):
     OTHER = "OTHER"
 
 
+class EntrepostoMovementType(str, Enum):
+    RECEIPT = "RECEIPT"
+    CONSUMPTION = "CONSUMPTION"
+
+
 class StagingRowStatus(str, Enum):
     PENDING_REVIEW = "PENDING_REVIEW"
     APPROVED = "APPROVED"

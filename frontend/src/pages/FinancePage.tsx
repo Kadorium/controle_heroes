@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, EditableCell, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
+import { FxPnlPanel } from "../components/FxPnlPanel";
 import {
   financeApi,
   importationsApi,
   invoicesApi,
   suppliersApi,
+  type FxPnlBlock,
   type Importation,
   type Invoice,
   type Payment,
   type Supplier,
 } from "../api";
-import { emptyDash, fieldLabel, payStatusLabel } from "../i18n/glossario";
+import { emptyDash, fieldLabel, formatAmount, formatMoney, payStatusLabel } from "../i18n/glossario";
 import { fmtDate, isPlannedPayment } from "../utils/formatDate";
 
 type PayFilter = "all" | "overdue" | "due7" | "planned" | "settled" | "no_receipt";
@@ -29,13 +31,15 @@ export function FinancePage() {
   const [rows, setRows] = useState<PayRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<PayFilter>("all");
+  const [fxPnl, setFxPnl] = useState<FxPnlBlock | null>(null);
 
   const load = useCallback(async () => {
-    const [imps, invs, pays, sups] = await Promise.all([
+    const [imps, invs, pays, sups, pnl] = await Promise.all([
       importationsApi.list(),
       invoicesApi.list(),
       financeApi.listPayments(),
       suppliersApi.list(),
+      financeApi.fxPnlSummary().catch(() => null),
     ]);
     const impMap = Object.fromEntries(imps.map((i) => [i.id, i]));
     const supMap = Object.fromEntries(sups.map((s) => [s.id, s.name]));
@@ -54,6 +58,7 @@ export function FinancePage() {
       })
       .filter((r) => r.invoice && r.importation);
     setRows(built);
+    setFxPnl(pnl);
   }, []);
 
   useEffect(() => {
@@ -72,9 +77,17 @@ export function FinancePage() {
 
   async function liquidate(p: Payment) {
     try {
+      let exchangeRate: string | undefined;
+      try {
+        const ref = await financeApi.fxReference();
+        if (ref.rate) exchangeRate = ref.rate;
+      } catch {
+        exchangeRate = undefined;
+      }
       await financeApi.updatePayment(p.id, {
         payment_date: new Date().toISOString().slice(0, 10),
         receipt_reference: `LIQ-${p.id}`,
+        ...(exchangeRate ? { exchange_rate: exchangeRate } : {}),
       });
       toast.success("Pagamento liquidado");
       await load();
@@ -129,11 +142,15 @@ export function FinancePage() {
         title="Fila de contas a pagar"
         subtitle="Vencimentos, pagamentos planejados e liquidados — visão global."
       />
-      <div className="finance-banners">
-        <p className="finance-info-banner">Planejado não reduz saldo · Liquidado reduz</p>
-        <p className="finance-info-banner">Crédito ≠ desconto</p>
-        <p className="finance-info-banner">Vencimento ≠ data real de pagamento</p>
-      </div>
+      {fxPnl && (
+        <div className="fx-pnl-kpi">
+          <div className="fx-pnl-kpi__title">
+            PnL Cambial consolidado
+            {fxPnl.orders_with_pnl != null ? ` · ${fxPnl.orders_with_pnl} ordem(ns)` : ""}
+          </div>
+          <FxPnlPanel pnl={fxPnl} />
+        </div>
+      )}
       <div className="order-queue__filters">
         {(
           [
@@ -189,7 +206,18 @@ export function FinancePage() {
                         <EditableCell type="date" value={p.due_date ?? ""} display={p.due_date ? fmtDate(p.due_date) : undefined} onSave={(v) => savePayment(p, { due_date: v || null })} />
                       ) : (p.due_date ? fmtDate(p.due_date) : emptyDash(null))}
                     </td>
-                    <td>{r.invoice.invoice_number}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="finance-invoice-doc"
+                        title="Abrir fatura para envio ao financeiro"
+                        onClick={() =>
+                          navigate(`/importacoes/${r.importation.id}/invoices#fatura-${r.invoice.id}`)
+                        }
+                      >
+                        {r.invoice.invoice_number}
+                      </button>
+                    </td>
                     <td>
                       <button
                         type="button"
@@ -200,9 +228,9 @@ export function FinancePage() {
                       </button>
                     </td>
                     <td>{r.supplierName}</td>
-                    <td className="num">{p.amount_foreign ?? emptyDash(null)}</td>
-                    <td className="num">{p.exchange_rate ?? emptyDash(null)}</td>
-                    <td className="num">{p.amount_local ?? emptyDash(null)}</td>
+                    <td className="num">{formatMoney(p.amount_foreign, p.currency_foreign ?? "EUR")}</td>
+                    <td className="num">{formatAmount(p.exchange_rate)}</td>
+                    <td className="num">{formatMoney(p.amount_local, "BRL")}</td>
                     <td>
                       <Badge status={planned ? "PENDING" : "FULL_PAID"}>{status}</Badge>
                     </td>

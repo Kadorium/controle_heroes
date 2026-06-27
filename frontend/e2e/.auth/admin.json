@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "epic_session",
-      "value": "8Vj__4d_jLwjy_6UwZfas4m5jaKwSGSPp2ywnY700Qs",
+      "value": "GkoCuVnphydieZ_-4RnCRQucXHUkL-ancCopvkx09eA",
       "domain": "127.0.0.1",
       "path": "/",
-      "expires": 1782280637.259169,
+      "expires": 1782310757.058527,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"

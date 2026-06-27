@@ -90,6 +90,7 @@ class OrderCentralInvoice(BaseModel):
     invoice_type: str
     invoice_number: str
     invoice_date: date | None = None
+    payment_due_date: date | None = None
     amount: Decimal | None = None
     currency: str
     discount_amount: Decimal | None = None
@@ -153,6 +154,17 @@ class PendingAction(BaseModel):
     tone: str = "warning"
 
 
+class FxPnlBlock(BaseModel):
+    label: str = "PnL Cambial"
+    disclaimer: str = "Variação cambial operacional vs provisão — não é resultado contábil."
+    provision_rate: str | None = None
+    mark_rate: str | None = None
+    pnl_realized_brl: str | None = None
+    pnl_planned_brl: str | None = None
+    pnl_unrealized_brl: str | None = None
+    pnl_total_brl: str | None = None
+
+
 class OperationalHeader(BaseModel):
     invoices_count: int = 0
     invoices_settled_count: int = 0
@@ -164,6 +176,8 @@ class OperationalHeader(BaseModel):
     next_due_date: date | None = None
     overdue_count: int = 0
     overdue_amount_foreign: str | None = None
+    next_open_invoice_number: str | None = None
+    next_open_invoice_balance: str | None = None
     next_etd: date | None = None
     next_eta: date | None = None
     active_modal: str | None = None
@@ -171,6 +185,18 @@ class OperationalHeader(BaseModel):
     quantity_ordered: int | None = None
     supplier_credit_available: str | None = None
     pending_actions_count: int = 0
+    fx_pnl: FxPnlBlock | None = None
+    order_total_eur: str | None = None
+    order_total_brl: str | None = None
+    invoiced_eur: str | None = None
+    invoiced_brl: str | None = None
+    settled_eur: str | None = None
+    settled_brl: str | None = None
+    remaining_to_invoice_eur: str | None = None
+    remaining_to_invoice_brl: str | None = None
+    balance_to_settle_eur: str | None = None
+    balance_to_settle_brl: str | None = None
+    opening_exchange_rate: str | None = None
 
 
 class OrderCentralResponse(BaseModel):

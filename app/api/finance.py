@@ -39,13 +39,23 @@ from app.schemas_import import (
     ExpenseCreate,
     ExpenseResponse,
     FinancialSummaryResponse,
+    FxReferenceResponse,
+    FxPnlSummaryResponse,
     PaymentCreate,
     PaymentResponse,
     PaymentUpdate,
 )
 from app.services.auth import write_audit_log
 from app.services.customs import CustomsValidationError, validate_customs_agent_expense
-from app.services.finance import apply_credit, importation_financial_summary, invoice_balance, register_exchange_rate
+from app.services.finance import (
+    apply_credit,
+    ensure_settlement_exchange_rate,
+    importation_financial_summary,
+    invoice_balance,
+    register_exchange_rate,
+)
+from app.services.fx_pnl import aggregate_fx_pnl, compute_fx_pnl
+from app.services.fx_reference import fetch_fx_reference
 
 router = APIRouter(prefix="/finance", tags=["finance"])
 
@@ -64,6 +74,46 @@ def _check_payment_receipt(payload: PaymentCreate, user: User) -> None:
                 )
         return
     raise HTTPException(status_code=400, detail="Pagamento exige comprovante ou aprovação excepcional")
+
+
+@router.get("/fx-reference", response_model=FxReferenceResponse)
+def fx_reference(
+    _: User = Depends(require_permission(PERM_IMPORTATION_READ)),
+    currency_from: str = "EUR",
+    currency_to: str = "BRL",
+):
+    """Cotação de referência EUR/BRL (fonte externa; não é cotação contratada)."""
+    return fetch_fx_reference(currency_from, currency_to)
+
+
+@router.get("/fx-pnl/summary", response_model=FxPnlSummaryResponse)
+def fx_pnl_summary(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_FINANCE_READ)),
+):
+    """PnL Cambial consolidado — variação operacional vs provisão (não contábil)."""
+    imps = db.query(ImportationOrder).filter(ImportationOrder.is_active.is_(True)).all()
+    mark_rate = None
+    ref = fetch_fx_reference()
+    if ref.get("rate") is not None:
+        mark_rate = Decimal(str(ref["rate"]))
+    return aggregate_fx_pnl(db, [i.id for i in imps], mark_rate=mark_rate)
+
+
+@router.get("/importations/{importation_id}/fx-pnl", response_model=FxPnlSummaryResponse)
+def fx_pnl_for_importation(
+    importation_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_FINANCE_READ)),
+):
+    imp = db.query(ImportationOrder).filter(ImportationOrder.id == importation_id).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    mark_rate = None
+    ref = fetch_fx_reference()
+    if ref.get("rate") is not None:
+        mark_rate = Decimal(str(ref["rate"]))
+    return compute_fx_pnl(db, importation_id, mark_rate=mark_rate)
 
 
 @router.get("/importations/{importation_id}/summary", response_model=FinancialSummaryResponse)
@@ -120,6 +170,7 @@ def create_payment(
     )
     db.add(payment)
     db.flush()
+    ensure_settlement_exchange_rate(db, payment)
 
     if payload.exchange_rate is not None:
         register_exchange_rate(
@@ -197,6 +248,8 @@ def update_payment(
 
     for key, value in data.items():
         setattr(payment, key, value)
+
+    ensure_settlement_exchange_rate(db, payment)
 
     write_audit_log(
         db,

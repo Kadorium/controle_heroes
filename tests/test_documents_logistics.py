@@ -336,6 +336,64 @@ def test_quantity_shipped_exceeds_ordered_blocked(admin_client, importation, imp
     assert r.status_code == 400
 
 
+def test_get_shipment_items(admin_client, importation, importation_item):
+    ship = admin_client.post(
+        "/api/shipments",
+        json={
+            "importation_id": importation["id"],
+            "shipment_number": f"SH-ITEMS-{_uid()}",
+            "modal": "OCEAN",
+        },
+    ).json()
+    admin_client.post(
+        f"/api/shipments/{ship['id']}/items",
+        json={"importation_item_id": importation_item["id"], "quantity_shipped": 40},
+    )
+    items = admin_client.get(f"/api/shipments/{ship['id']}/items")
+    assert items.status_code == 200
+    data = items.json()
+    assert len(data) == 1
+    assert data[0]["quantity_shipped"] == 40
+    assert data[0]["importation_item_id"] == importation_item["id"]
+
+
+def test_patch_shipment_status_and_dates(admin_client, importation):
+    ship = admin_client.post(
+        "/api/shipments",
+        json={
+            "importation_id": importation["id"],
+            "shipment_number": f"SH-PATCH-{_uid()}",
+            "modal": "AIR",
+            "awb_number": "AWB-1",
+        },
+    ).json()
+    r = admin_client.patch(
+        f"/api/shipments/{ship['id']}",
+        json={
+            "status": "IN_TRANSIT",
+            "etd_actual": "2026-03-01",
+            "eta_planned": "2026-04-01",
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["status"] == "IN_TRANSIT"
+    assert r.json()["etd_actual"] == "2026-03-01"
+
+
+def test_patch_shipment_invalid_status_transition_blocked(admin_client, importation):
+    ship = admin_client.post(
+        "/api/shipments",
+        json={
+            "importation_id": importation["id"],
+            "shipment_number": f"SH-BACK-{_uid()}",
+            "modal": "OCEAN",
+        },
+    ).json()
+    admin_client.patch(f"/api/shipments/{ship['id']}", json={"status": "IN_TRANSIT"})
+    r = admin_client.patch(f"/api/shipments/{ship['id']}", json={"status": "PLANNED"})
+    assert r.status_code == 400
+
+
 # Raw file preserved
 def test_raw_import_file_preserved(admin_client, db):
     csv = _heroes_csv("PO-R1,SKU-R1,Item,5,1.00,Heroes")

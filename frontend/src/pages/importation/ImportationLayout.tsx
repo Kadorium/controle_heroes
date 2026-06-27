@@ -38,12 +38,6 @@ export function ImportationLayout() {
   const [responsibleDraft, setResponsibleDraft] = useState("");
   const [forecastDraft, setForecastDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
-  const [allowedTransitions, setAllowedTransitions] = useState<
-    Array<{ status: string; blocked: boolean; block_reason: string | null }>
-  >([]);
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [statusBlockReason, setStatusBlockReason] = useState<string | null>(null);
-  const [savingStatus, setSavingStatus] = useState(false);
   const [error, setError] = useState("");
 
   const reloadCentral = useCallback(async () => {
@@ -55,6 +49,7 @@ export function ImportationLayout() {
   async function reload() {
     if (!id || Number.isNaN(id)) return;
     try {
+      setError("");
       const [i, it, inv, sum, central] = await Promise.all([
         importationsApi.get(id),
         importationsApi.items(id),
@@ -72,14 +67,10 @@ export function ImportationLayout() {
       setForecastDraft(i.internal_forecast_date ?? "");
       setEntityDocs(await documentsApi.list("importation_order", String(id)));
 
-      const [sup, transitions] = await Promise.all([
+      const [sup] = await Promise.all([
         suppliersApi.get(i.supplier_id).then((s) => s.name).catch(() => "—"),
-        importationsApi.allowedTransitions(id).catch(() => ({ current_status: i.current_status, transitions: [] })),
       ]);
       setSupplierName(sup);
-      setAllowedTransitions(transitions.transitions ?? []);
-      setSelectedStatus("");
-      setStatusBlockReason(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
     }
@@ -87,6 +78,9 @@ export function ImportationLayout() {
 
   useEffect(() => {
     if (!id || Number.isNaN(id)) return;
+    setImp(null);
+    setOrderCentral(null);
+    setError("");
     setCentralLoading(true);
     reload().finally(() => setCentralLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,9 +91,10 @@ export function ImportationLayout() {
 
   const alerts = useMemo(() => {
     if (!imp || !orderCentral) return [];
+    const oh = orderCentral.operational_header;
+    if (!oh) return [];
     const today = new Date().toISOString().slice(0, 10);
     const list: Array<{ label: string; tone: "danger" | "warning"; path: string }> = [];
-    const oh = orderCentral.operational_header;
     if (oh.overdue_count > 0) {
       list.push({ label: "Pagamento vencido", tone: "danger", path: "financeiro" });
     } else if (oh.next_due_date && oh.next_due_date >= today) {
@@ -112,7 +107,7 @@ export function ImportationLayout() {
       }
     }
     if ((oh.to_dispatch ?? 0) > 0) {
-      list.push({ label: `${oh.to_dispatch} un. a despachar`, tone: "warning", path: "logistica" });
+      list.push({ label: `${oh.to_dispatch} un. a despachar`, tone: "warning", path: "logistica#despachar" });
     }
     for (const msg of statusRail?.alerts ?? []) {
       list.push({ label: msg, tone: "warning", path: "resumo" });
@@ -151,12 +146,6 @@ export function ImportationLayout() {
 
   const currency = normalizeImportCurrency(imp.currency || DEFAULT_IMPORT_CURRENCY);
 
-  function onStatusSelect(next: string) {
-    setSelectedStatus(next);
-    const found = allowedTransitions.find((t) => t.status === next);
-    setStatusBlockReason(found?.blocked ? found.block_reason : null);
-  }
-
   async function saveBrazilNotes() {
     const prev = brazilNotes;
     setSavingNotes(true);
@@ -181,26 +170,6 @@ export function ImportationLayout() {
       if (patch.internal_forecast_date !== undefined) setForecastDraft(updated.internal_forecast_date ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível salvar o campo.");
-    }
-  }
-
-  async function applyStatusTransition() {
-    if (!selectedStatus) return;
-    const found = allowedTransitions.find((t) => t.status === selectedStatus);
-    if (found?.blocked) {
-      setStatusBlockReason(found.block_reason);
-      return;
-    }
-    setSavingStatus(true);
-    setError("");
-    try {
-      const updated = await importationsApi.transition(id, selectedStatus);
-      setImp(updated);
-      await reload();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao alterar status");
-    } finally {
-      setSavingStatus(false);
     }
   }
 
@@ -254,7 +223,15 @@ export function ImportationLayout() {
           </div>
 
           {operationalHeader && (
-            <OrderCentralOperationalHeader importationId={id} header={operationalHeader} />
+            <OrderCentralOperationalHeader
+              importationId={id}
+              header={operationalHeader}
+              estimatedTotal={imp.estimated_total}
+              currency={currency}
+              models={orderCentral?.models}
+              items={items}
+              invoices={orderCentral?.invoices}
+            />
           )}
 
           <div className="order-central__rail order-central__rail--compact">
@@ -301,7 +278,10 @@ export function ImportationLayout() {
                 key={a.label}
                 type="button"
                 className={`order-central__alert order-central__alert--${a.tone}`}
-                onClick={() => navigate(`/importacoes/${id}/${a.path}`)}
+                onClick={() => {
+                  const [section, hash] = a.path.split("#");
+                  navigate(`/importacoes/${id}/${section}${hash ? `#${hash}` : ""}`);
+                }}
               >
                 {a.label}
               </button>
@@ -311,34 +291,36 @@ export function ImportationLayout() {
 
         {error && <p className="error">{error}</p>}
 
-        <div className="order-central__brazil-edit">
-          <div className="order-central__brazil-edit-row">
-            <div className="order-central__brazil-field">
-              <label htmlFor="brazil-status">Status operacional (Brasil)</label>
-              <select
-                id="brazil-status"
-                className="input"
-                value={selectedStatus}
-                onChange={(e) => onStatusSelect(e.target.value)}
-              >
-                <option value="">— manter {statusLabel(imp.current_status)} —</option>
-                {allowedTransitions.map((t) => (
-                  <option key={t.status} value={t.status} disabled={t.blocked}>
-                    {statusLabel(t.status)}
-                    {t.blocked ? " (bloqueado)" : ""}
-                  </option>
+        <div className="importation-layout__body">
+          <aside className="importation-sidebar" role="complementary" aria-label="Abas da ordem">
+            {IMPORTATION_SIDEBAR_GROUPS.map((group) => (
+              <div key={group.label} className="importation-sidebar__group">
+                <p className="importation-sidebar__label">{group.label}</p>
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={`/importacoes/${id}/${item.path}`}
+                    className={({ isActive }) =>
+                      `importation-sidebar__link${isActive ? " importation-sidebar__link--active" : ""}`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
                 ))}
-              </select>
-              {statusBlockReason && <p className="error" style={{ marginTop: 4 }}>{statusBlockReason}</p>}
-              <Button
-                variant="secondary"
-                disabled={!selectedStatus || savingStatus}
-                onClick={applyStatusTransition}
-                style={{ marginTop: 8 }}
-              >
-                {savingStatus ? "Aplicando…" : "Aplicar transição"}
-              </Button>
-            </div>
+              </div>
+            ))}
+          </aside>
+
+          <div className="importation-layout__content">
+            <Card>
+              <Outlet context={outletContext} />
+            </Card>
+          </div>
+        </div>
+
+        <div className="order-central__brazil-edit">
+          <p className="order-central__brazil-edit-title">Operação Brasil</p>
+          <div className="order-central__brazil-edit-row">
             <div className="order-central__brazil-field">
               <label htmlFor="brazil-priority">Prioridade</label>
               <select
@@ -401,48 +383,6 @@ export function ImportationLayout() {
                 </Button>
               </div>
             </div>
-          </div>
-          <p className="meta">
-            Campos Brasil (status permitido, prioridade, responsável, previsão, observação) são editáveis aqui.
-            Campos origem Itália são alterados apenas por override auditado (motivo + anexo) nas grades da ordem.
-          </p>
-          {allowedTransitions.some((t) => t.blocked) && (
-            <div className="order-central__transition-blocks">
-              {allowedTransitions
-                .filter((t) => t.blocked && t.block_reason)
-                .map((t) => (
-                  <p key={t.status} className="error" style={{ margin: 0 }}>
-                    {statusLabel(t.status)}: {t.block_reason}
-                  </p>
-                ))}
-            </div>
-          )}
-        </div>
-
-        <div className="importation-layout__body">
-          <aside className="importation-sidebar" role="complementary" aria-label="Abas da ordem">
-            {IMPORTATION_SIDEBAR_GROUPS.map((group) => (
-              <div key={group.label} className="importation-sidebar__group">
-                <p className="importation-sidebar__label">{group.label}</p>
-                {group.items.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={`/importacoes/${id}/${item.path}`}
-                    className={({ isActive }) =>
-                      `importation-sidebar__link${isActive ? " importation-sidebar__link--active" : ""}`
-                    }
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
-              </div>
-            ))}
-          </aside>
-
-          <div className="importation-layout__content">
-            <Card>
-              <Outlet context={outletContext} />
-            </Card>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import {
   CHECKLIST_ROUTE_MAP,
   type ChecklistItem,
 } from "./importation/types";
+import { formatAmount } from "../i18n/glossario";
 
 interface Props {
   importationId: number;
@@ -168,7 +169,7 @@ export function ReconciliationClosurePanel({ importationId }: Props) {
                 <td>{r.pair_type}</td>
                 <td>{r.label}</td>
                 <td>{r.status}</td>
-                <td>{r.variance_value ?? "—"}</td>
+                <td className="num">{formatAmount(r.variance_value)}</td>
               </tr>
             ))}
           </tbody>

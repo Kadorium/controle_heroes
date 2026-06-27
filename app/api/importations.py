@@ -26,6 +26,7 @@ from app.schemas_order_central import OrderCentralResponse, OrderQueueResponse
 from app.services.auth import write_audit_log
 from app.services.importation_guard import ImportationLockedError, assert_importation_editable
 from app.services.italy_override import ItalyOverrideError, apply_italy_field_override
+from app.services.finance import register_exchange_rate
 from app.services.order_central import build_order_central, build_order_queue
 from app.services.status import (
     InvalidStatusTransition,
@@ -94,6 +95,18 @@ def create_importation(
     )
     db.commit()
     db.refresh(imp)
+
+    if payload.opening_exchange_rate is not None:
+        register_exchange_rate(
+            db,
+            currency_from=payload.currency,
+            rate_type="OPENING_PROVISION",
+            rate_value=payload.opening_exchange_rate,
+            user_id=current_user.id,
+            importation_id=imp.id,
+            comment="Câmbio provisionado na abertura da ordem",
+        )
+
     return imp
 
 

@@ -26,7 +26,8 @@ type SortKey =
   | "total_paid"
   | "consolidated_balance"
   | "next_due_date"
-  | "to_dispatch"
+  | "responsible"
+  | "internal_forecast_date"
   | "pending_actions_count"
   | "updated_at";
 
@@ -194,7 +195,8 @@ export function ImportationsPage() {
         case "total_invoiced": va = Number(a.total_invoiced ?? NaN); vb = Number(b.total_invoiced ?? NaN); break;
         case "total_paid": va = Number(a.total_paid ?? NaN); vb = Number(b.total_paid ?? NaN); break;
         case "next_due_date": va = a.next_due_date ?? "9999"; vb = b.next_due_date ?? "9999"; break;
-        case "to_dispatch": va = a.to_dispatch ?? NaN; vb = b.to_dispatch ?? NaN; break;
+        case "responsible": va = a.responsible ?? ""; vb = b.responsible ?? ""; break;
+        case "internal_forecast_date": va = a.internal_forecast_date ?? "9999"; vb = b.internal_forecast_date ?? "9999"; break;
         case "pending_actions_count": va = a.pending_actions_count; vb = b.pending_actions_count; break;
         case "updated_at": va = a.updated_at ?? a.created_at; vb = b.updated_at ?? b.created_at; break;
       }
@@ -227,7 +229,7 @@ export function ImportationsPage() {
   if (loading) {
     return (
       <Card>
-        <PageHeader title="Ordens" subtitle="Grade operacional — edite na célula e clique na ordem para abrir a Central." />
+        <PageHeader title="Ordens" />
         <LoadingState />
       </Card>
     );
@@ -237,7 +239,6 @@ export function ImportationsPage() {
     <Card>
       <PageHeader
         title="Ordens"
-        subtitle="Grade operacional estilo planilha — edite direto na célula; clique na ordem para abrir a Central."
         actions={
           <div style={{ display: "flex", gap: 8 }}>
             <Button onClick={() => setShowNew(true)}>+ Nova ordem</Button>
@@ -281,11 +282,8 @@ export function ImportationsPage() {
             <thead>
               <tr>
                 <th className="sticky-col sortable" onClick={() => toggleSort("po_number")}>Ordem{sortMark(sortKey === "po_number", sortAsc)}</th>
-                <th className="sortable" onClick={() => toggleSort("supplier_name")}>Fornecedor{sortMark(sortKey === "supplier_name", sortAsc)}</th>
                 <th className="sortable" onClick={() => toggleSort("status")}>Status{sortMark(sortKey === "status", sortAsc)}</th>
                 <th>Prioridade</th>
-                <th>Responsável</th>
-                <th>Prev. interna</th>
                 <th className="num sortable" onClick={() => toggleSort("total_invoiced")}>Faturado{sortMark(sortKey === "total_invoiced", sortAsc)}</th>
                 <th className="num sortable" onClick={() => toggleSort("total_paid")}>Pago{sortMark(sortKey === "total_paid", sortAsc)}</th>
                 <th className="num sortable" onClick={() => toggleSort("consolidated_balance")}>Saldo{sortMark(sortKey === "consolidated_balance", sortAsc)}</th>
@@ -293,14 +291,15 @@ export function ImportationsPage() {
                 <th className="num">Vencidos</th>
                 <th className="num" title="Faturas quitadas / total. Uma ordem costuma ter 3: antecipo, na chegada e saldo (30/60 dias).">Faturas</th>
                 <th className="num">Prod.</th>
-                <th className="num">Pedida</th>
                 <th className="num">Faturada</th>
                 <th className="num">Despach.</th>
-                <th className="num sortable" onClick={() => toggleSort("to_dispatch")}>A despachar{sortMark(sortKey === "to_dispatch", sortAsc)}</th>
+                <th className="sortable" onClick={() => toggleSort("responsible")}>Responsável{sortMark(sortKey === "responsible", sortAsc)}</th>
+                <th className="sortable" onClick={() => toggleSort("internal_forecast_date")}>Prev. interna{sortMark(sortKey === "internal_forecast_date", sortAsc)}</th>
                 <th className="num">Docs</th>
                 <th className="num sortable" onClick={() => toggleSort("pending_actions_count")}>Pend.{sortMark(sortKey === "pending_actions_count", sortAsc)}</th>
                 <th>Observação</th>
                 <th className="sortable" onClick={() => toggleSort("updated_at")}>Atualização{sortMark(sortKey === "updated_at", sortAsc)}</th>
+                <th className="sortable" onClick={() => toggleSort("supplier_name")}>Fornecedor{sortMark(sortKey === "supplier_name", sortAsc)}</th>
                 <th></th>
               </tr>
             </thead>
@@ -312,7 +311,6 @@ export function ImportationsPage() {
                     <td className="sticky-col">
                       <span className="row-po sheet-grid__open" onClick={() => navigate(`/importacoes/${r.id}/resumo`)}>{r.po_number}</span>
                     </td>
-                    <td>{r.supplier_name ?? emptyDash(null)}</td>
                     <td><Badge status={r.status}>{statusLabel(r.status)}</Badge></td>
                     <td>
                       <EditableCell
@@ -322,12 +320,6 @@ export function ImportationsPage() {
                         display={r.priority ? <span className={`prio-badge prio-badge--${r.priority}`}>{priorityLabel(r.priority)}</span> : undefined}
                         onSave={(v) => saveField(r.id, { priority: v || null })}
                       />
-                    </td>
-                    <td>
-                      <EditableCell value={r.responsible ?? ""} onSave={(v) => saveField(r.id, { responsible: v || null })} placeholder="—" />
-                    </td>
-                    <td>
-                      <EditableCell type="date" value={r.internal_forecast_date ?? ""} display={r.internal_forecast_date ? fmtDate(r.internal_forecast_date) : undefined} onSave={(v) => saveField(r.id, { internal_forecast_date: v || null })} />
                     </td>
                     <td className="num">{formatMoney(r.total_invoiced, cur)}</td>
                     <td className="num">{formatMoney(r.total_paid, cur)}</td>
@@ -345,16 +337,21 @@ export function ImportationsPage() {
                       ) : emptyDash(null)}
                     </td>
                     <td className="num">{r.products_count || emptyDash(null)}</td>
-                    <td className="num">{r.qty_ordered ?? emptyDash(null)}</td>
                     <td className="num">{r.qty_invoiced ?? emptyDash(null)}</td>
                     <td className="num">{r.qty_shipped ?? emptyDash(null)}</td>
-                    <td className="num">{r.to_dispatch ?? emptyDash(null)}</td>
+                    <td>
+                      <EditableCell value={r.responsible ?? ""} onSave={(v) => saveField(r.id, { responsible: v || null })} placeholder="—" />
+                    </td>
+                    <td>
+                      <EditableCell type="date" value={r.internal_forecast_date ?? ""} display={r.internal_forecast_date ? fmtDate(r.internal_forecast_date) : undefined} onSave={(v) => saveField(r.id, { internal_forecast_date: v || null })} />
+                    </td>
                     <td className="num">{(r.docs_pending_count ?? 0) > 0 ? r.docs_pending_count : emptyDash(null)}</td>
                     <td className="num">{r.pending_actions_count > 0 ? r.pending_actions_count : emptyDash(null)}</td>
                     <td>
                       <EditableCell value={r.brazil_operational_notes ?? ""} onSave={(v) => saveField(r.id, { brazil_operational_notes: v || null })} placeholder="—" />
                     </td>
                     <td>{fmtDate(r.updated_at ?? r.created_at)}</td>
+                    <td>{r.supplier_name ?? emptyDash(null)}</td>
                     <td>
                       <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.id}/resumo`)}>Abrir</Button>
                     </td>
@@ -366,11 +363,11 @@ export function ImportationsPage() {
               {Object.entries(totalsByCurrency).map(([cur, t]) => (
                 <tr key={cur}>
                   <td className="sticky-col">Totais {cur}</td>
-                  <td colSpan={5}></td>
+                  <td colSpan={2}></td>
                   <td className="num">{formatMoney(t.invoiced, cur)}</td>
                   <td className="num">{formatMoney(t.paid, cur)}</td>
                   <td className="num">{formatMoney(t.balance, cur)}</td>
-                  <td colSpan={13}></td>
+                  <td colSpan={14}></td>
                 </tr>
               ))}
             </tfoot>

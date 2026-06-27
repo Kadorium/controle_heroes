@@ -130,6 +130,7 @@ class ImportationCreate(BaseModel):
     currency: str = Field(default=DEFAULT_IMPORT_CURRENCY, min_length=3, max_length=8)
     incoterm: str | None = None
     estimated_total: Any = None
+    opening_exchange_rate: Any = None
     items: list[ImportationItemCreate] = Field(default_factory=list)
 
     @field_validator("currency", mode="before")
@@ -137,7 +138,7 @@ class ImportationCreate(BaseModel):
     def normalize_currency(cls, v: Any) -> str:
         return _currency_validator(v)
 
-    @field_validator("estimated_total", mode="before")
+    @field_validator("estimated_total", "opening_exchange_rate", mode="before")
     @classmethod
     def parse_decimal(cls, v: Any) -> Decimal | None:
         return optional_decimal(v)
@@ -417,6 +418,28 @@ class ExchangeRateResponse(BaseModel):
     payment_id: int | None
 
     model_config = {"from_attributes": True}
+
+
+class FxReferenceResponse(BaseModel):
+    currency_from: str
+    currency_to: str
+    rate: str | None = None
+    rate_date: str | None = None
+    source: str | None = None
+    disclaimer: str
+    errors: list[str] | None = None
+
+
+class FxPnlSummaryResponse(BaseModel):
+    label: str = "PnL Cambial"
+    disclaimer: str
+    provision_rate: str | None = None
+    mark_rate: str | None = None
+    orders_with_pnl: int | None = None
+    pnl_realized_brl: str | None = None
+    pnl_planned_brl: str | None = None
+    pnl_unrealized_brl: str | None = None
+    pnl_total_brl: str | None = None
 
 
 class DiscountCreate(BaseModel):

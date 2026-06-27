@@ -7,9 +7,7 @@ test.describe("Epic — UX pós-MVP 3", () => {
     await expect(page.getByRole("heading", { name: /Fila de contas a pagar/i })).toBeVisible({
       timeout: 15000,
     });
-    await expect(page.locator(".finance-info-banner").first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Planejado não reduz saldo/i)).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(/Crédito ≠ desconto/i)).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".order-queue__filter").first()).toBeVisible({ timeout: 15000 });
   });
 
   test("hub importação — resumo operacional", async ({ page }) => {

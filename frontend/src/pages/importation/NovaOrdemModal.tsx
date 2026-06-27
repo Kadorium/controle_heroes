@@ -17,8 +17,19 @@ import {
   itemHasContent,
   lineTotals,
   parseDecimalInput,
+  rateWithMarkup,
 } from "./novaOrdemTotals";
 import { dedupeSuppliersByName, pickHeroesSupplierId } from "./supplierUtils";
+import { NovaOrdemFxSummary } from "./NovaOrdemFxSummary";
+import { InvoiceAmountField } from "../../components/InvoiceAmountField";
+import {
+  canSubmitInvoiceAmount,
+  nextInvoiceSuffix,
+  resolveInvoiceAmount,
+  suggestInvoiceNumber,
+  type InvoiceAmountMode,
+} from "./novaOrdemInvoice";
+import { useFxRate } from "../../context/FxRateContext";
 
 interface Props {
   onClose: () => void;
@@ -70,9 +81,15 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
   const [items, setItems] = useState<ItemDraft[]>([newItemRow()]);
 
   const [invNumber, setInvNumber] = useState("");
+  const [invNumberTouched, setInvNumberTouched] = useState(false);
   const [invAmount, setInvAmount] = useState("");
+  const [invAmountMode, setInvAmountMode] = useState<InvoiceAmountMode>("EUR");
   const [payDue, setPayDue] = useState("");
-  const [payAmount, setPayAmount] = useState("");
+
+  const [markupPct, setMarkupPct] = useState("0");
+  const [provisionRate, setProvisionRate] = useState("");
+  const [rateManual, setRateManual] = useState(false);
+  const { reference: fxReference } = useFxRate();
 
   const supplierOptions = useMemo(() => dedupeSuppliersByName(suppliers), [suppliers]);
   const totals = useMemo(() => aggregateTotals(items), [items]);
@@ -106,6 +123,67 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
       .then(setBrazilAccounts)
       .catch(() => setBrazilAccounts([]));
   }, [supplierId]);
+
+  useEffect(() => {
+    if (!rateManual && fxReference?.rate) {
+      applyRateFromReference(fxReference, markupPct, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fxReference?.rate]);
+
+  const refreshSuggestedInvoiceNumber = useMemo(
+    () => async (poNumber: string) => {
+      const trimmed = poNumber.trim();
+      if (!trimmed) {
+        if (!invNumberTouched) setInvNumber("");
+        return;
+      }
+      try {
+        const importations = await importationsApi.list();
+        const existing = importations.find(
+          (imp) => imp.is_active && imp.po_number.trim() === trimmed,
+        );
+        const invoices = existing ? await invoicesApi.list(existing.id) : [];
+        const suffix = nextInvoiceSuffix(invoices, trimmed);
+        if (!invNumberTouched) setInvNumber(suggestInvoiceNumber(trimmed, suffix));
+      } catch {
+        if (!invNumberTouched) setInvNumber(suggestInvoiceNumber(trimmed, "A"));
+      }
+    },
+    [invNumberTouched],
+  );
+
+  useEffect(() => {
+    void refreshSuggestedInvoiceNumber(po);
+  }, [po, refreshSuggestedInvoiceNumber]);
+
+  function applyRateFromReference(ref = fxReference, markup = markupPct, manual = rateManual) {
+    if (manual || !ref?.rate) return;
+    const base = parseDecimalInput(ref.rate);
+    const m = parseDecimalInput(markup) ?? 0;
+    const computed = rateWithMarkup(base, m);
+    if (computed !== null) setProvisionRate(String(computed));
+  }
+
+  function onMarkupChange(value: string) {
+    setMarkupPct(value);
+    if (!rateManual && fxReference?.rate) {
+      const base = parseDecimalInput(fxReference.rate);
+      const m = parseDecimalInput(value) ?? 0;
+      const computed = rateWithMarkup(base, m);
+      if (computed !== null) setProvisionRate(String(computed));
+    }
+  }
+
+  function onProvisionRateChange(value: string) {
+    setRateManual(true);
+    setProvisionRate(value);
+  }
+
+  function resetRateFromReference() {
+    setRateManual(false);
+    applyRateFromReference(fxReference, markupPct, false);
+  }
 
   const canCreateBase = po.trim().length > 0 && supplierId !== "";
 
@@ -152,29 +230,37 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
         currency,
         incoterm,
         estimated_total: totals.net !== null ? String(totals.net) : null,
+        opening_exchange_rate: decimalOrNull(provisionRate),
         items: payloadItems,
       });
       if (notes.trim()) {
         await importationsApi.updateBrazilFields(imp.id, { brazil_operational_notes: notes.trim() });
       }
       let invoiceId: number | null = null;
+      const rate = parseDecimalInput(provisionRate);
+      const resolvedInv = resolveInvoiceAmount(invAmountMode, invAmount, totals.net, rate);
       if (invNumber.trim()) {
         const inv = await invoicesApi.create({
           importation_id: imp.id,
           invoice_type: "PROFORMA",
           invoice_number: invNumber.trim(),
-          amount: invAmount.trim() ? decimalOrNull(invAmount) : null,
+          invoice_date: payDue || null,
+          amount:
+            resolvedInv.invoiceAmountOrderCurrency !== null
+              ? String(resolvedInv.invoiceAmountOrderCurrency)
+              : null,
           currency,
+          expected_exchange_rate: decimalOrNull(provisionRate),
         });
         invoiceId = inv.id;
       }
-      if (invoiceId && (payDue || payAmount.trim())) {
+      if (invoiceId && payDue && resolvedInv.paymentAmountBrl !== null) {
         await financeApi.createPayment({
           invoice_id: invoiceId,
           payment_type: "ADVANCE",
-          due_date: payDue || null,
-          amount_foreign: payAmount.trim() ? decimalOrNull(payAmount) : null,
-          currency_foreign: currency,
+          due_date: payDue,
+          amount_foreign: String(resolvedInv.paymentAmountBrl),
+          currency_foreign: "BRL",
         });
       }
       onCreated(imp.id);
@@ -202,12 +288,40 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="ux-modal ux-modal--wide" onClick={(e) => e.stopPropagation()}>
-        <div className="ux-modal__head">
+        <div className="ux-modal__head nova-ordem__modal-head">
           <div>
             <h2>Nova ordem</h2>
             <p className="meta" style={{ margin: "4px 0 0" }}>
               Planilha de abertura — complete o restante na Central da Ordem.
             </p>
+          </div>
+          <div className="nova-ordem__fx-head">
+            <label className="nova-ordem__fx-head-field">
+              <span>Mark-up %</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={markupPct}
+                onChange={(e) => onMarkupChange(e.target.value)}
+                aria-label="Mark-up percentual sobre a cotação do header"
+              />
+            </label>
+            <label className="nova-ordem__fx-head-field nova-ordem__fx-head-field--rate">
+              <span>Câmbio provisionado</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={provisionRate}
+                onChange={(e) => onProvisionRateChange(e.target.value)}
+                placeholder="EUR → BRL"
+                aria-label="Taxa EUR para BRL provisionada na abertura"
+              />
+            </label>
+            {rateManual && fxReference?.rate && (
+              <Button variant="ghost" className="ui-btn--sm" onClick={resetRateFromReference}>
+                Ref. + mark-up
+              </Button>
+            )}
           </div>
         </div>
 
@@ -293,8 +407,8 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
                   <tr>
                     <th>Produto / SKU</th>
                     <th className="num">Qtd</th>
-                    <th className="num">Preço €</th>
-                    <th className="num">Desc. €</th>
+                    <th className="num">Preço €/un</th>
+                    <th className="num">Desc. €/un</th>
                     <th className="num">Subtotal €</th>
                     <th />
                   </tr>
@@ -341,7 +455,7 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
                             type="text"
                             inputMode="decimal"
                             className="nova-ordem__cell-input"
-                            title="Reduz valor do pedido; conta corrente formal na Central"
+                            title="Desconto por unidade — multiplicado pela qtd na linha"
                             value={row.discount_amount_foreign}
                             onChange={(e) => updateItem(row.key, { discount_amount_foreign: e.target.value })}
                             onKeyDown={(e) => {
@@ -352,8 +466,8 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
                             }}
                           />
                         </td>
-                        <td className="num">
-                          {lt.subtotal !== null ? formatAmount(lt.subtotal) : emptyDash(null)}
+                        <td className="num" title={lt.gross !== null && lt.net !== null && lt.gross !== lt.net ? `Bruto: ${formatAmount(lt.gross)}` : undefined}>
+                          {lt.net !== null ? formatAmount(lt.net) : emptyDash(null)}
                         </td>
                         <td className="nova-ordem__actions">
                           <button type="button" className="link-btn" onClick={() => duplicateRow(row.key)} title="Duplicar">
@@ -376,7 +490,7 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
                 <tfoot className="nova-ordem__totals">
                   <tr>
                     <td colSpan={2}>
-                      <strong>Totais</strong>
+                      <strong>Totais (EUR)</strong>
                       {totals.quantity !== null && (
                         <span className="meta"> · {totals.quantity} un.</span>
                       )}
@@ -397,39 +511,45 @@ export function NovaOrdemModal({ onClose, onCreated }: Props) {
                 </tfoot>
               </table>
             </div>
-            <p className="meta">
-              Desconto na linha reduz o valor do pedido. Conta corrente Brasil e antecipo formal exigem documento — registre na Central.
-            </p>
+            <NovaOrdemFxSummary totals={totals} provisionRate={provisionRate} />
           </section>
 
-          <details className="nova-ordem__finance">
+          <details
+            className="nova-ordem__finance"
+            onToggle={(e) => {
+              if ((e.target as HTMLDetailsElement).open && po.trim() && !invNumberTouched) {
+                void refreshSuggestedInvoiceNumber(po);
+              }
+            }}
+          >
             <summary>Financeiro inicial (opcional)</summary>
-            <div className="ux-grid-2" style={{ marginTop: 12 }}>
+            <div className="ux-grid-2 nova-ordem__finance-grid">
               <div className="ux-field">
-                <label>Fatura PROFORMA — nº</label>
-                <input value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="ex.: PRO-760" />
-              </div>
-              <div className="ux-field">
-                <label>Valor da fatura</label>
+                <label htmlFor="nova-inv-number">Fatura PROFORMA — nº</label>
                 <input
-                  type="text"
-                  inputMode="decimal"
-                  value={invAmount}
-                  onChange={(e) => setInvAmount(e.target.value)}
+                  id="nova-inv-number"
+                  value={invNumber}
+                  onChange={(e) => {
+                    setInvNumberTouched(true);
+                    setInvNumber(e.target.value);
+                  }}
+                  placeholder={po.trim() ? `${po.trim()}A` : "ex.: 760A"}
                 />
+                <p className="meta nova-ordem__inv-hint">
+                  Referência automática: número da ordem + próxima letra (A, B, C…).
+                </p>
               </div>
+              <InvoiceAmountField
+                mode={invAmountMode}
+                value={invAmount}
+                baseEur={totals.net}
+                provisionRate={provisionRate}
+                onModeChange={setInvAmountMode}
+                onValueChange={setInvAmount}
+              />
               <div className="ux-field">
-                <label>Pagamento planejado — vencimento</label>
-                <input type="date" value={payDue} onChange={(e) => setPayDue(e.target.value)} />
-              </div>
-              <div className="ux-field">
-                <label>Valor planejado</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={payAmount}
-                  onChange={(e) => setPayAmount(e.target.value)}
-                />
+                <label htmlFor="nova-pay-due">Pagamento planejado — vencimento</label>
+                <input id="nova-pay-due" type="date" value={payDue} onChange={(e) => setPayDue(e.target.value)} />
               </div>
             </div>
           </details>

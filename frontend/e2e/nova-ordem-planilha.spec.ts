@@ -28,5 +28,9 @@ test.describe("Nova ordem — planilha", () => {
     await row.locator("td.num").nth(1).locator("input").fill("12.50");
     await expect(row.locator("td.num").nth(3)).toContainText("125,00");
     await expect(page.locator(".nova-ordem__grid tfoot")).toContainText("125,00");
+    await row.locator("td.num").nth(2).locator("input").fill("1");
+    await expect(row.locator("td.num").nth(3)).toContainText("115,00");
+    await expect(page.locator(".nova-ordem-fx")).toBeVisible();
+    await expect(page.locator(".nova-ordem-fx__row--total")).toContainText("115,00");
   });
 });

@@ -1,5 +1,6 @@
 /**
  * Totais do modal Nova Ordem — mesma regra do backend: vazio = null, nunca 0 implícito.
+ * Desconto na linha é **por unidade** (€/un), não desconto bruto no total.
  */
 
 export interface ItemTotalsInput {
@@ -9,8 +10,11 @@ export interface ItemTotalsInput {
 }
 
 export interface LineTotals {
-  subtotal: number | null;
+  /** qtd × preço unitário (antes do desconto). */
+  gross: number | null;
+  /** qtd × desconto unitário. */
   discount: number | null;
+  /** gross − discount. */
   net: number | null;
 }
 
@@ -33,13 +37,15 @@ export function parseDecimalInput(raw: string): number | null {
 export function lineTotals(item: ItemTotalsInput): LineTotals {
   const qty = parseDecimalInput(item.quantity_ordered);
   const price = parseDecimalInput(item.unit_price_foreign);
-  const discount = parseDecimalInput(item.discount_amount_foreign);
+  const discountPerUnit = parseDecimalInput(item.discount_amount_foreign);
 
-  const subtotal = qty !== null && price !== null ? qty * price : null;
+  const gross = qty !== null && price !== null ? qty * price : null;
+  const discount =
+    qty !== null && discountPerUnit !== null ? qty * discountPerUnit : null;
   const net =
-    subtotal !== null ? subtotal - (discount !== null ? discount : 0) : null;
+    gross !== null ? gross - (discount !== null ? discount : 0) : null;
 
-  return { subtotal, discount, net };
+  return { gross, discount, net };
 }
 
 export function aggregateTotals(items: ItemTotalsInput[]): AggregateTotals {
@@ -54,8 +60,8 @@ export function aggregateTotals(items: ItemTotalsInput[]): AggregateTotals {
 
   for (const item of items) {
     const line = lineTotals(item);
-    if (line.subtotal !== null) {
-      gross += line.subtotal;
+    if (line.gross !== null) {
+      gross += line.gross;
       hasGross = true;
     }
     if (line.discount !== null) {
@@ -92,4 +98,17 @@ export function itemHasContent(
       parseDecimalInput(item.unit_price_foreign) !== null ||
       parseDecimalInput(item.discount_amount_foreign) !== null,
   );
+}
+
+/** Converte EUR → BRL com taxa; null se faltar dado. */
+export function eurToBrl(eur: number | null, rate: number | null): number | null {
+  if (eur === null || rate === null) return null;
+  return eur * rate;
+}
+
+/** Aplica mark-up % sobre taxa base. */
+export function rateWithMarkup(baseRate: number | null, markupPct: number | null): number | null {
+  if (baseRate === null) return null;
+  const m = markupPct ?? 0;
+  return baseRate * (1 + m / 100);
 }

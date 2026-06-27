@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Badge, EmptyState } from "../../../components";
 import type { DashboardRow } from "../../../hooks/useDashboardMetrics";
+import { formatAmount } from "../../../i18n/glossario";
 import { Widget } from "./Widget";
 
 export function CloseToClosureWidget({ rows }: { rows: DashboardRow[] }) {
@@ -74,7 +75,7 @@ export function CostVarianceWidget({ rows }: { rows: DashboardRow[] }) {
                 {r.po}
               </Link>
               <div className="row__sub">
-                Est. {r.lcEstimated} · Real {r.lcActual}
+                Est. {formatAmount(r.lcEstimated)} · Real {formatAmount(r.lcActual)}
               </div>
             </div>
           </div>

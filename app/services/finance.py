@@ -23,6 +23,36 @@ def _d(value: Decimal | None) -> Decimal:
     return value if value is not None else Decimal("0")
 
 
+_D0 = Decimal("0")
+
+
+def _effective_exchange_rate(payment: Payment, invoice: Invoice) -> Decimal | None:
+    rate = payment.exchange_rate
+    if rate is not None and rate > 0:
+        return rate
+    if invoice.expected_exchange_rate is not None and invoice.expected_exchange_rate > 0:
+        return invoice.expected_exchange_rate
+    return None
+
+
+def ensure_settlement_exchange_rate(db: Session, payment: Payment) -> None:
+    """Preenche câmbio efetivo na liquidação quando o pagamento foi registrado só em BRL."""
+    if not _payment_is_settled(payment):
+        return
+    if payment.exchange_rate is not None and payment.exchange_rate > 0:
+        return
+    inv = db.query(Invoice).filter(Invoice.id == payment.invoice_id, Invoice.is_active.is_(True)).first()
+    if not inv:
+        return
+    rate = _effective_exchange_rate(payment, inv)
+    if rate is None:
+        from app.services.fx_pnl import _get_provision_rate
+
+        rate = _get_provision_rate(db, inv.importation_id)
+    if rate is not None and rate > 0:
+        payment.exchange_rate = rate
+
+
 def _payment_is_settled(p: Payment) -> bool:
     """Pagamento efetivado — distinto de planejado (só due_date, sem liquidação)."""
     return (
@@ -54,6 +84,23 @@ def invoice_discount_total(db: Session, invoice: Invoice) -> Decimal:
     return total
 
 
+def _payment_amount_in_invoice_currency(payment: Payment, invoice: Invoice) -> Decimal:
+    """Converte pagamento liquidado para a moeda da fatura (EUR)."""
+    amt = payment.amount_foreign
+    if amt is None:
+        return _D0
+    inv_cur = normalize_import_currency(invoice.currency)
+    pay_cur = normalize_import_currency(payment.currency_foreign or invoice.currency)
+    if pay_cur == inv_cur:
+        return _d(amt)
+    if pay_cur == "BRL" and inv_cur == "EUR":
+        rate = _effective_exchange_rate(payment, invoice)
+        if rate is None or rate == 0:
+            return _D0
+        return _d(amt) / rate
+    return _d(amt)
+
+
 def invoice_paid_total(db: Session, invoice: Invoice) -> Decimal:
     payments = (
         db.query(Payment)
@@ -61,7 +108,9 @@ def invoice_paid_total(db: Session, invoice: Invoice) -> Decimal:
         .all()
     )
     # Planejados não liquidados não reduzem saldo.
-    return sum(_d(p.amount_foreign) for p in payments if _payment_is_settled(p))
+    return sum(
+        _payment_amount_in_invoice_currency(p, invoice) for p in payments if _payment_is_settled(p)
+    )
 
 
 def invoice_balance(db: Session, invoice: Invoice) -> Decimal | None:

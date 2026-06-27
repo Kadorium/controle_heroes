@@ -1,4 +1,5 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Product } from "../api";
 
 interface Props {
@@ -10,6 +11,9 @@ interface Props {
   disabled?: boolean;
 }
 
+const LIST_MAX_HEIGHT = 280;
+const LIST_MIN_WIDTH = 300;
+
 export function ProductCombobox({
   products,
   value,
@@ -20,20 +24,50 @@ export function ProductCombobox({
 }: Props) {
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [listPos, setListPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+    openUp: boolean;
+  } | null>(null);
 
   const filtered = useMemo(() => {
     const q = value.trim().toLowerCase();
-    if (!q) return products.slice(0, 12);
+    const limit = q ? 30 : 15;
+    if (!q) return products.slice(0, limit);
     return products
       .filter(
         (p) =>
           p.sku_code.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
       )
-      .slice(0, 12);
+      .slice(0, limit);
   }, [products, value]);
+
+  const reposition = useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+    const spaceAbove = rect.top - 12;
+    const openUp = spaceBelow < 160 && spaceAbove > spaceBelow;
+    const maxHeight = Math.min(
+      LIST_MAX_HEIGHT,
+      Math.max(120, openUp ? spaceAbove : spaceBelow),
+    );
+    setListPos({
+      left: rect.left,
+      top: openUp ? rect.top - maxHeight - 4 : rect.bottom + 4,
+      width: Math.max(rect.width, LIST_MIN_WIDTH),
+      maxHeight,
+      openUp,
+    });
+  }, []);
 
   useEffect(() => {
     setHighlight(0);
@@ -41,11 +75,33 @@ export function ProductCombobox({
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (wrapRef.current?.contains(t) || listRef.current?.contains(t)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setListPos(null);
+      return;
+    }
+    reposition();
+    window.addEventListener("scroll", reposition, true);
+    window.addEventListener("resize", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("resize", reposition);
+    };
+  }, [open, reposition, filtered.length]);
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const active = listRef.current.querySelector(".product-combobox__option--on");
+    active?.scrollIntoView({ block: "nearest" });
+  }, [highlight, open]);
 
   function selectProduct(p: Product) {
     onChange({ text: p.sku_code, product: p });
@@ -78,9 +134,53 @@ export function ProductCombobox({
 
   const activeId = filtered[highlight] ? `${listId}-opt-${filtered[highlight].id}` : undefined;
 
+  const listPanel =
+    open && filtered.length > 0 && listPos
+      ? createPortal(
+          <ul
+            ref={listRef}
+            className={`product-combobox__list product-combobox__list--floating${
+              listPos.openUp ? " product-combobox__list--up" : ""
+            }`}
+            id={listId}
+            role="listbox"
+            style={{
+              position: "fixed",
+              top: listPos.top,
+              left: listPos.left,
+              width: listPos.width,
+              maxHeight: listPos.maxHeight,
+            }}
+          >
+            <li className="product-combobox__list-hint" aria-hidden>
+              {value.trim()
+                ? `${filtered.length} resultado(s)`
+                : `Digite para filtrar · ${products.length} cadastrados`}
+            </li>
+            {filtered.map((p, i) => (
+              <li
+                key={p.id}
+                id={`${listId}-opt-${p.id}`}
+                role="option"
+                aria-selected={i === highlight}
+                className={`product-combobox__option${i === highlight ? " product-combobox__option--on" : ""}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => selectProduct(p)}
+                onMouseEnter={() => setHighlight(i)}
+              >
+                <strong>{p.sku_code}</strong>
+                <span>{p.description}</span>
+              </li>
+            ))}
+          </ul>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className="product-combobox" ref={wrapRef}>
       <input
+        ref={inputRef}
         type="text"
         className="product-combobox__input"
         value={value}
@@ -100,25 +200,7 @@ export function ProductCombobox({
           ✓
         </span>
       )}
-      {open && filtered.length > 0 && (
-        <ul className="product-combobox__list" id={listId} role="listbox">
-          {filtered.map((p, i) => (
-            <li
-              key={p.id}
-              id={`${listId}-opt-${p.id}`}
-              role="option"
-              aria-selected={i === highlight}
-              className={`product-combobox__option${i === highlight ? " product-combobox__option--on" : ""}`}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => selectProduct(p)}
-              onMouseEnter={() => setHighlight(i)}
-            >
-              <strong>{p.sku_code}</strong>
-              <span>{p.description}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {listPanel}
     </div>
   );
 }

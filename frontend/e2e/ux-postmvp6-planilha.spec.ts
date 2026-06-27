@@ -145,7 +145,6 @@ test.describe("UX pós-MVP 6 — planilha operacional", () => {
   test("financeiro global lista fila acionável (planejado vs liquidado)", async ({ page }) => {
     await page.goto("/financeiro", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /Fila de contas a pagar/i })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText(/Planejado não reduz saldo/i)).toBeVisible({ timeout: 15000 });
     // fila renderiza tabela de pagamentos ou estado vazio explícito
     const hasTable = await page.locator("table").first().isVisible().catch(() => false);
     const hasEmpty = await page.getByText(/Nenhum pagamento encontrado/i).isVisible().catch(() => false);

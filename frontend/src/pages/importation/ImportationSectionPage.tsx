@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
-import { closureApi, invoicesApi, type TimelineEvent } from "../../api";
+import { Navigate, useNavigate, useOutletContext } from "react-router-dom";
+import { closureApi, invoicesApi, type Invoice, type TimelineEvent } from "../../api";
 import { Button, EmptyState, LoadingState, Table, useToast } from "../../components";
 import { fmtDateTime } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 import { ImportationFinanceSection } from "./ImportationFinanceSection";
 import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
-import { fieldLabel, formatUnitPrice, invoiceTypeLabel } from "../../i18n/glossario";
+import { fieldLabel, formatMoney, formatUnitPrice, invoiceTypeLabel } from "../../i18n/glossario";
 import { OrderCentralOverview } from "./OrderCentralOverview";
-import { CustomsStockPanel } from "../CustomsStockPanel";
-import { LogisticsPanel } from "../LogisticsPanel";
+import { LogisticsWorkflowPage } from "./logistics/LogisticsWorkflowPage";
 import { ReconciliationClosurePanel } from "../ReconciliationClosurePanel";
 import type { ImportationOutletContext, ImportationSection } from "./types";
 
@@ -73,53 +72,7 @@ export function ImportationSectionPage({ section }: Props) {
       );
 
     case "invoices":
-      return (
-        <div>
-          <form className="inline-form" onSubmit={addInvoice}>
-            <select value={invType} onChange={(e) => setInvType(e.target.value)}>
-              <option value="ANTECIPO">{invoiceTypeLabel("ANTECIPO")}</option>
-              <option value="PROFORMA">{invoiceTypeLabel("PROFORMA")}</option>
-              <option value="SALDO">{invoiceTypeLabel("SALDO")}</option>
-              <option value="COMPLEMENTAR">{invoiceTypeLabel("COMPLEMENTAR")}</option>
-              <option value="AJUSTE">{invoiceTypeLabel("AJUSTE")}</option>
-              <option value="CREDITO">{invoiceTypeLabel("CREDITO")}</option>
-              <option value="OUTRA">{invoiceTypeLabel("OUTRA")}</option>
-            </select>
-            <input
-              placeholder="Número"
-              value={invNumber}
-              onChange={(e) => setInvNumber(e.target.value)}
-              required
-            />
-            <input
-              placeholder="Valor (vazio OK)"
-              value={invAmount}
-              onChange={(e) => setInvAmount(e.target.value)}
-            />
-            <Button type="submit">Adicionar {fieldLabel("Invoice").toLowerCase()}</Button>
-          </form>
-          <Table>
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Número</th>
-                <th>Valor</th>
-                <th>Saldo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td>{invoiceTypeLabel(inv.invoice_type)}</td>
-                  <td>{inv.invoice_number}</td>
-                  <td>{inv.amount ?? "—"}</td>
-                  <td>{inv.balance ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        </div>
-      );
+      return <InvoicesSection invoices={invoices} onAdd={addInvoice} invType={invType} setInvType={setInvType} invNumber={invNumber} setInvNumber={setInvNumber} invAmount={invAmount} setInvAmount={setInvAmount} />;
 
     case "documentos":
       return (
@@ -144,10 +97,10 @@ export function ImportationSectionPage({ section }: Props) {
       );
 
     case "logistica":
-      return <LogisticsPanel importationId={id} />;
+      return <LogisticsWorkflowPage importationId={id} />;
 
     case "aduaneiro":
-      return <CustomsStockPanel importationId={id} items={items} />;
+      return <Navigate to={`/importacoes/${id}/logistica#aduana`} replace />;
 
     case "conciliacao":
       return <ReconciliationClosurePanel importationId={id} />;
@@ -172,6 +125,110 @@ export function ImportationSectionPage({ section }: Props) {
     default:
       return null;
   }
+}
+
+function InvoicesSection({
+  invoices,
+  onAdd,
+  invType,
+  setInvType,
+  invNumber,
+  setInvNumber,
+  invAmount,
+  setInvAmount,
+}: {
+  invoices: Invoice[];
+  onAdd: (e: React.FormEvent) => void;
+  invType: string;
+  setInvType: (v: string) => void;
+  invNumber: string;
+  setInvNumber: (v: string) => void;
+  invAmount: string;
+  setInvAmount: (v: string) => void;
+}) {
+  const { id, imp } = useOutletContext<ImportationOutletContext>();
+  const navigate = useNavigate();
+  const [hashTarget, setHashTarget] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncHash = () => {
+      const m = window.location.hash.match(/^#fatura-(\d+)$/);
+      setHashTarget(m ? m[1] : null);
+      if (m) {
+        window.setTimeout(() => {
+          document.getElementById(`fatura-${m[1]}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 80);
+      }
+    };
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [invoices.length]);
+
+  return (
+    <div>
+      <form className="inline-form" onSubmit={onAdd}>
+        <select value={invType} onChange={(e) => setInvType(e.target.value)}>
+          <option value="ANTECIPO">{invoiceTypeLabel("ANTECIPO")}</option>
+          <option value="PROFORMA">{invoiceTypeLabel("PROFORMA")}</option>
+          <option value="SALDO">{invoiceTypeLabel("SALDO")}</option>
+          <option value="COMPLEMENTAR">{invoiceTypeLabel("COMPLEMENTAR")}</option>
+          <option value="AJUSTE">{invoiceTypeLabel("AJUSTE")}</option>
+          <option value="CREDITO">{invoiceTypeLabel("CREDITO")}</option>
+          <option value="OUTRA">{invoiceTypeLabel("OUTRA")}</option>
+        </select>
+        <input
+          placeholder="Número"
+          value={invNumber}
+          onChange={(e) => setInvNumber(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Valor (vazio OK)"
+          value={invAmount}
+          onChange={(e) => setInvAmount(e.target.value)}
+        />
+        <Button type="submit">Adicionar {fieldLabel("Invoice").toLowerCase()}</Button>
+      </form>
+      <Table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Número</th>
+            <th>Valor</th>
+            <th>Saldo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoices.map((inv) => (
+            <tr
+              key={inv.id}
+              id={`fatura-${inv.id}`}
+              className={hashTarget === String(inv.id) ? "invoice-row--target" : undefined}
+            >
+              <td>{invoiceTypeLabel(inv.invoice_type)}</td>
+              <td>
+                <span className="finance-invoice-doc finance-invoice-doc--static">{inv.invoice_number}</span>
+              </td>
+              <td className="num">{formatMoney(inv.amount, inv.currency ?? imp.currency)}</td>
+              <td className="num">{formatMoney(inv.balance, inv.currency ?? imp.currency)}</td>
+              <td>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="ui-btn--sm"
+                  onClick={() => navigate(`/importacoes/${id}/documentos`)}
+                >
+                  Anexar doc.
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
+  );
 }
 
 function HistoricoSection({ importationId }: { importationId: number }) {

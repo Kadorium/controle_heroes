@@ -182,6 +182,40 @@ body {
   gap: var(--space-3);
 }
 
+.topbar__fx {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-right: var(--space-1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.topbar__fx:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.topbar__fx-label {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-topbar-muted);
+}
+
+.topbar__fx-value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
+  text-align: right;
+}
+
 .topbar__icon-btn {
   background: none;
   border: none;
@@ -1869,6 +1903,106 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
+.oc-operational-header__col--finance {
+  grid-column: span 1;
+}
+.oc-finance-total {
+  margin-top: 6px;
+}
+.oc-finance-total--sub {
+  margin-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+.oc-finance-total__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.oc-finance-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.oc-finance-pair--hero .oc-finance-pair__eur {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.oc-finance-pair__eur,
+.oc-finance-invoiced__eur {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: right;
+}
+.oc-finance-pair__brl,
+.oc-finance-invoiced__brl {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+.oc-finance-invoiced {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+}
+.oc-finance-invoiced__title {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.oc-finance-invoiced__grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 6px 10px;
+  align-items: baseline;
+  font-size: 0.78rem;
+}
+.oc-finance-invoiced__head {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+.oc-finance-invoiced__label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+.oc-finance-invoiced__label--emph,
+.oc-finance-invoiced__eur--emph {
+  font-weight: 800;
+  color: var(--color-primary-deep);
+}
+.oc-finance-invoiced__brl--emph {
+  font-weight: 700;
+}
+.oc-finance-pnl {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
+}
+.oc-finance-pnl__label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
 .oc-operational-header__col {
   text-align: left;
   background: var(--color-surface);
@@ -1926,6 +2060,66 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   margin-top: var(--space-2);
   line-height: 1.35;
 }
+.oc-operational-header__col--items {
+  cursor: pointer;
+}
+.oc-items-preview {
+  width: 100%;
+  margin-top: 4px;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+.oc-items-preview th {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  text-align: left;
+  padding: 0 4px 4px 0;
+}
+.oc-items-preview th.num {
+  text-align: right;
+}
+.oc-items-preview td {
+  padding: 3px 4px 3px 0;
+  vertical-align: top;
+  border-top: 1px solid var(--color-border-soft);
+}
+.oc-items-preview td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.oc-items-preview__item {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oc-open-invoice-deadline {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: 6px 8px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  text-align: left;
+  cursor: pointer;
+}
+.oc-open-invoice-deadline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+.oc-overdue .oc-open-invoice-deadline {
+  border-color: #f6c9c9;
+  color: #9b1c1c;
+  background: #fff5f5;
+}
 .oc-progress {
   height: 6px;
   background: var(--color-border-soft);
@@ -1967,11 +2161,19 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .order-central__brazil-edit {
   display: grid;
   gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  margin-top: var(--space-4);
   padding: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+}
+.order-central__brazil-edit-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
 }
 .order-central__brazil-edit-row {
   display: flex;
@@ -2236,9 +2438,42 @@ td.c-accum { background: #eef6e9; }
 
 /* Nova ordem — planilha */
 .nova-ordem { gap: var(--space-4); }
+.nova-ordem__modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.nova-ordem__fx-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.nova-ordem__fx-head-field {
+  display: grid;
+  gap: 4px;
+  min-width: 88px;
+}
+.nova-ordem__fx-head-field span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.nova-ordem__fx-head-field input {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  width: 100%;
+}
+.nova-ordem__fx-head-field--rate { min-width: 140px; }
 .nova-ordem__items-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .nova-ordem__items-head h3 { margin: 0; font-size: 0.95rem; }
 .nova-ordem__items-wrap { max-height: 42vh; overflow: auto; border: 1px solid var(--color-border-soft); border-radius: 8px; }
+.nova-ordem__grid th:first-child,
+.nova-ordem__grid td:first-child { min-width: 200px; }
 .nova-ordem__grid .nova-ordem__cell-input { width: 100%; min-width: 64px; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: 6px; font: inherit; text-align: right; }
 .nova-ordem__grid td:first-child .nova-ordem__cell-input,
 .nova-ordem__grid td:first-child input { text-align: left; }
@@ -2252,15 +2487,301 @@ td.c-accum { background: #eef6e9; }
 .nova-ordem__cc-pill { margin: 0; padding: 8px 12px; background: #f0f7ff; border-radius: 8px; border: 1px solid #c5daf5; }
 .nova-ordem__confirm { padding: 12px 14px; border: 1px solid #e8c547; background: #fffbeb; border-radius: 8px; }
 .nova-ordem__finance summary { cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--color-text-secondary); }
+.nova-ordem__finance-grid { margin-top: 12px; align-items: start; }
+.nova-ordem__inv-hint { margin: 4px 0 0; font-size: 0.72rem; }
+
+/* Valor da fatura — classes neutras (compartilhadas Nova Ordem + Central) */
+.invoice-amount,
+.nova-ordem__invoice-amount { display: grid; gap: 8px; }
+.invoice-amount__label,
+.nova-ordem__invoice-amount-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.invoice-amount__modes,
+.nova-ordem__amount-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  background: #eef2f8;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+}
+.invoice-amount__mode,
+.nova-ordem__amount-mode {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.invoice-amount__mode:hover,
+.nova-ordem__amount-mode:hover { color: var(--color-text); }
+.invoice-amount__mode--on,
+.nova-ordem__amount-mode--on {
+  background: #fff;
+  color: var(--color-primary-deep);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+.invoice-amount__input-wrap,
+.nova-ordem__amount-input-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.invoice-amount__input,
+.nova-ordem__amount-input {
+  flex: 1;
+  border: none;
+  padding: 8px 10px;
+  font: inherit;
+  min-width: 0;
+}
+.invoice-amount__input:focus,
+.nova-ordem__amount-input:focus { outline: none; }
+.invoice-amount__input-wrap:focus-within,
+.nova-ordem__amount-input-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-soft);
+}
+.invoice-amount__input-suffix,
+.nova-ordem__amount-input-suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: #f8fafc;
+  border-left: 1px solid var(--color-border-soft);
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.invoice-amount__preview,
+.nova-ordem__amount-preview { margin: 0; font-size: 0.76rem; }
+.invoice-amount__hint,
+.nova-ordem__amount-hint { margin: 0; font-size: 0.72rem; color: #b45309; }
+
+/* PnL Cambial operacional */
+.fx-pnl-panel {
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 8px;
+}
+.fx-pnl-panel--compact {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.fx-pnl-panel__disc {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+.fx-pnl-panel__rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.74rem;
+  margin-top: 6px;
+  color: var(--color-text-secondary);
+}
+.fx-pnl-panel__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.fx-pnl-panel__total {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fx-pnl-panel__compact-subs {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+.fx-pnl-panel__compact-subs span + span::before {
+  content: " · ";
+}
+.fx-pnl-val.fx-pnl--pos { color: #15803d; }
+.fx-pnl-val.fx-pnl--neg { color: #b91c1c; }
+.fx-pnl-kpi {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.fx-pnl-kpi__title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+.oc-invoice-form {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  background: #fafbfc;
+}
+.oc-invoice-form__risk {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  color: #b45309;
+}
 .nova-ordem__totals td { font-weight: 600; background: #eef2f8; border-top: 2px solid var(--color-border); }
-.product-combobox { position: relative; min-width: 180px; }
+.product-combobox { position: relative; min-width: 200px; }
 .product-combobox__input { width: 100%; padding: 6px 28px 6px 8px; border: 1px solid var(--color-border); border-radius: 6px; font: inherit; }
 .product-combobox__badge { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: #16a34a; pointer-events: none; }
-.product-combobox__list { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 2px); margin: 0; padding: 4px 0; list-style: none; background: #fff; border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 220px; overflow: auto; }
-.product-combobox__option { padding: 8px 10px; cursor: pointer; display: grid; gap: 2px; font-size: 0.82rem; }
-.product-combobox__option strong { font-size: 0.85rem; }
-.product-combobox__option span { color: var(--color-text-secondary); font-size: 0.76rem; }
+.product-combobox__list {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  overflow: auto;
+}
+.product-combobox__list--floating {
+  z-index: 12000;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+.product-combobox__list-hint {
+  padding: 6px 12px 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--color-border-soft);
+  cursor: default;
+}
+.product-combobox__option {
+  padding: 7px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+.product-combobox__option strong {
+  flex: 0 0 auto;
+  min-width: 7rem;
+  max-width: 45%;
+  font-size: 0.84rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.product-combobox__option span {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
 .product-combobox__option--on, .product-combobox__option:hover { background: var(--color-primary-soft); }
+
+.nova-ordem-fx {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+}
+.nova-ordem-fx--totals-only {
+  grid-template-columns: 1fr;
+  max-width: 520px;
+  margin-left: auto;
+}
+.nova-ordem-fx__rate-panel { display: grid; gap: var(--space-2); }
+.nova-ordem-fx__rate-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.nova-ordem-fx__rate-head h4 { margin: 0; font-size: 0.88rem; font-weight: 700; }
+.nova-ordem-fx__ref { margin: 0; font-size: 0.76rem; }
+.nova-ordem-fx__rate-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+.nova-ordem-fx__field { display: grid; gap: 4px; min-width: 100px; }
+.nova-ordem-fx__field span { font-size: 0.72rem; font-weight: 600; color: var(--color-text-secondary); }
+.nova-ordem-fx__field input {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  width: 100%;
+}
+.nova-ordem-fx__field--rate { flex: 1; min-width: 140px; }
+.nova-ordem-fx__hint { margin: 0; font-size: 0.72rem; }
+.nova-ordem-fx__totals { display: grid; gap: 6px; align-content: start; }
+.nova-ordem-fx__totals-head,
+.nova-ordem-fx__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+.nova-ordem-fx__col-h {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+.nova-ordem-fx__label { font-size: 0.8rem; color: var(--color-text-secondary); }
+.nova-ordem-fx__eur {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.nova-ordem-fx__brl {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.86rem;
+  color: var(--color-text-secondary);
+}
+.nova-ordem-fx__row--total .nova-ordem-fx__eur { font-size: 1.05rem; font-weight: 800; }
+.nova-ordem-fx__row--total .nova-ordem-fx__brl { font-size: 0.95rem; font-weight: 700; color: var(--color-text); }
+.nova-ordem-fx__qty { margin: var(--space-1) 0 0; text-align: right; }
+@media (max-width: 800px) {
+  .nova-ordem-fx { grid-template-columns: 1fr; }
+}
 
 /* central — seções empilhadas densas */
 
@@ -2296,3 +2817,148 @@ td.c-accum { background: #eef6e9; }
 /* contador de faturas na grade de ordens */
 .inv-count { font-weight: 700; color: #9a6b14; }
 .inv-count--done { color: #16a34a; }
+
+.finance-invoice-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt, #f8fafc);
+  color: var(--color-primary-deep, var(--color-primary));
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.finance-invoice-doc:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, white);
+}
+
+.finance-invoice-doc--static {
+  cursor: default;
+}
+
+.invoice-row--target {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  outline-offset: -2px;
+}
+
+/* Logística unificada — Central da Ordem */
+.logistics-workflow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.logistics-section-title {
+  font-size: var(--font-size-md);
+  margin: 0 0 var(--space-3);
+}
+
+.logistics-phase-rail {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-surface);
+  padding-top: var(--space-2);
+}
+
+.logistics-phase-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.logistics-phase-badge {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+}
+
+.logistics-sku-matrix {
+  margin-bottom: var(--space-4);
+}
+
+.logistics-sku-matrix .table-scroll {
+  overflow-x: auto;
+}
+
+.logistics-qty-input {
+  width: 4.5rem;
+  text-align: right;
+}
+
+.logistics-shipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.logistics-shipment-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.logistics-shipment-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-alt, var(--color-surface));
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logistics-shipment-body {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.logistics-shipment-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.logistics-shipment-meta dt {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.logistics-shipment-meta dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.logistics-heroes-block {
+  margin-bottom: var(--space-4);
+}
+
+.logistics-entreposto-note {
+  margin-bottom: var(--space-3);
+}
+
+.logistics-modal-history ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  font-size: var(--font-size-sm);
+}

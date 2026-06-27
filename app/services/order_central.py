@@ -48,6 +48,57 @@ from app.services.nationalization import quantity_chain
 from app.services.order_status_rail import build_status_rail
 
 
+def _invoice_open_deadlines(invoices: list[dict], today: date) -> dict:
+    """Prazos a partir de faturas em aberto (saldo > 0), não só pagamentos planejados."""
+    open_invoices: list[dict] = []
+    dated_candidates: list[tuple[date, dict]] = []
+    overdue_count = 0
+    overdue_amount = Decimal("0")
+
+    for inv in invoices:
+        balance_raw = inv.get("balance")
+        if balance_raw is None:
+            continue
+        balance = _d(balance_raw)
+        if balance <= Decimal("0"):
+            continue
+
+        open_invoices.append(inv)
+        due = inv.get("payment_due_date") or inv.get("invoice_date")
+        if due is None:
+            continue
+        if isinstance(due, str):
+            due = date.fromisoformat(due)
+
+        dated_candidates.append((due, inv))
+        if due < today:
+            overdue_count += 1
+            overdue_amount += balance
+
+    if not open_invoices:
+        return {
+            "next_due_date": None,
+            "overdue_count": 0,
+            "overdue_amount_foreign": None,
+            "next_open_invoice_number": None,
+            "next_open_invoice_balance": None,
+        }
+
+    if dated_candidates:
+        next_due, next_inv = min(dated_candidates, key=lambda row: row[0])
+    else:
+        next_due = None
+        next_inv = open_invoices[0]
+
+    return {
+        "next_due_date": next_due,
+        "overdue_count": overdue_count,
+        "overdue_amount_foreign": str(overdue_amount) if overdue_amount > Decimal("0") else None,
+        "next_open_invoice_number": next_inv.get("invoice_number"),
+        "next_open_invoice_balance": str(next_inv.get("balance")) if next_inv.get("balance") is not None else None,
+    }
+
+
 def _financial_totals_by_currency(db: Session, importation: ImportationOrder) -> dict:
     """Totais financeiros por moeda — nunca soma moedas distintas em um único campo."""
     invoices = (
@@ -319,6 +370,19 @@ def _build_invoices(db: Session, importation_id: int) -> list[dict]:
     } if item_ids else {}
     products = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()} if product_ids else {}
 
+    inv_ids = [i.id for i in invoices]
+    payment_due_by_inv: dict[int, date] = {}
+    if inv_ids:
+        for p in (
+            db.query(Payment)
+            .filter(Payment.invoice_id.in_(inv_ids), Payment.is_active.is_(True))
+            .all()
+        ):
+            if p.due_date is not None and not _payment_is_settled(p):
+                prev = payment_due_by_inv.get(p.invoice_id)
+                if prev is None or p.due_date < prev:
+                    payment_due_by_inv[p.invoice_id] = p.due_date
+
     result = []
     for inv in invoices:
         inv_items = []
@@ -348,6 +412,7 @@ def _build_invoices(db: Session, importation_id: int) -> list[dict]:
                 "invoice_type": inv.invoice_type,
                 "invoice_number": inv.invoice_number,
                 "invoice_date": inv.invoice_date,
+                "payment_due_date": payment_due_by_inv.get(inv.id),
                 "amount": inv.amount,
                 "currency": normalize_import_currency(inv.currency),
                 "discount_amount": inv.discount_amount,
@@ -476,12 +541,128 @@ def _open_balance_brl_equivalent(db: Session, importation_id: int) -> str | None
     return str(total) if total > Decimal("0") else ("0" if not has_open_without_rate else None)
 
 
+def _build_finance_operational(
+    db: Session,
+    imp: ImportationOrder,
+    financial: dict,
+) -> dict[str, str | None]:
+    """Totais operacionais: ordem, faturado, liquidado e saldos (EUR + BRL)."""
+    from app.services.fx_pnl import _get_provision_rate
+
+    opening = _get_provision_rate(db, imp.id)
+    invoices = (
+        db.query(Invoice)
+        .filter(Invoice.importation_id == imp.id, Invoice.is_active.is_(True))
+        .all()
+    )
+
+    invoiced_eur = Decimal("0")
+    invoiced_brl = Decimal("0")
+    has_invoiced_eur = False
+    has_invoiced_brl = False
+    open_eur_sum = Decimal("0")
+    has_open_eur = False
+    has_null_invoice_amount = False
+
+    for inv in invoices:
+        if inv.amount is not None:
+            invoiced_eur += inv.amount
+            has_invoiced_eur = True
+            rate = inv.expected_exchange_rate or opening
+            if rate is not None:
+                invoiced_brl += inv.amount * rate
+                has_invoiced_brl = True
+        else:
+            has_null_invoice_amount = True
+        bal = invoice_balance(db, inv)
+        if bal is not None:
+            open_eur_sum += bal
+            has_open_eur = True
+
+    order_total_eur: Decimal | None = imp.estimated_total
+    if order_total_eur is None and has_invoiced_eur:
+        order_total_eur = invoiced_eur + open_eur_sum
+
+    open_eur: Decimal | None = None
+    if financial.get("consolidated_balance") is not None:
+        open_eur = Decimal(financial["consolidated_balance"])
+    elif has_open_eur and not has_null_invoice_amount:
+        open_eur = open_eur_sum
+    elif has_open_eur:
+        open_eur = open_eur_sum
+
+    remaining_eur: Decimal | None = None
+    if order_total_eur is not None and has_invoiced_eur:
+        remaining_eur = max(Decimal("0"), order_total_eur - invoiced_eur)
+
+    settled_eur = Decimal("0")
+    has_settled_eur = False
+    for inv in invoices:
+        if invoice_has_settled_payments(db, inv):
+            has_settled_eur = True
+        settled_eur += invoice_paid_total(db, inv)
+    if not has_settled_eur:
+        settled_eur = None
+
+    settled_brl = Decimal("0")
+    has_settled_brl = False
+    for p in (
+        db.query(Payment)
+        .join(Invoice, Payment.invoice_id == Invoice.id)
+        .filter(
+            Invoice.importation_id == imp.id,
+            Invoice.is_active.is_(True),
+            Payment.is_active.is_(True),
+        )
+        .all()
+    ):
+        if not _payment_is_settled(p) or p.amount_foreign is None:
+            continue
+        if p.amount_local is not None:
+            settled_brl += p.amount_local
+            has_settled_brl = True
+            continue
+        pay_cur = normalize_import_currency(p.currency_foreign or imp.currency)
+        if pay_cur == "BRL":
+            settled_brl += p.amount_foreign
+            has_settled_brl = True
+        elif p.exchange_rate is not None and p.exchange_rate > 0:
+            settled_brl += p.amount_foreign * p.exchange_rate
+            has_settled_brl = True
+
+    order_total_brl: Decimal | None = None
+    if order_total_eur is not None and opening is not None:
+        order_total_brl = order_total_eur * opening
+
+    remaining_brl: Decimal | None = None
+    if remaining_eur is not None and opening is not None:
+        remaining_brl = remaining_eur * opening
+
+    open_brl = _open_balance_brl_equivalent(db, imp.id)
+    if open_brl is None and open_eur is not None and opening is not None:
+        open_brl = str(open_eur * opening)
+
+    return {
+        "order_total_eur": str(order_total_eur) if order_total_eur is not None else None,
+        "order_total_brl": str(order_total_brl) if order_total_brl is not None else None,
+        "invoiced_eur": str(invoiced_eur) if has_invoiced_eur else None,
+        "invoiced_brl": str(invoiced_brl) if has_invoiced_brl else None,
+        "settled_eur": str(settled_eur) if settled_eur is not None else None,
+        "settled_brl": str(settled_brl) if has_settled_brl else None,
+        "remaining_to_invoice_eur": str(remaining_eur) if remaining_eur is not None else None,
+        "remaining_to_invoice_brl": str(remaining_brl) if remaining_brl is not None else None,
+        "balance_to_settle_eur": str(open_eur) if open_eur is not None else None,
+        "balance_to_settle_brl": open_brl,
+        "opening_exchange_rate": str(opening) if opening is not None else None,
+    }
+
+
 def _build_operational_header(
     db: Session,
     imp: ImportationOrder,
     *,
     financial: dict,
-    planned: list[dict],
+    invoices: list[dict],
     shipments: list[Shipment],
     chain: list[dict],
     credits: list[Credit],
@@ -491,19 +672,7 @@ def _build_operational_header(
     counts = _invoice_counts_for_queue(db, [imp])
     invoices_count, invoices_settled_count = counts.get(imp.id, (0, 0))
 
-    open_due: list[date] = []
-    overdue_amount = Decimal("0")
-    overdue_count = 0
-    for p in planned:
-        due = p.get("due_date")
-        if not due:
-            continue
-        open_due.append(due)
-        if due < today:
-            overdue_count += 1
-            amt = p.get("amount_foreign")
-            if amt is not None:
-                overdue_amount += _d(amt)
+    deadline_info = _invoice_open_deadlines(invoices, today)
 
     next_etd, next_eta = _next_ship_dates(shipments)
     qty_ordered = sum((c.get("quantity_ordered") or 0) for c in chain) if chain else None
@@ -514,6 +683,19 @@ def _build_operational_header(
         if normalize_import_currency(c.currency) == primary
     )
 
+    from app.services.fx_pnl import compute_fx_pnl
+    from app.services.fx_reference import fetch_fx_reference
+
+    mark_rate = None
+    try:
+        ref = fetch_fx_reference()
+        if ref.get("rate") is not None:
+            mark_rate = Decimal(str(ref["rate"]))
+    except Exception:
+        mark_rate = None
+    fx_pnl = compute_fx_pnl(db, imp.id, mark_rate=mark_rate)
+    finance_ops = _build_finance_operational(db, imp, financial)
+
     return {
         "invoices_count": invoices_count,
         "invoices_settled_count": invoices_settled_count,
@@ -522,9 +704,7 @@ def _build_operational_header(
         "total_paid": financial.get("total_paid"),
         "open_balance": financial.get("consolidated_balance"),
         "open_balance_brl_equivalent": _open_balance_brl_equivalent(db, imp.id),
-        "next_due_date": min(open_due) if open_due else None,
-        "overdue_count": overdue_count,
-        "overdue_amount_foreign": str(overdue_amount) if overdue_amount > Decimal("0") else None,
+        **deadline_info,
         "next_etd": next_etd,
         "next_eta": next_eta,
         "active_modal": _active_modal(shipments),
@@ -532,6 +712,8 @@ def _build_operational_header(
         "quantity_ordered": qty_ordered,
         "supplier_credit_available": str(credit_avail) if credit_avail > Decimal("0") else None,
         "pending_actions_count": pending_actions_count,
+        "fx_pnl": fx_pnl,
+        **finance_ops,
     }
 
 
@@ -601,7 +783,7 @@ def build_order_central(db: Session, importation_id: int) -> dict:
         db,
         imp,
         financial=financial,
-        planned=planned,
+        invoices=invoices,
         shipments=shipments,
         chain=chain,
         credits=credits,
@@ -857,20 +1039,8 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
 
         invoices_count, invoices_settled_count = invoice_counts.get(imp.id, (0, 0))
 
-        planned_payments = (
-            db.query(Payment)
-            .join(Invoice, Payment.invoice_id == Invoice.id)
-            .filter(
-                Invoice.importation_id == imp.id,
-                Invoice.is_active.is_(True),
-                Payment.is_active.is_(True),
-                Payment.due_date.isnot(None),
-            )
-            .all()
-        )
-        open_due = [p.due_date for p in planned_payments if not _payment_is_settled(p) and p.due_date]
-        next_due = min(open_due) if open_due else None
-        overdue_count = sum(1 for d in open_due if d < today)
+        built_invoices = _build_invoices(db, imp.id)
+        deadline_info = _invoice_open_deadlines(built_invoices, today)
 
         docs_pending = sum(1 for a in actions if a.get("kind") == "customs")
 
@@ -894,8 +1064,7 @@ def build_order_queue(db: Session, limit: int = 100) -> dict:
                 "invoices_count": invoices_count,
                 "invoices_settled_count": invoices_settled_count,
                 "docs_pending_count": docs_pending,
-                "next_due_date": next_due,
-                "overdue_count": overdue_count,
+                **deadline_info,
                 "priority": imp.priority,
                 "responsible": imp.responsible,
                 "internal_forecast_date": imp.internal_forecast_date,

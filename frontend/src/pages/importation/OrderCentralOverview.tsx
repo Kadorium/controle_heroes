@@ -3,12 +3,15 @@ import {
   closureApi,
   documentsApi,
   financeApi,
+  importationsApi,
+  invoicesApi,
   productsApi,
   type DocumentAttachment,
   type Payment,
   type TimelineEvent,
 } from "../../api";
 import { Badge, Button, EditableCell, LoadingState, useToast } from "../../components";
+import { InvoiceAmountField } from "../../components/InvoiceAmountField";
 import {
   emptyDash,
   formatMoney,
@@ -21,6 +24,15 @@ import { fmtDate, fmtDateTime, isPlannedPayment } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 import { ItalyOverrideModal, type ItalyOverrideTarget } from "./ItalyOverrideModal";
 import { useOrderCentral } from "./OrderCentralContext";
+import { useFxRate } from "../../context/FxRateContext";
+import {
+  canSubmitInvoiceAmount,
+  nextInvoiceSuffix,
+  orderRemainingToInvoice,
+  resolveInvoiceAmount,
+  suggestInvoiceNumber,
+  type InvoiceAmountMode,
+} from "./novaOrdemInvoice";
 
 const CATEGORY_OPTIONS = [
   { value: "RACKET", label: "Raquete" },
@@ -86,10 +98,15 @@ export function OrderCentralOverview({ importationId }: Props) {
   const [overrideTarget, setOverrideTarget] = useState<ItalyOverrideTarget | null>(null);
   const [docs, setDocs] = useState<DocumentAttachment[]>([]);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
-  const [addingPayment, setAddingPayment] = useState(false);
-  const [newPayInvoice, setNewPayInvoice] = useState("");
-  const [newPayDue, setNewPayDue] = useState("");
-  const [newPayAmount, setNewPayAmount] = useState("");
+  const [addingInvoice, setAddingInvoice] = useState(false);
+  const [invNumber, setInvNumber] = useState("");
+  const [invNumberTouched, setInvNumberTouched] = useState(false);
+  const [invType, setInvType] = useState("ANTECIPO");
+  const [invAmount, setInvAmount] = useState("");
+  const [invAmountMode, setInvAmountMode] = useState<InvoiceAmountMode>("EUR");
+  const [invDue, setInvDue] = useState("");
+  const [submittingInvoice, setSubmittingInvoice] = useState(false);
+  const { reference: fxReference } = useFxRate();
   const [error, setError] = useState("");
 
   function reloadDocs() {
@@ -121,7 +138,7 @@ export function OrderCentralOverview({ importationId }: Props) {
         return;
       }
       inv.items.forEach((ii, idx) => {
-        rows.push({ key: `${inv.id}-${ii.id}`, date: idx === 0 ? inv.invoice_date : null, invoiceNumber: idx === 0 ? inv.invoice_number : "", qty: ii.quantity, qtyItemId: ii.id, invoiceId: inv.id, model: ii.description ?? ii.product_sku ?? emptyDash(null), acconto: idx === 0 ? acconto : "", accontoRimasto: idx === 0 ? rimasto : "", status: idx === 0 ? status : "", isFirst: idx === 0, isAntecipo, invoiceType: inv.invoice_type, seq });
+        rows.push({ key: `${inv.id}-${ii.id}`, date: idx === 0 ? (inv.invoice_date ?? inv.payment_due_date) : null, invoiceNumber: idx === 0 ? inv.invoice_number : "", qty: ii.quantity, qtyItemId: ii.id, invoiceId: inv.id, model: ii.description ?? ii.product_sku ?? emptyDash(null), acconto: idx === 0 ? acconto : "", accontoRimasto: idx === 0 ? rimasto : "", status: idx === 0 ? status : "", isFirst: idx === 0, isAntecipo, invoiceType: inv.invoice_type, seq });
       });
     });
     return rows;
@@ -140,7 +157,8 @@ export function OrderCentralOverview({ importationId }: Props) {
       const paid = Number(inv.paid_total ?? 0);
       const state: "PAID" | "PARTIAL" | "PENDING" =
         inv.balance != null && bal === 0 ? "PAID" : paid > 0 ? "PARTIAL" : "PENDING";
-      return { ...inv, seq: idx + 1, state };
+      const displayDate = inv.invoice_date ?? inv.payment_due_date ?? null;
+      return { ...inv, seq: idx + 1, state, displayDate };
     });
   }, [data]);
 
@@ -159,9 +177,18 @@ export function OrderCentralOverview({ importationId }: Props) {
 
   async function liquidate(p: Payment) {
     try {
+      const inv = data?.invoices.find((i) => i.id === p.invoice_id);
+      let exchangeRate: string | undefined = inv?.expected_exchange_rate ?? undefined;
+      try {
+        const ref = await financeApi.fxReference();
+        if (ref.rate) exchangeRate = ref.rate;
+      } catch {
+        /* mantém câmbio da fatura */
+      }
       await financeApi.updatePayment(p.id, {
         payment_date: new Date().toISOString().slice(0, 10),
         receipt_reference: `LIQ-${p.id}`,
+        ...(exchangeRate ? { exchange_rate: exchangeRate } : {}),
       });
       toast.success("Pagamento liquidado");
       reloadCentral();
@@ -175,26 +202,101 @@ export function OrderCentralOverview({ importationId }: Props) {
     reloadCentral();
   }
 
-  async function submitNewPayment() {
-    if (!newPayInvoice) {
-      toast.error("Selecione a fatura do pagamento planejado.");
+  const orderNetEur = useMemo(() => {
+    if (!data) return null;
+    const est = data.order.estimated_total;
+    if (est != null && est !== "") return Number(est);
+    return null;
+  }, [data]);
+
+  const remainingToInvoice = useMemo(() => {
+    if (!data) return null;
+    const invoiced = data.kpis.total_invoiced != null ? Number(data.kpis.total_invoiced) : null;
+    return orderRemainingToInvoice(orderNetEur, invoiced);
+  }, [data, orderNetEur]);
+
+  const provisionRateStr = useMemo(() => {
+    if (!data) return "";
+    const fromInv = [...data.invoices].reverse().find((i) => i.expected_exchange_rate)?.expected_exchange_rate;
+    if (fromInv) return fromInv;
+    if (fxReference?.rate) return fxReference.rate;
+    return "";
+  }, [data, fxReference?.rate]);
+
+  const provisionRateNum = useMemo(() => {
+    const n = Number(String(provisionRateStr).replace(",", "."));
+    return Number.isNaN(n) ? null : n;
+  }, [provisionRateStr]);
+
+  useEffect(() => {
+    if (!data || invNumberTouched) return;
+    const po = data.order.po_number;
+    const suffix = nextInvoiceSuffix(data.invoices, po);
+    setInvNumber(suggestInvoiceNumber(po, suffix));
+    const n = data.invoices.length;
+    setInvType(n === 0 ? "ANTECIPO" : n === 1 ? "SALDO" : "COMPLEMENTAR");
+  }, [data, invNumberTouched]);
+
+  async function submitNewInvoice() {
+    if (!data) return;
+    if (!invNumber.trim()) {
+      toast.error("Informe o número da fatura.");
       return;
     }
+    if (!canSubmitInvoiceAmount(invAmountMode, invAmount, remainingToInvoice, provisionRateNum)) {
+      toast.error("Informe valor e câmbio provisionado válidos.");
+      return;
+    }
+    const resolved = resolveInvoiceAmount(invAmountMode, invAmount, remainingToInvoice, provisionRateNum);
+    setSubmittingInvoice(true);
+    let createdInvoiceId: number | null = null;
     try {
-      await financeApi.createPayment({
-        invoice_id: Number(newPayInvoice),
-        payment_type: "ADVANCE",
-        due_date: newPayDue || null,
-        amount_foreign: newPayAmount || null,
+      const inv = await invoicesApi.create({
+        importation_id: importationId,
+        invoice_type: invType,
+        invoice_number: invNumber.trim(),
+        invoice_date: invDue || null,
+        amount:
+          resolved.invoiceAmountOrderCurrency !== null
+            ? String(resolved.invoiceAmountOrderCurrency)
+            : null,
+        currency: data.kpis.currency,
+        expected_exchange_rate: provisionRateStr || null,
       });
-      toast.success("Pagamento planejado adicionado");
-      setAddingPayment(false);
-      setNewPayInvoice("");
-      setNewPayDue("");
-      setNewPayAmount("");
+      createdInvoiceId = inv.id;
+      if (invDue && resolved.paymentAmountBrl !== null) {
+        try {
+          await financeApi.createPayment({
+            invoice_id: inv.id,
+            payment_type: "ADVANCE",
+            due_date: invDue,
+            amount_foreign: String(resolved.paymentAmountBrl),
+            currency_foreign: "BRL",
+          });
+        } catch (payErr) {
+          toast.error(
+            payErr instanceof Error
+              ? `Fatura ${invNumber} criada, mas pagamento falhou: ${payErr.message}`
+              : "Fatura criada, mas pagamento planejado falhou.",
+          );
+          reloadCentral();
+          return;
+        }
+      }
+      toast.success("Fatura registrada");
+      setAddingInvoice(false);
+      setInvAmount("");
+      setInvDue("");
+      setInvNumberTouched(false);
       reloadCentral();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não foi possível adicionar o pagamento.");
+      if (createdInvoiceId) {
+        toast.error("Fatura criada, mas houve erro em passo posterior. Revise na aba Financeiro.");
+      } else {
+        toast.error(e instanceof Error ? e.message : "Não foi possível criar a fatura.");
+      }
+    } finally {
+      setSubmittingInvoice(false);
     }
   }
 
@@ -228,7 +330,7 @@ export function OrderCentralOverview({ importationId }: Props) {
 
   if (loading) return <LoadingState label="Carregando visão geral..." />;
   if (centralError || error) return <p className="error">{centralError || error}</p>;
-  if (!data) return null;
+  if (!data) return <LoadingState label="Carregando visão geral..." />;
 
   const { kpis, models, legacy_sheet_summary } = data;
   const planned = data.payments_planned ?? [];
@@ -281,7 +383,8 @@ export function OrderCentralOverview({ importationId }: Props) {
                   </div>
                   <div className="inv-stage__role">{invoiceStageHint(s.invoice_type, s.seq)}</div>
                   <div className="inv-stage__num">
-                    {s.invoice_number || emptyDash(null)} · {s.invoice_date ? fmtDate(s.invoice_date) : "sem data"}
+                    {s.invoice_number || emptyDash(null)} ·{" "}
+                    {s.displayDate ? fmtDate(s.displayDate) : "sem data"}
                   </div>
                   <div className="inv-stage__amounts">
                     <span><i>Valor</i> {formatMoney(s.amount, s.currency)}</span>
@@ -291,10 +394,6 @@ export function OrderCentralOverview({ importationId }: Props) {
                 </div>
               ))}
             </div>
-            <p className="meta">
-              Uma ordem costuma ter 3 faturas: <b>antecipo</b>, <b>na chegada</b> e <b>saldo (30/60 dias)</b>.
-              Cada fatura tem seu próprio acconto e saldo.
-            </p>
           </>
         )}
         <div className="sheet-grid-wrap">
@@ -362,7 +461,6 @@ export function OrderCentralOverview({ importationId }: Props) {
             </tfoot>
           </table>
         </div>
-        <p className="meta"><span className="sheet-flag-it">IT</span> campo origem Itália — bloqueado; clique para override auditado (motivo + anexo).</p>
       </div>
 
       {/* 6. Pagamentos */}
@@ -370,23 +468,57 @@ export function OrderCentralOverview({ importationId }: Props) {
         <div className="oc-section__head">
           <h3>Pagamentos</h3>
           <div className="oc-actbar" style={{ margin: 0 }}>
-            <Button variant="secondary" className="ui-btn--sm" onClick={() => setAddingPayment((v) => !v)}>
-              {addingPayment ? "Cancelar" : "+ Pagamento planejado"}
+            <Button variant="secondary" className="ui-btn--sm" onClick={() => setAddingInvoice((v) => !v)}>
+              {addingInvoice ? "Cancelar" : "+ Nova fatura"}
             </Button>
           </div>
         </div>
-        <p className="meta">Planejado não reduz saldo · Liquidado reduz · Vencimento ≠ data real de pagamento.</p>
-        {addingPayment && (
-          <div className="oc-actbar">
-            <select className="input" value={newPayInvoice} onChange={(e) => setNewPayInvoice(e.target.value)}>
-              <option value="">Fatura…</option>
-              {data.invoices.map((inv) => (
-                <option key={inv.id} value={inv.id}>{inv.invoice_number}</option>
-              ))}
-            </select>
-            <input className="input" type="date" title="Vencimento" value={newPayDue} onChange={(e) => setNewPayDue(e.target.value)} />
-            <input className="input" type="number" placeholder="Valor" value={newPayAmount} onChange={(e) => setNewPayAmount(e.target.value)} />
-            <Button className="ui-btn--sm" onClick={submitNewPayment}>Salvar</Button>
+        {addingInvoice && data && (
+          <div className="oc-invoice-form">
+            <div className="ux-grid-2 nova-ordem__finance-grid">
+              <div className="ux-field">
+                <label htmlFor="oc-inv-number">Nº fatura</label>
+                <input
+                  id="oc-inv-number"
+                  value={invNumber}
+                  onChange={(e) => {
+                    setInvNumberTouched(true);
+                    setInvNumber(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="ux-field">
+                <label htmlFor="oc-inv-type">Tipo</label>
+                <select id="oc-inv-type" value={invType} onChange={(e) => setInvType(e.target.value)}>
+                  <option value="ANTECIPO">{invoiceTypeLabel("ANTECIPO")}</option>
+                  <option value="SALDO">{invoiceTypeLabel("SALDO")}</option>
+                  <option value="COMPLEMENTAR">{invoiceTypeLabel("COMPLEMENTAR")}</option>
+                  <option value="PROFORMA">{invoiceTypeLabel("PROFORMA")}</option>
+                </select>
+              </div>
+              <InvoiceAmountField
+                mode={invAmountMode}
+                value={invAmount}
+                baseEur={remainingToInvoice}
+                provisionRate={provisionRateStr}
+                onModeChange={setInvAmountMode}
+                onValueChange={setInvAmount}
+              />
+              <div className="ux-field">
+                <label htmlFor="oc-inv-due">Vencimento do pagamento planejado</label>
+                <input id="oc-inv-due" type="date" value={invDue} onChange={(e) => setInvDue(e.target.value)} />
+              </div>
+            </div>
+            <Button
+              className="ui-btn--sm"
+              loading={submittingInvoice}
+              disabled={
+                !canSubmitInvoiceAmount(invAmountMode, invAmount, remainingToInvoice, provisionRateNum)
+              }
+              onClick={() => void submitNewInvoice()}
+            >
+              Salvar fatura
+            </Button>
           </div>
         )}
         <div className="sheet-grid-wrap">

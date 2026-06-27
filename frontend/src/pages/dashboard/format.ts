@@ -19,7 +19,7 @@ export function compactMoney(value: number, currency = DEFAULT_IMPORT_CURRENCY):
 
 export function fullMoney(value: number, currency = DEFAULT_IMPORT_CURRENCY): string {
   const cur = normalizeImportCurrency(currency);
-  return `${cur} ${value.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
+  return `${cur} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function dominantCurrency(currencies: string[]): string {
