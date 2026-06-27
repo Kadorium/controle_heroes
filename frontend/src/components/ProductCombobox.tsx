@@ -14,12 +14,26 @@ interface Props {
 const LIST_MAX_HEIGHT = 280;
 const LIST_MIN_WIDTH = 300;
 
+function productMatchesQuery(p: Product, q: string): boolean {
+  if (p.sku_code.toLowerCase().includes(q)) return true;
+  if (p.description.toLowerCase().includes(q)) return true;
+  const code = p.supplier_code?.trim().toLowerCase();
+  if (code && code.includes(q)) return true;
+  return false;
+}
+
+function productMetaLine(p: Product): string {
+  const group = p.product_group?.trim() || "—";
+  const subgroup = p.product_subgroup?.trim() || "—";
+  return `${group} › ${subgroup}`;
+}
+
 export function ProductCombobox({
   products,
   value,
   productId,
   onChange,
-  placeholder = "SKU ou descrição…",
+  placeholder = "SKU, nome ou código fornecedor…",
   disabled = false,
 }: Props) {
   const listId = useId();
@@ -38,15 +52,9 @@ export function ProductCombobox({
 
   const filtered = useMemo(() => {
     const q = value.trim().toLowerCase();
-    const limit = q ? 30 : 15;
+    const limit = q ? 50 : 15;
     if (!q) return products.slice(0, limit);
-    return products
-      .filter(
-        (p) =>
-          p.sku_code.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q),
-      )
-      .slice(0, limit);
+    return products.filter((p) => productMatchesQuery(p, q)).slice(0, limit);
   }, [products, value]);
 
   const reposition = useCallback(() => {
@@ -155,7 +163,7 @@ export function ProductCombobox({
             <li className="product-combobox__list-hint" aria-hidden>
               {value.trim()
                 ? `${filtered.length} resultado(s)`
-                : `Digite para filtrar · ${products.length} cadastrados`}
+                : `Digite SKU, nome ou código fornecedor · ${products.length} cadastrados`}
             </li>
             {filtered.map((p, i) => (
               <li
@@ -168,8 +176,11 @@ export function ProductCombobox({
                 onClick={() => selectProduct(p)}
                 onMouseEnter={() => setHighlight(i)}
               >
-                <strong>{p.sku_code}</strong>
-                <span>{p.description}</span>
+                <div className="product-combobox__option-main">
+                  <strong>{p.sku_code}</strong>
+                  <span>{p.description}</span>
+                </div>
+                <div className="product-combobox__option-meta">{productMetaLine(p)}</div>
               </li>
             ))}
           </ul>,

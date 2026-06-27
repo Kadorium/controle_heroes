@@ -259,9 +259,9 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** DONE
 - **Dependência:** F1-003, F1-004
-- **Evidência:** `scripts/start.ps1`
-- **Teste:** Servidor iniciado via `uvicorn app.main:app --port 8080`
-- **Observação:** Task Scheduler auto-start pendente (infra)
+- **Evidência:** `scripts/start.ps1`; `start.bat` (dev local + browser); **`start_server.bat`** (PC servidor LAN: build condicional, firewall, IP, uvicorn `0.0.0.0:8080`)
+- **Teste:** Servidor iniciado via `uvicorn app.main:app --host 0.0.0.0 --port 8080`; `start_server.bat` validado 2026-06-27 (alembic OK, IP `172.16.1.114`, aviso firewall sem admin)
+- **Observação:** Task Scheduler auto-start pendente (infra); `start.bat` mantido para uso dev no próprio PC
 
 ### F1-006
 - **Módulo:** Rede interna
@@ -269,9 +269,9 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** PARTIAL
 - **Dependência:** F0-008, F1-005
-- **Evidência:** Servidor `--host 0.0.0.0:8080`; seção Instalação atualizada
-- **Teste:** Local OK (`127.0.0.1:8080`); LAN aguarda IP/firewall Epic
-- **Observação:** —
+- **Evidência:** Servidor `--host 0.0.0.0:8080`; **`abrir_epic_importacoes.bat`** + `epic_server_ip.txt` (IP configurável por PC cliente); mensagem LAN em `start_server.bat`
+- **Teste:** Local OK (`127.0.0.1:8080`); `abrir_epic_importacoes.bat` abre `http://<IP>:8080` (validado com IP em arquivo); **acesso LAN de outro PC na rede Epic ainda pendente**
+- **Observação:** Distribuir `abrir_epic_importacoes.bat` (+ opcionalmente `epic_server_ip.txt` pré-preenchido) para estações da rede
 
 ### F1-007
 - **Módulo:** Firewall/IP
@@ -279,9 +279,9 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** PARTIAL
 - **Dependência:** F0-008
-- **Evidência:** Documentado no checklist (Instalação)
-- **Teste:** Pendente confirmação infra Epic
-- **Observação:** —
+- **Evidência:** `start_server.bat` tenta `netsh advfirewall firewall add rule` (TCP 8080 inbound) **quando executado como Administrador**; aviso explícito se sem privilégio; detecção IP via `ipconfig`
+- **Teste:** Sem admin → aviso exibido (validado 2026-06-27); regra firewall + teste LAN aguardam execução como Admin no PC servidor Epic
+- **Observação:** PostgreSQL permanece em `localhost:5433` — **não** exposto na rede
 
 ### F1-008
 - **Módulo:** Pasta anexos
@@ -458,11 +458,11 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Módulo:** Telas admin
 - **Regra/Requisito:** Login; gestão usuários/perfis (admin)
 - **Prioridade:** P1
-- **Status:** PARTIAL
+- **Status:** DONE
 - **Dependência:** F2-003, F2-004
-- **Evidência:** `frontend/src/LoginPage.tsx`; `DashboardPage.tsx` (pós-login); API admin users
-- **Teste:** Browser Cursor — login admin OK (`http://localhost:8082`); CRUD usuários UI pendente
-- **Observação:** Tela CRUD usuários na Fase 3
+- **Evidência:** `frontend/src/pages/users/UsersPage.tsx`, `UserDetailDrawer.tsx`, `app/api/users.py` (list/PATCH/roles/visibility), `app/services/user_admin.py`
+- **Teste:** `pytest tests/test_permissions.py -q`; browser Cadastros → Usuários (admin)
+- **Observação:** Card visível só com `users:read`; anulação revoga sessões
 
 ---
 
@@ -1433,11 +1433,12 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 | L-001 | Tolerâncias numéricas conciliação | Fechamento fino | PARTIAL | Defaults MVP em código; revisar com financeiro |
 | L-002 | Exemplo planilha Heroes | Bloqueia F5-007 parser | BLOCKED | Enviar arquivo anonimizado |
 | L-003 | Política conta corrente Brasil / impacto fiscal | Regras incompletas F4-010 | BLOCKED | Validar com financeiro/fiscal |
-| L-004 | IP/porta/firewall PC servidor | Acesso LAN | TODO | Infra Epic confirmar |
+| L-004 | IP/porta/firewall PC servidor | Acesso LAN | PARTIAL | `start_server.bat` + `abrir_epic_importacoes.bat`; teste LAN real na Epic pendente |
 | L-005 | Matriz papéis × ações críticas | Permissões iniciais | TODO | Validar com gestão; usar defaults |
 | L-006 | Campos exatos SKU (NCM, peso, volume) | Rateio LC e aduana | TODO | Definir na F3-002 |
 | L-007 | DUIMP vs DI predominante | Modelagem aduaneira | TODO | Confirmar mix operação atual |
 | L-008 | Porta HTTP única (8080) e porta PG (5433 neste PC) | Config rede/DB | DONE | Documentado em .env e Instalação |
+| L-UX-001 | Preview/parser Heroes na ordem manual já vinculada (`ATTACHED` → `PREVIEW` → merge) | Pré-preenchimento Ordine 758 sem duplicar ordem | DONE | **Evidência:** `GET/POST /importations/{id}/heroes-import/*`, `invoice_blocks`, staging/review_queue SKU, `HeroesImportPanel` na Central. **Testes:** `pytest tests/test_heroes_merge_commit.py tests/test_heroes_xlsx_staging.py tests/test_heroes_invoice_blocks.py` (44 passed jun/2026). |
 
 ---
 
@@ -1482,12 +1483,35 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 [x] python -m venv .venv && pip install -r requirements.txt
 [x] cd frontend && npm install && npm run build
 [x] alembic upgrade head
-[x] scripts/start.ps1 ou: python -m uvicorn app.main:app --host 0.0.0.0 --port 8080
-[ ] Firewall: porta 8080 liberada (pendente infra Epic)
-[ ] IP servidor: ________________ (pendente)
+[x] PC servidor: start_server.bat (recomendado) ou scripts/start.ps1
+[x] PCs clientes: abrir_epic_importacoes.bat (+ epic_server_ip.txt opcional)
+[ ] Firewall: porta 8080 liberada (start_server.bat como Admin ou manual — pendente infra Epic)
+[ ] IP servidor: ________________ (pendente reserva DHCP / IP fixo na Epic)
 [x] URL acesso local: http://127.0.0.1:8080/
-[ ] URL acesso LAN: http://<IP-SERVIDOR>:8080/
+[ ] URL acesso LAN: http://<IP-SERVIDOR>:8080/ (testar de outro PC)
 ```
+
+### Scripts de rede (2026-06-27)
+
+| Arquivo | Onde usar | Função |
+|---------|-----------|--------|
+| `install.bat` | PC servidor (1ª vez) | venv, pip, npm, build, alembic |
+| `start_server.bat` | PC servidor | Sobe app na LAN (`0.0.0.0:8080`); build se `dist/` ausente ou `rebuild`; firewall; exibe IP |
+| `start.bat` | PC dev / servidor local | Igual start + abre browser local em janela separada |
+| `abrir_epic_importacoes.bat` | Outros PCs da rede | Lê `epic_server_ip.txt` ou pede IP; abre `http://<IP>:8080` |
+
+**PC servidor — primeiro start:**
+1. `install.bat`
+2. Ajustar `.env` (`DATABASE_URL` com PostgreSQL **somente localhost**)
+3. Executar **`start_server.bat` como Administrador** (1ª vez, para criar regra firewall TCP 8080)
+4. Anotar IP exibido: *“Outros computadores da rede devem acessar: http://\<IP\>:8080”*
+
+**PCs clientes:**
+1. Copiar `abrir_epic_importacoes.bat` para a estação (Desktop ou pasta compartilhada)
+2. Criar `epic_server_ip.txt` na mesma pasta com o IPv4 do servidor (uma linha), **ou** informar na 1ª execução e salvar
+3. Duplo clique → navegador abre o sistema
+
+**Forçar rebuild frontend no servidor:** `start_server.bat rebuild`
 
 **Credenciais seed (alterar em produção):** `admin@epic.com.br` / `admin123`
 
@@ -2502,7 +2526,8 @@ Percepção geral antes: **ERP técnico por abas**, sem grade editável, sem vis
 |------|--------|-------------------|
 | UX6-C Grade /importacoes estilo planilha | DONE | `ImportationsPage.tsx` (`.sheet-grid`, header/coluna fixos, totais por moeda, filtros, export); E2E "grade densa" |
 | UX6-D Central em seções empilhadas | DONE | `OrderCentralOverview.tsx` (resumo operacional, faturas+itens, pagamentos, DA SPEDIRE, modelos, documentos, histórico); E2E "seções empilhadas" |
-| UX6-E Nova ordem planilha | DONE | `NovaOrdemModal.tsx` (tabela itens, `ProductCombobox`, Heroes default + dedupe, totais live, `create+items[]`, financeiro opcional); E2E `nova-ordem-planilha.spec.ts`, `nova-ordem-regression.spec.ts` |
+| UX6-E Nova ordem planilha | DONE | Redesign 4 zonas: L1 PO+Responsável+Data; L2 fornecedor badge condicional+moeda+incoterm; financeiro sempre visível; upload `.xlsx`→`raw_import_files`+`link-heroes-raw` (`ATTACHED`); `ProductCombobox` two-line+`supplier_code`; E2E `nova-ordem-*.spec.ts`; `tests/test_link_heroes_raw.py` |
+| UX6-M Detalhe produto 5 abas | DONE | `ProductDetailPage.tsx` 9→5; `docs/GUIA-TELA-PRODUTOS.md` §5.1; build OK |
 | UX6-F Financeiro acionável | DONE | inline due/comprovante + Liquidar em `OrderCentralOverview` e `FinancePage`; E2E "adicionar pagamento planejado e liquidar" |
 | UX6-G Dashboard filas de ação | DONE | `DashboardPage` roteia ações ao bloco correto da ordem |
 | UX6-H Heroes stepper guiado | DONE | `HeroesUploadPage.tsx` (`.ux-steps`, 4 passos); E2E "fluxo guiado com stepper" |
@@ -2558,10 +2583,61 @@ Importação em massa, nova conciliação automática, integração externa, cop
 
 ---
 
+## Scripts LAN — validação e infra (2026-06-27)
+
+### Hipóteses confirmadas
+
+| Hipótese | Resultado |
+|----------|-----------|
+| Porta HTTP padronizada é **8080** | **Confirmado** — `app/config.py`, `.env.example`, `start.bat`, `scripts/start.ps1` |
+| Frontend é servido pelo FastAPI (porta única) | **Confirmado** — `app/main.py` monta `frontend/dist` em `/` e `/assets`; API em `/api/*` |
+| Uvicorn deve escutar `0.0.0.0` para LAN | **Confirmado** — já usado em `start.bat` / `start.ps1`; replicado em `start_server.bat` |
+| PostgreSQL não deve ir para a rede | **Confirmado** — `DATABASE_URL` default `localhost:5433`; script apenas informa, não altera PG |
+
+### Hipóteses refutadas / ajustes
+
+| Item | Nota |
+|------|------|
+| PowerShell inline no `.bat` para IP | **Evitado** — escape de `$` falhou em teste; substituído por `ipconfig` + `findstr IPv4` |
+| `start.bat` substituído | **Não** — mantido para dev local; `start_server.bat` é variante **servidor LAN** |
+
+### Arquivos criados
+
+- `start_server.bat` — PC servidor Epic
+- `abrir_epic_importacoes.bat` — PCs clientes
+- `.gitignore` — ignora `epic_server_ip.txt` (config local por estação)
+
+### Validação executada (2026-06-27)
+
+| Teste | Resultado |
+|-------|-----------|
+| Detecção IP (`ipconfig`) | OK — `172.16.1.114` |
+| `start_server.bat` (sem admin) | OK — aviso firewall; mensagem LAN correta; alembic OK; skip build se `dist/` existe |
+| `start_server.bat` → uvicorn | Porta 8080 já em uso neste ambiente → bind falhou após startup (esperado); health `200` no processo existente |
+| `abrir_epic_importacoes.bat` + `epic_server_ip.txt` | OK — abriu `http://127.0.0.1:8080/` |
+| Regra firewall `netsh` | Não testada com sucesso (shell sem privilégio Admin) — caminho de aviso validado |
+
+### Pendências de infra (Epic)
+
+1. Executar `start_server.bat` **como Administrador** no PC servidor (criar regra TCP 8080 inbound).
+2. Confirmar **IP fixo ou reserva DHCP** do servidor (F0-008).
+3. Testar `abrir_epic_importacoes.bat` de **outro PC** na mesma LAN.
+4. Task Scheduler para subir após reboot (F1-005 observação).
+5. Alterar credenciais seed admin em produção.
+
+### Próxima etapa lógica
+
+1. **Piloto na Epic** — `install.bat` → `start_server.bat` (Admin) → distribuir atalho `abrir_epic_importacoes.bat` com IP pré-configurado.
+2. Marcar F1-006/F1-007 **DONE** após teste LAN bem-sucedido + IP documentado.
+3. `register-backup-task.ps1` no servidor (F12-004/005).
+
+---
+
 ## Histórico de atualizações
 
 | Data | Versão | Alteração |
 |---|---|---|
+| 2026-06-27 | 3.3 | Scripts LAN: `start_server.bat`, `abrir_epic_importacoes.bat`; F1-005/006/007 evidências; L-004 PARTIAL; seção Instalação |
 | 2026-06-23 | 3.2 | Rodada 3 QA E2E A–L: QA-UI-002 (ID 157) PASS; fechamento UI + reabertura; Playwright 13 passed; F12-006 DONE; lacunas R3-LAC-001–005; fix QTY_CHAIN OK upsert |
 | 2026-06-23 | 3.1 | Rodada combinada BLOCO 2: Nova Ordem planilha (tabela itens, ProductCombobox, Heroes default, totais live); UX6-E atualizado; E2E anti-regressão ordem completa |
 | 2026-06-23 | 3.0 | Rodada 2 QA: correção QA-HIGH-001/002, QA-MED-001–004; pytest 204 (+5); build OK; distinção null vs zero no dado; F12-006 PARTIAL (E2E completo = Rodada 3) |

@@ -22,6 +22,9 @@ class UserResponse(BaseModel):
     role: str
     permissions: list[str]
     last_login: datetime | None
+    is_active: bool = True
+    created_at: datetime | None = None
+    cancelled_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 
@@ -31,6 +34,19 @@ class UserCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     password: str = Field(min_length=6)
     role_name: str = Field(default="operador")
+
+
+class UserUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    role_name: str | None = None
+    password: str | None = Field(default=None, min_length=6)
+
+
+class RoleResponse(BaseModel):
+    name: str
+    description: str | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class UserCancelRequest(BaseModel):

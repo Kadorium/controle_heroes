@@ -15,14 +15,10 @@ import { SuppliersTab } from "./ProductDetailTabs/SuppliersTab";
 
 const TABS = [
   { id: "identification", label: "Identificação" },
-  { id: "commercial", label: "Comercial" },
-  { id: "fiscal", label: "Fiscal/Aduaneiro" },
-  { id: "logistics", label: "Logística/Embalagem" },
-  { id: "suppliers", label: "Fornecedores/Compras" },
-  { id: "orders", label: "Ordens de importação" },
-  { id: "costs", label: "Custos" },
-  { id: "photos", label: "Fotos/Documentos" },
-  { id: "history", label: "Histórico/Auditoria" },
+  { id: "fiscal_logistics", label: "Fiscal e Logística" },
+  { id: "suppliers", label: "Fornecedores" },
+  { id: "orders_costs", label: "Ordens e Custos" },
+  { id: "docs_history", label: "Documentos e Histórico" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -143,26 +139,56 @@ export function ProductDetailPage() {
       </nav>
 
       {tab === "identification" && (
-        <IdentificationTab
-          product={product}
-          onSave={savePatch}
-          onArchive={() => void archive()}
-          onRestore={() => void restore()}
-          onCancel={() => void cancelProduct()}
-          reason={reason}
-          onReasonChange={setReason}
-        />
+        <div className="product-detail__stack">
+          <IdentificationTab
+            product={product}
+            onSave={savePatch}
+            onArchive={() => void archive()}
+            onRestore={() => void restore()}
+            onCancel={() => void cancelProduct()}
+            reason={reason}
+            onReasonChange={setReason}
+          />
+          <section className="product-detail__section">
+            <h3>Notas comerciais</h3>
+            <CommercialTab product={product} onSave={savePatch} />
+          </section>
+        </div>
       )}
-      {tab === "commercial" && <CommercialTab product={product} onSave={savePatch} />}
-      {tab === "fiscal" && <FiscalCustomsTab product={product} onSave={savePatch} />}
-      {tab === "logistics" && <LogisticsTab product={product} onSave={savePatch} />}
+      {tab === "fiscal_logistics" && (
+        <div className="product-detail__stack">
+          <section className="product-detail__section">
+            <h3>Dados fiscais e aduaneiros</h3>
+            <FiscalCustomsTab product={product} onSave={savePatch} />
+          </section>
+          <section className="product-detail__section">
+            <h3>Embalagem e logística</h3>
+            <LogisticsTab product={product} onSave={savePatch} />
+          </section>
+        </div>
+      )}
       {tab === "suppliers" && <SuppliersTab product={product} onSave={savePatch} />}
-      {tab === "orders" && (
-        <ImportOrdersTab orders={orders} orderSearch={orderSearch} onOrderSearchChange={setOrderSearch} />
+      {tab === "orders_costs" && (
+        <div className="product-detail__stack">
+          <ImportOrdersTab orders={orders} orderSearch={orderSearch} onOrderSearchChange={setOrderSearch} />
+          <section className="product-detail__section">
+            <h3>Custos (landed cost)</h3>
+            <CostsTab productId={product.id} lastUnit={product.last_landed_cost_unit} />
+          </section>
+        </div>
       )}
-      {tab === "costs" && <CostsTab productId={product.id} lastUnit={product.last_landed_cost_unit} />}
-      {tab === "photos" && <PhotosDocumentsTab productId={product.id} onUploaded={() => void load()} />}
-      {tab === "history" && <HistoryAuditTab audit={audit} />}
+      {tab === "docs_history" && (
+        <div className="product-detail__stack">
+          <section className="product-detail__section">
+            <h3>Fotos e documentos</h3>
+            <PhotosDocumentsTab productId={product.id} onUploaded={() => void load()} />
+          </section>
+          <section className="product-detail__section">
+            <h3>Histórico e auditoria</h3>
+            <HistoryAuditTab audit={audit} />
+          </section>
+        </div>
+      )}
     </Card>
   );
 }

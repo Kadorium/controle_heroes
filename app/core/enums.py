@@ -113,6 +113,7 @@ class HeroesSheetType(str, Enum):
 
 
 class HeroesImportRunStatus(str, Enum):
+    ATTACHED = "ATTACHED"
     PREVIEW = "PREVIEW"
     REVIEW_REQUIRED = "REVIEW_REQUIRED"
     COMMITTED = "COMMITTED"

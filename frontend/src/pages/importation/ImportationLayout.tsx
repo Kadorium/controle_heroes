@@ -20,6 +20,7 @@ import { fmtDate } from "../../utils/formatDate";
 import { IMPORTATION_SIDEBAR_GROUPS, type ImportationOutletContext } from "./types";
 import { OrderCentralProvider } from "./OrderCentralContext";
 import { OrderCentralOperationalHeader } from "./OrderCentralOperationalHeader";
+import { HeroesImportPanel } from "./HeroesImportPanel";
 
 export function ImportationLayout() {
   const { id: idParam } = useParams();
@@ -233,6 +234,8 @@ export function ImportationLayout() {
               invoices={orderCentral?.invoices}
             />
           )}
+
+          <HeroesImportPanel importationId={id} onCommitted={() => reload()} />
 
           <div className="order-central__rail order-central__rail--compact">
             {(statusRail?.stages ?? []).map((stage, i) => {

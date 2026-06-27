@@ -624,8 +624,22 @@ Não bloqueiam o PASS; estão mapeadas no checklist e no código com `// dado-pe
 
 ---
 
+## 19. Painel Heroes (L-UX-001 — jun/2026)
+
+Ordens criadas via **Nova Ordem** com planilha vinculada exibem na Central o **`HeroesImportPanel`**:
+
+- **Preview:** `GET /api/importations/{id}/heroes-import/preview` — parser no mesmo run `ATTACHED` → `PREVIEW`; exibe `invoice_blocks`.
+- **Commit merge:** `POST /api/importations/{id}/heroes-import/commit` — Invoices/Payments/Items na ordem manual (sem `HEROES-{n}`).
+- **SKUs:** racchetta sem match → staging + `review_queue` (`SKU_UNRESOLVED`); commit bloqueado até `PATCH /api/imports/staging/{id}/resolve-sku`.
+- **UI revisão:** `/revisao` — colunas Fatura, Data, Racchetta.
+
+Cadastre `supplier_code` nos produtos ([`GUIA-TELA-PRODUTOS.md`](./GUIA-TELA-PRODUTOS.md)) para reduzir pendências.
+
+---
+
 ## 18. Histórico deste documento
 
 | Data | Versão | Nota |
 |------|--------|------|
 | 2026-06-21 | 1.0 | Entrega inicial pós-MVP 4 — Central da Ordem Fases 1–7 |
+| 2026-06-27 | 1.1 | §19 — HeroesImportPanel, merge ATTACHED, staging SKU (L-UX-001) |

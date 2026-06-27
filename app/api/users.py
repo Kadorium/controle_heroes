@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.permissions import PERM_USERS_READ, PERM_USERS_WRITE
+from app.core.security import hash_password
 from app.database import get_db
 from app.dependencies import get_current_user, require_permission
 from app.models import ReasonCode, Role, User
-from app.schemas import ReasonCodeResponse, UserCancelRequest, UserCreateRequest, UserResponse
+from app.schemas import (
+    ReasonCodeResponse,
+    RoleResponse,
+    UserCancelRequest,
+    UserCreateRequest,
+    UserResponse,
+    UserUpdateRequest,
+)
 from app.services.auth import soft_cancel_user, write_audit_log
-from app.core.security import hash_password
+from app.services.user_admin import UserAdminError, update_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -20,15 +28,56 @@ def _user_response(user: User) -> UserResponse:
         role=user.role.name,
         permissions=list(user.role.permissions or []),
         last_login=user.last_login,
+        is_active=user.is_active,
+        created_at=user.created_at,
+        cancelled_at=user.cancelled_at,
     )
+
+
+def _load_user(db: Session, user_id: int) -> User | None:
+    return (
+        db.query(User)
+        .options(joinedload(User.role))
+        .filter(User.id == user_id)
+        .first()
+    )
+
+
+@router.get("/roles", response_model=list[RoleResponse])
+def list_roles(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_USERS_READ)),
+) -> list[RoleResponse]:
+    roles = db.query(Role).order_by(Role.name).all()
+    return [RoleResponse.model_validate(r) for r in roles]
+
+
+@router.get("/reason-codes", response_model=list[ReasonCodeResponse])
+def list_reason_codes(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> list[ReasonCodeResponse]:
+    codes = (
+        db.query(ReasonCode)
+        .filter(ReasonCode.is_active.is_(True))
+        .order_by(ReasonCode.category, ReasonCode.code)
+        .all()
+    )
+    return [ReasonCodeResponse.model_validate(c) for c in codes]
 
 
 @router.get("", response_model=list[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
     _: User = Depends(require_permission(PERM_USERS_READ)),
+    visibility: str = Query("active", pattern="^(active|cancelled|all)$"),
 ) -> list[UserResponse]:
-    users = db.query(User).filter(User.is_active.is_(True)).order_by(User.name).all()
+    q = db.query(User).options(joinedload(User.role))
+    if visibility == "active":
+        q = q.filter(User.is_active.is_(True))
+    elif visibility == "cancelled":
+        q = q.filter(User.is_active.is_(False))
+    users = q.order_by(User.name).all()
     return [_user_response(u) for u in users]
 
 
@@ -54,6 +103,7 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+    user = _load_user(db, user.id)
 
     write_audit_log(
         db,
@@ -66,6 +116,55 @@ def create_user(
     return _user_response(user)
 
 
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_USERS_READ)),
+) -> UserResponse:
+    user = _load_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return _user_response(user)
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+def patch_user(
+    user_id: int,
+    payload: UserUpdateRequest,
+    db: Session = Depends(get_db),
+    actor: User = Depends(require_permission(PERM_USERS_WRITE)),
+) -> UserResponse:
+    user = _load_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    role = None
+    if payload.role_name is not None:
+        role = db.query(Role).filter(Role.name == payload.role_name).first()
+        if not role:
+            raise HTTPException(status_code=400, detail="Papel inválido")
+
+    data = payload.model_dump(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=400, detail="Nenhum campo para atualizar")
+
+    try:
+        user = update_user(
+            db,
+            user,
+            actor_id=actor.id,
+            name=payload.name,
+            role=role,
+            password=payload.password,
+        )
+    except UserAdminError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    user = _load_user(db, user.id)
+    return _user_response(user)
+
+
 @router.post("/{user_id}/cancel", response_model=UserResponse)
 def cancel_user(
     user_id: int,
@@ -73,8 +172,8 @@ def cancel_user(
     db: Session = Depends(get_db),
     actor: User = Depends(require_permission(PERM_USERS_WRITE)),
 ) -> UserResponse:
-    user = db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
-    if not user:
+    user = _load_user(db, user_id)
+    if not user or not user.is_active:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     if user.id == actor.id:
         raise HTTPException(status_code=400, detail="Não é possível anular o próprio usuário")
@@ -96,21 +195,10 @@ def cancel_user(
             reason=payload.reason,
             reason_code_id=reason_code_id,
         )
+    except UserAdminError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    user = _load_user(db, user.id)
     return _user_response(user)
-
-
-@router.get("/reason-codes", response_model=list[ReasonCodeResponse])
-def list_reason_codes(
-    db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
-) -> list[ReasonCodeResponse]:
-    codes = (
-        db.query(ReasonCode)
-        .filter(ReasonCode.is_active.is_(True))
-        .order_by(ReasonCode.category, ReasonCode.code)
-        .all()
-    )
-    return [ReasonCodeResponse.model_validate(c) for c in codes]

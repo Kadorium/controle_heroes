@@ -26,10 +26,12 @@ from app.schemas_docs import (
     ReviewQueueResponse,
     StagingRowResponse,
 )
+from app.schemas_import import ResolveStagingSkuRequest
 from app.services.heroes_import import approve_staging_row, import_heroes_csv
 from app.services.heroes_order_format_v1 import export_normalized_xlsx, export_normalized_zip, preview_to_canonical
 from app.services.heroes_workbook_paths import heroes_workbook_search_labels, resolve_heroes_workbook_path
 from app.services.heroes_xlsx_commit import commit_heroes_import_run
+from app.services.heroes_xlsx_guard import AttachedRawFileError, assert_raw_file_not_attached_elsewhere
 from app.services.heroes_xlsx_import import load_local_workbook, preview_xlsx_sheet, profile_local_workbook, upload_xlsx_file
 from app.services.reset_operational_data import reset_operational_test_data
 
@@ -177,6 +179,10 @@ async def preview_heroes_xlsx(
     if not raw:
         raise HTTPException(status_code=404, detail="Arquivo não encontrado")
     try:
+        assert_raw_file_not_attached_elsewhere(db, raw.id)
+    except AttachedRawFileError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
+    try:
         content = _read_raw_file_content(raw.storage_path)
         run = preview_xlsx_sheet(
             db,
@@ -218,6 +224,14 @@ def commit_heroes_xlsx(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission(PERM_IMPORTS_APPROVE)),
 ):
+    run = db.query(HeroesImportRun).filter(HeroesImportRun.id == payload.run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Import run não encontrado")
+    if run.raw_file_id and not run.importation_id:
+        try:
+            assert_raw_file_not_attached_elsewhere(db, run.raw_file_id)
+        except AttachedRawFileError as e:
+            raise HTTPException(status_code=409, detail=str(e)) from e
     try:
         imp = commit_heroes_import_run(
             db,
@@ -331,5 +345,37 @@ def approve_staging(
 ):
     try:
         return approve_staging_row(db, staging_id, user_id=current_user.id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.patch("/staging/{staging_id}/resolve-sku", response_model=StagingRowResponse)
+def resolve_staging_sku_endpoint(
+    staging_id: int,
+    payload: ResolveStagingSkuRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTS_APPROVE)),
+):
+    from app.services.heroes_xlsx_staging import resolve_staging_sku
+    from app.services.auth import write_audit_log
+
+    try:
+        staging = resolve_staging_sku(
+            db,
+            staging_id,
+            product_id=payload.product_id,
+            user_id=current_user.id,
+        )
+        write_audit_log(
+            db,
+            user_id=current_user.id,
+            entity_type="staging_import_row",
+            entity_id=str(staging.id),
+            action="resolve_sku",
+            new_value=str(payload.product_id),
+        )
+        db.commit()
+        db.refresh(staging)
+        return staging
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

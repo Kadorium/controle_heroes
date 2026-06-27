@@ -11,13 +11,13 @@ describe("novaOrdemTotals", () => {
     expect(parseDecimalInput("12,50")).toBe(12.5);
   });
 
-  it("lineTotals: linha incompleta → subtotal null", () => {
-    expect(lineTotals({ quantity_ordered: "10", unit_price_foreign: "", discount_amount_foreign: "" }).subtotal).toBeNull();
+  it("lineTotals: linha incompleta → net null", () => {
+    expect(lineTotals({ quantity_ordered: "10", unit_price_foreign: "", discount_amount_foreign: "" }).net).toBeNull();
   });
 
   it("lineTotals: 10 × 12,50 = 125", () => {
     const lt = lineTotals({ quantity_ordered: "10", unit_price_foreign: "12.50", discount_amount_foreign: "" });
-    expect(lt.subtotal).toBe(125);
+    expect(lt.gross).toBe(125);
     expect(lt.net).toBe(125);
   });
 

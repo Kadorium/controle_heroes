@@ -64,5 +64,5 @@ if errorlevel 1 (
 )
 
 echo.
-echo Instalacao concluida. Use start.bat para iniciar o sistema.
+echo Instalacao concluida. Use start_server.bat (servidor LAN) ou start.bat (dev local).
 pause

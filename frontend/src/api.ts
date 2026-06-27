@@ -7,10 +7,24 @@ export interface User {
   last_login: string | null;
 }
 
+export interface AdminUser extends User {
+  is_active: boolean;
+  created_at?: string | null;
+  cancelled_at?: string | null;
+}
+
+export interface RoleOption {
+  name: string;
+  description: string | null;
+}
+
 export interface Supplier {
   id: number;
   name: string;
   country: string | null;
+  tax_id: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
   currency_default: string | null;
   is_active: boolean;
 }
@@ -20,8 +34,76 @@ export interface Product {
   sku_code: string;
   description: string;
   ncm: string | null;
+  weight_kg?: string | null;
+  volume_m3?: string | null;
   category?: string | null;
+  lifecycle_status?: string | null;
+  product_group?: string | null;
+  product_subgroup?: string | null;
+  supplier_code?: string | null;
+  default_supplier_id?: number | null;
+  default_supplier_name?: string | null;
+  country_of_origin?: string | null;
+  unit_of_measure?: string | null;
+  fiscal_description?: string | null;
+  fiscal_review_required?: boolean;
+  launch_date?: string | null;
+  commercial_notes?: string | null;
   is_active: boolean;
+  has_photo?: boolean;
+  photo_attachment_id?: number | null;
+  pending_flags?: string[];
+  last_importation_at?: string | null;
+  last_importation_po?: string | null;
+  last_landed_cost_unit?: string | null;
+  orders_count?: number;
+  archived_at?: string | null;
+  archive_reason?: string | null;
+  cancelled_at?: string | null;
+  cancellation_reason?: string | null;
+  used_in_importations?: boolean;
+}
+
+export interface ProductCatalogResponse {
+  items: Product[];
+  total: number;
+}
+
+export interface ProductAuditRow {
+  id: number;
+  action: string;
+  timestamp: string;
+  field_changed: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  justification: string | null;
+  user_name: string | null;
+}
+
+export interface ProductOrderRow {
+  importation_id: number;
+  po_number: string;
+  current_status: string;
+  supplier_name: string | null;
+  currency: string;
+  qty_ordered: string | null;
+  landed_cost_unit: string | null;
+  updated_at: string | null;
+  created_at: string | null;
+}
+
+export interface ProductImportPreviewRow {
+  row_number: number;
+  sku_code: string | null;
+  valid: boolean;
+  errors: string[];
+  data: Record<string, unknown> | null;
+}
+
+export interface BulkActionResult {
+  succeeded: number[];
+  skipped: Array<{ id: number; reason: string }>;
+  failed: Array<{ id: number; error: string }>;
 }
 
 export interface Importation {
@@ -409,19 +491,109 @@ export const healthApi = {
     api<{ status: string; app: string; database: string }>("/api/health"),
 };
 
+export type SupplierPayload = {
+  name?: string;
+  country?: string | null;
+  tax_id?: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  currency_default?: string | null;
+};
+
 export const suppliersApi = {
   list: () => api<Supplier[]>("/api/suppliers"),
   get: (id: number) => api<Supplier>(`/api/suppliers/${id}`),
-  create: (data: { name: string; country?: string; currency_default?: string }) =>
+  create: (data: SupplierPayload & { name: string }) =>
     api<Supplier>("/api/suppliers", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: number, data: SupplierPayload) =>
+    api<Supplier>(`/api/suppliers/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  cancel: (id: number, reason: string) =>
+    api<Supplier>(`/api/suppliers/${id}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
 };
 
 export const productsApi = {
-  list: () => api<Product[]>("/api/products"),
-  create: (data: { sku_code: string; description: string; ncm?: string; category?: string }) =>
-    api<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
-  update: (id: number, data: { description?: string; ncm?: string; category?: string }) =>
+  list: (params?: { for_combobox?: boolean }) => {
+    const qs = params?.for_combobox ? "?for_combobox=true" : "";
+    return api<Product[]>(`/api/products${qs}`);
+  },
+  catalog: (params?: {
+    q?: string;
+    visibility?: string;
+    quick_filter?: string;
+    sort?: string;
+    sort_dir?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const sp = new URLSearchParams();
+    if (params?.q) sp.set("q", params.q);
+    if (params?.visibility) sp.set("visibility", params.visibility);
+    if (params?.quick_filter) sp.set("quick_filter", params.quick_filter);
+    if (params?.sort) sp.set("sort", params.sort);
+    if (params?.sort_dir) sp.set("sort_dir", params.sort_dir);
+    if (params?.limit != null) sp.set("limit", String(params.limit));
+    if (params?.offset != null) sp.set("offset", String(params.offset));
+    const q = sp.toString();
+    return api<ProductCatalogResponse>(`/api/products/catalog${q ? `?${q}` : ""}`);
+  },
+  detail: (id: number) => api<Product>(`/api/products/${id}/detail`),
+  create: (data: object) => api<Product>("/api/products", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: number, data: object) =>
     api<Product>(`/api/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  archive: (id: number, reason: string) =>
+    api<Product>(`/api/products/${id}/archive`, { method: "POST", body: JSON.stringify({ reason }) }),
+  restore: (id: number) => api<Product>(`/api/products/${id}/restore`, { method: "POST" }),
+  cancel: (id: number, reason: string) =>
+    api<Product>(`/api/products/${id}/cancel`, { method: "POST", body: JSON.stringify({ reason }) }),
+  orders: (id: number, params?: { q?: string }) => {
+    const qs = params?.q ? `?q=${encodeURIComponent(params.q)}` : "";
+    return api<{ items: ProductOrderRow[]; total: number }>(`/api/products/${id}/orders${qs}`);
+  },
+  audit: (id: number) => api<ProductAuditRow[]>(`/api/products/${id}/audit`),
+  costHistory: (id: number) =>
+    api<{ items: Array<{ importation_id: number; po_number: string; version_number: number; version_type: string; unit_cost: string | null; created_at: string }> }>(
+      `/api/products/${id}/cost-history`,
+    ),
+  importPreview: (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return apiForm<{ valid_count: number; invalid_count: number; rows: ProductImportPreviewRow[] }>(
+      "/api/products/import/preview",
+      fd,
+    );
+  },
+  importCommit: (rows: ProductImportPreviewRow[]) =>
+    api<{ created: number; updated: number; skipped: number; errors: string[] }>(
+      "/api/products/import/commit",
+      { method: "POST", body: JSON.stringify({ rows, confirm: true }) },
+    ),
+  bulkArchive: (product_ids: number[], reason: string) =>
+    api<BulkActionResult>("/api/products/bulk/archive", {
+      method: "POST",
+      body: JSON.stringify({ product_ids, reason }),
+    }),
+  bulkRestore: (product_ids: number[]) =>
+    api<BulkActionResult>("/api/products/bulk/restore", {
+      method: "POST",
+      body: JSON.stringify({ product_ids }),
+    }),
+  bulkStatus: (product_ids: number[], lifecycle_status: string) =>
+    api<BulkActionResult>("/api/products/bulk/status", {
+      method: "POST",
+      body: JSON.stringify({ product_ids, lifecycle_status }),
+    }),
+  bulkCancel: (product_ids: number[], reason: string) =>
+    api<BulkActionResult>("/api/products/bulk/cancel", {
+      method: "POST",
+      body: JSON.stringify({ product_ids, reason }),
+    }),
+  exportBlob: async (format: "csv" | "xlsx" = "xlsx", visibility = "active") => {
+    const res = await fetch(`/api/products/export?format=${format}&visibility=${visibility}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+    return res.blob();
+  },
 };
 
 export const importationsApi = {
@@ -462,6 +634,27 @@ export const importationsApi = {
     api<Importation>(`/api/importations/${id}/brazil-fields`, {
       method: "PATCH",
       body: JSON.stringify(data),
+    }),
+  linkHeroesRaw: (importationId: number, rawFileId: number) =>
+    api<{ run_id: number; raw_file_id: number; importation_id: number; status: string }>(
+      `/api/importations/${importationId}/link-heroes-raw`,
+      { method: "POST", body: JSON.stringify({ raw_file_id: rawFileId }) },
+    ),
+  heroesImportPreview: (importationId: number, sheetName?: string | null) => {
+    const q = sheetName ? `?sheet_name=${encodeURIComponent(sheetName)}` : "";
+    return api<HeroesImportRunResponse>(`/api/importations/${importationId}/heroes-import/preview${q}`);
+  },
+  heroesImportCommit: (
+    importationId: number,
+    opts?: { confirmImport?: boolean; confirmSheetMatch?: boolean; categoryOverrides?: Record<string, string> },
+  ) =>
+    api<HeroesImportRunResponse>(`/api/importations/${importationId}/heroes-import/commit`, {
+      method: "POST",
+      body: JSON.stringify({
+        confirm_import: opts?.confirmImport ?? false,
+        confirm_sheet_match: opts?.confirmSheetMatch ?? false,
+        category_overrides: opts?.categoryOverrides ?? null,
+      }),
     }),
   addItem: (id: number, data: object) =>
     api<ImportationItem>(`/api/importations/${id}/items`, {
@@ -520,7 +713,23 @@ export interface ReviewQueueItem {
   status: string;
   reason: string;
   priority: number;
-  staging_row?: { row_number: number; parsed_data_json: Record<string, string | null> };
+  staging_row?: {
+    row_number: number;
+    parsed_data_json: Record<string, string | number | null>;
+  };
+}
+
+export interface HeroesImportRunResponse {
+  run_id: number;
+  importation_id: number;
+  status: string;
+  sheet_name: string;
+  preview: Record<string, unknown>;
+  warnings?: string[] | null;
+  errors?: string[] | null;
+  sku_review_pending: boolean;
+  sku_review_open_count: number;
+  merge_warnings: string[];
 }
 
 export interface Shipment {
@@ -578,6 +787,11 @@ export const documentsApi = {
 
 export const importsApi = {
   reviewQueue: () => api<ReviewQueueItem[]>("/api/imports/review-queue"),
+  resolveStagingSku: (stagingId: number, productId: number) =>
+    api<{ id: number; parsed_data_json: Record<string, unknown> }>(
+      `/api/imports/staging/${stagingId}/resolve-sku`,
+      { method: "PATCH", body: JSON.stringify({ product_id: productId }) },
+    ),
   uploadHeroes: (file: File) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -954,6 +1168,16 @@ export interface ReasonCode {
 }
 
 export const usersApi = {
+  list: (visibility: "active" | "cancelled" | "all" = "active") =>
+    api<AdminUser[]>(`/api/users?visibility=${visibility}`),
+  get: (id: number) => api<AdminUser>(`/api/users/${id}`),
+  listRoles: () => api<RoleOption[]>("/api/users/roles"),
+  create: (data: { email: string; name: string; password: string; role_name: string }) =>
+    api<AdminUser>("/api/users", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: number, data: { name?: string; role_name?: string; password?: string }) =>
+    api<AdminUser>(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  cancel: (id: number, data: { reason: string; reason_code?: string }) =>
+    api<AdminUser>(`/api/users/${id}/cancel`, { method: "POST", body: JSON.stringify(data) }),
   listReasonCodes: () => api<ReasonCode[]>("/api/users/reason-codes"),
 };
 

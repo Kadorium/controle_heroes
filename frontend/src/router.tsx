@@ -14,9 +14,11 @@ import { ImportationLayout } from "./pages/importation/ImportationLayout";
 import { ImportationSectionPage } from "./pages/importation/ImportationSectionPage";
 import { ImportationsPage } from "./pages/ImportationsPage";
 import { ProductsPage } from "./pages/ProductsPage";
+import { ProductDetailPage } from "./pages/products/ProductDetailPage";
 import { ReviewQueuePage } from "./pages/ReviewQueuePage";
 import { GlossaryPage } from "./pages/GlossaryPage";
 import { SuppliersPage } from "./pages/SuppliersPage";
+import { UsersPage } from "./pages/users/UsersPage";
 
 function LoginRoute() {
   const { user, loading } = useAuth();
@@ -61,7 +63,9 @@ export function AppRouter() {
           {/* /cadastros agrupa sub-cadastros */}
           <Route path="cadastros" element={<CadastrosPage />}>
             <Route path="produtos" element={<ProductsPage />} />
+            <Route path="produtos/:productId" element={<ProductDetailPage />} />
             <Route path="fornecedores" element={<SuppliersPage />} />
+            <Route path="usuarios" element={<UsersPage />} />
             <Route path="heroes" element={<HeroesUploadPage />} />
             <Route path="revisao" element={<ReviewQueuePage />} />
             <Route path="glossario" element={<GlossaryPage />} />

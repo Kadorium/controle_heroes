@@ -274,9 +274,32 @@ def _parse_invoice_block(grid: list[list[Any]], sheet_name: str) -> tuple[list[d
         credit_unit = parse_it_number(_get_col(row, col_map, "credit_per_unit"))
         credit_acc = parse_it_number(_get_col(row, col_map, "credit_accumulated"))
 
-        if not product_raw and qty is None and acconto is None:
+        if not product_raw and qty is None and acconto is None and acconto_rem is None:
             continue
         if not product_raw:
+            if acconto is not None or acconto_rem is not None:
+                item = {
+                    "row_number": ri + 1,
+                    "invoice_date": current_date,
+                    "invoice_number": current_invoice,
+                    "item_quantity": qty,
+                    "product_name_raw": None,
+                    "acconto_amount": str(acconto) if acconto is not None else None,
+                    "acconto_remaining": str(acconto_rem) if acconto_rem is not None else None,
+                    "credit_per_unit": str(credit_unit) if credit_unit is not None else None,
+                    "credit_accumulated": str(credit_acc) if credit_acc is not None else None,
+                    "suggested_category": None,
+                    "category_confidence": None,
+                    "category_review": None,
+                    "source_column_product_header": default_product_header or "racchetta",
+                    "parser_confidence": 0.8 if current_invoice else 0.6,
+                    "needs_review": not current_invoice,
+                    "raw_values": [str(c) if c is not None else "" for c in row],
+                }
+                if not current_invoice:
+                    warnings.append(f"Linha {ri + 1}: acconto sem fatura — revisar")
+                items.append(item)
+                continue
             warnings.append(f"Linha {ri + 1}: produto vazio — ignorada")
             continue
 
@@ -578,14 +601,9 @@ def parse_xlsx_sheet(content: bytes, sheet_name: str, *, file_checksum: str | No
                     "category_review": rev,
                 }
             )
-        # Faturas agrupadas
-        inv_map: dict[str, dict] = {}
-        for it in items:
-            inv = it.get("invoice_number") or "—"
-            if inv not in inv_map:
-                inv_map[inv] = {"invoice_number": inv, "invoice_date": it.get("invoice_date"), "items": []}
-            inv_map[inv]["items"].append(it)
-        result["invoices_detected"] = list(inv_map.values())
+        from app.services.heroes_invoice_blocks import attach_invoice_blocks_to_preview
+
+        attach_invoice_blocks_to_preview(result)
 
     elif sheet_type == HeroesSheetType.FINANCIAL_ANNUAL.value:
         result["financial_preview"] = _parse_financial_sheet(grid, sheet_name)

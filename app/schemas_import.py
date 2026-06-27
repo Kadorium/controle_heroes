@@ -68,10 +68,21 @@ class SupplierResponse(BaseModel):
 class ProductCreate(BaseModel):
     sku_code: str = Field(min_length=1, max_length=64)
     description: str = Field(min_length=1, max_length=512)
+    product_group: str = Field(default="Sem grupo", min_length=1, max_length=64)
+    lifecycle_status: str = Field(default="ACTIVE", max_length=32)
     ncm: str | None = None
     weight_kg: Any = None
     volume_m3: Any = None
     category: str | None = "OTHER"
+    product_subgroup: str | None = None
+    supplier_code: str | None = None
+    default_supplier_id: int | None = None
+    country_of_origin: str | None = None
+    unit_of_measure: str | None = None
+    fiscal_description: str | None = None
+    fiscal_review_required: bool | None = None
+    launch_date: date | None = None
+    commercial_notes: str | None = None
 
     @field_validator("weight_kg", "volume_m3", mode="before")
     @classmethod
@@ -82,9 +93,21 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     description: str | None = None
     ncm: str | None = None
+    ncm_change_reason: str | None = None
     weight_kg: Any = None
     volume_m3: Any = None
     category: str | None = None
+    lifecycle_status: str | None = None
+    product_group: str | None = None
+    product_subgroup: str | None = None
+    supplier_code: str | None = None
+    default_supplier_id: int | None = None
+    country_of_origin: str | None = None
+    unit_of_measure: str | None = None
+    fiscal_description: str | None = None
+    fiscal_review_required: bool | None = None
+    launch_date: date | None = None
+    commercial_notes: str | None = None
 
     @field_validator("weight_kg", "volume_m3", mode="before")
     @classmethod
@@ -100,9 +123,134 @@ class ProductResponse(BaseModel):
     weight_kg: Decimal | None
     volume_m3: Decimal | None
     category: str
+    lifecycle_status: str
+    product_group: str
+    product_subgroup: str | None
+    supplier_code: str | None
+    default_supplier_id: int | None
+    country_of_origin: str | None
+    unit_of_measure: str | None
+    fiscal_description: str | None
+    fiscal_review_required: bool
+    launch_date: date | None
+    commercial_notes: str | None
     is_active: bool
 
     model_config = {"from_attributes": True}
+
+
+class ProductCatalogRow(ProductResponse):
+    default_supplier_name: str | None = None
+    has_photo: bool = False
+    photo_attachment_id: int | None = None
+    pending_flags: list[str] = Field(default_factory=list)
+    last_importation_at: datetime | None = None
+    last_importation_po: str | None = None
+    last_landed_cost_unit: Decimal | None = None
+    orders_count: int = 0
+
+
+class ProductCatalogResponse(BaseModel):
+    items: list[ProductCatalogRow]
+    total: int
+
+
+class ProductDetailResponse(ProductCatalogRow):
+    archived_at: datetime | None = None
+    archive_reason: str | None = None
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
+    used_in_importations: bool = False
+
+
+class ProductAuditRow(BaseModel):
+    id: int
+    action: str
+    timestamp: datetime
+    field_changed: str | None = None
+    old_value: str | None = None
+    new_value: str | None = None
+    justification: str | None = None
+    user_name: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class ProductOrderRow(BaseModel):
+    importation_id: int
+    po_number: str
+    current_status: str
+    supplier_name: str | None = None
+    currency: str
+    qty_ordered: Decimal | None = None
+    landed_cost_unit: Decimal | None = None
+    updated_at: datetime | None = None
+    created_at: datetime | None = None
+
+
+class ProductOrdersResponse(BaseModel):
+    items: list[ProductOrderRow]
+    total: int
+
+
+class ProductCostHistoryRow(BaseModel):
+    importation_id: int
+    po_number: str
+    version_number: int
+    version_type: str
+    unit_cost: Decimal | None = None
+    created_at: datetime | None = None
+
+
+class ProductCostHistoryResponse(BaseModel):
+    items: list[ProductCostHistoryRow]
+
+
+class ProductReadinessResponse(BaseModel):
+    ready: bool
+    missing_fields: list[str]
+    context: str
+
+
+class ProductImportPreviewRow(BaseModel):
+    row_number: int
+    sku_code: str | None = None
+    valid: bool
+    errors: list[str]
+    data: dict | None = None
+
+
+class ProductImportPreviewResponse(BaseModel):
+    valid_count: int
+    invalid_count: int
+    rows: list[ProductImportPreviewRow]
+
+
+class ProductImportCommitRequest(BaseModel):
+    rows: list[dict]
+    confirm: bool = True
+
+
+class ProductBulkIdsRequest(BaseModel):
+    product_ids: list[int] = Field(min_length=1)
+
+
+class ProductBulkArchiveRequest(ProductBulkIdsRequest):
+    reason: str = Field(min_length=3)
+
+
+class ProductBulkCancelRequest(ProductBulkIdsRequest):
+    reason: str = Field(min_length=3)
+
+
+class ProductBulkStatusRequest(ProductBulkIdsRequest):
+    lifecycle_status: str = Field(min_length=1, max_length=32)
+
+
+class ProductBulkActionResponse(BaseModel):
+    succeeded: list[int]
+    skipped: list[dict]
+    failed: list[dict]
 
 
 class ImportationItemCreate(BaseModel):
@@ -112,6 +260,7 @@ class ImportationItemCreate(BaseModel):
     quantity_ordered: Any = None
     unit_price_foreign: Any = None
     discount_amount_foreign: Any = None
+    discontinued_override_reason: str | None = None
 
     @field_validator("quantity_ordered", mode="before")
     @classmethod
@@ -213,6 +362,44 @@ class AllowedTransitionItem(BaseModel):
 class AllowedTransitionsResponse(BaseModel):
     current_status: str
     transitions: list[AllowedTransitionItem]
+
+
+class LinkHeroesRawRequest(BaseModel):
+    raw_file_id: int
+
+
+class LinkHeroesRawResponse(BaseModel):
+    run_id: int
+    raw_file_id: int
+    importation_id: int
+    status: str
+
+
+class HeroesImportPreviewRequest(BaseModel):
+    sheet_name: str | None = None
+
+
+class HeroesImportCommitRequest(BaseModel):
+    confirm_import: bool = False
+    confirm_sheet_match: bool = False
+    category_overrides: dict[str, str] | None = None
+
+
+class HeroesImportRunResponse(BaseModel):
+    run_id: int
+    importation_id: int
+    status: str
+    sheet_name: str
+    preview: dict
+    warnings: list | None = None
+    errors: list | None = None
+    sku_review_pending: bool = False
+    sku_review_open_count: int = 0
+    merge_warnings: list[str] = Field(default_factory=list)
+
+
+class ResolveStagingSkuRequest(BaseModel):
+    product_id: int
 
 
 class ItalyFieldOverrideRequest(BaseModel):

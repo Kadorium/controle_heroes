@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, EmptyState, PageHeader, Table, Button, useToast } from "../components";
 import { suppliersApi, type Supplier } from "../api";
+import { SupplierDetailDrawer } from "./SupplierDetailDrawer";
 
 export function SuppliersPage() {
   const toast = useToast();
@@ -8,6 +9,8 @@ export function SuppliersPage() {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [error, setError] = useState("");
+  const [selected, setSelected] = useState<Supplier | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function load() {
     try {
@@ -37,6 +40,11 @@ export function SuppliersPage() {
     }
   }
 
+  function openSupplier(supplier: Supplier) {
+    setSelected(supplier);
+    setDrawerOpen(true);
+  }
+
   return (
     <Card>
       <PageHeader title="Fornecedores" />
@@ -59,25 +67,49 @@ export function SuppliersPage() {
       {rows.length === 0 ? (
         <EmptyState title="Nenhum fornecedor" />
       ) : (
-        <Table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>País</th>
-              <th>Moeda padrão</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((s) => (
-              <tr key={s.id}>
-                <td>{s.name}</td>
-                <td>{s.country ?? "—"}</td>
-                <td>{s.currency_default ?? "—"}</td>
+        <>
+          <p className="meta">Clique em um fornecedor para editar ou excluir.</p>
+          <Table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>País</th>
+                <th>Contato</th>
+                <th>Moeda padrão</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {rows.map((s) => (
+                <tr
+                  key={s.id}
+                  className="table-row--clickable"
+                  onClick={() => openSupplier(s)}
+                  title="Clique para editar"
+                >
+                  <td>{s.name}</td>
+                  <td>{s.country ?? "—"}</td>
+                  <td>{s.contact_name ?? s.contact_email ?? "—"}</td>
+                  <td>{s.currency_default ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </>
       )}
+
+      <SupplierDetailDrawer
+        open={drawerOpen}
+        supplier={selected}
+        onClose={() => setDrawerOpen(false)}
+        onSaved={() => {
+          toast.success("Fornecedor atualizado");
+          void load();
+        }}
+        onDeleted={() => {
+          toast.success("Fornecedor excluído");
+          void load();
+        }}
+      />
     </Card>
   );
 }

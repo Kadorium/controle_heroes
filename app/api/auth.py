@@ -26,6 +26,7 @@ def _user_response(user: User) -> UserResponse:
         role=user.role.name,
         permissions=list(user.role.permissions or []),
         last_login=user.last_login,
+        is_active=user.is_active,
     )
 
 

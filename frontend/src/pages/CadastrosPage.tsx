@@ -1,4 +1,6 @@
 import { NavLink, Outlet, useMatch } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { hasPermission, PERM_USERS_READ } from "../utils/permissions";
 
 const TABS = [
   {
@@ -49,6 +51,18 @@ const TABS = [
     ),
   },
   {
+    to: "/cadastros/usuarios",
+    label: "Usuários",
+    description: "Contas de acesso ao sistema",
+    permission: PERM_USERS_READ,
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
+  },
+  {
     to: "/cadastros/glossario",
     label: "Glossário operacional",
     description: "Termos técnicos e rótulos em português",
@@ -63,6 +77,11 @@ const TABS = [
 
 export function CadastrosPage() {
   const isIndex = useMatch("/cadastros");
+  const { user } = useAuth();
+
+  const visibleTabs = TABS.filter(
+    (tab) => !("permission" in tab) || hasPermission(user, tab.permission as string),
+  );
 
   if (!isIndex) {
     return <Outlet />;
@@ -75,7 +94,7 @@ export function CadastrosPage() {
         <p className="cadastros__subtitle">Gerencie produtos, fornecedores e dados auxiliares.</p>
       </div>
       <div className="cadastros__grid">
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to} className="cadastros__card">
             <div className="cadastros__card-icon">{tab.icon}</div>
             <div>

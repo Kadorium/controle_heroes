@@ -30,3 +30,6 @@ data/raw/*.xlsx
 data/raw/CONTI ITALIA-BRASILE.xlsx
 
 .DS_Store
+
+# IP do servidor Epic (criado em cada PC cliente via abrir_epic_importacoes.bat)
+epic_server_ip.txt

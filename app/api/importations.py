@@ -7,7 +7,7 @@ from app.core.enums import IMPORTATION_TRANSITIONS
 from app.core.permissions import PERM_IMPORTATION_READ, PERM_IMPORTATION_WRITE
 from app.database import get_db
 from app.dependencies import require_permission
-from app.models import ImportationItem, ImportationOrder, Supplier, User
+from app.models import ImportationItem, ImportationOrder, Product, Supplier, User
 from app.schemas_import import (
     AllowedTransitionItem,
     AllowedTransitionsResponse,
@@ -20,6 +20,11 @@ from app.schemas_import import (
     ImportationResponse,
     ItalyFieldOverrideRequest,
     ItalyFieldOverrideResponse,
+    LinkHeroesRawRequest,
+    LinkHeroesRawResponse,
+    HeroesImportPreviewRequest,
+    HeroesImportCommitRequest,
+    HeroesImportRunResponse,
     StatusTransitionRequest,
 )
 from app.schemas_order_central import OrderCentralResponse, OrderQueueResponse
@@ -28,6 +33,9 @@ from app.services.importation_guard import ImportationLockedError, assert_import
 from app.services.italy_override import ItalyOverrideError, apply_italy_field_override
 from app.services.finance import register_exchange_rate
 from app.services.order_central import build_order_central, build_order_queue
+from app.services.product_catalog import ProductReadinessError, validate_product_for_usage
+from app.services.heroes_xlsx_import import link_raw_file_to_importation, preview_attached_run
+from app.services.heroes_xlsx_commit import commit_merge_heroes_run
 from app.services.status import (
     InvalidStatusTransition,
     check_required_documents,
@@ -36,6 +44,24 @@ from app.services.status import (
 )
 
 router = APIRouter(prefix="/importations", tags=["importations"])
+
+
+def _validate_item_product(db: Session, payload: ImportationItemCreate) -> None:
+    if not payload.product_id:
+        return
+    product = db.query(Product).filter(Product.id == payload.product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    try:
+        validate_product_for_usage(
+            db,
+            product,
+            "importation",
+            allow_discontinued_override=bool(payload.discontinued_override_reason),
+            override_reason=payload.discontinued_override_reason,
+        )
+    except ProductReadinessError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @router.get("", response_model=list[ImportationResponse])
@@ -84,7 +110,8 @@ def create_importation(
     db.flush()
 
     for item_data in payload.items:
-        db.add(ImportationItem(importation_id=imp.id, **item_data.model_dump()))
+        _validate_item_product(db, item_data)
+        db.add(ImportationItem(importation_id=imp.id, **item_data.model_dump(exclude={"discontinued_override_reason"})))
 
     write_audit_log(
         db,
@@ -163,7 +190,11 @@ def add_item(
         assert_importation_editable(imp)
     except ImportationLockedError as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
-    item = ImportationItem(importation_id=importation_id, **payload.model_dump())
+    _validate_item_product(db, payload)
+    item = ImportationItem(
+        importation_id=importation_id,
+        **payload.model_dump(exclude={"discontinued_override_reason"}),
+    )
     db.add(item)
     write_audit_log(
         db,
@@ -259,6 +290,125 @@ def update_brazil_fields(
     db.commit()
     db.refresh(imp)
     return imp
+
+
+@router.post(
+    "/{importation_id}/link-heroes-raw",
+    response_model=LinkHeroesRawResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def link_heroes_raw_to_importation(
+    importation_id: int,
+    payload: LinkHeroesRawRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        assert_importation_editable(imp)
+    except ImportationLockedError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    try:
+        run = link_raw_file_to_importation(
+            db,
+            importation_id=importation_id,
+            raw_file_id=payload.raw_file_id,
+            user_id=current_user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return LinkHeroesRawResponse(
+        run_id=run.id,
+        raw_file_id=run.raw_file_id,
+        importation_id=run.importation_id,
+        status=run.status,
+    )
+
+
+def _heroes_run_response(run) -> HeroesImportRunResponse:
+    preview = run.preview_json or {}
+    return HeroesImportRunResponse(
+        run_id=run.id,
+        importation_id=run.importation_id,
+        status=run.status,
+        sheet_name=run.sheet_name,
+        preview=preview,
+        warnings=run.warnings_json,
+        errors=run.errors_json,
+        sku_review_pending=bool(preview.get("sku_review_pending")),
+        sku_review_open_count=int(preview.get("sku_review_open_count") or 0),
+        merge_warnings=list(preview.get("merge_warnings") or []),
+    )
+
+
+@router.get(
+    "/{importation_id}/heroes-import/preview",
+    response_model=HeroesImportRunResponse,
+)
+def preview_heroes_import_for_order(
+    importation_id: int,
+    sheet_name: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_READ)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        run = preview_attached_run(
+            db,
+            importation_id=importation_id,
+            user_id=current_user.id,
+            sheet_name=sheet_name,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return _heroes_run_response(run)
+
+
+@router.post(
+    "/{importation_id}/heroes-import/commit",
+    response_model=HeroesImportRunResponse,
+)
+def commit_heroes_import_for_order(
+    importation_id: int,
+    payload: HeroesImportCommitRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    imp = db.query(ImportationOrder).filter(
+        ImportationOrder.id == importation_id, ImportationOrder.is_active.is_(True)
+    ).first()
+    if not imp:
+        raise HTTPException(status_code=404, detail="Importação não encontrada")
+    try:
+        assert_importation_editable(imp)
+    except ImportationLockedError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    from app.services.heroes_xlsx_import import find_attached_run_for_importation
+
+    run = find_attached_run_for_importation(db, importation_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Vínculo Heroes não encontrado")
+    try:
+        commit_merge_heroes_run(
+            db,
+            run.id,
+            user_id=current_user.id,
+            category_overrides=payload.category_overrides,
+            confirm_import=payload.confirm_import,
+            confirm_sheet_match=payload.confirm_sheet_match,
+        )
+        db.refresh(run)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return _heroes_run_response(run)
 
 
 @router.patch("/{importation_id}/items/{item_id}", response_model=ImportationItemResponse)

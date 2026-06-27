@@ -32,10 +32,23 @@ test.describe("Nova ordem — anti-regressão ordem completa", () => {
     await page.getByRole("button", { name: "+ Nova ordem" }).click();
     await page.locator("#nova-po").fill(po);
 
+    const badge = page.locator("#nova-supplier-badge");
     const supplier = page.locator("#nova-supplier");
-    const heroesOpt = supplier.locator('option', { hasText: /^Heroes/i }).first();
-    await heroesOpt.waitFor({ state: "attached" });
-    await supplier.selectOption({ label: (await heroesOpt.innerText()).trim() });
+    if (await badge.isVisible()) {
+      await expect(badge).toContainText(/heroes/i);
+    } else {
+      const heroesOpt = supplier.locator("option", { hasText: /^Heroes/i }).first();
+      await heroesOpt.waitFor({ state: "attached" });
+      await supplier.selectOption({ label: (await heroesOpt.innerText()).trim() });
+    }
+
+    const responsible = page.locator("#nova-responsible");
+    await responsible.waitFor({ state: "attached" });
+    const respValue = await responsible.inputValue();
+    if (!respValue) {
+      const firstOpt = responsible.locator("option").nth(1);
+      await responsible.selectOption({ label: (await firstOpt.innerText()).trim() });
+    }
 
     async function fillRow(rowIndex: number, sku: string, qty: string, price: string) {
       const row = page.locator(".nova-ordem__grid tbody tr").nth(rowIndex);

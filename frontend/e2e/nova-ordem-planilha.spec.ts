@@ -11,10 +11,16 @@ test.describe("Nova ordem — planilha", () => {
     await expect(page.getByRole("heading", { name: "Nova ordem" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cadastro rápido" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Wizard guiado" })).toHaveCount(0);
-    const supplier = page.locator("#nova-supplier");
-    await expect(supplier).toBeVisible();
-    const label = await supplier.locator("option:checked").innerText();
-    expect(label.toLowerCase()).toContain("heroes");
+    const badge = page.locator("#nova-supplier-badge");
+    const select = page.locator("#nova-supplier");
+    if (await badge.isVisible()) {
+      await expect(badge).toContainText(/heroes/i);
+    } else {
+      await expect(select).toBeVisible();
+      const label = await select.locator("option:checked").innerText();
+      expect(label.toLowerCase()).toContain("heroes");
+    }
+    await expect(page.locator("#nova-responsible")).toBeVisible();
   });
 
   test("subtotal e totais atualizam ao digitar", async ({ page }) => {

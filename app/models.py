@@ -163,6 +163,22 @@ class Product(Base, TimestampMixin, SoftDeleteMixin):
     weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     volume_m3: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     category: Mapped[str] = mapped_column(String(32), nullable=False, default="OTHER")
+    lifecycle_status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
+    product_group: Mapped[str] = mapped_column(String(64), nullable=False, default="Sem grupo")
+    product_subgroup: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    supplier_code: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    default_supplier_id: Mapped[int | None] = mapped_column(ForeignKey("suppliers.id"), nullable=True)
+    country_of_origin: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    unit_of_measure: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    fiscal_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fiscal_review_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    launch_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    commercial_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    archived_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    archive_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    default_supplier: Mapped["Supplier | None"] = relationship(foreign_keys=[default_supplier_id])
 
 
 class ImportationOrder(Base, TimestampMixin, SoftDeleteMixin):

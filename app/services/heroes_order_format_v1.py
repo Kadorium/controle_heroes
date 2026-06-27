@@ -9,6 +9,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.services.heroes_invoice_blocks import get_invoice_blocks_for_preview
+
 FORMAT_VERSION = "Heroes Order Import Format v1"
 
 
@@ -104,26 +106,33 @@ def preview_to_canonical(preview: dict[str, Any], *, source_file: str | None = N
     )
 
     invoices: list[HeroesInvoiceBlock] = []
-    inv_rows: dict[str, HeroesInvoiceBlock] = {}
-    for it in preview.get("invoice_items") or []:
-        inv_no = it.get("invoice_number") or "—"
-        if inv_no not in inv_rows:
-            inv_rows[inv_no] = HeroesInvoiceBlock(
+    for block in get_invoice_blocks_for_preview(preview):
+        inv_no = block.get("invoice_number") or "—"
+        payments = block.get("acconto_payments") or []
+        paid_total: str | None = None
+        if payments:
+            total = sum(float(p["amount"]) for p in payments if p.get("amount"))
+            paid_total = str(total) if total else None
+        item_rows = block.get("items") or []
+        row_nums = [r.get("row_number") for r in item_rows if r.get("row_number")]
+        row_start = min(row_nums) if row_nums else None
+        row_end = max(row_nums) if row_nums else None
+        if payments and row_start is None:
+            pay_rows = [p.get("row_number") for p in payments if p.get("row_number")]
+            if pay_rows:
+                row_start = min(pay_rows)
+                row_end = max(pay_rows)
+        remaining = block.get("acconto_remaining")
+        invoices.append(
+            HeroesInvoiceBlock(
                 invoice_number=inv_no if inv_no != "—" else None,
-                invoice_date=it.get("invoice_date"),
-                source_row_start=it.get("row_number"),
-                source_row_end=it.get("row_number"),
+                invoice_date=block.get("invoice_date"),
+                paid_total=paid_total,
+                remaining_balance=str(remaining) if remaining else None,
+                source_row_start=row_start,
+                source_row_end=row_end,
             )
-        else:
-            block = inv_rows[inv_no]
-            if block.source_row_end is not None:
-                block.source_row_end = max(block.source_row_end, it.get("row_number") or block.source_row_end)
-        paid = it.get("acconto_amount")
-        if paid:
-            inv_rows[inv_no].paid_total = str(
-                (float(inv_rows[inv_no].paid_total or 0) + float(paid)) if inv_rows[inv_no].paid_total else paid
-            )
-    invoices = list(inv_rows.values())
+        )
 
     items = [
         HeroesInvoiceItemBlock(
@@ -138,7 +147,9 @@ def preview_to_canonical(preview: dict[str, Any], *, source_file: str | None = N
             parser_confidence=it.get("parser_confidence"),
             needs_review=bool(it.get("needs_review") or it.get("category_review")),
         )
-        for it in preview.get("invoice_items") or []
+        for block in get_invoice_blocks_for_preview(preview)
+        for it in block.get("items") or []
+        if it.get("product_name_raw")
     ]
 
     dispatch = [

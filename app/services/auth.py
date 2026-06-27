@@ -148,14 +148,20 @@ def soft_cancel_user(
     reason: str,
     reason_code_id: int | None = None,
 ) -> User:
+    from app.services.user_admin import ensure_not_last_admin, revoke_user_sessions
+
     if not reason.strip():
         raise ValueError("Motivo obrigatório para anulação")
+
+    ensure_not_last_admin(db, user, action="anular")
 
     old_active = str(user.is_active)
     user.is_active = False
     user.cancelled_at = datetime.now(timezone.utc)
     user.cancelled_by_id = actor_id
     user.cancellation_reason = reason
+
+    revoke_user_sessions(db, user.id)
 
     write_audit_log(
         db,
