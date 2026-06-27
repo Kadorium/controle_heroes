@@ -297,26 +297,16 @@ def test_operational_header_partial_invoices_and_overdue(admin_client, importati
         amount="1000",
         expected_exchange_rate="5.00",
     ).json()
-    _create_invoice_with_item(
+    inv2 = _create_invoice_with_item(
         admin_client,
         importation_with_item["id"],
         items[0]["id"],
         product["id"],
         amount="500",
         expected_exchange_rate="5.00",
-    )
+        invoice_date="2020-01-15",
+    ).json()
     _pay(admin_client, inv1["id"], "1000")
-
-    overdue = admin_client.post(
-        "/api/finance/payments",
-        json={
-            "invoice_id": inv1["id"],
-            "payment_type": "PARTIAL",
-            "amount_foreign": "200",
-            "due_date": "2020-01-15",
-        },
-    )
-    assert overdue.status_code == 201
 
     res = admin_client.get(f"/api/importations/{importation_with_item['id']}/order-central")
     assert res.status_code == 200
@@ -324,7 +314,9 @@ def test_operational_header_partial_invoices_and_overdue(admin_client, importati
     assert oh["invoices_count"] == 2
     assert oh["invoices_settled_count"] == 1
     assert oh["overdue_count"] == 1
-    assert Decimal(oh["overdue_amount_foreign"]) == Decimal("200")
+    assert Decimal(oh["overdue_amount_foreign"]) == Decimal("500")
+    assert oh["next_due_date"] == "2020-01-15"
+    assert oh["next_open_invoice_number"] == inv2["invoice_number"]
     assert Decimal(oh["open_balance_brl_equivalent"]) == Decimal("2500")
     rail = res.json()["status_rail"]
     faturado = next(s for s in rail["stages"] if s["key"] == "faturado")
