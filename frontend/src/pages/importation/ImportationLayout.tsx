@@ -110,6 +110,13 @@ export function ImportationLayout() {
     if ((oh.to_dispatch ?? 0) > 0) {
       list.push({ label: `${oh.to_dispatch} un. a despachar`, tone: "warning", path: "itens" });
     }
+    if (orderCentral.has_draft_products || oh.has_draft_products) {
+      list.push({
+        label: "Produto(s) rascunho",
+        tone: "warning",
+        path: "itens",
+      });
+    }
     for (const msg of statusRail?.alerts ?? []) {
       list.push({ label: msg, tone: "warning", path: "resumo" });
     }

@@ -11,6 +11,14 @@ from app.core.enums import ProductCategory
 from app.models import Product
 from app.services.heroes_product_aliases import match_product_by_stored_aliases, parse_heroes_aliases
 from app.services.heroes_racchetta_key import RacchettaKey, canonical_key_for_matching, parse_racchetta_key
+from app.services.product_catalog import LIFECYCLE_DRAFT
+
+
+def _catalog_matchable(q):
+    """Produtos ativos no catálogo operacional — exclui rascunhos."""
+    from app.models import Product
+
+    return q.filter(Product.is_active.is_(True), Product.lifecycle_status != LIFECYCLE_DRAFT)
 
 
 @dataclass
@@ -18,6 +26,11 @@ class ProductMatchCandidate:
     product: Product
     score: int
     reason: str
+
+
+# Escala 0–100 (70 = confiança mínima para auto-resolver; 30 = mínimo para sugestão na triage)
+MATCH_AUTO_RESOLVE_SCORE = 70
+MATCH_SUGGEST_MIN_SCORE = 30
 
 
 def parse_racchetta_key_from_name(product_name_raw: str | None) -> RacchettaKey | None:
@@ -37,15 +50,12 @@ def match_product(db: Session, product_name_raw: str | None) -> Product | None:
 
     for field in ("supplier_code", "sku_code", "description"):
         col = getattr(Product, field)
-        matches = (
-            db.query(Product)
-            .filter(
-                Product.is_active.is_(True),
+        matches = _catalog_matchable(
+            db.query(Product).filter(
                 col.isnot(None),
                 func.lower(col) == term,
             )
-            .all()
-        )
+        ).all()
         if len(matches) == 1:
             return matches[0]
         if len(matches) > 1:
@@ -92,7 +102,7 @@ def find_product_candidates(
     if not sheet_canonical:
         return []
 
-    products = db.query(Product).filter(Product.is_active.is_(True)).all()
+    products = _catalog_matchable(db.query(Product)).all()
     scored: dict[int, ProductMatchCandidate] = {}
 
     for product in products:
@@ -135,3 +145,19 @@ def find_product_candidates(
 
     ordered = sorted(scored.values(), key=lambda c: (-c.score, c.product.sku_code))
     return ordered[:limit]
+
+
+def find_best_product_candidate(
+    db: Session,
+    product_name_raw: str | None,
+    *,
+    category_hint: str | None = None,
+) -> ProductMatchCandidate | None:
+    """Melhor candidato por score, mesmo abaixo do threshold de auto-resolve."""
+    candidates = find_product_candidates(
+        db,
+        product_name_raw,
+        category_hint=category_hint,
+        limit=1,
+    )
+    return candidates[0] if candidates else None

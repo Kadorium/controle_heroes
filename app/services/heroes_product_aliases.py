@@ -67,6 +67,7 @@ def match_product_by_stored_aliases(db: Session, product_name_raw: str) -> Produ
         db.query(Product)
         .filter(
             Product.is_active.is_(True),
+            Product.lifecycle_status != "DRAFT",
             Product.commercial_notes.isnot(None),
         )
         .all()

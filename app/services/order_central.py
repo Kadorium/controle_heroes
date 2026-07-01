@@ -353,6 +353,9 @@ def _build_models(db: Session, importation_id: int) -> list[dict]:
                 "credit_remaining": str(da.credit_remaining) if da and da.credit_remaining is not None else None,
                 "heroes_source": da is not None,
                 "dispatch_needs_review": da.needs_review if da else False,
+                "product_is_draft": (
+                    product.lifecycle_status == "DRAFT" if product else False
+                ),
             }
         )
     return models
@@ -907,6 +910,20 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     for alert in operational_header.get("financial_alerts") or []:
         pending.append({"kind": "financial", "label": alert, "detail": None, "tone": "warning"})
 
+    from app.services.product_draft import importation_has_draft_products
+
+    has_draft = importation_has_draft_products(db, importation_id)
+    if has_draft:
+        pending.append(
+            {
+                "kind": "draft_products",
+                "label": "Produto(s) rascunho na ordem",
+                "detail": "Complete o cadastro em Cadastros → Produtos pendentes",
+                "tone": "warning",
+            }
+        )
+    operational_header["has_draft_products"] = has_draft
+
     return {
         "order": imp,
         "supplier_name": supplier.name if supplier else None,
@@ -920,6 +937,7 @@ def build_order_central(db: Session, importation_id: int) -> dict:
             "versato_heroes": legacy.get("versato_amount") if legacy else None,
             "versato_heroes_currency": legacy.get("versato_currency") if legacy else None,
         },
+        "has_draft_products": has_draft,
         "invoices": invoices,
         "models": _build_models(db, importation_id),
         "payments_planned": planned,

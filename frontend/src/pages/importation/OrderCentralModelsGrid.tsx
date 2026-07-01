@@ -82,6 +82,9 @@ export function OrderCentralModelsGrid({
                   </b>
                 </td>
                 <td className="oc-items-grid__sku-epic">
+                  {m.product_is_draft && (
+                    <Badge tone="warning">Produto rascunho</Badge>
+                  )}
                   {m.product_id && m.product_sku ? (
                     <Link to={`/cadastros/produtos/${m.product_id}`} className="oc-items-grid__product-link">
                       {m.product_sku}

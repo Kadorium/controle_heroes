@@ -161,11 +161,14 @@ def test_preview_no_persist(db):
 
 
 def test_commit_creates_order(admin_client, db):
+    import uuid
+
     from app.models import RawImportFile
     from app.services.heroes_import import save_raw_import_file
     from app.services.heroes_xlsx_import import preview_xlsx_sheet
     from app.services.heroes_xlsx_commit import commit_heroes_import_run
 
+    order_number = f"758-{uuid.uuid4().hex[:8]}"
     content = build_ordine_758_xlsx()
     fh, path = save_raw_import_file(content, "ordine758.xlsx")
     raw = RawImportFile(
@@ -188,19 +191,22 @@ def test_commit_creates_order(admin_client, db):
         db, run.id, user_id=1,
         confirm_import=True, confirm_sheet_match=True,
         opening_exchange_rate="5.00",
-        confirmed_order_number="758",
+        confirmed_order_number=order_number,
     )
-    assert imp.po_number == "HEROES-758"
+    assert imp.po_number == f"HEROES-{order_number}"
     assert imp.invoices
     assert imp.items
 
 
 def test_idempotency_same_sheet(db):
-    from app.models import HeroesImportRun, RawImportFile
+    import uuid
+
+    from app.models import RawImportFile
     from app.services.heroes_import import save_raw_import_file
     from app.services.heroes_xlsx_import import preview_xlsx_sheet
     from app.services.heroes_xlsx_commit import commit_heroes_import_run
 
+    order_number = f"759-{uuid.uuid4().hex[:8]}"
     content = build_ordine_759_xlsx()
     fh, path = save_raw_import_file(content, "ordine759-idem.xlsx")
     raw = RawImportFile(
@@ -219,14 +225,15 @@ def test_idempotency_same_sheet(db):
         db, run1.id, user_id=1,
         confirm_import=True, confirm_sheet_match=True,
         opening_exchange_rate="5.00",
-        confirmed_order_number="907",
+        confirmed_order_number=order_number,
     )
     run2 = preview_xlsx_sheet(
         db, raw_file_id=raw.id, sheet_name="Ordine 759", content=content,
         filename="ordine759-idem.xlsx", user_id=1,
     )
     assert run2.id == run1.id
-    assert run2.status == "COMMITTED"
+    assert run2.status in ("PREVIEW", "REVIEW_REQUIRED")
+    assert run2.importation_id is None
 
 
 def test_api_xlsx_upload_preview_commit(admin_client, db, reset_env):

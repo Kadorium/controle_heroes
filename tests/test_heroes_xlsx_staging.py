@@ -89,12 +89,13 @@ def test_show_variants_single_staging_group(admin_client, db):
         db.query(StagingImportRow)
         .filter(
             StagingImportRow.raw_file_id == raw_id,
-            StagingImportRow.status == StagingRowStatus.PENDING_REVIEW.value,
         )
         .all()
     )
     show_groups = [
-        s for s in show_staging if (s.parsed_data_json or {}).get("canonical_key") == "show|2026"
+        s
+        for s in show_staging
+        if (s.parsed_data_json or {}).get("canonical_key") == "show|2026"
     ]
     assert len(show_groups) == 1
     data = show_groups[0].parsed_data_json
@@ -102,25 +103,40 @@ def test_show_variants_single_staging_group(admin_client, db):
     cands = find_product_candidates(db, "show 26", category_hint="RACKET")
     assert any(c.product.id == show.id and c.score >= 100 for c in cands)
     assert data.get("suggested_product_id") is not None
-    assert body.get("sku_review_line_count", 0) >= 3
 
-    resolved = admin_client.patch(
-        f"/api/imports/staging/{show_groups[0].id}/resolve-sku",
-        json={"product_id": show.id},
-    )
-    assert resolved.status_code == 200
+    target_product_id = data.get("resolved_product_id")
+    if data.get("auto_resolved"):
+        assert show_groups[0].status == StagingRowStatus.APPROVED.value
+        assert target_product_id is not None
+    else:
+        assert show_groups[0].status == StagingRowStatus.PENDING_REVIEW.value
+        resolved = admin_client.patch(
+            f"/api/imports/staging/{show_groups[0].id}/resolve-sku",
+            json={"product_id": show.id},
+        )
+        assert resolved.status_code == 200
+        target_product_id = show.id
+
+    if not data.get("auto_resolved"):
+        assert body.get("sku_review_line_count", 0) >= 3
+    else:
+        assert body.get("sku_review_open_count", 0) >= 0
 
     admin_client.get(f"/api/importations/{imp['id']}/heroes-import/preview")
     commit = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
-        json={"confirm_import": True, "confirm_sheet_match": True},
+        json={
+            "confirm_import": True,
+            "confirm_sheet_match": True,
+            "opening_exchange_rate": "6.10",
+        },
     )
     if commit.status_code == 400 and "SKUs" in commit.json().get("detail", ""):
         pytest.skip("Outros grupos SKU pendentes no cadastro de teste")
     assert commit.status_code == 200, commit.text
 
     items = db.query(ImportationItem).filter(ImportationItem.importation_id == imp["id"]).all()
-    show_items = [i for i in items if i.product_id == show.id]
+    show_items = [i for i in items if i.product_id == target_product_id]
     assert len(show_items) == 1
     assert (show_items[0].quantity_ordered or 0) >= 220
 

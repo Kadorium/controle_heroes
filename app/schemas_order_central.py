@@ -120,6 +120,7 @@ class OrderCentralModel(BaseModel):
     credit_remaining: str | None = None
     heroes_source: bool = False
     dispatch_needs_review: bool = False
+    product_is_draft: bool = False
 
 
 class OrderCentralPayment(PaymentResponse):
@@ -199,6 +200,7 @@ class OperationalHeader(BaseModel):
     opening_exchange_rate: str | None = None
     brl_is_estimated: bool = False
     financial_alerts: list[str] = Field(default_factory=list)
+    has_draft_products: bool = False
 
 
 class OrderCentralResponse(BaseModel):
@@ -209,6 +211,7 @@ class OrderCentralResponse(BaseModel):
     status_rail: StatusRail | None = None
     operational_header: OperationalHeader
     kpis: OrderCentralKpis
+    has_draft_products: bool = False
     invoices: list[OrderCentralInvoice] = Field(default_factory=list)
     models: list[OrderCentralModel] = Field(default_factory=list)
     payments_planned: list[OrderCentralPayment] = Field(default_factory=list)

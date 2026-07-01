@@ -236,6 +236,7 @@ def register_exchange_rate(
     invoice_id: int | None = None,
     payment_id: int | None = None,
     comment: str | None = None,
+    auto_commit: bool = True,
 ) -> ExchangeRate:
     rate = ExchangeRate(
         currency_from=currency_from,
@@ -259,8 +260,10 @@ def register_exchange_rate(
         field_changed="rate_value",
         new_value=str(rate_value) if rate_value is not None else None,
         justification=comment,
+        auto_commit=auto_commit,
     )
-    db.commit()
+    if auto_commit:
+        db.commit()
     db.refresh(rate)
     return rate
 

@@ -213,20 +213,12 @@ export function FinancePage() {
   const [filter, setFilter] = useState<PayFilter>("all");
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const load = useCallback(async (status?: PayFilter) => {
+  const load = useCallback(async () => {
     setLoadError(null);
-    const effective = status ?? filter;
-    const statusParam = effective === "all" ? undefined : effective;
+    const statusParam = filter === "all" ? undefined : filter;
     try {
       const res = await financeApi.payablesQueue({ status: statusParam });
       setData(res);
-      setExpanded((prev) => {
-        const next = { ...prev };
-        for (const o of res.orders) {
-          if (next[o.importation_id] === undefined) next[o.importation_id] = true;
-        }
-        return next;
-      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível carregar a fila financeira.";
       setLoadError(msg);
@@ -247,18 +239,6 @@ export function FinancePage() {
     })();
     return () => { cancelled = true; };
   }, [load]);
-
-  const onFilterChange = (next: PayFilter) => {
-    setFilter(next);
-    setLoading(true);
-    void (async () => {
-      try {
-        await load(next);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  };
 
   const kpis = data?.kpis;
   const pnl = data?.fx_pnl_summary;
@@ -333,7 +313,7 @@ export function FinancePage() {
               key={f.id}
               type="button"
               className={`order-queue__filter${filter === f.id ? " order-queue__filter--on" : ""}`}
-              onClick={() => onFilterChange(f.id)}
+              onClick={() => setFilter(f.id)}
             >
               {f.label}
             </button>

@@ -26,7 +26,14 @@ from app.schemas_docs import (
     ReviewQueueResponse,
     StagingRowResponse,
 )
-from app.schemas_import import ResolveStagingSkuRequest
+from app.schemas_import import (
+    CancelledSummaryResponse,
+    ProductResponse,
+    PurgeCancelledRequest,
+    PurgeCancelledResponse,
+    ResolveStagingSkuRequest,
+)
+from app.services.cleanup_cancelled import build_cancelled_summary, purge_cancelled_data
 from app.services.heroes_import import approve_staging_row, import_heroes_csv
 from app.services.heroes_order_format_v1 import export_normalized_xlsx, export_normalized_zip, preview_to_canonical
 from app.services.heroes_workbook_paths import heroes_workbook_search_labels, resolve_heroes_workbook_path
@@ -196,7 +203,12 @@ async def preview_heroes_xlsx(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
-    committed = run.status == HeroesImportRunStatus.COMMITTED.value
+    from app.services.importation_lifecycle import heroes_run_targets_active_importation
+
+    committed = (
+        run.status == HeroesImportRunStatus.COMMITTED.value
+        and heroes_run_targets_active_importation(db, run)
+    )
     preview_data = run.preview_json or {}
     canonical = preview_to_canonical(preview_data, source_file=raw.original_filename)
     return HeroesXlsxPreviewResponse(
@@ -209,6 +221,10 @@ async def preview_heroes_xlsx(
         order_number_from_content=preview_data.get("order_number_from_content"),
         order_number_divergence=bool(preview_data.get("order_number_divergence")),
         review_required=run.review_required or run.status == "REVIEW_REQUIRED",
+        sku_review_pending=bool(preview_data.get("sku_review_pending")),
+        sku_review_open_count=int(preview_data.get("sku_review_open_count") or 0),
+        sku_review_line_count=int(preview_data.get("sku_review_line_count") or 0),
+        sku_review_groups=preview_data.get("sku_review_groups") or [],
         preview=preview_data,
         canonical=canonical,
         warnings=run.warnings_json,
@@ -241,6 +257,9 @@ def commit_heroes_xlsx(
             confirmed_order_number=payload.confirmed_order_number,
             confirm_sheet_match=payload.confirm_sheet_match,
             confirm_import=payload.confirm_import,
+            confirm_financial_review=payload.confirm_financial_review,
+            versato_override=payload.versato_override,
+            acconto_overrides=payload.acconto_overrides,
             opening_exchange_rate=payload.opening_exchange_rate,
         )
     except ValueError as e:
@@ -284,6 +303,63 @@ def reset_operational(
         return reset_operational_test_data(db)
     except RuntimeError as e:
         raise HTTPException(status_code=403, detail=str(e)) from e
+
+
+@router.get("/cancelled-summary", response_model=CancelledSummaryResponse)
+def get_cancelled_summary(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_IMPORTS_READ)),
+):
+    data = build_cancelled_summary(db)
+    return CancelledSummaryResponse(
+        purge_allowed=data["purge_allowed"],
+        purge_block_reason=data["purge_block_reason"],
+        purge_env_var=data["purge_env_var"],
+        importations=data["importations"],
+        products=data["products"],
+        suppliers=data["suppliers"],
+        counts=data["counts"],
+    )
+
+
+@router.post("/purge-cancelled", response_model=PurgeCancelledResponse)
+def purge_cancelled(
+    payload: PurgeCancelledRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_RUN_MIGRATION)),
+):
+    has_targets = any(
+        [
+            payload.importation_ids,
+            payload.product_ids,
+            payload.supplier_ids,
+            payload.purge_all_cancelled_importations,
+            payload.purge_all_cancelled_products,
+            payload.purge_all_cancelled_suppliers,
+            payload.purge_orphan_artifacts,
+        ]
+    )
+    if not has_targets:
+        raise HTTPException(
+            status_code=400,
+            detail="Selecione ao menos um registro ou artefato para excluir",
+        )
+    try:
+        result = purge_cancelled_data(
+            db,
+            importation_ids=payload.importation_ids,
+            product_ids=payload.product_ids,
+            supplier_ids=payload.supplier_ids,
+            purge_all_cancelled_importations=payload.purge_all_cancelled_importations,
+            purge_all_cancelled_products=payload.purge_all_cancelled_products,
+            purge_all_cancelled_suppliers=payload.purge_all_cancelled_suppliers,
+            purge_orphan_artifacts=payload.purge_orphan_artifacts,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=403, detail=str(e)) from e
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return PurgeCancelledResponse(**result)
 
 
 @router.get("/raw", response_model=list[RawImportFileResponse])
@@ -380,5 +456,31 @@ def resolve_staging_sku_endpoint(
         db.commit()
         db.refresh(staging)
         return staging
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.post("/staging/{staging_id}/create-draft", response_model=ProductResponse)
+def create_draft_from_staging_endpoint(
+    staging_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTS_APPROVE)),
+):
+    from app.services.auth import write_audit_log
+    from app.services.product_draft import create_draft_from_staging
+
+    try:
+        product = create_draft_from_staging(db, staging_id, user_id=current_user.id)
+        write_audit_log(
+            db,
+            user_id=current_user.id,
+            entity_type="staging_import_row",
+            entity_id=str(staging_id),
+            action="create_draft_product",
+            new_value=str(product.id),
+        )
+        db.commit()
+        db.refresh(product)
+        return product
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

@@ -88,6 +88,7 @@ def write_audit_log(
     attachment_id: str | None = None,
     impact_estimate: str | None = None,
     ip_or_machine_info: str | None = None,
+    auto_commit: bool = True,
 ) -> AuditLog:
     entry = AuditLog(
         user_id=user_id,
@@ -104,7 +105,10 @@ def write_audit_log(
         ip_or_machine_info=ip_or_machine_info,
     )
     db.add(entry)
-    db.commit()
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
     db.refresh(entry)
     return entry
 

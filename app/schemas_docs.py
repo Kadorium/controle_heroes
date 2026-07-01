@@ -127,6 +127,10 @@ class HeroesXlsxPreviewResponse(BaseModel):
     order_number_from_content: str | None = None
     order_number_divergence: bool = False
     review_required: bool = False
+    sku_review_pending: bool = False
+    sku_review_open_count: int = 0
+    sku_review_line_count: int = 0
+    sku_review_groups: list[dict] = Field(default_factory=list)
     preview: dict
     canonical: dict | None = None
     warnings: list[str] | None = None
@@ -141,6 +145,9 @@ class HeroesXlsxCommitRequest(BaseModel):
     confirmed_order_number: str | None = None
     confirm_sheet_match: bool = False
     confirm_import: bool = False
+    confirm_financial_review: bool = False
+    versato_override: str | None = None
+    acconto_overrides: dict[str, str] | None = None
     opening_exchange_rate: Any = None
 
     @field_validator("opening_exchange_rate", mode="before")

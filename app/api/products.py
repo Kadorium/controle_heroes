@@ -17,13 +17,17 @@ from app.schemas_import import (
     ProductBulkStatusRequest,
     ProductCatalogResponse,
     ProductCatalogRow,
+    ProductCompleteDraftRequest,
     ProductCostHistoryResponse,
     ProductCostHistoryRow,
     ProductCreate,
     ProductDetailResponse,
+    ProductDraftListResponse,
+    ProductDraftRow,
     ProductImportCommitRequest,
     ProductImportPreviewResponse,
     ProductImportPreviewRow,
+    ProductLinkDraftRequest,
     ProductOrdersResponse,
     ProductOrderRow,
     ProductReadinessResponse,
@@ -49,6 +53,11 @@ from app.services.product_catalog import (
     list_products_for_combobox,
     product_used_in_importations,
     restore_product,
+)
+from app.services.product_draft import (
+    complete_draft_product,
+    link_draft_to_product,
+    list_draft_products,
 )
 from app.services.product_import import commit_product_import, export_products_xlsx, preview_product_import
 
@@ -254,6 +263,18 @@ def list_products(
     return q.order_by(Product.sku_code).all()
 
 
+@router.get("/draft", response_model=ProductDraftListResponse)
+def list_draft_products_endpoint(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_IMPORTATION_READ)),
+):
+    items = list_draft_products(db)
+    return ProductDraftListResponse(
+        items=[ProductDraftRow(**row) for row in items],
+        total=len(items),
+    )
+
+
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create_product(
     payload: ProductCreate,
@@ -359,6 +380,67 @@ def product_cost_history(
 ):
     items = list_product_cost_history(db, product_id, limit=limit)
     return ProductCostHistoryResponse(items=[ProductCostHistoryRow(**i) for i in items])
+
+
+@router.post("/{product_id}/complete", response_model=ProductResponse)
+def complete_draft_product_endpoint(
+    product_id: int,
+    payload: ProductCompleteDraftRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    try:
+        product = complete_draft_product(
+            db,
+            product_id,
+            sku_code=payload.sku_code,
+            description=payload.description,
+            category=payload.category,
+            product_group=payload.product_group,
+            user_id=current_user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    write_audit_log(
+        db,
+        user_id=current_user.id,
+        entity_type="product",
+        entity_id=str(product.id),
+        action="complete_draft",
+        new_value=payload.sku_code,
+    )
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+@router.post("/{product_id}/link", response_model=ProductResponse)
+def link_draft_product_endpoint(
+    product_id: int,
+    payload: ProductLinkDraftRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission(PERM_IMPORTATION_WRITE)),
+):
+    try:
+        product = link_draft_to_product(
+            db,
+            product_id,
+            payload.target_product_id,
+            user_id=current_user.id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    write_audit_log(
+        db,
+        user_id=current_user.id,
+        entity_type="product",
+        entity_id=str(product_id),
+        action="link_draft",
+        new_value=str(payload.target_product_id),
+    )
+    db.commit()
+    db.refresh(product)
+    return product
 
 
 @router.post("/{product_id}/archive", response_model=ProductDetailResponse)

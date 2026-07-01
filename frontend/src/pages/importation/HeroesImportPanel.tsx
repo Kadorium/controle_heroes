@@ -2,34 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { financeApi, importationsApi, type HeroesImportRunResponse } from "../../api";
 import { Badge, Button, LoadingState } from "../../components";
 import { useFxRate } from "../../context/FxRateContext";
+import {
+  HeroesFinancialReviewSection,
+  initAccontoOverrides,
+  type FinancialReview,
+} from "./HeroesFinancialReviewSection";
 
 interface InvoiceBlock {
   invoice_number?: string | null;
   invoice_date?: string | null;
-  acconto_remaining?: string | null;
   acconto_payments?: Array<{ amount: string; receipt_reference?: string }>;
   items?: Array<{
     row_number?: number;
     product_name_raw?: string;
     item_quantity?: number | null;
-  }>;
-}
-
-interface FinancialReview {
-  versato_amount?: string | null;
-  versato_currency?: string | null;
-  acconto_total?: string | null;
-  last_acconto_rimasto?: string | null;
-  expected_rimasto?: string | null;
-  delta_rimasto?: string | null;
-  delta_versato?: string | null;
-  warnings?: string[];
-  requires_manual_review?: boolean;
-  invoice_rows?: Array<{
-    invoice_number: string;
-    invoice_date?: string | null;
-    acconto_amount?: string | null;
-    acconto_remaining?: string | null;
   }>;
 }
 
@@ -68,14 +54,7 @@ export function HeroesImportPanel({ importationId, onCommitted }: Props) {
       setRun(data);
       const review = (data.preview.financial_review ?? {}) as FinancialReview;
       setVersatoOverride(review.versato_amount ?? "");
-      const rows = review.invoice_rows ?? [];
-      const initial: Record<string, string> = {};
-      for (const row of rows) {
-        if (row.invoice_number && row.acconto_amount) {
-          initial[row.invoice_number] = row.acconto_amount;
-        }
-      }
-      setAccontoOverrides(initial);
+      setAccontoOverrides(initAccontoOverrides(review));
       setConfirmFinancialReview(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar preview Heroes";
@@ -163,97 +142,22 @@ export function HeroesImportPanel({ importationId, onCommitted }: Props) {
         </p>
       )}
 
-      {!committed && financialReview.versato_amount != null && (
-        <div className="heroes-import-panel__finance">
-          <h3 className="hub-card__subtitle">Revisão financeira</h3>
-          <p className="meta">
-            Versato = referência da planilha. Acconto = pagamento por fatura. Acconto rimasto =
-            saldo informativo do pool (não é saldo a liquidar).
-          </p>
-
-          <label className="heroes-import-panel__field">
-            <span>Versato ({financialReview.versato_currency ?? "EUR"})</span>
-            <input
-              type="text"
-              value={versatoOverride}
-              onChange={(e) => setVersatoOverride(e.target.value)}
-              disabled={committing}
-            />
-          </label>
-
-          {!hasProvision && (
-            <label className="heroes-import-panel__field">
-              <span>Câmbio provisionado (EUR→BRL)</span>
-              <input
-                type="text"
-                value={provisionRate}
-                onChange={(e) => setProvisionRate(e.target.value)}
-                disabled={committing}
-                placeholder="Obrigatório se ordem sem provisão"
-              />
-            </label>
-          )}
-
-          <table className="heroes-import-panel__finance-table">
-            <thead>
-              <tr>
-                <th>Fatura</th>
-                <th>Data</th>
-                <th>Acconto</th>
-                <th>Rimasto (planilha)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(financialReview.invoice_rows ?? []).map((row) => (
-                <tr key={row.invoice_number}>
-                  <td>{row.invoice_number}</td>
-                  <td>{row.invoice_date ?? "—"}</td>
-                  <td>
-                    <input
-                      type="text"
-                      className="heroes-import-panel__acconto-input"
-                      value={accontoOverrides[row.invoice_number] ?? ""}
-                      onChange={(e) =>
-                        setAccontoOverrides((prev) => ({
-                          ...prev,
-                          [row.invoice_number]: e.target.value,
-                        }))
-                      }
-                      disabled={committing}
-                    />
-                  </td>
-                  <td>{row.acconto_remaining ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="heroes-import-panel__finance-totals meta">
-            <span>Σ acconti: {financialReview.acconto_total ?? "—"}</span>
-            <span>Rimasto esperado: {financialReview.expected_rimasto ?? "—"}</span>
-            <span>Último rimasto: {financialReview.last_acconto_rimasto ?? "—"}</span>
-          </div>
-
-          {(financialReview.warnings?.length ?? 0) > 0 && (
-            <ul className="error heroes-import-panel__finance-warnings">
-              {financialReview.warnings!.map((w) => (
-                <li key={w}>{w}</li>
-              ))}
-            </ul>
-          )}
-
-          {needsFinancialConfirm && (
-            <label className="heroes-import-panel__confirm">
-              <input
-                type="checkbox"
-                checked={confirmFinancialReview}
-                onChange={(e) => setConfirmFinancialReview(e.target.checked)}
-                disabled={committing}
-              />
-              Revisei os valores financeiros e confirmo a importação apesar dos avisos.
-            </label>
-          )}
-        </div>
+      {!committed && (
+        <HeroesFinancialReviewSection
+          financialReview={financialReview}
+          versatoOverride={versatoOverride}
+          onVersatoOverrideChange={setVersatoOverride}
+          accontoOverrides={accontoOverrides}
+          onAccontoOverrideChange={(inv, value) =>
+            setAccontoOverrides((prev) => ({ ...prev, [inv]: value }))
+          }
+          confirmFinancialReview={confirmFinancialReview}
+          onConfirmFinancialReviewChange={setConfirmFinancialReview}
+          disabled={committing}
+          showProvisionField={!hasProvision}
+          provisionRate={provisionRate}
+          onProvisionRateChange={setProvisionRate}
+        />
       )}
 
       <div className="heroes-import-panel__blocks">

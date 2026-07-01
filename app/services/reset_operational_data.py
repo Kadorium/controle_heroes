@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import os
 import subprocess
-from pathlib import Path
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.config import ROOT_DIR, get_settings
@@ -15,40 +14,17 @@ from app.models import (
     BrazilCurrentAccount,
     Credit,
     CreditUsage,
-    CustomsDocument,
-    Discount,
-    DocumentAttachment,
-    ExchangeRate,
-    Expense,
-    HeroesImportRun,
     HeroesDispatchPendingItem,
+    HeroesImportRun,
     HeroesLegacySheetSummary,
-    ImportationClosure,
-    ImportationItem,
     ImportationOrder,
-    Invoice,
-    InvoiceItem,
-    LandedCostComponent,
-    LandedCostSkuAllocation,
-    LandedCostVariance,
-    LandedCostVersion,
-    ModalChangeLog,
-    Nationalization,
-    NationalizationItem,
-    Payment,
-    QuantityDiscrepancy,
     RawImportFile,
-    Reconciliation,
     ReviewQueueItem,
-    Shipment,
-    ShipmentItem,
     StagingImportRow,
-    StatusTransitionLog,
-    StockEntry,
     Supplier,
-    Tax,
     User,
 )
+from app.services.importation_purge import delete_importations_cascade, purge_orphan_import_artifacts
 
 RESET_ENV_VAR = "RESET_EPIC_TEST_DATA"
 ALLOWED_ENVS = ("development", "dev", "local", "test")
@@ -94,113 +70,13 @@ def reset_operational_test_data(db: Session, *, skip_backup: bool = False) -> di
     )
 
     imp_ids = [r[0] for r in db.execute(select(ImportationOrder.id)).all()]
+    delete_importations_cascade(db, imp_ids)
 
-    if imp_ids:
-        # Filhos profundos primeiro — stock_entries referencia landed_cost_version
-        db.execute(
-            delete(StockEntry).where(
-                StockEntry.landed_cost_version_id.in_(
-                    select(LandedCostVersion.id).where(LandedCostVersion.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(
-            delete(StockEntry).where(
-                StockEntry.nationalization_id.in_(
-                    select(Nationalization.id).where(Nationalization.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(delete(ImportationClosure).where(ImportationClosure.importation_id.in_(imp_ids)))
-        db.execute(delete(Reconciliation).where(Reconciliation.importation_id.in_(imp_ids)))
-        db.execute(delete(LandedCostVariance).where(LandedCostVariance.importation_id.in_(imp_ids)))
-        db.execute(
-            delete(LandedCostSkuAllocation).where(
-                LandedCostSkuAllocation.landed_cost_version_id.in_(
-                    select(LandedCostVersion.id).where(LandedCostVersion.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(
-            delete(LandedCostComponent).where(
-                LandedCostComponent.landed_cost_version_id.in_(
-                    select(LandedCostVersion.id).where(LandedCostVersion.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(delete(LandedCostVersion).where(LandedCostVersion.importation_id.in_(imp_ids)))
-        db.execute(delete(QuantityDiscrepancy).where(QuantityDiscrepancy.importation_id.in_(imp_ids)))
-        db.execute(
-            delete(NationalizationItem).where(
-                NationalizationItem.nationalization_id.in_(
-                    select(Nationalization.id).where(Nationalization.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(delete(Nationalization).where(Nationalization.importation_id.in_(imp_ids)))
-        db.execute(delete(Tax).where(Tax.importation_id.in_(imp_ids)))
-        db.execute(delete(CustomsDocument).where(CustomsDocument.importation_id.in_(imp_ids)))
-        db.execute(
-            delete(ShipmentItem).where(
-                ShipmentItem.shipment_id.in_(
-                    select(Shipment.id).where(Shipment.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(
-            delete(ModalChangeLog).where(
-                ModalChangeLog.shipment_id.in_(
-                    select(Shipment.id).where(Shipment.importation_id.in_(imp_ids))
-                )
-            )
-        )
-        db.execute(delete(Shipment).where(Shipment.importation_id.in_(imp_ids)))
-        db.execute(delete(Expense).where(Expense.importation_id.in_(imp_ids)))
-        db.execute(delete(DocumentAttachment).where(DocumentAttachment.entity_id.in_([str(i) for i in imp_ids])))
-        inv_ids_subq = select(Invoice.id).where(Invoice.importation_id.in_(imp_ids))
-        pay_ids_subq = select(Payment.id).where(Payment.invoice_id.in_(inv_ids_subq))
-        db.execute(
-            delete(ExchangeRate).where(
-                or_(
-                    ExchangeRate.importation_id.in_(imp_ids),
-                    ExchangeRate.invoice_id.in_(inv_ids_subq),
-                    ExchangeRate.payment_id.in_(pay_ids_subq),
-                )
-            )
-        )
-        db.execute(
-            delete(Payment).where(Payment.invoice_id.in_(inv_ids_subq))
-        )
-        db.execute(
-            delete(Discount).where(Discount.invoice_id.in_(inv_ids_subq))
-        )
-        db.execute(delete(CreditUsage))
-        db.execute(
-            delete(InvoiceItem).where(InvoiceItem.invoice_id.in_(inv_ids_subq))
-        )
-        db.execute(delete(Invoice).where(Invoice.importation_id.in_(imp_ids)))
-        db.execute(delete(ImportationItem).where(ImportationItem.importation_id.in_(imp_ids)))
-        db.execute(
-            delete(StatusTransitionLog).where(
-                StatusTransitionLog.importation_id.in_([str(i) for i in imp_ids])
-            )
-        )
-        db.execute(delete(Credit))
-        db.execute(delete(BrazilCurrentAccount))
-        db.execute(delete(HeroesDispatchPendingItem).where(HeroesDispatchPendingItem.importation_id.in_(imp_ids)))
-        db.execute(delete(HeroesLegacySheetSummary).where(HeroesLegacySheetSummary.importation_id.in_(imp_ids)))
-        db.execute(delete(HeroesImportRun).where(HeroesImportRun.importation_id.in_(imp_ids)))
-        db.execute(delete(ImportationOrder).where(ImportationOrder.id.in_(imp_ids)))
+    orphan = purge_orphan_import_artifacts(db)
+    db.execute(delete(CreditUsage))
+    db.execute(delete(Credit))
+    db.execute(delete(BrazilCurrentAccount))
 
-    # Import staging (sem vínculo FK com importations)
-    db.execute(delete(ReviewQueueItem))
-    db.execute(delete(StagingImportRow))
-    db.execute(delete(HeroesDispatchPendingItem))
-    db.execute(delete(HeroesLegacySheetSummary))
-    db.execute(delete(HeroesImportRun))
-    db.execute(delete(RawImportFile))
-
-    # Audit de importações removidas (dev/test)
     db.execute(delete(AuditLog).where(AuditLog.entity_type.in_((
         "importation_order", "invoice", "payment", "heroes_import_run", "raw_import_file", "staging_import_row"
     ))))
@@ -217,4 +93,5 @@ def reset_operational_test_data(db: Session, *, skip_backup: bool = False) -> di
         "heroes_supplier_preserved": heroes_supplier is not None and heroes_after is not None,
         "importations_remaining": imps_remaining is not None,
         "backup": backup_note,
+        **orphan,
     }

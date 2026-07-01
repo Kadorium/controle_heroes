@@ -33,10 +33,15 @@ from app.services.heroes_legacy_persist import (
     persist_legacy_sheet_summary,
 )
 from app.services.heroes_order_format_v1 import preview_to_canonical
-from app.services.heroes_product_match import match_product
+from app.services.heroes_product_match import (
+    MATCH_AUTO_RESOLVE_SCORE,
+    find_best_product_candidate,
+    match_product,
+)
 from app.services.heroes_xlsx_staging import find_staging_for_alias
 from app.services.heroes_xlsx_guard import assert_heroes_commit_allowed
 from app.services.heroes_xlsx_staging import count_open_sku_reviews_for_run
+from app.services.importation_lifecycle import reopen_stale_heroes_run
 from app.services.product_category import suggest_product_category
 from app.services.finance import register_exchange_rate
 from app.services.fx_pnl import _get_provision_rate
@@ -59,6 +64,7 @@ def _ensure_opening_provision(
     *,
     user_id: int | None,
     comment: str,
+    auto_commit: bool = True,
 ) -> None:
     existing = _get_provision_rate(db, imp.id)
     if existing is not None:
@@ -71,6 +77,7 @@ def _ensure_opening_provision(
         user_id=user_id,
         importation_id=imp.id,
         comment=comment,
+        auto_commit=auto_commit,
     )
 
 
@@ -81,6 +88,7 @@ def _apply_invoice_provision(
     *,
     user_id: int | None,
     importation_id: int,
+    auto_commit: bool = True,
 ) -> None:
     if inv.expected_exchange_rate is not None:
         return
@@ -94,6 +102,7 @@ def _apply_invoice_provision(
         importation_id=importation_id,
         invoice_id=inv.id,
         comment="Câmbio previsto na importação Heroes",
+        auto_commit=auto_commit,
     )
 
 
@@ -163,6 +172,39 @@ def _find_staging_for_row(
     )
 
 
+def _resolve_heroes_product(
+    db: Session,
+    run: HeroesImportRun,
+    name: str,
+    sheet_row: int | None,
+) -> Product:
+    """Match exato → candidato >= 70 → staging aprovado → erro."""
+    matched = match_product(db, name)
+    if matched:
+        return matched
+
+    cat, _, _ = suggest_product_category(name)
+    best = find_best_product_candidate(db, name, category_hint=cat)
+    if best and best.score >= MATCH_AUTO_RESOLVE_SCORE:
+        return best.product
+
+    if not run.raw_file_id:
+        raise ValueError(f"SKU não resolvido: {name}. Vincule os SKUs antes de importar.")
+    staging = _find_staging_for_row(
+        db,
+        raw_file_id=run.raw_file_id,
+        run_id=run.id,
+        product_name_raw=name,
+        sheet_row=sheet_row,
+    )
+    resolved_id = (staging.parsed_data_json or {}).get("resolved_product_id") if staging else None
+    if staging and staging.status == StagingRowStatus.APPROVED.value and resolved_id:
+        prod = db.query(Product).filter(Product.id == resolved_id).first()
+        if prod:
+            return prod
+    raise ValueError(f"SKU não resolvido: {name}. Vincule os SKUs antes de importar.")
+
+
 def _enqueue_merge_conflict(
     db: Session,
     *,
@@ -220,6 +262,7 @@ def _merge_preview_into_importation(
     merge_mode: bool,
     resolve_product: Callable[[str, int | None], Product],
     provision_rate: Decimal | None = None,
+    auto_commit: bool = True,
 ) -> list[str]:
     """Aplica invoice_blocks à ordem — retorna warnings (ex.: fatura já existente)."""
     warnings: list[str] = []
@@ -272,7 +315,12 @@ def _merge_preview_into_importation(
             db.flush()
         if effective_provision is not None:
             _apply_invoice_provision(
-                db, inv, effective_provision, user_id=user_id, importation_id=imp.id
+                db,
+                inv,
+                effective_provision,
+                user_id=user_id,
+                importation_id=imp.id,
+                auto_commit=auto_commit,
             )
         invoice_cache[inv_num] = inv
         return inv
@@ -454,6 +502,10 @@ def commit_merge_heroes_run(
         imp = db.query(ImportationOrder).filter(ImportationOrder.id == run.importation_id).first()
         if not imp:
             raise ValueError("Run já commitado mas ordem não encontrada")
+        if not imp.is_active:
+            raise ValueError(
+                f"Ordem {imp.po_number} foi anulada. Crie uma nova ordem manual para reimportar esta planilha."
+            )
         return imp
     if not confirm_import or not confirm_sheet_match:
         raise ValueError("Confirme importação e sheet (confirm_import + confirm_sheet_match)")
@@ -513,24 +565,7 @@ def commit_merge_heroes_run(
         raise ValueError(guard)
 
     def resolve_merge_product(name: str, sheet_row: int | None) -> Product:
-        matched = match_product(db, name)
-        if matched:
-            return matched
-        if not run.raw_file_id:
-            raise ValueError(f"SKU não resolvido: {name}. Vincule os SKUs antes de importar.")
-        staging = _find_staging_for_row(
-            db,
-            raw_file_id=run.raw_file_id,
-            run_id=run.id,
-            product_name_raw=name,
-            sheet_row=sheet_row,
-        )
-        resolved_id = (staging.parsed_data_json or {}).get("resolved_product_id") if staging else None
-        if staging and staging.status == StagingRowStatus.APPROVED.value and resolved_id:
-            prod = db.query(Product).filter(Product.id == resolved_id).first()
-            if prod:
-                return prod
-        raise ValueError(f"SKU não resolvido: {name}. Vincule os SKUs antes de importar.")
+        return _resolve_heroes_product(db, run, name, sheet_row)
 
     _merge_preview_into_importation(
         db,
@@ -600,7 +635,7 @@ def commit_heroes_import_run(
 
     if run.status == HeroesImportRunStatus.COMMITTED.value:
         existing = db.query(ImportationOrder).filter(ImportationOrder.id == run.importation_id).first()
-        if existing:
+        if existing and existing.is_active:
             ensure_heroes_legacy_persisted(
                 db,
                 importation_id=existing.id,
@@ -611,7 +646,12 @@ def commit_heroes_import_run(
             db.commit()
             db.refresh(existing)
             return existing
-        raise ValueError("Run já commitado mas ordem não encontrada")
+        if existing and not existing.is_active:
+            reopen_stale_heroes_run(run)
+            db.flush()
+        else:
+            reopen_stale_heroes_run(run)
+            db.flush()
 
     if preview.get("errors"):
         raise ValueError("Preview contém erros — corrija antes de importar")
@@ -630,6 +670,28 @@ def commit_heroes_import_run(
     if block:
         raise ValueError(block)
 
+    from app.services.heroes_financial_preview import (
+        apply_financial_overrides,
+        attach_financial_review_to_preview,
+    )
+
+    attach_financial_review_to_preview(preview)
+    if versato_override is not None or acconto_overrides:
+        apply_financial_overrides(
+            preview,
+            versato_override=versato_override,
+            acconto_overrides=acconto_overrides,
+        )
+    financial_review = preview.get("financial_review") or {}
+    if financial_review.get("requires_manual_review") and not confirm_financial_review:
+        warnings = financial_review.get("warnings") or []
+        detail = "; ".join(warnings[:3])
+        raise ValueError(
+            f"Revisão financeira pendente — confirme após revisar os avisos. {detail}"
+        )
+    run.preview_json = preview
+    flag_modified(run, "preview_json")
+
     order_number = (
         confirmed_order_number
         or preview.get("confirmed_order_number")
@@ -643,6 +705,34 @@ def commit_heroes_import_run(
             "Informe câmbio provisionado (opening_exchange_rate) antes de importar planilha Heroes"
         )
 
+    try:
+        imp = _execute_standalone_heroes_commit(
+            db,
+            run=run,
+            preview=preview,
+            order_number=order_number,
+            provision=provision,
+            user_id=user_id,
+            category_overrides=category_overrides,
+        )
+        db.commit()
+        db.refresh(imp)
+        return imp
+    except Exception:
+        db.rollback()
+        raise
+
+
+def _execute_standalone_heroes_commit(
+    db: Session,
+    *,
+    run: HeroesImportRun,
+    preview: dict,
+    order_number: str,
+    provision: Decimal,
+    user_id: int | None,
+    category_overrides: dict[str, str] | None,
+) -> ImportationOrder:
     supplier = _get_heroes_supplier(db)
     imp = ImportationOrder(
         po_number=f"HEROES-{order_number}",
@@ -661,24 +751,8 @@ def commit_heroes_import_run(
         provision,
         user_id=user_id,
         comment="Provisão informada no commit Heroes (standalone)",
+        auto_commit=False,
     )
-
-    product_cache: dict[str, Product] = {}
-
-    def get_or_create_product(name: str) -> Product:
-        if name in product_cache:
-            return product_cache[name]
-        sku = _slug_sku(name)
-        prod = db.query(Product).filter(Product.sku_code == sku).first()
-        cat = _resolve_category(name, category_overrides)
-        if not prod:
-            prod = Product(sku_code=sku, description=name, category=cat)
-            db.add(prod)
-            db.flush()
-        elif category_overrides and name in category_overrides:
-            prod.category = category_overrides[name]
-        product_cache[name] = prod
-        return prod
 
     _merge_preview_into_importation(
         db,
@@ -688,8 +762,9 @@ def commit_heroes_import_run(
         user_id=user_id,
         category_overrides=category_overrides,
         merge_mode=False,
-        resolve_product=lambda name, _row: get_or_create_product(name),
+        resolve_product=lambda name, row: _resolve_heroes_product(db, run, name, row),
         provision_rate=provision,
+        auto_commit=False,
     )
 
     canonical = preview_to_canonical(preview, source_file=run.original_filename)
@@ -707,7 +782,6 @@ def commit_heroes_import_run(
         entity_id=str(run.id),
         action="commit",
         new_value=str(imp.id),
+        auto_commit=False,
     )
-    db.commit()
-    db.refresh(imp)
     return imp

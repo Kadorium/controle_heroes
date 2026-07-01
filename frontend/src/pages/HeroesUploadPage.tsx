@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   importsApi,
@@ -7,11 +7,21 @@ import {
   type HeroesXlsxSheetInfo,
   type HeroesXlsxUploadResponse,
 } from "../api";
-import { Button, Card, LoadingState, PageHeader, useToast } from "../components";
+import { Button, Card, LoadingState, PageHeader, useToast, Badge } from "../components";
 import { useFxRate } from "../context/FxRateContext";
 import { emptyDash, productCategoryLabel } from "../i18n/glossario";
+import {
+  HeroesFinancialReviewSection,
+  initAccontoOverrides,
+  type FinancialReview,
+} from "./importation/HeroesFinancialReviewSection";
+import {
+  HeroesSkuTriagePanel,
+  isInvoiceItemSkuPending,
+} from "./importation/HeroesSkuTriagePanel";
 
 const CATEGORY_OPTIONS = ["RACKET", "BALL", "BAG_ACCESSORY", "APPAREL", "PICKLEBALL", "OTHER"] as const;
+const INVOICE_ITEMS_PAGE_SIZE = 50;
 
 function resolveOrderNumberForSheet(
   sheets: HeroesXlsxSheetInfo[],
@@ -52,8 +62,6 @@ export function HeroesUploadPage() {
   const [preview, setPreview] = useState<HeroesXlsxPreviewResponse | null>(null);
   const [categoryOverrides, setCategoryOverrides] = useState<Record<string, string>>({});
   const [confirmedOrder, setConfirmedOrder] = useState("");
-  const [confirmSheet, setConfirmSheet] = useState(false);
-  const [confirmImport, setConfirmImport] = useState(false);
   const [provisionRate, setProvisionRate] = useState("");
   const [csvMsg, setCsvMsg] = useState("");
   const { reference: fxRef } = useFxRate();
@@ -62,6 +70,10 @@ export function HeroesUploadPage() {
     if (fxRef?.rate && !provisionRate) setProvisionRate(fxRef.rate);
   }, [fxRef?.rate, provisionRate]);
   const [attachedOrderId, setAttachedOrderId] = useState<number | null>(null);
+  const [invoicePage, setInvoicePage] = useState(0);
+  const [versatoOverride, setVersatoOverride] = useState("");
+  const [accontoOverrides, setAccontoOverrides] = useState<Record<string, string>>({});
+  const [confirmFinancialReview, setConfirmFinancialReview] = useState(false);
 
   useEffect(() => {
     importsApi
@@ -81,10 +93,9 @@ export function HeroesUploadPage() {
     const ord = resolveOrderNumberForSheet(upload.sheets, selectedSheet);
     if (ord) setConfirmedOrder(ord);
     setPreview(null);
-    setConfirmSheet(false);
-    setConfirmImport(false);
     setError("");
     setAttachedOrderId(null);
+    setInvoicePage(0);
   }, [selectedSheet, upload?.raw_file_id]);
 
   async function handleLoadLocal() {
@@ -117,15 +128,8 @@ export function HeroesUploadPage() {
   function applyUpload(res: HeroesXlsxUploadResponse) {
     setUpload(res);
     setProfile(res.workbook_profile ?? null);
-    const orderSheet =
-      res.workbook_profile?.sheets.find((s) => s.recommendation === "importar") ??
-      res.sheets.find((s) => s.sheet_type === "ORDER") ??
-      res.sheets[0];
-    if (orderSheet) {
-      const name = orderSheet.sheet_name;
-      setSelectedSheet(name);
-      setConfirmedOrder(resolveOrderNumberForSheet(res.sheets, name));
-    }
+    setSelectedSheet("");
+    setConfirmedOrder("");
   }
 
   async function handleXlsx(e: React.ChangeEvent<HTMLInputElement>) {
@@ -170,9 +174,11 @@ export function HeroesUploadPage() {
       );
       setPreview(p);
       setConfirmedOrder(resolveOrderFromPreview(p, sheetOrder));
-      if (p.already_committed && p.importation_id) {
-        navigate(`/importacoes/${p.importation_id}/resumo`);
-      }
+      setInvoicePage(0);
+      const review = (p.preview?.financial_review ?? {}) as FinancialReview;
+      setVersatoOverride(review.versato_amount ?? "");
+      setAccontoOverrides(initAccontoOverrides(review));
+      setConfirmFinancialReview(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro no preview";
       setError(msg);
@@ -191,8 +197,11 @@ export function HeroesUploadPage() {
       const res = await importsApi.commitHeroesXlsx(preview.run_id, {
         categoryOverrides,
         confirmedOrderNumber: confirmedOrder || undefined,
-        confirmSheetMatch: confirmSheet,
-        confirmImport,
+        confirmSheetMatch: true,
+        confirmImport: true,
+        confirmFinancialReview: needsFinancialConfirm ? confirmFinancialReview : true,
+        versatoOverride: versatoOverride.trim() || null,
+        accontoOverrides: Object.keys(accontoOverrides).length > 0 ? accontoOverrides : null,
         openingExchangeRate: provisionRate.trim() || null,
       });
       navigate(`/importacoes/${res.importation_id}/resumo`);
@@ -225,14 +234,32 @@ export function HeroesUploadPage() {
   const invoiceItems = (preview?.preview?.invoice_items as Array<Record<string, unknown>>) ?? [];
   const daSpedire = (preview?.preview?.da_spedire as Array<Record<string, unknown>>) ?? [];
   const newProducts = (preview?.preview?.new_products as Array<Record<string, unknown>>) ?? [];
+  const invoicePageCount = Math.max(1, Math.ceil(invoiceItems.length / INVOICE_ITEMS_PAGE_SIZE));
+  const safeInvoicePage = Math.min(invoicePage, invoicePageCount - 1);
+  const pagedInvoiceItems = invoiceItems.slice(
+    safeInvoicePage * INVOICE_ITEMS_PAGE_SIZE,
+    (safeInvoicePage + 1) * INVOICE_ITEMS_PAGE_SIZE,
+  );
+  const invoiceRangeStart = invoiceItems.length ? safeInvoicePage * INVOICE_ITEMS_PAGE_SIZE + 1 : 0;
+  const invoiceRangeEnd = Math.min((safeInvoicePage + 1) * INVOICE_ITEMS_PAGE_SIZE, invoiceItems.length);
+  const financialReview = useMemo(
+    () => (preview?.preview?.financial_review ?? {}) as FinancialReview,
+    [preview],
+  );
+  const skuTriageGroups = preview?.sku_review_groups ?? [];
+  const skuOpenCount = preview?.sku_review_open_count ?? 0;
+  const skuResolvedCount =
+    preview?.sku_review_resolved_count ??
+    Math.max(0, (preview?.sku_review_total_count ?? skuOpenCount) - skuOpenCount);
+  const needsFinancialConfirm = financialReview.requires_manual_review === true;
   const hasDivergence = preview?.order_number_divergence ?? false;
   const canCommit =
-    confirmSheet &&
-    confirmImport &&
     !!confirmedOrder &&
     !!provisionRate.trim() &&
     (preview?.errors?.length ?? 0) === 0 &&
-    (!hasDivergence || confirmedOrder === preview?.order_number_from_content || confirmedOrder.length > 0);
+    skuOpenCount === 0 &&
+    (!hasDivergence || confirmedOrder === preview?.order_number_from_content || confirmedOrder.length > 0) &&
+    (!needsFinancialConfirm || confirmFinancialReview);
 
   const currentStep = preview ? (canCommit ? 3 : 2) : upload ? 1 : 0;
   const STEPS = ["Carregar planilha", "Selecionar a aba", "Revisar preview", "Importar"];
@@ -336,6 +363,7 @@ export function HeroesUploadPage() {
           <h3>3. Selecionar sheet para preview</h3>
           {upload.source_path && <p className="meta">Fonte: {upload.source_path}</p>}
           <select value={selectedSheet} onChange={(e) => setSelectedSheet(e.target.value)}>
+            <option value="">— Selecione a aba —</option>
             {upload.sheets.map((s) => (
               <option key={s.sheet_name} value={s.sheet_name}>
                 {s.sheet_name} — {s.sheet_type}
@@ -396,6 +424,35 @@ export function HeroesUploadPage() {
             {newProducts.length} produtos
           </p>
 
+          <HeroesFinancialReviewSection
+            financialReview={financialReview}
+            versatoOverride={versatoOverride}
+            onVersatoOverrideChange={setVersatoOverride}
+            accontoOverrides={accontoOverrides}
+            onAccontoOverrideChange={(inv, value) =>
+              setAccontoOverrides((prev) => ({ ...prev, [inv]: value }))
+            }
+            confirmFinancialReview={confirmFinancialReview}
+            onConfirmFinancialReviewChange={setConfirmFinancialReview}
+            disabled={loading}
+          />
+
+          {(skuOpenCount > 0 || skuTriageGroups.length > 0) && (
+            <HeroesSkuTriagePanel
+              groups={skuTriageGroups}
+              openCount={skuOpenCount}
+              totalResolved={skuResolvedCount}
+              onResolved={loadPreview}
+              disabled={loading}
+            />
+          )}
+
+          {skuOpenCount > 0 && (
+            <p className="meta heroes-upload__sku-blocker">
+              {skuOpenCount} grupo(s) de SKU aguardam vínculo antes da importação.
+            </p>
+          )}
+
           {newProducts.length > 0 && (
             <div className="heroes-upload__products">
               <h4>Categorias sugeridas (Produto / Modelo)</h4>
@@ -439,6 +496,36 @@ export function HeroesUploadPage() {
           )}
 
           <div className="order-queue__scroll">
+            <div className="heroes-upload__items-head">
+              <p className="meta heroes-upload__items-count">
+                {invoiceItems.length > INVOICE_ITEMS_PAGE_SIZE
+                  ? `Mostrando ${invoiceRangeStart}–${invoiceRangeEnd} de ${invoiceItems.length} itens fatura`
+                  : `${invoiceItems.length} itens fatura`}
+              </p>
+              {invoiceItems.length > INVOICE_ITEMS_PAGE_SIZE && (
+                <div className="heroes-upload__pagination">
+                  <Button
+                    variant="ghost"
+                    className="ui-btn--sm"
+                    disabled={safeInvoicePage <= 0}
+                    onClick={() => setInvoicePage((p) => Math.max(0, p - 1))}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="meta">
+                    Página {safeInvoicePage + 1} de {invoicePageCount}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    className="ui-btn--sm"
+                    disabled={safeInvoicePage >= invoicePageCount - 1}
+                    onClick={() => setInvoicePage((p) => Math.min(invoicePageCount - 1, p + 1))}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
+            </div>
             <table className="sheet-table">
               <thead>
                 <tr>
@@ -447,18 +534,32 @@ export function HeroesUploadPage() {
                   <th>Produto / Modelo</th>
                   <th className="num">Qtd</th>
                   <th className="num">Acconto</th>
+                  <th>SKU</th>
                 </tr>
               </thead>
               <tbody>
-                {invoiceItems.slice(0, 50).map((row, i) => (
-                  <tr key={i}>
+                {pagedInvoiceItems.map((row, i) => {
+                  const rawName = String(row.product_name_raw ?? "");
+                  const pending = isInvoiceItemSkuPending(rawName, skuTriageGroups);
+                  return (
+                  <tr key={`${safeInvoicePage}-${i}-${String(row.row_number ?? i)}`}>
                     <td>{String(row.invoice_number ?? emptyDash(null))}</td>
                     <td>{String(row.invoice_date ?? emptyDash(null))}</td>
-                    <td>{String(row.product_name_raw)}</td>
+                    <td>{rawName}</td>
                     <td className="num">{String(row.item_quantity ?? emptyDash(null))}</td>
                     <td className="num">{String(row.acconto_amount ?? emptyDash(null))}</td>
+                    <td>
+                      {pending ? (
+                        <Badge tone="warning">SKU pendente</Badge>
+                      ) : rawName ? (
+                        <Badge tone="success">✓</Badge>
+                      ) : (
+                        emptyDash(null)
+                      )}
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -488,17 +589,6 @@ export function HeroesUploadPage() {
                 aria-label="Câmbio provisionado EUR para BRL"
               />
             </label>
-
-            <div className="heroes-upload__confirm">
-              <label className="heroes-upload__confirm-item">
-                <input type="checkbox" checked={confirmSheet} onChange={(e) => setConfirmSheet(e.target.checked)} />
-                <span>Confirmo que a sheet selecionada está correta</span>
-              </label>
-              <label className="heroes-upload__confirm-item">
-                <input type="checkbox" checked={confirmImport} onChange={(e) => setConfirmImport(e.target.checked)} />
-                <span>Confirmo importação após revisão do preview</span>
-              </label>
-            </div>
 
             <Button onClick={commitImport} disabled={loading || !canCommit}>
               Importar ordem

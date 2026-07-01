@@ -139,6 +139,34 @@ class ProductResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ProductDraftRow(BaseModel):
+    id: int
+    sku_code: str
+    description: str
+    category: str
+    product_group: str
+    origin_run_id: int | None = None
+    origin_importation_id: int | None = None
+    referencing_importation_count: int = 0
+    created_at: datetime | None = None
+
+
+class ProductDraftListResponse(BaseModel):
+    items: list[ProductDraftRow] = Field(default_factory=list)
+    total: int = 0
+
+
+class ProductCompleteDraftRequest(BaseModel):
+    sku_code: str = Field(min_length=1, max_length=64)
+    description: str = Field(min_length=1, max_length=512)
+    category: str = Field(min_length=1, max_length=32)
+    product_group: str = Field(min_length=1, max_length=64)
+
+
+class ProductLinkDraftRequest(BaseModel):
+    target_product_id: int
+
+
 class ProductCatalogRow(ProductResponse):
     default_supplier_name: str | None = None
     has_photo: bool = False
@@ -848,3 +876,78 @@ class FinancialSummaryResponse(BaseModel):
     total_discounts: str | None = None
     consolidated_balance: str | None = None
     invoices: list[dict]
+
+
+class CancelledImportationRow(BaseModel):
+    id: int
+    po_number: str
+    supplier_name: str | None = None
+    current_status: str
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
+    created_at: datetime
+
+
+class CancelledProductRow(BaseModel):
+    id: int
+    sku_code: str
+    description: str
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
+
+
+class CancelledSupplierRow(BaseModel):
+    id: int
+    name: str
+    country: str | None = None
+    cancelled_at: datetime | None = None
+    cancellation_reason: str | None = None
+
+
+class CancelledEntitySample(BaseModel):
+    id: int
+    sku_code: str | None = None
+    description: str | None = None
+    name: str | None = None
+    country: str | None = None
+
+
+class CancelledCounts(BaseModel):
+    importations_cancelled: int
+    importations_active: int
+    products_cancelled: int
+    suppliers_cancelled: int
+    heroes_runs_orphan: int
+    staging_rows: int
+    review_queue_open: int
+    raw_files_orphan: int
+
+
+class CancelledSummaryResponse(BaseModel):
+    purge_allowed: bool
+    purge_block_reason: str | None = None
+    purge_env_var: str
+    importations: list[CancelledImportationRow]
+    products: list[CancelledProductRow]
+    suppliers: list[CancelledSupplierRow]
+    counts: CancelledCounts
+
+
+class PurgeCancelledRequest(BaseModel):
+    importation_ids: list[int] | None = None
+    product_ids: list[int] | None = None
+    supplier_ids: list[int] | None = None
+    purge_all_cancelled_importations: bool = False
+    purge_all_cancelled_products: bool = False
+    purge_all_cancelled_suppliers: bool = False
+    purge_orphan_artifacts: bool = False
+
+
+class PurgeCancelledResponse(BaseModel):
+    importations_removed: int = 0
+    products_removed: int = 0
+    suppliers_removed: int = 0
+    review_queue_removed: int = 0
+    staging_rows_removed: int = 0
+    heroes_runs_removed: int = 0
+    raw_files_removed: int = 0

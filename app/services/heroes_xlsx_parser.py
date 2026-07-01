@@ -133,6 +133,20 @@ def list_xlsx_sheets(content: bytes) -> list[dict[str, Any]]:
     return out
 
 
+def resolve_workbook_sheet_name(content: bytes, sheet_name: str) -> str:
+    """Nome exato da aba no arquivo — tolera diferença de caixa (ordine 132 / Ordine 132)."""
+    wb = load_workbook(io.BytesIO(content), read_only=True)
+    names = wb.sheetnames
+    wb.close()
+    if sheet_name in names:
+        return sheet_name
+    norm = normalize_heroes_sheet_key(sheet_name)
+    for name in names:
+        if normalize_heroes_sheet_key(name) == norm:
+            return name
+    raise ValueError(f"Sheet '{sheet_name}' não encontrada")
+
+
 def _grid_from_sheet(ws) -> tuple[list[list[Any]], int]:
     rows: list[list[Any]] = []
     for row in ws.iter_rows(values_only=True):
@@ -663,6 +677,18 @@ def parse_xlsx_sheet(content: bytes, sheet_name: str, *, file_checksum: str | No
     return result
 
 
+def normalize_heroes_sheet_key(sheet_name: str) -> str:
+    """Chave canônica da aba — ignora caixa e espaços extras (ordine 132 = Ordine 132)."""
+    return " ".join(sheet_name.strip().lower().split())
+
+
 def make_idempotency_key(file_checksum: str, sheet_name: str) -> str:
+    norm_sheet = normalize_heroes_sheet_key(sheet_name)
+    raw = f"{file_checksum}|{norm_sheet}|{HEROES_XLSX_PARSER_VERSION}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def legacy_idempotency_key(file_checksum: str, sheet_name: str) -> str:
+    """Chave legada (nome da aba literal) — runs gravados antes da normalização."""
     raw = f"{file_checksum}|{sheet_name}|{HEROES_XLSX_PARSER_VERSION}"
     return hashlib.sha256(raw.encode()).hexdigest()

@@ -68,6 +68,23 @@ export interface Product {
   used_in_importations?: boolean;
 }
 
+export interface ProductDraftRow {
+  id: number;
+  sku_code: string;
+  description: string;
+  category: string;
+  product_group: string;
+  origin_run_id?: number | null;
+  origin_importation_id?: number | null;
+  referencing_importation_count: number;
+  created_at?: string | null;
+}
+
+export interface ProductDraftListResponse {
+  items: ProductDraftRow[];
+  total: number;
+}
+
 export interface ProductCatalogResponse {
   items: Product[];
   total: number;
@@ -215,6 +232,7 @@ export interface OrderCentralModel {
   credit_remaining?: string | null;
   heroes_source?: boolean;
   dispatch_needs_review?: boolean;
+  product_is_draft?: boolean;
 }
 
 export interface LegacySheetSummary {
@@ -276,6 +294,7 @@ export interface OperationalHeader {
   opening_exchange_rate?: string | null;
   brl_is_estimated?: boolean;
   financial_alerts?: string[];
+  has_draft_products?: boolean;
 }
 
 export interface FxPnlBlock {
@@ -378,6 +397,7 @@ export interface OrderCentralResponse {
   payments_settled: Payment[];
   pending_actions: Array<{ kind: string; label: string; detail: string | null; tone: string }>;
   shipments?: OrderCentralShipment[];
+  has_draft_products?: boolean;
 }
 
 export interface OrderCentralShipment {
@@ -582,6 +602,17 @@ export const productsApi = {
     const qs = params?.for_combobox ? "?for_combobox=true" : "";
     return api<Product[]>(`/api/products${qs}`);
   },
+  listDrafts: () => api<ProductDraftListResponse>("/api/products/draft"),
+  completeDraft: (
+    id: number,
+    data: { sku_code: string; description: string; category: string; product_group: string },
+  ) =>
+    api<Product>(`/api/products/${id}/complete`, { method: "POST", body: JSON.stringify(data) }),
+  linkDraft: (id: number, targetProductId: number) =>
+    api<Product>(`/api/products/${id}/link`, {
+      method: "POST",
+      body: JSON.stringify({ target_product_id: targetProductId }),
+    }),
   catalog: (params?: {
     q?: string;
     visibility?: string;
@@ -899,6 +930,8 @@ export const importsApi = {
         }),
       },
     ),
+  createDraftFromStaging: (stagingId: number) =>
+    api<Product>(`/api/imports/staging/${stagingId}/create-draft`, { method: "POST" }),
   uploadHeroes: (file: File) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -930,6 +963,9 @@ export const importsApi = {
       confirmedOrderNumber?: string;
       confirmSheetMatch?: boolean;
       confirmImport?: boolean;
+      confirmFinancialReview?: boolean;
+      versatoOverride?: string | null;
+      accontoOverrides?: Record<string, string> | null;
       openingExchangeRate?: string | null;
     },
   ) =>
@@ -941,6 +977,9 @@ export const importsApi = {
         confirmed_order_number: opts?.confirmedOrderNumber ?? null,
         confirm_sheet_match: opts?.confirmSheetMatch ?? false,
         confirm_import: opts?.confirmImport ?? false,
+        confirm_financial_review: opts?.confirmFinancialReview ?? false,
+        versato_override: opts?.versatoOverride ?? null,
+        acconto_overrides: opts?.accontoOverrides ?? null,
         opening_exchange_rate: opts?.openingExchangeRate ?? null,
       }),
     }),
@@ -955,6 +994,12 @@ export const importsApi = {
     return res.blob();
   },
   resetOperational: () => api<Record<string, unknown>>("/api/imports/reset-operational", { method: "POST" }),
+  cancelledSummary: () => api<CancelledSummaryResponse>("/api/imports/cancelled-summary"),
+  purgeCancelled: (payload: PurgeCancelledRequest) =>
+    api<PurgeCancelledResponse>("/api/imports/purge-cancelled", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   approveStaging: (stagingId: number) =>
     api(`/api/imports/staging/${stagingId}/approve`, { method: "POST" }),
 };
@@ -1007,6 +1052,22 @@ export interface HeroesXlsxUploadResponse {
   source_path?: string | null;
 }
 
+export interface HeroesSkuTriageGroup {
+  staging_id: number;
+  canonical_key?: string | null;
+  product_name_raw?: string | null;
+  aliases?: string[];
+  suggested_category?: string | null;
+  match_confidence?: number | null;
+  match_reason?: string | null;
+  line_count?: number;
+  suggested_product_id?: number | null;
+  suggested_product_sku?: string | null;
+  suggested_product_description?: string | null;
+  resolved_product_id?: number | null;
+  status?: string;
+}
+
 export interface HeroesXlsxPreviewResponse {
   run_id: number;
   status: string;
@@ -1016,6 +1077,11 @@ export interface HeroesXlsxPreviewResponse {
   order_number_from_sheet_name?: string | null;
   order_number_from_content?: string | null;
   order_number_divergence?: boolean;
+  review_required?: boolean;
+  sku_review_pending?: boolean;
+  sku_review_open_count?: number;
+  sku_review_line_count?: number;
+  sku_review_groups?: HeroesSkuTriageGroup[];
   preview: Record<string, unknown>;
   canonical?: Record<string, unknown> | null;
   warnings: string[] | null;
@@ -1028,6 +1094,73 @@ export interface HeroesXlsxCommitResponse {
   importation_id: number;
   po_number: string;
   run_id: number;
+}
+
+export interface CancelledImportationRow {
+  id: number;
+  po_number: string;
+  supplier_name: string | null;
+  current_status: string;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+  created_at: string;
+}
+
+export interface CancelledProductRow {
+  id: number;
+  sku_code: string;
+  description: string;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+}
+
+export interface CancelledSupplierRow {
+  id: number;
+  name: string;
+  country: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+}
+
+export interface CancelledCounts {
+  importations_cancelled: number;
+  importations_active: number;
+  products_cancelled: number;
+  suppliers_cancelled: number;
+  heroes_runs_orphan: number;
+  staging_rows: number;
+  review_queue_open: number;
+  raw_files_orphan: number;
+}
+
+export interface CancelledSummaryResponse {
+  purge_allowed: boolean;
+  purge_block_reason: string | null;
+  purge_env_var: string;
+  importations: CancelledImportationRow[];
+  products: CancelledProductRow[];
+  suppliers: CancelledSupplierRow[];
+  counts: CancelledCounts;
+}
+
+export interface PurgeCancelledRequest {
+  importation_ids?: number[];
+  product_ids?: number[];
+  supplier_ids?: number[];
+  purge_all_cancelled_importations?: boolean;
+  purge_all_cancelled_products?: boolean;
+  purge_all_cancelled_suppliers?: boolean;
+  purge_orphan_artifacts?: boolean;
+}
+
+export interface PurgeCancelledResponse {
+  importations_removed: number;
+  products_removed?: number;
+  suppliers_removed?: number;
+  review_queue_removed?: number;
+  staging_rows_removed?: number;
+  heroes_runs_removed?: number;
+  raw_files_removed?: number;
 }
 
 export const shipmentsApi = {

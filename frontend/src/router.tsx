@@ -5,6 +5,7 @@ import { AppShell } from "./layouts/AppShell";
 import { ProtectedRoute } from "./layouts/ProtectedRoute";
 import { LoginPage } from "./LoginPage";
 import { CadastrosPage } from "./pages/CadastrosPage";
+import { CleanupPage } from "./pages/CleanupPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { DemoGuidePage } from "./pages/DemoGuidePage";
 import { DocumentsPage } from "./pages/DocumentsPage";
@@ -13,6 +14,7 @@ import { HeroesUploadPage } from "./pages/HeroesUploadPage";
 import { ImportationLayout } from "./pages/importation/ImportationLayout";
 import { ImportationSectionPage } from "./pages/importation/ImportationSectionPage";
 import { ImportationsPage } from "./pages/ImportationsPage";
+import { PendingProductsPage } from "./pages/products/PendingProductsPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { ProductDetailPage } from "./pages/products/ProductDetailPage";
 import { ReviewQueuePage } from "./pages/ReviewQueuePage";
@@ -63,10 +65,12 @@ export function AppRouter() {
           {/* /cadastros agrupa sub-cadastros */}
           <Route path="cadastros" element={<CadastrosPage />}>
             <Route path="produtos" element={<ProductsPage />} />
+            <Route path="produtos-pendentes" element={<PendingProductsPage />} />
             <Route path="produtos/:productId" element={<ProductDetailPage />} />
             <Route path="fornecedores" element={<SuppliersPage />} />
             <Route path="usuarios" element={<UsersPage />} />
             <Route path="heroes" element={<HeroesUploadPage />} />
+            <Route path="limpeza" element={<CleanupPage />} />
             <Route path="revisao" element={<ReviewQueuePage />} />
             <Route path="glossario" element={<GlossaryPage />} />
           </Route>

@@ -9,7 +9,12 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from app.core.enums import ReviewQueueStatus, StagingRowStatus
 from app.models import ReviewQueueItem, StagingImportRow
-from app.services.heroes_product_match import find_product_candidates, match_product
+from app.services.heroes_product_match import (
+    MATCH_AUTO_RESOLVE_SCORE,
+    MATCH_SUGGEST_MIN_SCORE,
+    find_product_candidates,
+    match_product,
+)
 from app.services.heroes_racchetta_key import (
     canonical_key_for_matching,
     parse_racchetta_key,
@@ -166,6 +171,7 @@ def _build_group_parsed(
         "source": "heroes_xlsx",
         "alias_count": len(aliases),
         "line_count": len(group.occurrences),
+        "suggested_category": category_hint,
     }
     if candidates:
         top = candidates[0]
@@ -175,6 +181,31 @@ def _build_group_parsed(
         parsed["match_confidence"] = top.score
         parsed["match_reason"] = top.reason
     return parsed
+
+
+def _apply_high_confidence_auto_resolve(parsed: dict) -> bool:
+    """Marca grupo como resolvido quando confiança >= threshold (não entra na triage)."""
+    confidence = parsed.get("match_confidence")
+    suggested_id = parsed.get("suggested_product_id")
+    if suggested_id is None or confidence is None:
+        return False
+    if float(confidence) < MATCH_AUTO_RESOLVE_SCORE:
+        return False
+    parsed["resolved_product_id"] = suggested_id
+    parsed["resolved_sku_code"] = parsed.get("suggested_product_sku")
+    parsed["auto_resolved"] = True
+    return True
+
+
+def _triage_suggested_product_id(data: dict) -> int | None:
+    """Sugestão para UI: só quando confiança >= 30 (escala 0–100)."""
+    confidence = data.get("match_confidence")
+    suggested_id = data.get("suggested_product_id")
+    if suggested_id is None:
+        return None
+    if confidence is None or float(confidence) < MATCH_SUGGEST_MIN_SCORE:
+        return None
+    return int(suggested_id)
 
 
 def sync_heroes_xlsx_staging(
@@ -190,26 +221,29 @@ def sync_heroes_xlsx_staging(
     open_count = 0
     pending_line_count = 0
 
+    existing_rows = (
+        db.query(StagingImportRow)
+        .filter(StagingImportRow.raw_file_id == raw_file_id)
+        .all()
+    )
+    existing_by_key: dict[tuple, StagingImportRow] = {}
+    for row in existing_rows:
+        data = row.parsed_data_json or {}
+        if data.get("heroes_run_id") == run_id and data.get("source") == "heroes_xlsx":
+            existing_by_key[_staging_group_key(data)] = row
+
     for group in groups.values():
         if _group_exactly_resolved(db, group):
             continue
 
         parsed = _build_group_parsed(db, group=group, run_id=run_id)
+        auto_resolved = _apply_high_confidence_auto_resolve(parsed)
         group_key = _staging_group_key(parsed)
         seen_group_keys.add(group_key)
-        pending_line_count += len(group.occurrences)
+        if not auto_resolved:
+            pending_line_count += len(group.occurrences)
 
-        existing_rows = (
-            db.query(StagingImportRow)
-            .filter(StagingImportRow.raw_file_id == raw_file_id)
-            .all()
-        )
-        staging = None
-        for row in existing_rows:
-            data = row.parsed_data_json or {}
-            if _staging_group_key(data) == group_key:
-                staging = row
-                break
+        staging = existing_by_key.get(group_key)
 
         aliases_label = ", ".join(parsed["aliases"][:5])
         if len(parsed["aliases"]) > 5:
@@ -225,43 +259,53 @@ def sync_heroes_xlsx_staging(
                 raw_file_id=raw_file_id,
                 row_number=parsed["sheet_row"],
                 parsed_data_json=parsed,
-                status=StagingRowStatus.PENDING_REVIEW.value,
+                status=(
+                    StagingRowStatus.APPROVED.value
+                    if auto_resolved
+                    else StagingRowStatus.PENDING_REVIEW.value
+                ),
                 review_reason=reason,
             )
             db.add(staging)
             db.flush()
-            db.add(
-                ReviewQueueItem(
-                    staging_row_id=staging.id,
-                    status=ReviewQueueStatus.OPEN.value,
-                    reason=reason,
-                    priority=8,
+            if not auto_resolved:
+                db.add(
+                    ReviewQueueItem(
+                        staging_row_id=staging.id,
+                        status=ReviewQueueStatus.OPEN.value,
+                        reason=reason,
+                        priority=8,
+                    )
                 )
-            )
-            open_count += 1
+                open_count += 1
         else:
             prev_data = staging.parsed_data_json or {}
-            if prev_data.get("resolved_product_id"):
+            if prev_data.get("resolved_product_id") and not auto_resolved:
                 parsed["resolved_product_id"] = prev_data["resolved_product_id"]
                 parsed["resolved_sku_code"] = prev_data.get("resolved_sku_code")
             staging.parsed_data_json = parsed
             staging.row_number = parsed["sheet_row"]
             staging.review_reason = reason
             flag_modified(staging, "parsed_data_json")
-            for rq in db.query(ReviewQueueItem).filter(
-                ReviewQueueItem.staging_row_id == staging.id,
-                ReviewQueueItem.status == ReviewQueueStatus.OPEN.value,
-            ):
-                rq.reason = reason
-            if staging.status == StagingRowStatus.PENDING_REVIEW.value:
-                if not (staging.parsed_data_json or {}).get("resolved_product_id"):
-                    open_count += 1
+            if auto_resolved:
+                staging.status = StagingRowStatus.APPROVED.value
+                for rq in db.query(ReviewQueueItem).filter(
+                    ReviewQueueItem.staging_row_id == staging.id,
+                    ReviewQueueItem.status == ReviewQueueStatus.OPEN.value,
+                ):
+                    rq.status = ReviewQueueStatus.RESOLVED.value
+                    rq.resolution_notes = "Auto-resolvido por confiança >= 70%"
+            else:
+                for rq in db.query(ReviewQueueItem).filter(
+                    ReviewQueueItem.staging_row_id == staging.id,
+                    ReviewQueueItem.status == ReviewQueueStatus.OPEN.value,
+                ):
+                    rq.reason = reason
+                if staging.status == StagingRowStatus.PENDING_REVIEW.value:
+                    if not (staging.parsed_data_json or {}).get("resolved_product_id"):
+                        open_count += 1
 
-    all_staging = (
-        db.query(StagingImportRow)
-        .filter(StagingImportRow.raw_file_id == raw_file_id)
-        .all()
-    )
+    all_staging = existing_rows
     for staging in all_staging:
         data = staging.parsed_data_json or {}
         if data.get("heroes_run_id") != run_id or data.get("source") != "heroes_xlsx":
@@ -278,7 +322,59 @@ def sync_heroes_xlsx_staging(
     preview["sku_review_pending"] = open_count > 0
     preview["sku_review_open_count"] = open_count
     preview["sku_review_line_count"] = pending_line_count if open_count > 0 else 0
+    preview["sku_review_groups"] = build_sku_triage_groups(db, run_id=run_id, raw_file_id=raw_file_id)
+    all_for_run = [
+        s
+        for s in db.query(StagingImportRow).filter(StagingImportRow.raw_file_id == raw_file_id).all()
+        if (s.parsed_data_json or {}).get("heroes_run_id") == run_id
+        and (s.parsed_data_json or {}).get("source") == "heroes_xlsx"
+        and (s.parsed_data_json or {}).get("issue_type") == "SKU_UNRESOLVED"
+        and s.status != StagingRowStatus.MERGED.value
+    ]
+    preview["sku_review_total_count"] = len(all_for_run)
+    preview["sku_review_resolved_count"] = len(all_for_run) - open_count
     return preview
+
+
+def build_sku_triage_groups(db: Session, *, run_id: int, raw_file_id: int) -> list[dict]:
+    """Grupos pendentes para painel de triage — match ausente ou confiança < 70."""
+    rows = (
+        db.query(StagingImportRow)
+        .filter(StagingImportRow.raw_file_id == raw_file_id)
+        .all()
+    )
+    groups: list[dict] = []
+    for staging in rows:
+        data = staging.parsed_data_json or {}
+        if data.get("heroes_run_id") != run_id or data.get("source") != "heroes_xlsx":
+            continue
+        if data.get("resolved_product_id"):
+            continue
+        confidence = data.get("match_confidence")
+        if confidence is not None and float(confidence) >= MATCH_AUTO_RESOLVE_SCORE:
+            continue
+        triage_suggested = _triage_suggested_product_id(data)
+        groups.append(
+            {
+                "staging_id": staging.id,
+                "canonical_key": data.get("canonical_key"),
+                "product_name_raw": data.get("product_name_raw"),
+                "aliases": data.get("aliases") or [],
+                "suggested_category": data.get("suggested_category"),
+                "match_confidence": confidence,
+                "match_reason": data.get("match_reason"),
+                "line_count": data.get("line_count") or 1,
+                "suggested_product_id": triage_suggested,
+                "suggested_product_sku": data.get("suggested_product_sku") if triage_suggested else None,
+                "suggested_product_description": (
+                    data.get("suggested_product_description") if triage_suggested else None
+                ),
+                "resolved_product_id": data.get("resolved_product_id"),
+                "status": "pending",
+            }
+        )
+    groups.sort(key=lambda g: str(g.get("product_name_raw") or "").lower())
+    return groups
 
 
 def count_open_sku_reviews_for_run(db: Session, run_id: int, raw_file_id: int) -> int:
