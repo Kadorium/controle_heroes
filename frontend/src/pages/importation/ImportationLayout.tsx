@@ -108,7 +108,7 @@ export function ImportationLayout() {
       }
     }
     if ((oh.to_dispatch ?? 0) > 0) {
-      list.push({ label: `${oh.to_dispatch} un. a despachar`, tone: "warning", path: "logistica#despachar" });
+      list.push({ label: `${oh.to_dispatch} un. a despachar`, tone: "warning", path: "itens" });
     }
     for (const msg of statusRail?.alerts ?? []) {
       list.push({ label: msg, tone: "warning", path: "resumo" });
@@ -121,10 +121,7 @@ export function ImportationLayout() {
       data: orderCentral,
       loading: centralLoading,
       error,
-      reloadCentral: async () => {
-        await reloadCentral();
-        await reload();
-      },
+      reloadCentral,
     }),
     [orderCentral, centralLoading, error, reloadCentral],
   );

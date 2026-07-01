@@ -610,8 +610,8 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** DONE
 - **Dependência:** F4-001
-- **Evidência:** `Payment.exchange_rate`; registro SETTLED em `register_exchange_rate`
-- **Teste:** `test_payment_exchange_differs_from_expected`
+- **Evidência:** `Payment.exchange_rate`; registro SETTLED em `register_exchange_rate`; `GET /api/finance/payables-queue` com `display_brl`/`display_rate` fresh; `ensure_settlement_exchange_rate` só para BRL
+- **Teste:** `test_payment_exchange_differs_from_expected`; `tests/test_finance_payables_queue.py` (5 testes)
 - **Observação:** —
 
 ### F4-004
@@ -640,8 +640,8 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** DONE
 - **Dependência:** F4-005
-- **Evidência:** `importation_financial_summary`; endpoint `/finance/importations/{id}/summary`; PnL Cambial operacional `app/services/fx_pnl.py` + `GET /finance/fx-pnl/summary` + `GET /finance/importations/{id}/fx-pnl`; UI `FxPnlPanel` (header, Resumo, Financeiro ordem, `FinancePage`)
-- **Teste:** `test_consolidated_balance`; `test_fx_pnl.py` (4 testes); browser aba Financeiro no detalhe
+- **Evidência:** `importation_financial_summary`; endpoint `/finance/importations/{id}/summary`; PnL Cambial operacional `app/services/fx_pnl.py` + `GET /finance/fx-pnl/summary` + `GET /finance/importations/{id}/fx-pnl` + **`GET /finance/payables-queue`**; UI `FxPnlPanel` + **`FinancePage` Financeiro Global**; exposição cambial aberta (`open_fx_exposure_brl`)
+- **Teste:** `test_consolidated_balance`; `test_fx_pnl.py` (4 testes); **`tests/test_finance_payables_queue.py` (5 testes)**; browser `/financeiro`
 - **Observação:** —
 
 ### F4-007
@@ -792,7 +792,7 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Dependência:** F0-006, F5-004
 - **Evidência:** `app/services/heroes_import.py`; CSV + `HeroesImportMapping`; default mapping
 - **Teste:** `test_heroes_empty_field_not_zero`, `test_ambiguous_line_goes_to_review_queue`
-- **Observação:** Parser CSV genérico; exemplo real Heroes ainda BLOCKED (F0-006) para ajuste fino
+- **Observação:** Parser CSV genérico; XLSX commit exige `opening_exchange_rate` (`HeroesUploadPage`, `HeroesImportPanel`); propaga `expected_exchange_rate` em `heroes_xlsx_commit.py`; normaliza fatura `72.0→72`; backfill `scripts/backfill_provision_fx.py`
 
 ### F5-008
 - **Módulo:** Aprovação staging → oficial
@@ -1040,8 +1040,8 @@ Cada seção exigida pelo prompt mestre mapeia para um ou mais itens do checklis
 - **Prioridade:** P0
 - **Status:** DONE
 - **Dependência:** F3-004, F6-008, F8-001, F8-002
-- **Evidência:** `quantity_chain`; `QuantityDiscrepancy`; API `/api/stock/importations/{id}/quantity-chain`
-- **Teste:** `test_quantity_discrepancy_recorded` + quantity chain na UI
+- **Evidência:** `quantity_chain`; `QuantityDiscrepancy`; API `/api/stock/importations/{id}/quantity-chain`; cadeia de quantidades na aba `/importacoes/:id/itens` (`OrderCentralItemsSection`, `OrderCentralModelsGrid`)
+- **Teste:** `test_quantity_discrepancy_recorded` + quantity chain na UI; `orderCentralItemsUtils.test.ts`; `test_importation_item_update.py`
 - **Observação:** Faturada na trilha completa — Fase 10
 
 ### F8-005
@@ -2076,7 +2076,7 @@ Regras: planejado = `payment_date` null, sem comprovante; liquidado = `payment_d
 
 | Item | Status | Evidência |
 |------|--------|-----------|
-| `/financeiro` fila contas a pagar | DONE | FinancePage.tsx |
+| `/financeiro` Financeiro Global + Contas a pagar | DONE | `FinancePage.tsx` — KPI dashboard, accordion por ordem, `GET /api/finance/payables-queue`; backfill `scripts/backfill_provision_fx.py --po --rate` |
 | Financeiro da ordem + banners | DONE | FinancePanels.tsx — tipos fatura completos, payStatusLabel |
 
 ### Fase 5 — Dashboard

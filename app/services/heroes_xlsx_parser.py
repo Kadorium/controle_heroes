@@ -21,6 +21,28 @@ ORDINE_SHEET_RE = re.compile(r"ordine\s+(\d+)", re.IGNORECASE)
 ORDINE_PK_RE = re.compile(r"ordine\s+(\d+)\s+pk", re.IGNORECASE)
 
 
+def _normalize_invoice_number(val: Any) -> str | None:
+    """Preserva número oficial da fatura italiana; normaliza só artefato Excel (72.0 → 72)."""
+    if val is None:
+        return None
+    if isinstance(val, int):
+        return str(val)
+    if isinstance(val, float):
+        if val == int(val):
+            return str(int(val))
+        return str(val).strip()
+    s = str(val).strip()
+    if not s:
+        return None
+    try:
+        d = Decimal(s)
+        if d == d.to_integral_value():
+            return str(int(d))
+    except Exception:
+        pass
+    return s
+
+
 def _cell_str(val: Any) -> str | None:
     if val is None:
         return None
@@ -194,26 +216,38 @@ def _find_invoice_header_row(grid: list[list[Any]]) -> tuple[int, dict[str, int]
         if has_data and has_fattura and has_qty:
             col_map: dict[str, int] = {}
             product_header: str | None = None
-            for k, ci in headers.items():
-                if k == "data" or k.startswith("data"):
+            for ci, cell in enumerate(row):
+                if cell is None:
+                    continue
+                k = _norm_header(cell)
+                if (k == "data" or k.startswith("data")) and "date" not in col_map:
                     col_map["date"] = ci
-                elif "fattura" in k:
+                elif "fattura" in k and "invoice_number" not in col_map:
                     col_map["invoice_number"] = ci
-                elif "quantit" in k:
+                elif "quantit" in k and "quantity" not in col_map:
                     col_map["quantity"] = ci
-                elif ("racchetta" in k or "articolo" in k or k == "prodotto") and "credito" not in k:
+                elif (
+                    ("racchetta" in k or "articolo" in k or k == "prodotto")
+                    and "credito" not in k
+                    and "product" not in col_map
+                ):
                     col_map["product"] = ci
                     product_header = "articolo" if "articolo" in k else "racchetta"
-                elif "acconto rimasto" in k or "acconto rimanente" in k:
+                elif ("acconto rimasto" in k or "acconto rimanente" in k) and "acconto_remaining" not in col_map:
                     col_map["acconto_remaining"] = ci
-                elif k == "acconto" or (k.startswith("acconto") and "rimast" not in k and "riman" not in k):
+                elif (
+                    k == "acconto" or (k.startswith("acconto") and "rimast" not in k and "riman" not in k)
+                ) and "acconto" not in col_map:
                     col_map["acconto"] = ci
-                elif "credito" in k and ("racchetta" in k or "unit" in k or "/" in k):
+                elif "credito" in k and ("racchetta" in k or "unit" in k or "/" in k) and "credit_per_unit" not in col_map:
                     col_map["credit_per_unit"] = ci
-                elif "credito accumulato" in k or "credito accum" in k:
+                elif ("credito accumulato" in k or "credito accum" in k) and "credit_accumulated" not in col_map:
                     col_map["credit_accumulated"] = ci
             if "product" not in col_map:
-                for k, ci in headers.items():
+                for ci, cell in enumerate(row):
+                    if cell is None:
+                        continue
+                    k = _norm_header(cell)
                     if "racchetta" in k or "articolo" in k:
                         col_map["product"] = ci
                         product_header = "articolo" if "articolo" in k else "racchetta"
@@ -265,7 +299,7 @@ def _parse_invoice_block(grid: list[list[Any]], sheet_name: str) -> tuple[list[d
             if date_review:
                 warnings.append(f"Linha {ri + 1}: data ambígua — revisar")
         if raw_inv is not None and str(raw_inv).strip():
-            current_invoice = _cell_str(raw_inv)
+            current_invoice = _normalize_invoice_number(raw_inv)
 
         product_raw = _cell_str(_get_col(row, col_map, "product"))
         qty = optional_int(_get_col(row, col_map, "quantity"))
@@ -602,8 +636,10 @@ def parse_xlsx_sheet(content: bytes, sheet_name: str, *, file_checksum: str | No
                 }
             )
         from app.services.heroes_invoice_blocks import attach_invoice_blocks_to_preview
+        from app.services.heroes_financial_preview import attach_financial_review_to_preview
 
         attach_invoice_blocks_to_preview(result)
+        attach_financial_review_to_preview(result)
 
     elif sheet_type == HeroesSheetType.FINANCIAL_ANNUAL.value:
         result["financial_preview"] = _parse_financial_sheet(grid, sheet_name)

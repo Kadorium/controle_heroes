@@ -29,7 +29,12 @@ from app.schemas_import import (
 )
 from app.schemas_order_central import OrderCentralResponse, OrderQueueResponse
 from app.services.auth import write_audit_log
-from app.services.importation_guard import ImportationLockedError, assert_importation_editable
+from app.services.importation_guard import (
+    ImportationLockedError,
+    assert_importation_editable,
+    assert_manual_item_fields_allowed,
+)
+from app.services.importation_lifecycle import release_heroes_runs_on_cancel, release_po_number_on_cancel
 from app.services.italy_override import ItalyOverrideError, apply_italy_field_override
 from app.services.finance import register_exchange_rate
 from app.services.order_central import build_order_central, build_order_queue
@@ -94,8 +99,12 @@ def create_importation(
     supplier = db.query(Supplier).filter(Supplier.id == payload.supplier_id, Supplier.is_active.is_(True)).first()
     if not supplier:
         raise HTTPException(status_code=404, detail="Fornecedor não encontrado")
-    if db.query(ImportationOrder).filter(ImportationOrder.po_number == payload.po_number).first():
-        raise HTTPException(status_code=409, detail="Já existe uma ordem com esse número.")
+    if (
+        db.query(ImportationOrder)
+        .filter(ImportationOrder.po_number == payload.po_number, ImportationOrder.is_active.is_(True))
+        .first()
+    ):
+        raise HTTPException(status_code=409, detail="Já existe uma ordem ativa com esse número.")
 
     imp = ImportationOrder(
         po_number=payload.po_number,
@@ -405,6 +414,10 @@ def commit_heroes_import_for_order(
             category_overrides=payload.category_overrides,
             confirm_import=payload.confirm_import,
             confirm_sheet_match=payload.confirm_sheet_match,
+            confirm_financial_review=payload.confirm_financial_review,
+            versato_override=payload.versato_override,
+            acconto_overrides=payload.acconto_overrides,
+            opening_exchange_rate=payload.opening_exchange_rate,
         )
         db.refresh(run)
     except ValueError as e:
@@ -437,6 +450,10 @@ def update_item_mapping(
     if not item:
         raise HTTPException(status_code=404, detail="Item da ordem não encontrado")
     changes = payload.model_dump(exclude_unset=True)
+    try:
+        assert_manual_item_fields_allowed(db, importation_id, changes)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     for field, new_value in changes.items():
         old_value = getattr(item, field, None)
         if old_value == new_value:
@@ -502,6 +519,8 @@ def cancel_importation(
     ).first()
     if not imp:
         raise HTTPException(status_code=404, detail="Importação não encontrada")
+    release_po_number_on_cancel(imp)
+    release_heroes_runs_on_cancel(db, imp.id)
     imp.is_active = False
     imp.cancelled_at = datetime.now(timezone.utc)
     imp.cancelled_by_id = current_user.id

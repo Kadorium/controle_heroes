@@ -8,10 +8,12 @@ import {
   buildItemPreviewRows,
   estimateItemPreviewRowCount,
   resolveFinance,
+  summarizeItemPreviewRows,
 } from "./orderCentralOperationalHeaderUtils";
 
 const DEFAULT_ITEM_ROWS = 6;
 const FALLBACK_ROW_HEIGHT_PX = 22;
+const FALLBACK_TFOOT_HEIGHT_PX = 26;
 
 interface Props {
   importationId: number;
@@ -75,6 +77,7 @@ export function OrderCentralOperationalHeader({
     () => buildItemPreviewRows(models, items, invoices),
     [models, items, invoices],
   );
+  const itemTotals = useMemo(() => summarizeItemPreviewRows(itemRows), [itemRows]);
   const itemPreview = itemRows.slice(0, maxItemRows);
   const itemOverflow = itemRows.length - itemPreview.length;
 
@@ -94,10 +97,12 @@ export function OrderCentralOperationalHeader({
       const footerH = footer?.offsetHeight ?? 0;
       const thead = col.querySelector(".oc-items-preview thead") as HTMLElement | null;
       const theadH = thead?.offsetHeight ?? 22;
+      const tfoot = col.querySelector(".oc-items-preview tfoot") as HTMLElement | null;
+      const tfootH = tfoot?.offsetHeight ?? FALLBACK_TFOOT_HEIGHT_PX;
       const sampleRow = col.querySelector(".oc-items-preview tbody tr") as HTMLElement | null;
       const rowH = sampleRow?.offsetHeight ?? FALLBACK_ROW_HEIGHT_PX;
       setMaxItemRows(
-        estimateItemPreviewRowCount(col.clientHeight, padY, footerH, theadH, rowH),
+        estimateItemPreviewRowCount(col.clientHeight, padY, footerH, theadH, rowH, tfootH),
       );
     };
 
@@ -122,7 +127,14 @@ export function OrderCentralOperationalHeader({
         className="oc-operational-header__col oc-operational-header__col--finance"
         onClick={() => navigate(`/importacoes/${importationId}/financeiro`)}
       >
-        <span className="oc-operational-header__label">Financeiro</span>
+        <span className="oc-operational-header__label">
+          Financeiro
+          {(header.financial_alerts?.length ?? 0) > 0 && (
+            <span className="oc-finance-alert" title={header.financial_alerts?.join(" ")}>
+              !
+            </span>
+          )}
+        </span>
 
         <div className="oc-finance-total">
           <span className="oc-finance-total__label">Total da ordem</span>
@@ -151,7 +163,9 @@ export function OrderCentralOperationalHeader({
               {brlVal(fin.invoicedBrl)}
             </span>
 
-            <span className="oc-finance-invoiced__label">Liquidado</span>
+            <span className="oc-finance-invoiced__label" title="Soma dos acconti importados por fatura">
+              Liquidado
+            </span>
             <span className="oc-finance-invoiced__eur">{eurVal(fin.settledEur)}</span>
             <span className="oc-finance-invoiced__brl" title={fin.brlHint}>
               {brlVal(fin.settledBrl)}
@@ -239,6 +253,14 @@ export function OrderCentralOperationalHeader({
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="oc-items-preview__total">
+                  <td>Total</td>
+                  <td className="num">{itemTotals.qty ?? emptyDash(null)}</td>
+                  <td className="num">{emptyDash(null)}</td>
+                  <td className="num">{formatMoney(itemTotals.value, currency)}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}

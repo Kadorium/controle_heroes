@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Callable
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.config import DEFAULT_IMPORT_CURRENCY
-from app.core.enums import HeroesImportRunStatus, InvoiceType, ReviewQueueStatus, StagingRowStatus
+from app.core.enums import ExchangeRateType, HeroesImportRunStatus, InvoiceType, ReviewQueueStatus, StagingRowStatus
 from app.core.parse import optional_decimal, optional_int
 from app.models import (
     HeroesImportRun,
@@ -37,6 +38,77 @@ from app.services.heroes_xlsx_staging import find_staging_for_alias
 from app.services.heroes_xlsx_guard import assert_heroes_commit_allowed
 from app.services.heroes_xlsx_staging import count_open_sku_reviews_for_run
 from app.services.product_category import suggest_product_category
+from app.services.finance import register_exchange_rate
+from app.services.fx_pnl import _get_provision_rate
+from app.services.heroes_xlsx_parser import _normalize_invoice_number
+
+
+def _parse_opening_rate(val: str | Decimal | None) -> Decimal | None:
+    if val is None:
+        return None
+    if isinstance(val, Decimal):
+        return val if val > 0 else None
+    d = optional_decimal(str(val))
+    return d if d is not None and d > 0 else None
+
+
+def _ensure_opening_provision(
+    db: Session,
+    imp: ImportationOrder,
+    rate: Decimal,
+    *,
+    user_id: int | None,
+    comment: str,
+) -> None:
+    existing = _get_provision_rate(db, imp.id)
+    if existing is not None:
+        return
+    register_exchange_rate(
+        db,
+        currency_from=imp.currency or DEFAULT_IMPORT_CURRENCY,
+        rate_type="OPENING_PROVISION",
+        rate_value=rate,
+        user_id=user_id,
+        importation_id=imp.id,
+        comment=comment,
+    )
+
+
+def _apply_invoice_provision(
+    db: Session,
+    inv: Invoice,
+    rate: Decimal,
+    *,
+    user_id: int | None,
+    importation_id: int,
+) -> None:
+    if inv.expected_exchange_rate is not None:
+        return
+    inv.expected_exchange_rate = rate
+    register_exchange_rate(
+        db,
+        currency_from=inv.currency or DEFAULT_IMPORT_CURRENCY,
+        rate_type=ExchangeRateType.ESTIMATED.value,
+        rate_value=rate,
+        user_id=user_id,
+        importation_id=importation_id,
+        invoice_id=inv.id,
+        comment="Câmbio previsto na importação Heroes",
+    )
+
+
+def _heroes_block_invoice_amount(block: dict):
+    """Valor da fatura Heroes = soma dos acconti do bloco (quando amount não veio na planilha)."""
+    from decimal import Decimal
+
+    total = Decimal("0")
+    has = False
+    for pay in block.get("acconto_payments") or []:
+        acconto = optional_decimal(pay.get("amount"))
+        if acconto is not None and acconto > 0:
+            total += acconto
+            has = True
+    return total if has else None
 
 
 def _parse_date(val: str | None):
@@ -147,6 +219,7 @@ def _merge_preview_into_importation(
     category_overrides: dict[str, str] | None,
     merge_mode: bool,
     resolve_product: Callable[[str, int | None], Product],
+    provision_rate: Decimal | None = None,
 ) -> list[str]:
     """Aplica invoice_blocks à ordem — retorna warnings (ex.: fatura já existente)."""
     warnings: list[str] = []
@@ -154,6 +227,8 @@ def _merge_preview_into_importation(
     invoice_cache: dict[str, Invoice] = {}
     item_by_product_id: dict[int, ImportationItem] = {}
     product_id_by_name: dict[str, int] = {}
+
+    effective_provision = provision_rate or _get_provision_rate(db, imp.id)
 
     for existing in (
         db.query(ImportationItem)
@@ -195,12 +270,17 @@ def _merge_preview_into_importation(
             )
             db.add(inv)
             db.flush()
+        if effective_provision is not None:
+            _apply_invoice_provision(
+                db, inv, effective_provision, user_id=user_id, importation_id=imp.id
+            )
         invoice_cache[inv_num] = inv
         return inv
 
     # Loop 1 — financeiro
     for block in invoice_blocks:
-        inv_num = block.get("invoice_number") or "SEM-NUMERO"
+        raw_num = block.get("invoice_number") or "SEM-NUMERO"
+        inv_num = _normalize_invoice_number(raw_num) or str(raw_num)
         pre_existed = (
             db.query(Invoice)
             .filter(
@@ -212,6 +292,9 @@ def _merge_preview_into_importation(
             is not None
         )
         inv = get_invoice(inv_num, block.get("invoice_date"), pre_existed=pre_existed)
+        block_amount = _heroes_block_invoice_amount(block)
+        if block_amount is not None and inv.amount is None:
+            inv.amount = block_amount
         pay_date = _parse_date(block.get("invoice_date"))
         for pay in block.get("acconto_payments") or []:
             acconto = optional_decimal(pay.get("amount"))
@@ -255,15 +338,6 @@ def _merge_preview_into_importation(
             prod = resolve_product(name, sheet_row)
             product_id_by_name[name] = prod.id
             qty = optional_int(row.get("item_quantity"))
-            db.add(
-                InvoiceItem(
-                    invoice_id=inv.id,
-                    product_id=prod.id,
-                    quantity=qty,
-                    unit_price=None,
-                    amount=None,
-                )
-            )
             existing_item = item_by_product_id.get(prod.id)
             if existing_item is None:
                 new_item = ImportationItem(
@@ -274,7 +348,9 @@ def _merge_preview_into_importation(
                     quantity_ordered=qty,
                 )
                 db.add(new_item)
+                db.flush()
                 item_by_product_id[prod.id] = new_item
+                existing_item = new_item
             elif qty is not None:
                 desc = (existing_item.description or "").strip().lower()
                 if desc and desc != name.strip().lower() and merge_mode and raw_file_id:
@@ -291,6 +367,25 @@ def _merge_preview_into_importation(
                     )
                 cur = existing_item.quantity_ordered
                 existing_item.quantity_ordered = (cur or 0) + qty
+            db.add(
+                InvoiceItem(
+                    invoice_id=inv.id,
+                    importation_item_id=existing_item.id,
+                    product_id=prod.id,
+                    quantity=qty,
+                    unit_price=None,
+                    amount=None,
+                )
+            )
+
+    for block in invoice_blocks:
+        inv_num = str(block.get("invoice_number") or "SEM-NUMERO")
+        inv = invoice_cache.get(inv_num)
+        if not inv or inv.amount is not None:
+            continue
+        amt = _heroes_block_invoice_amount(block)
+        if amt is not None:
+            inv.amount = amt
 
     for da in preview.get("da_spedire") or []:
         name = da.get("product_name_raw")
@@ -329,6 +424,10 @@ def _merge_preview_into_importation(
         preview=preview,
         product_id_by_name=product_id_by_name,
     )
+    legacy = preview.get("legacy_sheet_summary") or {}
+    versato = optional_decimal(legacy.get("versato_amount"))
+    if versato is not None:
+        imp.estimated_total = versato
     preview["merge_warnings"] = warnings
     return warnings
 
@@ -341,6 +440,10 @@ def commit_merge_heroes_run(
     category_overrides: dict[str, str] | None = None,
     confirm_import: bool = False,
     confirm_sheet_match: bool = False,
+    confirm_financial_review: bool = False,
+    versato_override: str | None = None,
+    acconto_overrides: dict[str, str] | None = None,
+    opening_exchange_rate: str | Decimal | None = None,
 ) -> ImportationOrder:
     run = db.query(HeroesImportRun).filter(HeroesImportRun.id == run_id).first()
     if not run:
@@ -362,6 +465,20 @@ def commit_merge_heroes_run(
     if not imp:
         raise ValueError("Ordem vinculada não encontrada")
 
+    provision = _parse_opening_rate(opening_exchange_rate) or _get_provision_rate(db, imp.id)
+    if provision is None:
+        raise ValueError(
+            "Informe câmbio provisionado (opening_exchange_rate) — ordem sem OPENING_PROVISION"
+        )
+    if opening_exchange_rate is not None:
+        _ensure_opening_provision(
+            db,
+            imp,
+            provision,
+            user_id=user_id,
+            comment="Provisão informada no commit Heroes (merge)",
+        )
+
     preview = run.preview_json or {}
     if preview.get("errors"):
         raise ValueError("Preview contém erros — corrija antes de importar")
@@ -370,6 +487,26 @@ def commit_merge_heroes_run(
         HeroesImportRunStatus.REVIEW_REQUIRED.value,
     ):
         raise ValueError("Execute o preview da planilha antes do commit.")
+
+    from app.services.heroes_financial_preview import (
+        apply_financial_overrides,
+        attach_financial_review_to_preview,
+    )
+
+    attach_financial_review_to_preview(preview)
+    if versato_override is not None or acconto_overrides:
+        apply_financial_overrides(
+            preview,
+            versato_override=versato_override,
+            acconto_overrides=acconto_overrides,
+        )
+    financial_review = preview.get("financial_review") or {}
+    if financial_review.get("requires_manual_review") and not confirm_financial_review:
+        warnings = financial_review.get("warnings") or []
+        detail = "; ".join(warnings[:3])
+        raise ValueError(
+            f"Revisão financeira pendente — confirme após revisar os avisos. {detail}"
+        )
 
     guard = assert_heroes_commit_allowed(db, run, preview)
     if guard:
@@ -404,6 +541,7 @@ def commit_merge_heroes_run(
         category_overrides=category_overrides,
         merge_mode=True,
         resolve_product=resolve_merge_product,
+        provision_rate=provision,
     )
     run.preview_json = preview
     flag_modified(run, "preview_json")
@@ -436,6 +574,10 @@ def commit_heroes_import_run(
     confirmed_order_number: str | None = None,
     confirm_sheet_match: bool = False,
     confirm_import: bool = False,
+    confirm_financial_review: bool = False,
+    versato_override: str | None = None,
+    acconto_overrides: dict[str, str] | None = None,
+    opening_exchange_rate: str | Decimal | None = None,
 ) -> ImportationOrder:
     run = db.query(HeroesImportRun).filter(HeroesImportRun.id == run_id).first()
     if not run:
@@ -451,6 +593,9 @@ def commit_heroes_import_run(
             category_overrides=category_overrides,
             confirm_import=confirm_import,
             confirm_sheet_match=confirm_sheet_match,
+            confirm_financial_review=confirm_financial_review,
+            versato_override=versato_override,
+            acconto_overrides=acconto_overrides,
         )
 
     if run.status == HeroesImportRunStatus.COMMITTED.value:
@@ -492,6 +637,12 @@ def commit_heroes_import_run(
         or run.order_number
     )
 
+    provision = _parse_opening_rate(opening_exchange_rate)
+    if provision is None:
+        raise ValueError(
+            "Informe câmbio provisionado (opening_exchange_rate) antes de importar planilha Heroes"
+        )
+
     supplier = _get_heroes_supplier(db)
     imp = ImportationOrder(
         po_number=f"HEROES-{order_number}",
@@ -503,6 +654,14 @@ def commit_heroes_import_run(
     )
     db.add(imp)
     db.flush()
+
+    _ensure_opening_provision(
+        db,
+        imp,
+        provision,
+        user_id=user_id,
+        comment="Provisão informada no commit Heroes (standalone)",
+    )
 
     product_cache: dict[str, Product] = {}
 
@@ -530,6 +689,7 @@ def commit_heroes_import_run(
         category_overrides=category_overrides,
         merge_mode=False,
         resolve_product=lambda name, _row: get_or_create_product(name),
+        provision_rate=provision,
     )
 
     canonical = preview_to_canonical(preview, source_file=run.original_filename)

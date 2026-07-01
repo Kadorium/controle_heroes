@@ -67,6 +67,10 @@ def _rail_subtitle(key: str, rail_context: dict | None) -> str | None:
         if total > 0:
             return f"{settled}/{total} faturas"
     if key == "acconto":
+        versato = ctx.get("versato_amount")
+        cur = ctx.get("versato_currency") or ctx.get("currency") or "EUR"
+        if versato:
+            return f"{cur} {versato} versato"
         paid = ctx.get("total_paid")
         cur = ctx.get("currency") or "EUR"
         if paid:

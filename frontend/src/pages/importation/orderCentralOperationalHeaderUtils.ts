@@ -8,6 +8,11 @@ export interface ItemPreviewRow {
   paid: string | null;
 }
 
+export interface ItemPreviewTotals {
+  qty: number | null;
+  value: string | null;
+}
+
 export function normalizeItemLabel(label: string): string {
   return label.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
@@ -69,6 +74,14 @@ export function aggregateItemPreviewRows(rows: ItemPreviewRow[]): ItemPreviewRow
   return Array.from(byLabel.values());
 }
 
+function modelLineValue(
+  qty: number | null | undefined,
+  unitPrice: string | null | undefined,
+): string | null {
+  if (qty == null || unitPrice == null || unitPrice === "") return null;
+  return String(Number(qty) * Number(unitPrice));
+}
+
 export function buildItemPreviewRows(
   models: OrderCentralModel[] | undefined,
   items: ImportationItem[] | undefined,
@@ -92,14 +105,17 @@ export function buildItemPreviewRows(
 
   if (models && models.length > 0) {
     for (const m of models) {
+      const unitPrice =
+        m.price_fattura ?? itemById.get(m.importation_item_id)?.unit_price_foreign ?? null;
       pushRow({
         key: m.importation_item_id,
         label: m.model_label ?? m.description ?? m.supplier_sku ?? m.product_sku ?? "—",
         qty: m.quantity_ordered,
-        unitPrice: m.price_fattura ?? itemById.get(m.importation_item_id)?.unit_price_foreign ?? null,
-        paid: m.acconto_amount ?? null,
+        unitPrice,
+        paid: modelLineValue(m.quantity_ordered, unitPrice),
       });
     }
+    return aggregateItemPreviewRows(rows);
   }
 
   for (const it of items ?? []) {
@@ -108,24 +124,50 @@ export function buildItemPreviewRows(
       label: it.description ?? it.supplier_sku ?? "—",
       qty: it.quantity_ordered,
       unitPrice: it.unit_price_foreign ?? null,
-      paid: null,
+      paid: modelLineValue(it.quantity_ordered, it.unit_price_foreign),
     });
   }
 
   for (const inv of invoices ?? []) {
     for (const ii of inv.items ?? []) {
       const key = ii.importation_item_id ?? ii.id;
+      const unitPrice = ii.unit_price != null ? String(ii.unit_price) : null;
       pushRow({
         key,
         label: ii.description ?? ii.product_sku ?? inv.invoice_number,
         qty: ii.quantity,
-        unitPrice: ii.unit_price != null ? String(ii.unit_price) : null,
-        paid: ii.amount != null ? String(ii.amount) : inv.paid_total != null ? String(inv.paid_total) : null,
+        unitPrice,
+        paid:
+          ii.amount != null
+            ? String(ii.amount)
+            : modelLineValue(ii.quantity, unitPrice),
       });
     }
   }
 
   return aggregateItemPreviewRows(rows);
+}
+
+export function summarizeItemPreviewRows(rows: ItemPreviewRow[]): ItemPreviewTotals {
+  let qty = 0;
+  let hasQty = false;
+  let valueSum = 0;
+  let hasValue = false;
+  for (const row of rows) {
+    if (row.qty != null) {
+      qty += row.qty;
+      hasQty = true;
+    }
+    const v = lineValue(row);
+    if (v != null && !Number.isNaN(Number(v))) {
+      valueSum += Number(v);
+      hasValue = true;
+    }
+  }
+  return {
+    qty: hasQty ? qty : null,
+    value: hasValue ? String(valueSum) : null,
+  };
 }
 
 function brlFromEur(eur: string | null, rate: number | null): string | null {
@@ -147,6 +189,7 @@ export interface ResolvedFinance {
   balanceEur: string | null;
   balanceBrl: string | null;
   brlHint: string;
+  brlIsEstimated: boolean;
 }
 
 export function resolveFinance(
@@ -218,12 +261,14 @@ export function resolveFinance(
     brlFromEur(balanceEur, currentRateNum),
   );
 
-  const brlHint =
+  const brlHintBase =
     markRateRaw != null
       ? `estimativa pelo câmbio atual ${markRateRaw}`
       : opening
         ? `estimativa pelo câmbio abertura ${opening}`
         : "estimativa cambial";
+  const brlIsEstimated = header.brl_is_estimated === true;
+  const brlHint = brlIsEstimated ? brlHintBase : brlHintBase;
 
   return {
     opening,
@@ -239,6 +284,7 @@ export function resolveFinance(
     balanceEur,
     balanceBrl,
     brlHint,
+    brlIsEstimated,
   };
 }
 
@@ -248,8 +294,10 @@ export function estimateItemPreviewRowCount(
   footerHeightPx: number,
   theadHeightPx: number,
   rowHeightPx: number,
+  tfootHeightPx = 0,
 ): number {
-  const available = columnHeightPx - paddingVerticalPx - footerHeightPx - theadHeightPx - 4;
+  const available =
+    columnHeightPx - paddingVerticalPx - footerHeightPx - theadHeightPx - tfootHeightPx - 4;
   if (available <= 0 || rowHeightPx <= 0) return 1;
   return Math.max(1, Math.floor(available / rowHeightPx));
 }

@@ -131,6 +131,16 @@ def update_invoice(
         raise HTTPException(status_code=404, detail="Invoice não encontrada")
 
     updates = payload.model_dump(exclude_unset=True)
+    rate_reason = updates.pop("rate_change_reason", None)
+    if "expected_exchange_rate" in updates:
+        old_rate = inv.expected_exchange_rate
+        new_rate = updates["expected_exchange_rate"]
+        if old_rate != new_rate:
+            if not rate_reason or not str(rate_reason).strip():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Informe rate_change_reason ao alterar câmbio previsto da fatura",
+                )
     for field in AUDITED_FIELDS:
         if field not in updates:
             continue
@@ -146,7 +156,12 @@ def update_invoice(
                 field_changed=field,
                 old_value=str(old_val) if old_val is not None else None,
                 new_value=str(new_val) if new_val is not None else None,
+                justification=rate_reason if field == "expected_exchange_rate" else None,
             )
+
+    for field, value in updates.items():
+        setattr(inv, field, value)
+    db.flush()
 
     if "expected_exchange_rate" in updates and updates["expected_exchange_rate"] is not None:
         register_exchange_rate(
@@ -157,11 +172,9 @@ def update_invoice(
             user_id=current_user.id,
             importation_id=inv.importation_id,
             invoice_id=inv.id,
-            comment="Revisão de câmbio previsto",
+            comment=rate_reason or "Revisão de câmbio previsto",
         )
 
-    for field, value in updates.items():
-        setattr(inv, field, value)
     db.commit()
     db.refresh(inv)
     return _invoice_response(db, inv)

@@ -2,7 +2,9 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.core.parse import optional_decimal
 
 
 class DocumentResponse(BaseModel):
@@ -139,6 +141,12 @@ class HeroesXlsxCommitRequest(BaseModel):
     confirmed_order_number: str | None = None
     confirm_sheet_match: bool = False
     confirm_import: bool = False
+    opening_exchange_rate: Any = None
+
+    @field_validator("opening_exchange_rate", mode="before")
+    @classmethod
+    def parse_opening_rate(cls, v: Any) -> Decimal | None:
+        return optional_decimal(v)
 
 
 class HeroesXlsxExportRequest(BaseModel):

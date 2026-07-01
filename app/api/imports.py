@@ -241,6 +241,7 @@ def commit_heroes_xlsx(
             confirmed_order_number=payload.confirmed_order_number,
             confirm_sheet_match=payload.confirm_sheet_match,
             confirm_import=payload.confirm_import,
+            opening_exchange_rate=payload.opening_exchange_rate,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

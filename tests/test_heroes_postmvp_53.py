@@ -50,6 +50,7 @@ def _commit_758(db, content: bytes, *, user_id: int = 1, order_number: str | Non
         user_id=user_id,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=order_number,
     )
 
@@ -193,14 +194,16 @@ def test_idempotency_758_recommit(db, xlsx_758):
         confirmed_order_number=order_number,
     )
     imp1 = commit_heroes_import_run(
-        db, run.id, user_id=1, confirm_import=True, confirm_sheet_match=True, confirmed_order_number=order_number
+        db, run.id, user_id=1, confirm_import=True, confirm_sheet_match=True,
+        confirmed_order_number=order_number, opening_exchange_rate="5.00",
     )
     # Simula ordem commitada sem legacy (pré-5.3)
     db.query(HeroesLegacySheetSummary).filter(HeroesLegacySheetSummary.importation_id == imp1.id).delete()
     db.query(HeroesDispatchPendingItem).filter(HeroesDispatchPendingItem.importation_id == imp1.id).delete()
     db.commit()
     imp2 = commit_heroes_import_run(
-        db, run.id, user_id=1, confirm_import=True, confirm_sheet_match=True, confirmed_order_number=order_number
+        db, run.id, user_id=1, confirm_import=True, confirm_sheet_match=True,
+        confirmed_order_number=order_number, opening_exchange_rate="5.00",
     )
     assert imp1.id == imp2.id
     assert (
@@ -260,8 +263,25 @@ def test_real_758_versato_and_dispatch(db, admin_client):
         user_id=1,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=order_number,
     )
     central = admin_client.get(f"/api/importations/{imp.id}/order-central").json()
     assert central["legacy_sheet_summary"] is not None
     assert len(central["dispatch_pending"]) >= 5
+
+
+def test_heroes_order_queue_shows_faturado_and_settled_invoices(db, admin_client, xlsx_758):
+    """Faturas Heroes com acconto devem aparecer em Faturado e na contagem quitada."""
+    from decimal import Decimal
+
+    imp = _commit_758(db, xlsx_758)
+    res = admin_client.get("/api/importations/order-queue?limit=200")
+    assert res.status_code == 200
+    row = next(r for r in res.json()["items"] if r["id"] == imp.id)
+    assert row["total_invoiced"] is not None
+    assert Decimal(row["total_invoiced"]) > 0
+    assert row["total_paid"] is not None
+    assert Decimal(row["total_paid"]) > 0
+    assert (row["invoices_settled_count"] or 0) > 0
+    assert row["invoices_settled_count"] <= row["invoices_count"]

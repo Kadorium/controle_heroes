@@ -87,13 +87,13 @@ def test_build_invoice_blocks_multiple_independent_acconto_per_invoice():
 def test_real_ordine_758_invoice_blocks_181_and_737():
     preview = parse_xlsx_sheet(REAL_WORKBOOK.read_bytes(), "Ordine 758")
     blocks = get_invoice_blocks_for_preview(preview)
-    b181 = next(b for b in blocks if str(b.get("invoice_number")) == "181.0")
+    b181 = next(b for b in blocks if str(b.get("invoice_number")) == "181")
     assert len(b181["acconto_payments"]) == 1
     assert b181["acconto_payments"][0]["amount"] == "74000"
     assert len(b181["items"]) == 5
     assert all("acconto_amount" not in it for it in b181["items"])
 
-    b737 = next(b for b in blocks if str(b.get("invoice_number")) == "737.0")
+    b737 = next(b for b in blocks if str(b.get("invoice_number")) == "737")
     assert len(b737["acconto_payments"]) == 1
     assert b737["acconto_payments"][0]["amount"] == "10000"
 
@@ -101,7 +101,7 @@ def test_real_ordine_758_invoice_blocks_181_and_737():
 @pytest.mark.skipif(not REAL_WORKBOOK.is_file(), reason="Planilha real ausente")
 def test_real_ordine_758_invoice_6_three_payments():
     preview = parse_xlsx_sheet(REAL_WORKBOOK.read_bytes(), "Ordine 758")
-    b6 = next(b for b in preview["invoice_blocks"] if str(b.get("invoice_number")) == "6.0")
+    b6 = next(b for b in preview["invoice_blocks"] if str(b.get("invoice_number")) == "6")
     assert len(b6["acconto_payments"]) == 3
 
 
@@ -125,10 +125,11 @@ def test_real_commit_payment_counts(db):
         user_id=1,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=order_number,
     )
     inv181 = db.query(Invoice).filter(
-        Invoice.importation_id == imp.id, Invoice.invoice_number == "181.0"
+        Invoice.importation_id == imp.id, Invoice.invoice_number == "181"
     ).first()
     assert inv181 is not None
     pays181 = db.query(Payment).filter(Payment.invoice_id == inv181.id).all()
@@ -136,14 +137,14 @@ def test_real_commit_payment_counts(db):
     assert pays181[0].amount_foreign == 74000
 
     inv737 = db.query(Invoice).filter(
-        Invoice.importation_id == imp.id, Invoice.invoice_number == "737.0"
+        Invoice.importation_id == imp.id, Invoice.invoice_number == "737"
     ).first()
     assert inv737 is not None
     pays737 = db.query(Payment).filter(Payment.invoice_id == inv737.id).all()
     assert len(pays737) == 1
 
     inv6 = db.query(Invoice).filter(
-        Invoice.importation_id == imp.id, Invoice.invoice_number == "6.0"
+        Invoice.importation_id == imp.id, Invoice.invoice_number == "6"
     ).first()
     assert inv6 is not None
     pays6 = db.query(Payment).filter(Payment.invoice_id == inv6.id).all()
@@ -154,9 +155,9 @@ def test_real_commit_payment_counts(db):
 def test_preview_to_canonical_paid_total_from_block_not_line_sum():
     preview = parse_xlsx_sheet(REAL_WORKBOOK.read_bytes(), "Ordine 758")
     canonical = preview_to_canonical(preview)
-    inv181 = next(i for i in canonical["invoices"] if i["invoice_number"] == "181.0")
+    inv181 = next(i for i in canonical["invoices"] if i["invoice_number"] == "181")
     assert inv181["paid_total"] == "74000.0" or inv181["paid_total"] == "74000"
-    inv6 = next(i for i in canonical["invoices"] if i["invoice_number"] == "6.0")
+    inv6 = next(i for i in canonical["invoices"] if i["invoice_number"] == "6")
     assert float(inv6["paid_total"]) == 25000.0
 
 

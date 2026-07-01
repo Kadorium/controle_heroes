@@ -77,8 +77,11 @@ test.describe("Nova ordem — anti-regressão ordem completa", () => {
     await page.goto(`/importacoes/${(await page.url()).match(/\/importacoes\/(\d+)/)?.[1]}/itens`, {
       waitUntil: "domcontentloaded",
     });
+    await expect(page.getByRole("columnheader", { name: /Modelo/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /SKU Epic/i })).toBeVisible();
     await expect(page.locator("table tbody")).toContainText("12,50");
     await expect(page.locator("table tbody")).toContainText("8,00");
+    await expect(page.locator("table tfoot")).toContainText("Total");
 
     await page.goto("/importacoes", { waitUntil: "domcontentloaded" });
     await page.waitForResponse((r) => r.url().includes("/api/importations/order-queue") && r.ok(), {

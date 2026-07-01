@@ -96,7 +96,7 @@ test.describe("Central da Ordem — checkpoint pós-Fase 5", () => {
 
   test("financeiro global carrega fila", async ({ page }) => {
     await page.goto("/financeiro");
-    await expect(page.getByRole("heading", { name: /Financeiro|Contas a pagar/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: /Financeiro Global/i })).toBeVisible({ timeout: 15000 });
   });
 
   test("glossário operacional em cadastros", async ({ page }) => {

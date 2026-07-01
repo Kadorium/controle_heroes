@@ -41,6 +41,7 @@ from app.services.finance import (
     _payment_is_settled,
     invoice_balance,
     invoice_discount_total,
+    invoice_effective_amount,
     invoice_has_settled_payments,
     invoice_paid_total,
 )
@@ -118,8 +119,9 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
     for inv in invoices:
         cur = normalize_import_currency(inv.currency or importation.currency)
         bucket = buckets[cur]
-        if inv.amount is not None:
-            bucket["invoiced"] += inv.amount
+        eff = invoice_effective_amount(db, inv)
+        if eff is not None:
+            bucket["invoiced"] += eff
         else:
             bucket["has_null_amount"] = True
         bucket["paid"] += invoice_paid_total(db, inv)
@@ -130,6 +132,11 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
             return None
         return str(bucket["invoiced"] - bucket["discounts"] - bucket["paid"])
 
+    def _invoiced_display(bucket: dict) -> str | None:
+        if bucket["invoiced"] > Decimal("0"):
+            return str(bucket["invoiced"])
+        return None
+
     totals_by_currency = {}
     for cur, b in buckets.items():
         invs_for_cur = [
@@ -139,7 +146,7 @@ def _financial_totals_by_currency(db: Session, importation: ImportationOrder) ->
         ]
         has_settled = any(invoice_has_settled_payments(db, inv) for inv in invs_for_cur)
         totals_by_currency[cur] = {
-            "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
+            "total_invoiced": _invoiced_display(b),
             "total_paid": str(b["paid"]) if has_settled else None,
             "total_discounts": str(b["discounts"]),
             "consolidated_balance": _balance(b),
@@ -334,7 +341,13 @@ def _build_models(db: Session, importation_id: int) -> list[dict]:
                 "quantity_invoiced": invoiced_map.get(item_id),
                 "to_dispatch": to_dispatch_val,
                 "price_listino": str(da.price_listino) if da and da.price_listino is not None else None,
-                "price_fattura": str(da.price_fattura) if da and da.price_fattura is not None else None,
+                "price_fattura": (
+                    str(da.price_fattura)
+                    if da and da.price_fattura is not None
+                    else str(item.unit_price_foreign)
+                    if item and item.unit_price_foreign is not None
+                    else None
+                ),
                 "discount_unit": str(da.discount_unit) if da and da.discount_unit is not None else None,
                 "acconto_amount": str(da.acconto_amount) if da and da.acconto_amount is not None else None,
                 "credit_remaining": str(da.credit_remaining) if da and da.credit_remaining is not None else None,
@@ -577,7 +590,16 @@ def _build_finance_operational(
                 invoiced_brl += inv.amount * rate
                 has_invoiced_brl = True
         else:
-            has_null_invoice_amount = True
+            eff = invoice_effective_amount(db, inv)
+            if eff is not None:
+                invoiced_eur += eff
+                has_invoiced_eur = True
+                rate = inv.expected_exchange_rate or opening
+                if rate is not None:
+                    invoiced_brl += eff * rate
+                    has_invoiced_brl = True
+            else:
+                has_null_invoice_amount = True
         bal = invoice_balance(db, inv)
         if bal is not None:
             open_eur_sum += bal
@@ -615,6 +637,7 @@ def _build_finance_operational(
 
     settled_brl = Decimal("0")
     has_settled_brl = False
+    has_settled_brl_real = False
     for p in (
         db.query(Payment)
         .join(Invoice, Payment.invoice_id == Invoice.id)
@@ -630,18 +653,36 @@ def _build_finance_operational(
         if p.amount_local is not None:
             settled_brl += p.amount_local
             has_settled_brl = True
+            has_settled_brl_real = True
             continue
         pay_cur = normalize_import_currency(p.currency_foreign or imp.currency)
         if pay_cur == "BRL":
             settled_brl += p.amount_foreign
             has_settled_brl = True
+            has_settled_brl_real = True
         elif p.exchange_rate is not None and p.exchange_rate > 0:
             settled_brl += p.amount_foreign * p.exchange_rate
             has_settled_brl = True
+            has_settled_brl_real = True
+
+    brl_is_estimated = False
+    if not has_settled_brl_real and settled_eur is not None and brl_rate is not None:
+        settled_brl = settled_eur * brl_rate
+        has_settled_brl = True
+        brl_is_estimated = True
 
     order_total_brl: Decimal | None = None
     if order_total_eur is not None and brl_rate is not None:
         order_total_brl = order_total_eur * brl_rate
+        if brl_is_estimated:
+            pass
+        elif not has_invoiced_brl and has_invoiced_eur:
+            brl_is_estimated = True
+
+    if has_invoiced_eur and not has_invoiced_brl and brl_rate is not None:
+        invoiced_brl = invoiced_eur * brl_rate
+        has_invoiced_brl = True
+        brl_is_estimated = True
 
     remaining_brl: Decimal | None = None
     if remaining_eur is not None and brl_rate is not None:
@@ -663,7 +704,23 @@ def _build_finance_operational(
         "balance_to_settle_eur": str(open_eur) if open_eur is not None else None,
         "balance_to_settle_brl": open_brl,
         "opening_exchange_rate": str(opening) if opening is not None else None,
+        "brl_is_estimated": brl_is_estimated,
     }
+
+
+def _build_heroes_financial_alerts(
+    *,
+    legacy_versato: Decimal | None,
+    settled_eur: Decimal | None,
+) -> list[str]:
+    """Alertas quando acconti importados divergem do versato Heroes."""
+    if legacy_versato is None or settled_eur is None:
+        return []
+    if settled_eur > legacy_versato + Decimal("0.01"):
+        return [
+            f"Soma dos acconti ({settled_eur}) excede versato Heroes ({legacy_versato})."
+        ]
+    return []
 
 
 def _build_operational_header(
@@ -711,6 +768,13 @@ def _build_operational_header(
         legacy_versato=legacy_versato,
         mark_rate=mark_rate,
     )
+    settled_for_alert = (
+        Decimal(finance_ops["settled_eur"]) if finance_ops.get("settled_eur") else None
+    )
+    financial_alerts = _build_heroes_financial_alerts(
+        legacy_versato=legacy_versato,
+        settled_eur=settled_for_alert,
+    )
 
     return {
         "invoices_count": invoices_count,
@@ -729,6 +793,7 @@ def _build_operational_header(
         "supplier_credit_available": str(credit_avail) if credit_avail > Decimal("0") else None,
         "pending_actions_count": pending_actions_count,
         "fx_pnl": fx_pnl,
+        "financial_alerts": financial_alerts,
         **finance_ops,
     }
 
@@ -741,6 +806,12 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     )
     if not imp:
         raise ValueError("Importação não encontrada")
+
+    if _build_legacy_summary(db, importation_id):
+        from app.services.heroes_legacy_persist import backfill_heroes_invoice_amounts
+
+        if backfill_heroes_invoice_amounts(db, importation_id):
+            db.commit()
 
     supplier = db.query(Supplier).filter(Supplier.id == imp.supplier_id).first()
     chain = quantity_chain(db, importation_id)
@@ -812,6 +883,8 @@ def build_order_central(db: Session, importation_id: int) -> dict:
         "invoices_count": operational_header["invoices_count"],
         "invoices_settled_count": operational_header["invoices_settled_count"],
         "total_paid": financial.get("total_paid"),
+        "versato_amount": legacy.get("versato_amount") if legacy else None,
+        "versato_currency": legacy.get("versato_currency") if legacy else None,
         "currency": financial.get("currency"),
         "next_eta": operational_header["next_eta"],
         "to_dispatch": operational_header["to_dispatch"],
@@ -831,6 +904,8 @@ def build_order_central(db: Session, importation_id: int) -> dict:
     dispatch_pending = _build_dispatch_pending_list(db, importation_id)
     for alert in status_rail.get("alerts") or []:
         pending.append({"kind": "status_rail", "label": alert, "detail": None, "tone": "warning"})
+    for alert in operational_header.get("financial_alerts") or []:
+        pending.append({"kind": "financial", "label": alert, "detail": None, "tone": "warning"})
 
     return {
         "order": imp,
@@ -908,8 +983,11 @@ def _invoice_counts_for_queue(
     for r in invoices:
         bucket = counts[r.importation_id]
         bucket[0] += 1
-        if r.amount is not None:
-            balance = _d(r.amount) - disc_map[r.id] - paid_map[r.id]
+        gross: Decimal | None = _d(r.amount) if r.amount is not None else None
+        if gross is None and paid_map[r.id] > Decimal("0"):
+            gross = paid_map[r.id]
+        if gross is not None:
+            balance = gross - disc_map[r.id] - paid_map[r.id]
             if balance == Decimal("0"):
                 bucket[1] += 1
     return {iid: (counts[iid][0], counts[iid][1]) for iid in imp_ids}
@@ -952,6 +1030,11 @@ def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dic
             return None
         return str(bucket["invoiced"] - bucket["discounts"] - bucket["paid"])
 
+    def _invoiced_display(bucket: dict) -> str | None:
+        if bucket["invoiced"] > Decimal("0"):
+            return str(bucket["invoiced"])
+        return None
+
     out: dict[int, dict] = {}
     for imp in imps:
         imp_invs = inv_by_imp.get(imp.id, [])
@@ -968,6 +1051,8 @@ def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dic
             bucket = buckets[cur]
             if inv.amount is not None:
                 bucket["invoiced"] += inv.amount
+            elif _paid(inv) > Decimal("0"):
+                bucket["invoiced"] += _paid(inv)
             else:
                 bucket["has_null_amount"] = True
             bucket["paid"] += _paid(inv)
@@ -979,7 +1064,7 @@ def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dic
         if multi:
             totals_by_currency = {
                 cur: {
-                    "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
+                    "total_invoiced": _invoiced_display(b),
                     "total_paid": str(b["paid"]),
                     "total_discounts": str(b["discounts"]),
                     "consolidated_balance": _balance(b),
@@ -1006,7 +1091,7 @@ def _batch_financial_for_queue(db: Session, imps: list[ImportationOrder]) -> dic
             b = buckets[cur]
             out[imp.id] = {
                 "currency": cur,
-                "total_invoiced": str(b["invoiced"]) if not b["has_null_amount"] else None,
+                "total_invoiced": _invoiced_display(b),
                 "total_paid": str(b["paid"]),
                 "consolidated_balance": _balance(b),
                 "totals_by_currency": None,

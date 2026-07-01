@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.enums import HEROES_XLSX_PARSER_VERSION
 from app.core.parse import optional_decimal, optional_int
-from app.models import HeroesDispatchPendingItem, HeroesLegacySheetSummary, ImportationItem
+from app.models import HeroesDispatchPendingItem, HeroesLegacySheetSummary, ImportationItem, Invoice
+from app.services.finance import invoice_paid_total
 
 
 def persist_legacy_sheet_summary(
@@ -95,6 +96,28 @@ def _product_id_by_name_for_importation(db: Session, importation_id: int) -> dic
     return out
 
 
+def backfill_heroes_invoice_amounts(db: Session, importation_id: int) -> int:
+    """Preenche invoice.amount a partir de acconti (ordens Heroes importadas antes da correção)."""
+    updated = 0
+    invoices = (
+        db.query(Invoice)
+        .filter(
+            Invoice.importation_id == importation_id,
+            Invoice.is_active.is_(True),
+            Invoice.amount.is_(None),
+        )
+        .all()
+    )
+    for inv in invoices:
+        paid = invoice_paid_total(db, inv)
+        if paid > 0:
+            inv.amount = paid
+            updated += 1
+    if updated:
+        db.flush()
+    return updated
+
+
 def ensure_heroes_legacy_persisted(
     db: Session,
     *,
@@ -138,3 +161,5 @@ def ensure_heroes_legacy_persisted(
             preview=preview,
             product_id_by_name=_product_id_by_name_for_importation(db, importation_id),
         )
+
+    backfill_heroes_invoice_amounts(db, importation_id)

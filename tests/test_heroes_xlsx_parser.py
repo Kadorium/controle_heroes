@@ -116,6 +116,41 @@ def test_financial_preview_auxiliary():
     assert preview["financial_preview"]["payments_preview"]
 
 
+def test_duplicate_header_columns_uses_first_acconto():
+    """Planilhas Heroes com bloco duplicado (data/fattura/acconto) — 1a ocorrencia vence."""
+    from datetime import datetime
+    from io import BytesIO
+
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "ordine 561"
+    ws["A2"] = "ordine 561"
+    headers = ["data", "n* fattura", "quantità", "racchetta", "acconto", "acconto rimasto"]
+    for ci, h in enumerate(headers, 1):
+        ws.cell(row=4, column=ci, value=h)
+    for ci, h in enumerate(headers, 8):
+        ws.cell(row=4, column=ci, value=h)
+    ws.cell(row=5, column=1, value=datetime(2025, 8, 25))
+    ws.cell(row=5, column=2, value=561)
+    ws.cell(row=5, column=3, value=600)
+    ws.cell(row=5, column=4, value="ison")
+    ws.cell(row=5, column=5, value=48000)
+    ws.cell(row=5, column=6, value=88250)
+    ws.cell(row=5, column=8, value=datetime(2025, 8, 25))
+    ws.cell(row=5, column=9, value=561)
+    ws.cell(row=5, column=10, value=600)
+    ws.cell(row=5, column=11, value="ison")
+    ws.cell(row=5, column=12, value=52500)
+    ws.cell(row=5, column=13, value=83750)
+    buf = BytesIO()
+    wb.save(buf)
+    preview = parse_xlsx_sheet(buf.getvalue(), "ordine 561")
+    b561 = next(b for b in preview["invoice_blocks"] if "561" in str(b.get("invoice_number", "")))
+    assert b561["acconto_payments"][0]["amount"] in ("48000", "48000.0")
+
+
 def test_preview_no_persist(db):
     """Preview via parser não grava ordem."""
     from app.models import ImportationOrder
@@ -152,6 +187,7 @@ def test_commit_creates_order(admin_client, db):
     imp = commit_heroes_import_run(
         db, run.id, user_id=1,
         confirm_import=True, confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number="758",
     )
     assert imp.po_number == "HEROES-758"
@@ -182,6 +218,7 @@ def test_idempotency_same_sheet(db):
     commit_heroes_import_run(
         db, run1.id, user_id=1,
         confirm_import=True, confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number="907",
     )
     run2 = preview_xlsx_sheet(
@@ -216,6 +253,7 @@ def test_api_xlsx_upload_preview_commit(admin_client, db, reset_env):
             "confirm_import": True,
             "confirm_sheet_match": True,
             "confirmed_order_number": "758",
+            "opening_exchange_rate": "5.00",
         },
     )
     assert commit.status_code == 200, commit.text

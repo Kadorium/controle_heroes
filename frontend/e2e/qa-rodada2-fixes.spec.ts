@@ -41,8 +41,10 @@ test.describe("QA Rodada 2 — correções UI", () => {
     ).json();
 
     await page.goto(`/importacoes/${imp.id}/itens`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("columnheader", { name: /Modelo/i })).toBeVisible();
     await expect(page.locator("table tbody td").filter({ hasText: "12,50" })).toBeVisible({
       timeout: 15000,
     });
+    await expect(page.locator("table tfoot")).toContainText("Total");
   });
 });

@@ -1,68 +1,243 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge, Button, EditableCell, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
+import { Badge, Button, EmptyState, LoadingState, PageHeader, Table, useToast } from "../components";
 import { FxPnlPanel } from "../components/FxPnlPanel";
 import {
   financeApi,
-  importationsApi,
   invoicesApi,
-  suppliersApi,
-  type FxPnlBlock,
-  type Importation,
-  type Invoice,
-  type Payment,
-  type Supplier,
+  type PayablesOrderBlock,
+  type PayablesQueueResponse,
 } from "../api";
-import { emptyDash, fieldLabel, formatAmount, formatMoney, payStatusLabel } from "../i18n/glossario";
-import { fmtDate, isPlannedPayment } from "../utils/formatDate";
+import { emptyDash, formatAmount, formatMoney } from "../i18n/glossario";
+import { fmtDate } from "../utils/formatDate";
 
-type PayFilter = "all" | "overdue" | "due7" | "planned" | "settled" | "no_receipt";
+type PayFilter = "all" | "overdue" | "due7" | "planned" | "settled";
 
-interface PayRow {
-  payment: Payment;
-  invoice: Invoice;
-  importation: Importation;
-  supplierName: string;
+const FILTERS: { id: PayFilter; label: string }[] = [
+  { id: "all", label: "Todas" },
+  { id: "overdue", label: "Vencidas" },
+  { id: "due7", label: "Vencendo 7d" },
+  { id: "planned", label: "Planejadas" },
+  { id: "settled", label: "Liquidadas" },
+];
+
+function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="payables-kpi">
+      <div className="payables-kpi__label">{label}</div>
+      <div className="payables-kpi__value">{value}</div>
+      {hint && <div className="payables-kpi__hint">{hint}</div>}
+    </div>
+  );
+}
+
+function RateEditCell({
+  invoiceId,
+  value,
+  onSaved,
+}: {
+  invoiceId: number;
+  value: string | null;
+  onSaved: () => void;
+}) {
+  const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const [rate, setRate] = useState(value ?? "");
+  const [reason, setReason] = useState("");
+
+  async function save() {
+    if (!reason.trim()) {
+      toast.error("Informe o motivo da alteração de câmbio previsto.");
+      return;
+    }
+    try {
+      await invoicesApi.update(invoiceId, {
+        expected_exchange_rate: rate.trim() || null,
+        rate_change_reason: reason.trim(),
+      });
+      toast.success("Câmbio previsto atualizado");
+      setEditing(false);
+      setReason("");
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível salvar.");
+    }
+  }
+
+  if (!editing) {
+    return (
+      <button type="button" className="link-btn" onClick={() => { setRate(value ?? ""); setEditing(true); }}>
+        {value ? formatAmount(value) : emptyDash(null)}
+      </button>
+    );
+  }
+
+  return (
+    <div className="payables-rate-edit">
+      <input type="text" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="Taxa" aria-label="Câmbio previsto" />
+      <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Motivo" aria-label="Motivo da alteração" />
+      <Button variant="secondary" className="ui-btn--sm" onClick={() => void save()}>Salvar</Button>
+      <Button variant="ghost" className="ui-btn--sm" onClick={() => setEditing(false)}>Cancelar</Button>
+    </div>
+  );
+}
+
+function OrderBlock({
+  order,
+  expanded,
+  onToggle,
+  onReload,
+}: {
+  order: PayablesOrderBlock;
+  expanded: boolean;
+  onToggle: () => void;
+  onReload: () => void;
+}) {
+  const navigate = useNavigate();
+  const ops = order.finance_operational;
+
+  return (
+    <div className="payables-order">
+      <button type="button" className="payables-order__head" onClick={onToggle} aria-expanded={expanded}>
+        <span className="payables-order__chev">{expanded ? "▼" : "▶"}</span>
+        <span className="payables-order__po">{order.po_number}</span>
+        <span className="payables-order__sup">{order.supplier_name}</span>
+        <span className="payables-order__meta">
+          Provisão: {order.opening_exchange_rate ? formatAmount(order.opening_exchange_rate) : "—"}
+        </span>
+        <span className="payables-order__meta">
+          Liquidado BRL: {ops?.settled_brl ? formatMoney(String(ops.settled_brl), "BRL") : "—"}
+          {ops?.brl_is_estimated ? " (est.)" : ""}
+        </span>
+        {order.open_fx_exposure_brl && (
+          <span className="payables-order__meta payables-order__meta--warn">
+            Exposição: {formatMoney(order.open_fx_exposure_brl, "BRL")}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          className="ui-btn--sm"
+          onClick={(e) => { e.stopPropagation(); navigate(`/importacoes/${order.importation_id}/financeiro`); }}
+        >
+          Abrir ordem
+        </Button>
+      </button>
+
+      {expanded && (
+        <div className="payables-order__body order-queue__scroll">
+          <Table>
+            <thead>
+              <tr>
+                <th>Fatura</th>
+                <th>Tipo</th>
+                <th className="num">Valor EUR</th>
+                <th className="num">Câmbio previsto</th>
+                <th className="num">Saldo EUR</th>
+                <th>Vencimento</th>
+                <th className="num">Valor EUR (pag.)</th>
+                <th className="num">Câmbio efetivo</th>
+                <th className="num">Valor BRL</th>
+                <th>Status</th>
+                <th>Comprovante</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.invoices.map((inv) =>
+                inv.payments.length === 0 ? (
+                  <tr key={`inv-${inv.id}`}>
+                    <td>
+                      <button type="button" className="link-btn" onClick={() => navigate(`/importacoes/${order.importation_id}/invoices#fatura-${inv.id}`)}>
+                        {inv.invoice_number ?? "—"}
+                      </button>
+                    </td>
+                    <td>{inv.invoice_type ?? "—"}</td>
+                    <td className="num">{inv.amount_eur ? formatMoney(inv.amount_eur, "EUR") : emptyDash(null)}</td>
+                    <td className="num"><RateEditCell invoiceId={inv.id} value={inv.expected_exchange_rate} onSaved={onReload} /></td>
+                    <td className="num">{inv.balance ? formatMoney(inv.balance, "EUR") : emptyDash(null)}</td>
+                    <td colSpan={6} className="meta">Sem pagamentos</td>
+                  </tr>
+                ) : (
+                  inv.payments.map((p, pi) => (
+                    <tr key={p.id} className={pi > 0 ? "payables-pay-subrow" : undefined}>
+                      {pi === 0 && (
+                        <>
+                          <td rowSpan={inv.payments.length}>
+                            <button type="button" className="link-btn" onClick={() => navigate(`/importacoes/${order.importation_id}/invoices#fatura-${inv.id}`)}>
+                              {inv.invoice_number ?? "—"}
+                            </button>
+                          </td>
+                          <td rowSpan={inv.payments.length}>{inv.invoice_type ?? "—"}</td>
+                          <td className="num" rowSpan={inv.payments.length}>
+                            {inv.amount_eur ? formatMoney(inv.amount_eur, "EUR") : emptyDash(null)}
+                          </td>
+                          <td className="num" rowSpan={inv.payments.length}>
+                            <RateEditCell invoiceId={inv.id} value={inv.expected_exchange_rate} onSaved={onReload} />
+                          </td>
+                          <td className="num" rowSpan={inv.payments.length}>
+                            {inv.balance ? formatMoney(inv.balance, "EUR") : emptyDash(null)}
+                          </td>
+                        </>
+                      )}
+                      <td>{p.due_date ? fmtDate(p.due_date) : emptyDash(p.payment_date ? fmtDate(p.payment_date) : null)}</td>
+                      <td className="num">{p.amount_foreign ? formatMoney(p.amount_foreign, p.currency_foreign ?? "EUR") : emptyDash(null)}</td>
+                      <td className="num">{p.exchange_rate ? formatAmount(p.exchange_rate) : emptyDash(null)}</td>
+                      <td className="num">
+                        {p.display_brl ? (
+                          <>
+                            {formatMoney(p.display_brl, "BRL")}
+                            {p.brl_is_estimated && <span className="payables-est-badge"> est.</span>}
+                          </>
+                        ) : emptyDash(null)}
+                      </td>
+                      <td><Badge status={p.is_settled ? "FULL_PAID" : "PENDING"}>{p.status_label}</Badge></td>
+                      <td>{p.receipt_reference ?? emptyDash(null)}</td>
+                    </tr>
+                  ))
+                ),
+              )}
+            </tbody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function FinancePage() {
-  const navigate = useNavigate();
   const toast = useToast();
-  const [rows, setRows] = useState<PayRow[]>([]);
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
+  const [data, setData] = useState<PayablesQueueResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<PayFilter>("all");
-  const [fxPnl, setFxPnl] = useState<FxPnlBlock | null>(null);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const load = useCallback(async () => {
-    const [imps, invs, pays, sups, pnl] = await Promise.all([
-      importationsApi.list(),
-      invoicesApi.list(),
-      financeApi.listPayments(),
-      suppliersApi.list(),
-      financeApi.fxPnlSummary().catch(() => null),
-    ]);
-    const impMap = Object.fromEntries(imps.map((i) => [i.id, i]));
-    const supMap = Object.fromEntries(sups.map((s) => [s.id, s.name]));
-    const invMap = Object.fromEntries(invs.map((i) => [i.id, i]));
-    const built: PayRow[] = pays
-      .filter((p) => p.is_active)
-      .map((p) => {
-        const inv = invMap[p.invoice_id];
-        const imp = inv ? impMap[inv.importation_id] : undefined;
-        return {
-          payment: p,
-          invoice: inv!,
-          importation: imp!,
-          supplierName: imp ? supMap[imp.supplier_id] ?? "—" : "—",
-        };
-      })
-      .filter((r) => r.invoice && r.importation);
-    setRows(built);
-    setFxPnl(pnl);
-  }, []);
+  const load = useCallback(async (status?: PayFilter) => {
+    setLoadError(null);
+    const effective = status ?? filter;
+    const statusParam = effective === "all" ? undefined : effective;
+    try {
+      const res = await financeApi.payablesQueue({ status: statusParam });
+      setData(res);
+      setExpanded((prev) => {
+        const next = { ...prev };
+        for (const o of res.orders) {
+          if (next[o.importation_id] === undefined) next[o.importation_id] = true;
+        }
+        return next;
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Não foi possível carregar a fila financeira.";
+      setLoadError(msg);
+      setData(null);
+      toastRef.current.error(msg);
+    }
+  }, [filter]);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
         await load();
@@ -70,191 +245,117 @@ export function FinancePage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [load]);
 
-  async function liquidate(p: Payment) {
-    try {
-      let exchangeRate: string | undefined;
+  const onFilterChange = (next: PayFilter) => {
+    setFilter(next);
+    setLoading(true);
+    void (async () => {
       try {
-        const ref = await financeApi.fxReference();
-        if (ref.rate) exchangeRate = ref.rate;
-      } catch {
-        exchangeRate = undefined;
+        await load(next);
+      } finally {
+        setLoading(false);
       }
-      await financeApi.updatePayment(p.id, {
-        payment_date: new Date().toISOString().slice(0, 10),
-        receipt_reference: `LIQ-${p.id}`,
-        ...(exchangeRate ? { exchange_rate: exchangeRate } : {}),
-      });
-      toast.success("Pagamento liquidado");
-      await load();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Não foi possível liquidar o pagamento.");
+    })();
+  };
+
+  const kpis = data?.kpis;
+  const pnl = data?.fx_pnl_summary;
+
+  const dashboardPnl = useMemo(() => {
+    if (!pnl) return null;
+    if (pnl.pnl_realized_brl != null) return pnl;
+    if (pnl.open_fx_exposure_brl != null) {
+      return { ...pnl, pnl_realized_brl: null, pnl_total_brl: pnl.pnl_total_brl ?? null };
     }
-  }
-
-  async function savePayment(p: Payment, patch: Record<string, string | null>) {
-    await financeApi.updatePayment(p.id, patch);
-    await load();
-  }
-
-  const filtered = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const in7 = new Date();
-    in7.setDate(in7.getDate() + 7);
-    const in7s = in7.toISOString().slice(0, 10);
-    return rows.filter((r) => {
-      const p = r.payment;
-      const planned = isPlannedPayment(p);
-      const settled = !planned && (p.payment_date != null || !!p.receipt_reference);
-      switch (filter) {
-        case "overdue":
-          return p.due_date && p.due_date < today && planned;
-        case "due7":
-          return p.due_date && p.due_date >= today && p.due_date <= in7s && planned;
-        case "planned":
-          return planned;
-        case "settled":
-          return settled;
-        case "no_receipt":
-          return settled && !p.receipt_reference;
-        default:
-          return true;
-      }
-    });
-  }, [rows, filter]);
+    return pnl;
+  }, [pnl]);
 
   if (loading) {
     return (
       <div>
-        <PageHeader title="Fila de contas a pagar" subtitle="Vencimentos, pagamentos planejados e liquidados — visão global." />
-        <LoadingState label="Carregando contas a pagar..." />
+        <PageHeader title="Financeiro Global" subtitle="Dashboard financeiro e fila de contas a pagar por ordem." />
+        <LoadingState label="Carregando financeiro global..." />
       </div>
     );
   }
 
   return (
     <div>
-      <PageHeader
-        title="Fila de contas a pagar"
-        subtitle="Vencimentos, pagamentos planejados e liquidados — visão global."
-      />
-      {fxPnl && (
-        <div className="fx-pnl-kpi">
-          <div className="fx-pnl-kpi__title">
-            PnL Cambial consolidado
-            {fxPnl.orders_with_pnl != null ? ` · ${fxPnl.orders_with_pnl} ordem(ns)` : ""}
+      <PageHeader title="Financeiro Global" subtitle="Dashboard financeiro e fila operacional de contas a pagar agrupada por ordem." />
+
+      {loadError && (
+        <p className="error payables-load-error" role="alert">
+          {loadError}
+        </p>
+      )}
+
+      <section className="payables-dashboard" aria-label="Dashboard financeiro">
+        <div className="payables-kpi-row">
+          <KpiCard label="Total pago (BRL)" value={kpis?.total_settled_brl ? formatMoney(kpis.total_settled_brl, "BRL") : "—"} hint="Inclui BRL estimado quando acconto EUR" />
+          <KpiCard label="Pendente (BRL)" value={kpis?.total_pending_brl ? formatMoney(kpis.total_pending_brl, "BRL") : "—"} />
+          <KpiCard label="Vencendo 7d" value={kpis ? String(kpis.due_7d_count) : "—"} hint={kpis?.due_7d_brl ? formatMoney(kpis.due_7d_brl, "BRL") : undefined} />
+          <KpiCard
+            label="Exposição cambial aberta"
+            value={kpis?.open_fx_exposure_brl ? formatMoney(kpis.open_fx_exposure_brl, "BRL") : "—"}
+            hint="Acconti EUR sem liquidação BRL efetiva"
+          />
+          <KpiCard
+            label="Ordens com provisão"
+            value={kpis ? String(kpis.orders_with_provision) : "—"}
+          />
+        </div>
+
+        {dashboardPnl && (dashboardPnl.pnl_total_brl != null || dashboardPnl.open_fx_exposure_brl != null || dashboardPnl.provision_rate != null) ? (
+          <div className="fx-pnl-kpi">
+            <div className="fx-pnl-kpi__title">
+              PnL Cambial consolidado
+              {pnl?.orders_with_pnl != null ? ` · ${pnl.orders_with_pnl} ordem(ns)` : ""}
+            </div>
+            <FxPnlPanel pnl={dashboardPnl} />
+            {pnl?.pnl_realized_brl == null && pnl?.open_fx_exposure_brl != null && (
+              <p className="meta payables-pnl-note">
+                Sem pagamentos BRL efetivos — exposição cambial aberta: {formatMoney(pnl.open_fx_exposure_brl, "BRL")}
+              </p>
+            )}
           </div>
-          <FxPnlPanel pnl={fxPnl} />
+        ) : (
+          <p className="meta payables-pnl-note">Defina câmbio de provisão nas ordens para habilitar PnL e BRL estimado.</p>
+        )}
+      </section>
+
+      <section className="payables-section" aria-label="Contas a pagar">
+        <h2 className="payables-section__title">Contas a pagar</h2>
+        <div className="order-queue__filters">
+          {FILTERS.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className={`order-queue__filter${filter === f.id ? " order-queue__filter--on" : ""}`}
+              onClick={() => onFilterChange(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-      )}
-      <div className="order-queue__filters">
-        {(
-          [
-            ["all", "Todas"],
-            ["overdue", "Vencidas"],
-            ["due7", "Vencendo 7d"],
-            ["planned", "Planejadas"],
-            ["settled", "Liquidadas"],
-            ["no_receipt", "Pagas sem comprovante"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`order-queue__filter${filter === id ? " order-queue__filter--on" : ""}`}
-            onClick={() => setFilter(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      {filtered.length === 0 ? (
-        <EmptyState title="Nenhum pagamento encontrado" />
-      ) : (
-        <div className="order-queue__scroll">
-          <Table>
-            <thead>
-              <tr>
-                <th>Vencimento</th>
-                <th>{fieldLabel("Invoice")}</th>
-                <th>{fieldLabel("Importation")}</th>
-                <th>Fornecedor</th>
-                <th className="num">Valor EUR</th>
-                <th className="num">Câmbio</th>
-                <th className="num">Valor BRL</th>
-                <th>Status</th>
-                <th>Aprovação</th>
-                <th>Comprovante</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => {
-                const p = r.payment;
-                const planned = isPlannedPayment(p);
-                const status = planned
-                  ? payStatusLabel("PLANNED")
-                  : payStatusLabel(p.payment_date ? "SETTLED" : "PENDING");
-                return (
-                  <tr key={p.id}>
-                    <td>
-                      {planned ? (
-                        <EditableCell type="date" value={p.due_date ?? ""} display={p.due_date ? fmtDate(p.due_date) : undefined} onSave={(v) => savePayment(p, { due_date: v || null })} />
-                      ) : (p.due_date ? fmtDate(p.due_date) : emptyDash(null))}
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="finance-invoice-doc"
-                        title="Abrir fatura para envio ao financeiro"
-                        onClick={() =>
-                          navigate(`/importacoes/${r.importation.id}/invoices#fatura-${r.invoice.id}`)
-                        }
-                      >
-                        {r.invoice.invoice_number}
-                      </button>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="link-btn"
-                        onClick={() => navigate(`/importacoes/${r.importation.id}/resumo`)}
-                      >
-                        {r.importation.po_number}
-                      </button>
-                    </td>
-                    <td>{r.supplierName}</td>
-                    <td className="num">{formatMoney(p.amount_foreign, p.currency_foreign ?? "EUR")}</td>
-                    <td className="num">{formatAmount(p.exchange_rate)}</td>
-                    <td className="num">{formatMoney(p.amount_local, "BRL")}</td>
-                    <td>
-                      <Badge status={planned ? "PENDING" : "FULL_PAID"}>{status}</Badge>
-                    </td>
-                    <td>{emptyDash(null)}</td>
-                    <td>
-                      {planned ? emptyDash(null) : (
-                        <EditableCell value={p.receipt_reference ?? ""} onSave={(v) => savePayment(p, { receipt_reference: v || null })} placeholder="referência" />
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        {planned && (
-                          <Button variant="secondary" className="ui-btn--sm" onClick={() => liquidate(p)}>Liquidar</Button>
-                        )}
-                        <Button variant="ghost" className="ui-btn--sm" onClick={() => navigate(`/importacoes/${r.importation.id}/financeiro`)}>Abrir</Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </div>
-      )}
+
+        {!data?.orders.length ? (
+          <EmptyState title="Nenhuma ordem com pagamentos" />
+        ) : (
+          <div className="payables-orders">
+            {data.orders.map((order) => (
+              <OrderBlock
+                key={order.importation_id}
+                order={order}
+                expanded={!!expanded[order.importation_id]}
+                onToggle={() => setExpanded((e) => ({ ...e, [order.importation_id]: !e[order.importation_id] }))}
+                onReload={() => void load()}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

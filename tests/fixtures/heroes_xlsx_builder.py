@@ -29,13 +29,13 @@ def build_ordine_758_xlsx() -> bytes:
         ws.cell(row=4, column=ci, value=h)
 
     rows = [
-        (datetime(2025, 3, 10), "F-100", 10, "STARLIGHT 300", 500, 1500, None),
+        (datetime(2025, 3, 10), "F-100", 10, "STARLIGHT 300", 500, 397000, None),
         (None, None, 5, "AURA POWER", None, None, 2.5),
-        (datetime(2025, 4, 1), "F-101", 20, "palline beach", 200, None, None),
+        (datetime(2025, 4, 1), "F-101", 20, "palline beach", 200, 396800, None),
         (datetime(2025, 4, 15), "F-102", 3, "WASHBAG EPIC", None, None, None),
-        (datetime(2025, 5, 1), "F-103", 100, "show 26", 1000, None, None),
+        (datetime(2025, 5, 1), "F-103", 100, "show 26", 1000, 395800, None),
         (datetime(2025, 5, 2), "F-104", 80, "show26", None, None, None),
-        (datetime(2025, 5, 3), "F-105", 40, "show-26", 500, None, None),
+        (datetime(2025, 5, 3), "F-105", 40, "show-26", 500, 395300, None),
         (datetime(2025, 5, 4), "F-106", 60, "show", None, None, None),
     ]
     for ri, row in enumerate(rows, 5):
@@ -84,3 +84,52 @@ def build_ordine_759_xlsx() -> bytes:
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
+
+
+def build_ordine_132_xlsx() -> bytes:
+    """Ordine 132 — versato + acconti + rimasto (estrutura simplificada para testes)."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "ordine 132"
+
+    ws["G1"] = "versato"
+    ws["H1"] = 198500
+    ws["A2"] = "ordine 132"
+    headers = ["data", "n* fattura", "quantità", "racchetta", "acconto", "acconto rimasto"]
+    for ci, h in enumerate(headers, 1):
+        ws.cell(row=4, column=ci, value=h)
+
+    rows = [
+        (datetime(2025, 2, 12), 72, 30, "coch", 5500, 193000),
+        (None, None, 10, "harley", None, None),
+        (None, None, 10, "mjolnir", None, None),
+        (None, None, 30, "starlight", None, None),
+        (None, None, 30, "bull", None, None),
+        (datetime(2025, 3, 26), 206, 25, "coch", 3250, 189750),
+        (None, None, 10, "harley", None, None),
+        (None, None, 10, "starlight", None, None),
+        (None, None, 20, "bull", None, None),
+        (datetime(2025, 9, 6), 676, 20, "ison", 1000, 188750),
+    ]
+    for ri, row in enumerate(rows, 5):
+        for ci, val in enumerate(row, 1):
+            ws.cell(row=ri, column=ci, value=val)
+
+    da_row = 5 + len(rows) + 1
+    ws.cell(row=da_row, column=1, value="DA SPEDIRE")
+    da_headers = ["racchetta", "quantità", "prezzo listino", "prezzo fattura", "sconto"]
+    for ci, h in enumerate(da_headers, 1):
+        ws.cell(row=da_row + 1, column=ci, value=h)
+    da_data = [
+        ("coch", 55, 175, 159.09, None),
+        ("harley", 70, 410.71, 410.71, None),
+        ("ison", 1220, 113.52, 113.52, None),
+    ]
+    for ri, row in enumerate(da_data, da_row + 2):
+        for ci, val in enumerate(row, 1):
+            ws.cell(row=ri, column=ci, value=val)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+

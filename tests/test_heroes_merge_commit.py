@@ -143,7 +143,11 @@ def test_b2_merge_commit_preserves_po_and_creates_entities(admin_client, db):
 
     commit = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
-        json={"confirm_import": True, "confirm_sheet_match": True},
+        json={
+            "confirm_import": True,
+            "confirm_sheet_match": True,
+            "opening_exchange_rate": "5.00",
+        },
     )
     assert commit.status_code == 200, commit.text
 
@@ -164,7 +168,11 @@ def test_b2_merge_commit_preserves_po_and_creates_entities(admin_client, db):
 
     commit2 = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
-        json={"confirm_import": True, "confirm_sheet_match": True},
+        json={
+            "confirm_import": True,
+            "confirm_sheet_match": True,
+            "opening_exchange_rate": "5.00",
+        },
     )
     assert commit2.status_code == 200
 
@@ -216,7 +224,11 @@ def test_b2_preexisting_item_qty_summed(admin_client, db):
 
     commit = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
-        json={"confirm_import": True, "confirm_sheet_match": True},
+        json={
+            "confirm_import": True,
+            "confirm_sheet_match": True,
+            "opening_exchange_rate": "5.00",
+        },
     )
     assert commit.status_code == 200, commit.text
 
@@ -275,7 +287,11 @@ def test_b_merge_invoice_conflict_warning(admin_client, db):
 
     commit = admin_client.post(
         f"/api/importations/{imp['id']}/heroes-import/commit",
-        json={"confirm_import": True, "confirm_sheet_match": True},
+        json={
+            "confirm_import": True,
+            "confirm_sheet_match": True,
+            "opening_exchange_rate": "5.00",
+        },
     )
     assert commit.status_code == 200, commit.text
     warnings = commit.json().get("merge_warnings") or []

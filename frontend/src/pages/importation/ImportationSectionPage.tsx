@@ -6,7 +6,8 @@ import { fmtDateTime } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 import { ImportationFinanceSection } from "./ImportationFinanceSection";
 import { DEFAULT_IMPORT_CURRENCY } from "../../constants/currency";
-import { fieldLabel, formatMoney, formatUnitPrice, invoiceTypeLabel } from "../../i18n/glossario";
+import { fieldLabel, formatMoney, invoiceTypeLabel } from "../../i18n/glossario";
+import { OrderCentralItemsSection } from "./OrderCentralItemsSection";
 import { OrderCentralOverview } from "./OrderCentralOverview";
 import { LogisticsWorkflowPage } from "./logistics/LogisticsWorkflowPage";
 import { ReconciliationClosurePanel } from "../ReconciliationClosurePanel";
@@ -52,24 +53,7 @@ export function ImportationSectionPage({ section }: Props) {
       return <OrderCentralOverview importationId={id} />;
 
     case "itens":
-      return (
-        <Table>
-          <thead>
-            <tr>
-              <th>Qtd</th>
-              <th>Preço unit.</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it) => (
-              <tr key={it.id}>
-                <td>{it.quantity_ordered ?? "—"}</td>
-                <td>{it.unit_price_foreign != null ? formatUnitPrice(it.unit_price_foreign) : "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      );
+      return <OrderCentralItemsSection importationId={id} />;
 
     case "invoices":
       return <InvoicesSection invoices={invoices} onAdd={addInvoice} invType={invType} setInvType={setInvType} invNumber={invNumber} setInvNumber={setInvNumber} invAmount={invAmount} setInvAmount={setInvAmount} />;

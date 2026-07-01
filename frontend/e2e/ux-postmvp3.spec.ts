@@ -2,11 +2,12 @@ import { expect, test } from "@playwright/test";
 import { getDemoImportationId } from "./helpers";
 
 test.describe("Epic — UX pós-MVP 3", () => {
-  test("financeiro global — fila de contas a pagar", async ({ page }) => {
+  test("financeiro global — Financeiro Global e contas a pagar", async ({ page }) => {
     await page.goto("/financeiro", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: /Fila de contas a pagar/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /Financeiro Global/i })).toBeVisible({
       timeout: 15000,
     });
+    await expect(page.getByRole("heading", { name: /Contas a pagar/i })).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".order-queue__filter").first()).toBeVisible({ timeout: 15000 });
   });
 

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.currency import normalize_import_currency
 from app.models import ExchangeRate, ImportationOrder, Invoice, Payment
 from app.services.finance import _payment_is_settled, importation_financial_summary
+from app.services.finance_display import compute_open_fx_exposure_brl
 
 _D0 = Decimal("0")
 
@@ -115,6 +116,21 @@ def compute_fx_pnl(
     if open_eur is not None and open_eur != 0 and mark_rate is not None:
         pnl_unrealized = open_eur * (provision - mark_rate)
 
+    settled_brl_real = _D0
+    for inv in invoices:
+        for pay in inv.payments:
+            if not pay.is_active or not _payment_is_settled(pay):
+                continue
+            if pay.amount_local is not None:
+                settled_brl_real += pay.amount_local
+            elif normalize_import_currency(pay.currency_foreign or inv.currency) == "BRL":
+                if pay.amount_foreign is not None:
+                    settled_brl_real += pay.amount_foreign
+
+    open_exposure_raw = compute_open_fx_exposure_brl(
+        db, importation_id, provision=provision, settled_brl_real=settled_brl_real
+    )
+
     parts = []
     if has_realized:
         parts.append(pnl_realized)
@@ -126,26 +142,28 @@ def compute_fx_pnl(
 
     return {
         "label": "PnL Cambial",
-        "disclaimer": "Variação cambial operacional vs provisão de abertura — não é resultado contábil.",
+        "disclaimer": "Variação cambial operacional vs provisão de abertura — acconto EUR ≠ liquidação BRL.",
         "provision_rate": str(provision),
         "mark_rate": str(mark_rate) if mark_rate is not None else None,
         "pnl_realized_brl": str(pnl_realized) if has_realized else None,
         "pnl_planned_brl": str(pnl_planned) if has_planned else None,
         "pnl_unrealized_brl": str(pnl_unrealized) if pnl_unrealized is not None else None,
         "pnl_total_brl": str(pnl_total) if pnl_total is not None else None,
+        "open_fx_exposure_brl": open_exposure_raw,
     }
 
 
 def _empty_pnl() -> dict:
     return {
         "label": "PnL Cambial",
-        "disclaimer": "Variação cambial operacional vs provisão de abertura — não é resultado contábil.",
+        "disclaimer": "Variação cambial operacional vs provisão de abertura — acconto EUR ≠ liquidação BRL.",
         "provision_rate": None,
         "mark_rate": None,
         "pnl_realized_brl": None,
         "pnl_planned_brl": None,
         "pnl_unrealized_brl": None,
         "pnl_total_brl": None,
+        "open_fx_exposure_brl": None,
     }
 
 
@@ -153,11 +171,12 @@ def aggregate_fx_pnl(db: Session, importation_ids: list[int], *, mark_rate: Deci
     total_realized = _D0
     total_planned = _D0
     total_unrealized = _D0
-    has_r = has_p = has_u = False
+    total_exposure = _D0
+    has_r = has_p = has_u = has_e = False
     count = 0
     for iid in importation_ids:
         row = compute_fx_pnl(db, iid, mark_rate=mark_rate)
-        if row["pnl_total_brl"] is None and row["provision_rate"] is None:
+        if row["pnl_total_brl"] is None and row["provision_rate"] is None and row["open_fx_exposure_brl"] is None:
             continue
         count += 1
         if row["pnl_realized_brl"] is not None:
@@ -169,6 +188,9 @@ def aggregate_fx_pnl(db: Session, importation_ids: list[int], *, mark_rate: Deci
         if row["pnl_unrealized_brl"] is not None:
             total_unrealized += Decimal(row["pnl_unrealized_brl"])
             has_u = True
+        if row.get("open_fx_exposure_brl") is not None:
+            total_exposure += Decimal(row["open_fx_exposure_brl"])
+            has_e = True
     total_parts = []
     if has_r:
         total_parts.append(total_realized)
@@ -178,10 +200,11 @@ def aggregate_fx_pnl(db: Session, importation_ids: list[int], *, mark_rate: Deci
         total_parts.append(total_unrealized)
     return {
         "label": "PnL Cambial",
-        "disclaimer": "Variação cambial operacional consolidada — não é resultado contábil.",
+        "disclaimer": "Variação cambial operacional consolidada — acconto EUR ≠ liquidação BRL.",
         "orders_with_pnl": count,
         "pnl_realized_brl": str(total_realized) if has_r else None,
         "pnl_planned_brl": str(total_planned) if has_p else None,
         "pnl_unrealized_brl": str(total_unrealized) if has_u else None,
         "pnl_total_brl": str(sum(total_parts)) if total_parts else None,
+        "open_fx_exposure_brl": str(total_exposure) if has_e else None,
     }

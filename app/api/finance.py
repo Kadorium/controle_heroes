@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -41,6 +41,7 @@ from app.schemas_import import (
     FinancialSummaryResponse,
     FxReferenceResponse,
     FxPnlSummaryResponse,
+    PayablesQueueResponse,
     PaymentCreate,
     PaymentResponse,
     PaymentUpdate,
@@ -54,6 +55,7 @@ from app.services.finance import (
     invoice_balance,
     register_exchange_rate,
 )
+from app.services.finance_payables_queue import build_payables_queue
 from app.services.fx_pnl import aggregate_fx_pnl, compute_fx_pnl
 from app.services.fx_reference import fetch_fx_reference
 
@@ -98,6 +100,34 @@ def fx_pnl_summary(
     if ref.get("rate") is not None:
         mark_rate = Decimal(str(ref["rate"]))
     return aggregate_fx_pnl(db, [i.id for i in imps], mark_rate=mark_rate)
+
+
+@router.get("/payables-queue", response_model=PayablesQueueResponse)
+def payables_queue(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission(PERM_FINANCE_READ)),
+    supplier_id: int | None = None,
+    importation_id: int | None = None,
+    status: str | None = None,
+    invoice_type: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+):
+    """Fila global de contas a pagar agrupada por ordem — KPIs + faturas + pagamentos."""
+    mark_rate = None
+    ref = fetch_fx_reference()
+    if ref.get("rate") is not None:
+        mark_rate = Decimal(str(ref["rate"]))
+    return build_payables_queue(
+        db,
+        supplier_id=supplier_id,
+        importation_id=importation_id,
+        status_filter=status,
+        invoice_type=invoice_type,
+        date_from=date_from,
+        date_to=date_to,
+        mark_rate=mark_rate,
+    )
 
 
 @router.get("/importations/{importation_id}/fx-pnl", response_model=FxPnlSummaryResponse)

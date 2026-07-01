@@ -350,11 +350,24 @@ class BrazilOperationalNotesUpdate(BaseModel):
 
 
 class ImportationItemMappingUpdate(BaseModel):
-    """Mapeamento Brasil de SKU/produto e descrição de um item da ordem."""
+    """Mapeamento Brasil e ajustes de item da ordem (ordem manual)."""
 
     product_id: int | None = None
     description: str | None = None
     supplier_sku: str | None = None
+    quantity_ordered: int | None = None
+    unit_price_foreign: Decimal | None = None
+    discount_amount_foreign: Decimal | None = None
+
+    @field_validator("quantity_ordered", mode="before")
+    @classmethod
+    def parse_qty(cls, v: Any) -> int | None:
+        return optional_int(v)
+
+    @field_validator("unit_price_foreign", "discount_amount_foreign", mode="before")
+    @classmethod
+    def parse_decimal(cls, v: Any) -> Decimal | None:
+        return optional_decimal(v)
 
 
 class AllowedTransitionItem(BaseModel):
@@ -386,7 +399,16 @@ class HeroesImportPreviewRequest(BaseModel):
 class HeroesImportCommitRequest(BaseModel):
     confirm_import: bool = False
     confirm_sheet_match: bool = False
+    confirm_financial_review: bool = False
     category_overrides: dict[str, str] | None = None
+    versato_override: str | None = None
+    acconto_overrides: dict[str, str] | None = None
+    opening_exchange_rate: Any = None
+
+    @field_validator("opening_exchange_rate", mode="before")
+    @classmethod
+    def parse_opening_rate(cls, v: Any) -> Decimal | None:
+        return optional_decimal(v)
 
 
 class HeroesImportRunResponse(BaseModel):
@@ -475,6 +497,7 @@ class InvoiceUpdate(BaseModel):
     amount: Any = None
     discount_amount: Any = None
     expected_exchange_rate: Any = None
+    rate_change_reason: str | None = None
     notes: str | None = None
 
     @field_validator("amount", "discount_amount", "expected_exchange_rate", mode="before")
@@ -634,6 +657,66 @@ class FxPnlSummaryResponse(BaseModel):
     pnl_planned_brl: str | None = None
     pnl_unrealized_brl: str | None = None
     pnl_total_brl: str | None = None
+    open_fx_exposure_brl: str | None = None
+
+
+class PayablesPaymentRow(BaseModel):
+    id: int
+    payment_type: str
+    due_date: str | None = None
+    payment_date: str | None = None
+    amount_foreign: str | None = None
+    currency_foreign: str | None = None
+    exchange_rate: str | None = None
+    amount_local: str | None = None
+    receipt_reference: str | None = None
+    status_label: str
+    display_rate: str | None = None
+    display_rate_type: str | None = None
+    display_brl: str | None = None
+    brl_is_estimated: bool = False
+    is_settled: bool = False
+
+
+class PayablesInvoiceRow(BaseModel):
+    id: int
+    invoice_number: str | None
+    invoice_type: str | None
+    invoice_date: str | None = None
+    expected_exchange_rate: str | None = None
+    amount_eur: str | None = None
+    balance: str | None = None
+    currency: str | None = None
+    payments: list[PayablesPaymentRow]
+
+
+class PayablesOrderBlock(BaseModel):
+    importation_id: int
+    po_number: str
+    supplier_name: str
+    status: str | None = None
+    opening_exchange_rate: str | None = None
+    finance_operational: dict | None = None
+    fx_pnl: dict | None = None
+    open_fx_exposure_brl: str | None = None
+    invoices: list[PayablesInvoiceRow]
+
+
+class PayablesQueueKpis(BaseModel):
+    total_settled_brl: str | None = None
+    total_pending_brl: str | None = None
+    due_7d_count: int = 0
+    due_7d_brl: str | None = None
+    overdue_count: int = 0
+    fx_pnl_total_brl: str | None = None
+    open_fx_exposure_brl: str | None = None
+    orders_with_provision: int = 0
+
+
+class PayablesQueueResponse(BaseModel):
+    kpis: PayablesQueueKpis
+    fx_pnl_summary: FxPnlSummaryResponse | None = None
+    orders: list[PayablesOrderBlock]
 
 
 class DiscountCreate(BaseModel):

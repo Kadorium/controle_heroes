@@ -14,6 +14,7 @@ from app.models import (
     ExchangeRate,
     ImportationOrder,
     Invoice,
+    InvoiceItem,
     Payment,
 )
 from app.services.auth import write_audit_log
@@ -36,13 +37,16 @@ def _effective_exchange_rate(payment: Payment, invoice: Invoice) -> Decimal | No
 
 
 def ensure_settlement_exchange_rate(db: Session, payment: Payment) -> None:
-    """Preenche câmbio efetivo na liquidação quando o pagamento foi registrado só em BRL."""
+    """Preenche câmbio efetivo na liquidação — somente pagamentos com perna BRL."""
     if not _payment_is_settled(payment):
         return
     if payment.exchange_rate is not None and payment.exchange_rate > 0:
         return
     inv = db.query(Invoice).filter(Invoice.id == payment.invoice_id, Invoice.is_active.is_(True)).first()
     if not inv:
+        return
+    pay_cur = normalize_import_currency(payment.currency_foreign or inv.currency)
+    if pay_cur != "BRL":
         return
     rate = _effective_exchange_rate(payment, inv)
     if rate is None:
@@ -113,10 +117,41 @@ def invoice_paid_total(db: Session, invoice: Invoice) -> Decimal:
     )
 
 
-def invoice_balance(db: Session, invoice: Invoice) -> Decimal | None:
-    if invoice.amount is None:
+def invoice_line_items_total(db: Session, invoice: Invoice) -> Decimal | None:
+    items = (
+        db.query(InvoiceItem)
+        .filter(InvoiceItem.invoice_id == invoice.id, InvoiceItem.is_active.is_(True))
+        .all()
+    )
+    if not items:
         return None
-    gross = invoice.amount
+    total = Decimal("0")
+    has_value = False
+    for ii in items:
+        if ii.amount is not None:
+            total += ii.amount
+            has_value = True
+        elif ii.quantity is not None and ii.unit_price is not None:
+            total += Decimal(ii.quantity) * ii.unit_price
+            has_value = True
+    return total if has_value else None
+
+
+def invoice_effective_amount(db: Session, invoice: Invoice) -> Decimal | None:
+    """Valor da fatura: oficial → linhas → acconti liquidados (Heroes sem amount)."""
+    if invoice.amount is not None:
+        return invoice.amount
+    lines = invoice_line_items_total(db, invoice)
+    if lines is not None:
+        return lines
+    paid = invoice_paid_total(db, invoice)
+    return paid if paid > Decimal("0") else None
+
+
+def invoice_balance(db: Session, invoice: Invoice) -> Decimal | None:
+    gross = invoice_effective_amount(db, invoice)
+    if gross is None:
+        return None
     discounts = invoice_discount_total(db, invoice)
     paid = invoice_paid_total(db, invoice)
     return gross - discounts - paid
@@ -136,16 +171,20 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
     has_any_settled = False
     invoice_summaries = []
 
+    has_any_invoiced = False
     for inv in invoices:
         paid = invoice_paid_total(db, inv)
         settled = invoice_has_settled_payments(db, inv)
         if settled:
             has_any_settled = True
         disc = invoice_discount_total(db, inv)
+        eff = invoice_effective_amount(db, inv)
         bal = invoice_balance(db, inv)
-        if inv.amount is not None:
-            total_invoiced += inv.amount
-            total_balance += bal if bal is not None else Decimal("0")
+        if eff is not None:
+            total_invoiced += eff
+            has_any_invoiced = True
+            if bal is not None:
+                total_balance += bal
         else:
             has_null_amount = True
         total_paid += paid
@@ -155,7 +194,7 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
                 "invoice_id": inv.id,
                 "invoice_number": inv.invoice_number,
                 "invoice_type": inv.invoice_type,
-                "amount": str(inv.amount) if inv.amount is not None else None,
+                "amount": str(eff) if eff is not None else None,
                 "paid": str(paid) if settled else None,
                 "discounts": str(disc),
                 "balance": str(bal) if bal is not None else None,
@@ -178,7 +217,7 @@ def importation_financial_summary(db: Session, importation: ImportationOrder) ->
     return {
         "importation_id": importation.id,
         "currency": normalize_import_currency(importation.currency),
-        "total_invoiced": str(total_invoiced),
+        "total_invoiced": str(total_invoiced) if has_any_invoiced else None,
         "total_paid": str(total_paid) if has_any_settled else None,
         "total_discounts": str(total_discounts),
         "consolidated_balance": str(consolidated_balance) if consolidated_balance is not None else None,

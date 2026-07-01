@@ -27,7 +27,7 @@ export function useLogisticsData(importationId: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const reload = useCallback(async () => {
+  const reloadLogistics = useCallback(async () => {
     if (!importationId || Number.isNaN(importationId)) return;
     setLoading(true);
     setError("");
@@ -54,17 +54,22 @@ export function useLogisticsData(importationId: number) {
         }),
       );
       setItemsByShipment(Object.fromEntries(itemEntries));
-      await reloadCentral();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao carregar logística");
     } finally {
       setLoading(false);
     }
-  }, [importationId, reloadCentral]);
+  }, [importationId]);
+
+  const reload = useCallback(async () => {
+    await reloadLogistics();
+    await reloadCentral();
+  }, [reloadLogistics, reloadCentral]);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    reloadLogistics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importationId]);
 
   const models = orderCentral?.models ?? [];
   const skuRows: SkuRow[] = buildSkuRows(models, chain);

@@ -8,6 +8,7 @@ import {
   type HeroesXlsxUploadResponse,
 } from "../api";
 import { Button, Card, LoadingState, PageHeader, useToast } from "../components";
+import { useFxRate } from "../context/FxRateContext";
 import { emptyDash, productCategoryLabel } from "../i18n/glossario";
 
 const CATEGORY_OPTIONS = ["RACKET", "BALL", "BAG_ACCESSORY", "APPAREL", "PICKLEBALL", "OTHER"] as const;
@@ -33,6 +34,11 @@ function resolveOrderFromPreview(
   );
 }
 
+function parseAttachedOrderId(message: string): number | null {
+  const match = message.match(/\(#(\d+)\)/);
+  return match ? Number(match[1]) : null;
+}
+
 export function HeroesUploadPage() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -48,7 +54,14 @@ export function HeroesUploadPage() {
   const [confirmedOrder, setConfirmedOrder] = useState("");
   const [confirmSheet, setConfirmSheet] = useState(false);
   const [confirmImport, setConfirmImport] = useState(false);
+  const [provisionRate, setProvisionRate] = useState("");
   const [csvMsg, setCsvMsg] = useState("");
+  const { reference: fxRef } = useFxRate();
+
+  useEffect(() => {
+    if (fxRef?.rate && !provisionRate) setProvisionRate(fxRef.rate);
+  }, [fxRef?.rate, provisionRate]);
+  const [attachedOrderId, setAttachedOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     importsApi
@@ -71,6 +84,7 @@ export function HeroesUploadPage() {
     setConfirmSheet(false);
     setConfirmImport(false);
     setError("");
+    setAttachedOrderId(null);
   }, [selectedSheet, upload?.raw_file_id]);
 
   async function handleLoadLocal() {
@@ -162,6 +176,7 @@ export function HeroesUploadPage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro no preview";
       setError(msg);
+      setAttachedOrderId(parseAttachedOrderId(msg));
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -178,6 +193,7 @@ export function HeroesUploadPage() {
         confirmedOrderNumber: confirmedOrder || undefined,
         confirmSheetMatch: confirmSheet,
         confirmImport,
+        openingExchangeRate: provisionRate.trim() || null,
       });
       navigate(`/importacoes/${res.importation_id}/resumo`);
     } catch (err) {
@@ -214,6 +230,7 @@ export function HeroesUploadPage() {
     confirmSheet &&
     confirmImport &&
     !!confirmedOrder &&
+    !!provisionRate.trim() &&
     (preview?.errors?.length ?? 0) === 0 &&
     (!hasDivergence || confirmedOrder === preview?.order_number_from_content || confirmedOrder.length > 0);
 
@@ -236,7 +253,16 @@ export function HeroesUploadPage() {
         ))}
       </div>
 
-      {error && !preview && <p className="error">{error}</p>}
+      {error && !preview && (
+        <div className="heroes-upload__attached-error">
+          <p className="error">{error}</p>
+          {attachedOrderId && error.includes("Central da ordem") && (
+            <Button variant="primary" onClick={() => navigate(`/importacoes/${attachedOrderId}/resumo`)}>
+              Abrir Central da ordem
+            </Button>
+          )}
+        </div>
+      )}
       {csvMsg && <p className="meta">{csvMsg}</p>}
       {locateMsg && <p className="meta">{locateMsg}</p>}
 
@@ -451,6 +477,17 @@ export function HeroesUploadPage() {
                 Exportar CSVs (ZIP)
               </Button>
             </div>
+
+            <label className="heroes-upload__order-field">
+              <span>Câmbio provisionado (EUR→BRL)</span>
+              <input
+                type="text"
+                value={provisionRate}
+                onChange={(e) => setProvisionRate(e.target.value)}
+                placeholder="Ex.: 5,90"
+                aria-label="Câmbio provisionado EUR para BRL"
+              />
+            </label>
 
             <div className="heroes-upload__confirm">
               <label className="heroes-upload__confirm-item">

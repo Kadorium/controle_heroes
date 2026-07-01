@@ -200,7 +200,11 @@ def approve_staging_row(db: Session, staging_id: int, *, user_id: int | None) ->
         db.add(supplier)
         db.flush()
 
-    imp = db.query(ImportationOrder).filter(ImportationOrder.po_number == po).first()
+    imp = (
+        db.query(ImportationOrder)
+        .filter(ImportationOrder.po_number == po, ImportationOrder.is_active.is_(True))
+        .first()
+    )
     if not imp:
         imp = ImportationOrder(
             po_number=po,

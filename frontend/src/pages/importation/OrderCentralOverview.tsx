@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   closureApi,
   documentsApi,
   financeApi,
-  importationsApi,
   invoicesApi,
-  productsApi,
   type DocumentAttachment,
   type Payment,
   type TimelineEvent,
@@ -17,12 +16,13 @@ import {
   formatMoney,
   invoiceTypeLabel,
   payStatusLabel,
-  productCategoryLabel,
   productModelLabel,
 } from "../../i18n/glossario";
 import { fmtDate, fmtDateTime, isPlannedPayment } from "../../utils/formatDate";
 import { formatTimelineEvent } from "../../utils/timelineFormat";
 import { ItalyOverrideModal, type ItalyOverrideTarget } from "./ItalyOverrideModal";
+import { LockedCell } from "./orderCentralItemsShared";
+import { computeOpSummary } from "./orderCentralItemsUtils";
 import { useOrderCentral } from "./OrderCentralContext";
 import { useFxRate } from "../../context/FxRateContext";
 import {
@@ -33,15 +33,6 @@ import {
   suggestInvoiceNumber,
   type InvoiceAmountMode,
 } from "./novaOrdemInvoice";
-
-const CATEGORY_OPTIONS = [
-  { value: "RACKET", label: "Raquete" },
-  { value: "BALL", label: "Bola" },
-  { value: "BAG_ACCESSORY", label: "Bolsa/Acessório" },
-  { value: "APPAREL", label: "Roupa" },
-  { value: "PICKLEBALL", label: "Pickleball" },
-  { value: "OTHER", label: "Outro" },
-];
 
 /** Papel típico da fatura na ordem (antecipo → chegada → saldo 30/60d). */
 function invoiceStageHint(type: string | null | undefined, seq: number): string {
@@ -55,44 +46,12 @@ function invoiceStageHint(type: string | null | undefined, seq: number): string 
   return `${seq}ª fatura`;
 }
 
-function heroesCell(value: string | null | undefined, heroesSource?: boolean) {
-  if (value == null || value === "") return emptyDash(null);
-  if (!heroesSource) return value;
-  return (
-    <span title="Origem: planilha Heroes — não equivale a dado oficial sem comprovante">
-      {value}
-      <span className="sheet-flag-it" style={{ marginLeft: 4 }}>H</span>
-    </span>
-  );
-}
-
 interface Props {
   importationId: number;
 }
 
-function LockedCell({ children, onOverride }: { children: React.ReactNode; onOverride?: () => void }) {
-  if (!onOverride) {
-    return (
-      <span className="sheet-cell sheet-cell--locked" title="Campo origem Itália — não pode ser editado diretamente">
-        {children}
-        <span className="sheet-flag-it">IT</span>
-      </span>
-    );
-  }
-  return (
-    <button
-      type="button"
-      className="sheet-cell sheet-cell--locked sheet-cell--locked-btn"
-      title="Campo origem Itália. Não pode ser editado diretamente — use override auditado (motivo + anexo)."
-      onClick={onOverride}
-    >
-      {children}
-      <span className="sheet-flag-it">IT</span>
-    </button>
-  );
-}
-
 export function OrderCentralOverview({ importationId }: Props) {
+  const navigate = useNavigate();
   const toast = useToast();
   const { data, loading, error: centralError, reloadCentral } = useOrderCentral();
   const [overrideTarget, setOverrideTarget] = useState<ItalyOverrideTarget | null>(null);
@@ -174,6 +133,8 @@ export function OrderCentralOverview({ importationId }: Props) {
       { ordered: 0, invoiced: 0, shipped: 0, toDispatch: 0 },
     );
   }, [data]);
+
+  const itemsOpSummary = useMemo(() => computeOpSummary(data?.models ?? []), [data?.models]);
 
   async function liquidate(p: Payment) {
     try {
@@ -300,20 +261,6 @@ export function OrderCentralOverview({ importationId }: Props) {
     }
   }
 
-  async function saveCategory(productId: number | null, value: string) {
-    if (!productId) {
-      toast.error("Este item ainda não tem produto mapeado. Mapeie o SKU primeiro.");
-      throw new Error("Sem produto mapeado");
-    }
-    await productsApi.update(productId, { category: value });
-    reloadCentral();
-  }
-
-  async function saveSku(itemId: number, value: string) {
-    await importationsApi.updateItemMapping(importationId, itemId, { supplier_sku: value || null });
-    reloadCentral();
-  }
-
   async function uploadDoc(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -335,7 +282,6 @@ export function OrderCentralOverview({ importationId }: Props) {
   const { kpis, models, legacy_sheet_summary } = data;
   const planned = data.payments_planned ?? [];
   const settled = data.payments_settled ?? [];
-  const dispatchPending = (data.dispatch_pending ?? []) as Array<Record<string, unknown>>;
 
   return (
     <div className="order-central-overview">
@@ -568,115 +514,22 @@ export function OrderCentralOverview({ importationId }: Props) {
         </div>
       </div>
 
-      {/* 7. DA SPEDIRE / Despacho (origem Heroes) */}
-      {dispatchPending.length > 0 && (
-        <div className="oc-section">
-          <div className="oc-section__head">
-            <h3>DA SPEDIRE / Despacho (planilha Heroes)</h3>
-            <span className="oc-section__count">{dispatchPending.length} linhas</span>
-          </div>
-          <div className="sheet-grid-wrap">
-            <table className="sheet-grid">
-              <thead>
-                <tr>
-                  <th>{productModelLabel()}</th>
-                  <th>Categoria sugerida</th>
-                  <th className="num">A despachar</th>
-                  <th className="num">Preço listino</th>
-                  <th className="num">Preço fattura</th>
-                  <th className="num">Sconto</th>
-                  <th>Revisão</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dispatchPending.map((d, i) => (
-                  <tr key={i}>
-                    <td>{String(d.product_name_raw ?? emptyDash(null))}</td>
-                    <td>{productCategoryLabel(d.product_category_suggested as string | null)}</td>
-                    <td className="num">{(d.quantity_to_dispatch as number | null) ?? emptyDash(null)}</td>
-                    <td className="num">{heroesCell(d.price_listino ? formatMoney(d.price_listino as string, kpis.currency) : null, true)}</td>
-                    <td className="num">{heroesCell(d.price_fattura ? formatMoney(d.price_fattura as string, kpis.currency) : null, true)}</td>
-                    <td className="num">{heroesCell(d.discount_unit ? formatMoney(d.discount_unit as string, kpis.currency) : null, true)}</td>
-                    <td>{d.needs_review ? <Badge tone="warning">Revisar</Badge> : emptyDash(null)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* 8. Produtos / Modelos */}
+      {/* 7. Produtos — resumo */}
       <div className="oc-section">
         <div className="oc-section__head">
-          <h3>Por {productModelLabel().toLowerCase()} · a despachar · preço e desconto</h3>
-          <span className="oc-section__count">{models.length} {productModelLabel().toLowerCase()}</span>
+          <h3>Produtos e quantidades</h3>
+          <Button
+            variant="secondary"
+            className="ui-btn--sm"
+            onClick={() => navigate(`/importacoes/${importationId}/itens`)}
+          >
+            Ver produtos e quantidades
+          </Button>
         </div>
-        <div className="sheet-grid-wrap">
-          <table className="sheet-grid">
-            <thead>
-              <tr>
-                <th className="sticky-col">{productModelLabel()}</th>
-                <th>SKU mapeado</th>
-                <th>Categoria</th>
-                <th className="num">A despachar</th>
-                <th className="num">Pedida</th>
-                <th className="num">Faturada</th>
-                <th className="num">Despachada</th>
-                <th className="num">Nac./receb.</th>
-                <th>Progresso</th>
-                <th className="num">Preço listino</th>
-                <th className="num">Preço fattura</th>
-                <th className="num">Sconto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.length === 0 ? (
-                <tr><td colSpan={12}>Nenhum item na ordem</td></tr>
-              ) : (
-                models.map((m) => {
-                  const ordered = m.quantity_ordered ?? 0;
-                  const shipped = m.quantity_shipped ?? 0;
-                  const pct = ordered > 0 ? Math.round((shipped / ordered) * 100) : 0;
-                  const highlight = (m.to_dispatch ?? 0) > 0;
-                  return (
-                    <tr key={m.importation_item_id} className={highlight ? "sheet-row--dispatch" : ""}>
-                      <td className="sticky-col"><b>{m.model_label ?? m.description ?? m.supplier_sku ?? `Item #${m.importation_item_id}`}</b></td>
-                      <td>
-                        <EditableCell value={m.supplier_sku ?? ""} onSave={(v) => saveSku(m.importation_item_id, v)} placeholder="—" />
-                      </td>
-                      <td>
-                        <EditableCell
-                          type="select"
-                          options={CATEGORY_OPTIONS}
-                          value={m.product_category ?? ""}
-                          display={m.product_category ? productCategoryLabel(m.product_category) : undefined}
-                          editable={!!m.product_id}
-                          lockedReason={!m.product_id ? "Mapeie o SKU/produto antes de definir a categoria." : undefined}
-                          onSave={(v) => saveCategory(m.product_id, v)}
-                        />
-                      </td>
-                      <td className={`num${highlight ? " sheet-warn" : ""}`}>{m.to_dispatch ?? emptyDash(null)}</td>
-                      <td className="num">{m.quantity_ordered ?? emptyDash(null)}</td>
-                      <td className="num">{m.quantity_invoiced ?? emptyDash(null)}</td>
-                      <td className="num">{m.quantity_shipped ?? emptyDash(null)}</td>
-                      <td className="num">{m.quantity_stocked ?? m.quantity_nationalized ?? emptyDash(null)}</td>
-                      <td>
-                        <div className="sheet-prog">
-                          <div className="sheet-prog__track"><div className="sheet-prog__fill" style={{ width: `${pct}%` }} /></div>
-                          <span className="sheet-prog__pct">{pct}%</span>
-                        </div>
-                      </td>
-                      <td className="num">{heroesCell(m.price_listino ? formatMoney(m.price_listino, kpis.currency) : null, m.heroes_source)}</td>
-                      <td className="num">{heroesCell(m.price_fattura ? formatMoney(m.price_fattura, kpis.currency) : null, m.heroes_source)}</td>
-                      <td className="num c-credito">{heroesCell(m.discount_unit ? formatMoney(m.discount_unit, kpis.currency) : null, m.heroes_source)}</td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <p className="meta">
+          {models.length} {productModelLabel().toLowerCase()} · {itemsOpSummary.ordered} un. pedidas ·{" "}
+          {itemsOpSummary.toDispatch} a despachar
+        </p>
       </div>
 
       {/* 9. Documentos principais */}

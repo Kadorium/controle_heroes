@@ -111,6 +111,16 @@ export function LogisticsWorkflowPage({ importationId }: Props) {
             setError(e instanceof Error ? e.message : "Erro ao alocar item");
           }
         }}
+        onUpdateShipment={async (shipmentId, data) => {
+          setError("");
+          try {
+            await shipmentsApi.update(shipmentId, data);
+            await reload();
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Erro ao atualizar embarque");
+            throw e;
+          }
+        }}
         onChangeModal={async (shipmentId, newModal, comment) => {
           setError("");
           try {
@@ -136,6 +146,7 @@ export function LogisticsWorkflowPage({ importationId }: Props) {
             await reload();
           } catch (e) {
             setError(e instanceof Error ? e.message : "Erro ao atualizar embarque");
+            throw e;
           }
         }}
       />

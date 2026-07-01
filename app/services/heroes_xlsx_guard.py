@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.core.enums import HeroesImportRunStatus
-from app.models import HeroesImportRun
+from app.models import HeroesImportRun, ImportationOrder
 from app.services.heroes_xlsx_staging import count_open_sku_reviews_for_run
 
 
@@ -19,9 +19,11 @@ def find_attached_run_for_raw_file(
 ) -> HeroesImportRun | None:
     return (
         db.query(HeroesImportRun)
+        .join(ImportationOrder, ImportationOrder.id == HeroesImportRun.importation_id)
         .filter(
             HeroesImportRun.raw_file_id == raw_file_id,
             HeroesImportRun.importation_id.isnot(None),
+            ImportationOrder.is_active.is_(True),
             HeroesImportRun.idempotency_key.like("attached:%"),
             HeroesImportRun.status.in_(
                 [
@@ -46,8 +48,10 @@ def assert_raw_file_not_attached_elsewhere(
         return
     if allow_importation_id is not None and run.importation_id == allow_importation_id:
         return
+    imp = db.query(ImportationOrder).filter(ImportationOrder.id == run.importation_id).first()
+    po = imp.po_number if imp else f"#{run.importation_id}"
     raise AttachedRawFileError(
-        f"Planilha vinculada à ordem #{run.importation_id}. "
+        f"Planilha vinculada à ordem {po} (#{run.importation_id}). "
         "Use o preview na Central da ordem."
     )
 

@@ -175,6 +175,7 @@ def test_real_import_ordine_758_flow(db, admin_client, reset_env, real_workbook_
         user_id=1,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=ORDER_NUMBER,
     )
     assert imp.po_number == f"HEROES-{ORDER_NUMBER}"
@@ -196,6 +197,7 @@ def test_real_import_ordine_758_flow(db, admin_client, reset_env, real_workbook_
         user_id=1,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=ORDER_NUMBER,
     )
     assert imp2.id == imp.id
@@ -216,6 +218,7 @@ def test_real_import_ordine_758_flow(db, admin_client, reset_env, real_workbook_
         user_id=1,
         confirm_import=True,
         confirm_sheet_match=True,
+        opening_exchange_rate="5.00",
         confirmed_order_number=ORDER_NUMBER,
     )
     assert imp3.id == imp.id

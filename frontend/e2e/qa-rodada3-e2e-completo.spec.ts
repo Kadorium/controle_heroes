@@ -158,9 +158,12 @@ test.describe("Rodada 3 — QA UI E2E A–L (QA-UI-002)", () => {
 
   test("B — conferir itens (somente leitura)", async ({ page }) => {
     await page.goto(`/importacoes/${importationId}/itens`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("columnheader", { name: /Modelo/i })).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: /SKU Epic/i })).toBeVisible();
     await expect(page.locator("table tbody")).toContainText("12,50");
     await expect(page.locator("table tbody")).toContainText("8,00");
     await expect(page.locator("table tbody tr")).toHaveCount(2);
+    await expect(page.locator("table tfoot")).toContainText("Total");
   });
 
   test("C — três faturas QA-INV-1/2/3", async ({ page }) => {

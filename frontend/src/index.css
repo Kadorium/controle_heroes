@@ -1922,6 +1922,42 @@ a.row__po:hover {
 }
 .order-queue__row { cursor: pointer; }
 .order-queue__row:hover { background: var(--color-primary-soft) !important; }
+
+.payables-dashboard { margin-bottom: var(--space-6); }
+.payables-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.payables-kpi {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.payables-kpi__label { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+.payables-kpi__value { font-size: var(--font-size-lg); font-weight: 600; margin-top: 4px; }
+.payables-kpi__hint { font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-top: 2px; }
+.payables-section__title { font-size: var(--font-size-lg); margin: 0 0 var(--space-3); }
+.payables-orders { display: flex; flex-direction: column; gap: var(--space-3); }
+.payables-order { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+.payables-order__head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+  width: 100%; padding: var(--space-3) var(--space-4);
+  background: var(--color-sidebar-bg); border: none; cursor: pointer; text-align: left;
+}
+.payables-order__chev { width: 1rem; color: var(--color-text-secondary); }
+.payables-order__po { font-weight: 600; }
+.payables-order__sup { color: var(--color-text-secondary); }
+.payables-order__meta { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+.payables-order__meta--warn { color: var(--color-warning, #b45309); }
+.payables-order__body { padding: 0 var(--space-2) var(--space-2); }
+.payables-pay-subrow td { border-top: none !important; }
+.payables-est-badge { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+.payables-rate-edit { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.payables-rate-edit input { width: 4.5rem; font-size: var(--font-size-sm); }
+.payables-pnl-note { margin: var(--space-2) 0; }
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable:hover { color: var(--color-primary-deep); }
 th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -2261,6 +2297,13 @@ th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.oc-items-preview tfoot td {
+  padding-top: 5px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 .oc-open-invoice-deadline {
   display: block;
@@ -3022,6 +3065,21 @@ td.c-accum { background: #eef6e9; }
 .oc-stat__v { font-size: 1.0rem; font-weight: 700; }
 .oc-actbar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
 
+/* aba produtos e quantidades */
+.oc-items-section { display: flex; flex-direction: column; gap: var(--space-4); }
+.oc-items-section__banner { margin: 0; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, #d9a514 12%, white); border: 1px solid color-mix(in srgb, #d9a514 35%, transparent); }
+.oc-items-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: var(--space-2); }
+.oc-items-summary__card { border: 1px solid var(--color-border-soft); border-radius: 8px; padding: 8px 10px; background: #fbfcfe; }
+.oc-items-summary__card--warn { border-color: color-mix(in srgb, #d9a514 45%, var(--color-border-soft)); background: color-mix(in srgb, #d9a514 6%, white); }
+.oc-items-summary__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-secondary); display: block; }
+.oc-items-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.oc-items-toolbar__search { flex: 1 1 200px; min-width: 180px; max-width: 360px; }
+.oc-items-toolbar__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.oc-items-chip { font-size: 0.78rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--color-border); background: white; cursor: pointer; color: var(--color-text-secondary); }
+.oc-items-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.oc-items-chip--active { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, white); color: var(--color-primary-deep, var(--color-primary)); font-weight: 600; }
+.oc-items-grid tfoot td { font-weight: 700; border-top: 2px solid var(--color-border); background: #f8fafc; }
+
 /* Faturas como etapas (antecipo -> chegada -> saldo 30/60d) */
 .inv-stages { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--space-2); margin-bottom: var(--space-3); }
 .inv-stage { border: 1px solid var(--color-border); border-left: 4px solid var(--color-ink-3); border-radius: 8px; padding: 10px 12px; background: #fbfcfe; }
@@ -3174,6 +3232,39 @@ td.c-accum { background: #eef6e9; }
 .logistics-shipment-meta dd {
   margin: 0;
   font-weight: 500;
+}
+
+.logistics-shipment-hint {
+  margin: 0 0 var(--space-2);
+}
+
+.logistics-shipment-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.logistics-shipment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+}
+
+.logistics-shipment-field > span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+.logistics-modal-change {
+  margin-top: var(--space-2);
+}
+
+.logistics-transit-table .editable-cell {
+  min-width: 7rem;
 }
 
 .logistics-heroes-block {

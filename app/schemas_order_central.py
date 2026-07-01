@@ -197,6 +197,8 @@ class OperationalHeader(BaseModel):
     balance_to_settle_eur: str | None = None
     balance_to_settle_brl: str | None = None
     opening_exchange_rate: str | None = None
+    brl_is_estimated: bool = False
+    financial_alerts: list[str] = Field(default_factory=list)
 
 
 class OrderCentralResponse(BaseModel):

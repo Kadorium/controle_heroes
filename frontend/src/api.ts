@@ -274,6 +274,8 @@ export interface OperationalHeader {
   balance_to_settle_eur?: string | null;
   balance_to_settle_brl?: string | null;
   opening_exchange_rate?: string | null;
+  brl_is_estimated?: boolean;
+  financial_alerts?: string[];
 }
 
 export interface FxPnlBlock {
@@ -286,6 +288,66 @@ export interface FxPnlBlock {
   pnl_planned_brl: string | null;
   pnl_unrealized_brl: string | null;
   pnl_total_brl: string | null;
+  open_fx_exposure_brl?: string | null;
+}
+
+export interface PayablesPaymentRow {
+  id: number;
+  payment_type: string;
+  due_date: string | null;
+  payment_date: string | null;
+  amount_foreign: string | null;
+  currency_foreign: string | null;
+  exchange_rate: string | null;
+  amount_local: string | null;
+  receipt_reference: string | null;
+  status_label: string;
+  display_rate: string | null;
+  display_rate_type: string | null;
+  display_brl: string | null;
+  brl_is_estimated: boolean;
+  is_settled: boolean;
+}
+
+export interface PayablesInvoiceRow {
+  id: number;
+  invoice_number: string | null;
+  invoice_type: string | null;
+  invoice_date: string | null;
+  expected_exchange_rate: string | null;
+  amount_eur: string | null;
+  balance: string | null;
+  currency: string | null;
+  payments: PayablesPaymentRow[];
+}
+
+export interface PayablesOrderBlock {
+  importation_id: number;
+  po_number: string;
+  supplier_name: string;
+  status: string | null;
+  opening_exchange_rate: string | null;
+  finance_operational: Record<string, string | boolean | null> | null;
+  fx_pnl: FxPnlBlock | null;
+  open_fx_exposure_brl: string | null;
+  invoices: PayablesInvoiceRow[];
+}
+
+export interface PayablesQueueKpis {
+  total_settled_brl: string | null;
+  total_pending_brl: string | null;
+  due_7d_count: number;
+  due_7d_brl: string | null;
+  overdue_count: number;
+  fx_pnl_total_brl: string | null;
+  open_fx_exposure_brl: string | null;
+  orders_with_provision: number;
+}
+
+export interface PayablesQueueResponse {
+  kpis: PayablesQueueKpis;
+  fx_pnl_summary: FxPnlBlock | null;
+  orders: PayablesOrderBlock[];
 }
 
 export interface StatusRail {
@@ -653,14 +715,26 @@ export const importationsApi = {
   },
   heroesImportCommit: (
     importationId: number,
-    opts?: { confirmImport?: boolean; confirmSheetMatch?: boolean; categoryOverrides?: Record<string, string> },
+    opts?: {
+      confirmImport?: boolean;
+      confirmSheetMatch?: boolean;
+      confirmFinancialReview?: boolean;
+      categoryOverrides?: Record<string, string>;
+      versatoOverride?: string | null;
+      accontoOverrides?: Record<string, string> | null;
+      openingExchangeRate?: string | null;
+    },
   ) =>
     api<HeroesImportRunResponse>(`/api/importations/${importationId}/heroes-import/commit`, {
       method: "POST",
       body: JSON.stringify({
         confirm_import: opts?.confirmImport ?? false,
         confirm_sheet_match: opts?.confirmSheetMatch ?? false,
+        confirm_financial_review: opts?.confirmFinancialReview ?? false,
         category_overrides: opts?.categoryOverrides ?? null,
+        versato_override: opts?.versatoOverride ?? null,
+        acconto_overrides: opts?.accontoOverrides ?? null,
+        opening_exchange_rate: opts?.openingExchangeRate ?? null,
       }),
     }),
   addItem: (id: number, data: object) =>
@@ -671,7 +745,14 @@ export const importationsApi = {
   updateItemMapping: (
     id: number,
     itemId: number,
-    data: { product_id?: number | null; description?: string | null; supplier_sku?: string | null },
+    data: {
+      product_id?: number | null;
+      description?: string | null;
+      supplier_sku?: string | null;
+      quantity_ordered?: number | null;
+      unit_price_foreign?: string | null;
+      discount_amount_foreign?: string | null;
+    },
   ) =>
     api<ImportationItem>(`/api/importations/${id}/items/${itemId}`, {
       method: "PATCH",
@@ -692,6 +773,8 @@ export const invoicesApi = {
   items: (invoiceId: number) => api<InvoiceItem[]>(`/api/invoices/${invoiceId}/items`),
   create: (data: object) =>
     api<Invoice>("/api/invoices", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: number, data: object) =>
+    api<Invoice>(`/api/invoices/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
 };
 
 async function apiForm<T>(path: string, formData: FormData): Promise<T> {
@@ -847,6 +930,7 @@ export const importsApi = {
       confirmedOrderNumber?: string;
       confirmSheetMatch?: boolean;
       confirmImport?: boolean;
+      openingExchangeRate?: string | null;
     },
   ) =>
     api<HeroesXlsxCommitResponse>("/api/imports/heroes/xlsx/commit", {
@@ -857,6 +941,7 @@ export const importsApi = {
         confirmed_order_number: opts?.confirmedOrderNumber ?? null,
         confirm_sheet_match: opts?.confirmSheetMatch ?? false,
         confirm_import: opts?.confirmImport ?? false,
+        opening_exchange_rate: opts?.openingExchangeRate ?? null,
       }),
     }),
   exportHeroesNormalized: async (runId: number, format: "xlsx" | "zip" = "xlsx") => {
@@ -994,6 +1079,24 @@ export const financeApi = {
   fxPnlSummary: () => api<FxPnlBlock>("/api/finance/fx-pnl/summary"),
   fxPnlForImportation: (importationId: number) =>
     api<FxPnlBlock>(`/api/finance/importations/${importationId}/fx-pnl`),
+  payablesQueue: (params?: {
+    supplierId?: number;
+    importationId?: number;
+    status?: string;
+    invoiceType?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.supplierId != null) q.set("supplier_id", String(params.supplierId));
+    if (params?.importationId != null) q.set("importation_id", String(params.importationId));
+    if (params?.status) q.set("status", params.status);
+    if (params?.invoiceType) q.set("invoice_type", params.invoiceType);
+    if (params?.dateFrom) q.set("date_from", params.dateFrom);
+    if (params?.dateTo) q.set("date_to", params.dateTo);
+    const qs = q.toString();
+    return api<PayablesQueueResponse>(`/api/finance/payables-queue${qs ? `?${qs}` : ""}`);
+  },
   summary: (importationId: number) =>
     api<FinancialSummary>(`/api/finance/importations/${importationId}/summary`),
   createPayment: (data: object) =>

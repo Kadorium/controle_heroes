@@ -6,6 +6,7 @@ import {
   estimateItemPreviewRowCount,
   normalizeItemLabel,
   resolveFinance,
+  summarizeItemPreviewRows,
 } from "./orderCentralOperationalHeaderUtils";
 
 describe("normalizeItemLabel", () => {
@@ -72,6 +73,24 @@ describe("estimateItemPreviewRowCount", () => {
   it("calcula quantas linhas cabem na altura do card", () => {
     expect(estimateItemPreviewRowCount(324, 24, 40, 22, 22)).toBeGreaterThan(5);
   });
+
+  it("reserva espaço para o rodapé de totais", () => {
+    const withoutTfoot = estimateItemPreviewRowCount(324, 24, 40, 22, 22, 0);
+    const withTfoot = estimateItemPreviewRowCount(324, 24, 40, 22, 22, 26);
+    expect(withTfoot).toBeLessThan(withoutTfoot);
+  });
+});
+
+describe("summarizeItemPreviewRows", () => {
+  it("soma quantidade e valor de todas as linhas", () => {
+    const totals = summarizeItemPreviewRows([
+      { key: "1", label: "STARLIGHT-26", qty: 500, unitPrice: "106.66", paid: "53330" },
+      { key: "2", label: "AURA", qty: 400, unitPrice: "52.53", paid: "21012" },
+      { key: "3", label: "SENNA", qty: 500, unitPrice: null, paid: null },
+    ]);
+    expect(totals.qty).toBe(1400);
+    expect(totals.value).toBe(String(53330 + 21012));
+  });
 });
 
 describe("buildItemPreviewRows", () => {
@@ -82,7 +101,7 @@ describe("buildItemPreviewRows", () => {
           importation_item_id: 1,
           quantity_ordered: 1000,
           model_label: "SHOW-26",
-          acconto_amount: "50000",
+          price_fattura: "50",
           heroes_source: true,
           dispatch_needs_review: false,
         },
@@ -90,6 +109,7 @@ describe("buildItemPreviewRows", () => {
           importation_item_id: 2,
           quantity_ordered: 80,
           model_label: "SHOW26",
+          price_fattura: "50",
           heroes_source: true,
           dispatch_needs_review: false,
         },
@@ -99,5 +119,48 @@ describe("buildItemPreviewRows", () => {
     );
     expect(rows).toHaveLength(1);
     expect(rows[0].qty).toBe(1080);
+    expect(rows[0].paid).toBe(String(1080 * 50));
+  });
+
+  it("não soma invoice_items quando models já existem (Heroes import)", () => {
+    const rows = buildItemPreviewRows(
+      [
+        {
+          importation_item_id: 10,
+          quantity_ordered: 55,
+          model_label: "COCH",
+          price_fattura: "175",
+          heroes_source: true,
+          dispatch_needs_review: false,
+        },
+      ],
+      undefined,
+      [
+        {
+          id: 1,
+          invoice_type: "PROFORMA",
+          invoice_number: "72",
+          invoice_date: "2025-02-12",
+          amount: null,
+          currency: "EUR",
+          balance: null,
+          paid_total: "5500",
+          items: [
+            {
+              id: 99,
+              importation_item_id: null,
+              product_sku: "COCH",
+              description: "coch",
+              quantity: 55,
+              unit_price: null,
+              amount: null,
+            },
+          ],
+        },
+      ],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].qty).toBe(55);
+    expect(rows[0].paid).toBe(String(55 * 175));
   });
 });
