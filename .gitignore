@@ -13,23 +13,52 @@ build/
 
 frontend/node_modules/
 frontend/dist/
+frontend/test-results/
+**/test-results/
+
+# V1/V2 local envs and frontend deps
+v1/.venv/
+v2/.venv/
+v1/frontend/node_modules/
+v2/frontend/node_modules/
+v1/frontend/dist/
+v2/frontend/dist/
 
 data/attachments/*
 !data/attachments/.gitkeep
 data/imports/*
 !data/imports/.gitkeep
+v1/data/attachments/*
+!v1/data/attachments/.gitkeep
+v1/data/imports/*
+!v1/data/imports/.gitkeep
+v2/data/attachments/*
+!v2/data/attachments/.gitkeep
+v2/data/imports/*
+!v2/data/imports/.gitkeep
 backups/db/*
 !backups/db/.gitkeep
 backups/attachments/*
 !backups/attachments/.gitkeep
+v1/backups/db/*
+!v1/backups/db/.gitkeep
+v1/backups/attachments/*
+!v1/backups/attachments/.gitkeep
 logs/*
 !logs/.gitkeep
+v1/logs/*
+!v1/logs/.gitkeep
+v2/logs/*
+!v2/logs/.gitkeep
 
 CONTI ITALIA-BRASILE.xlsx
+v1/CONTI ITALIA-BRASILE.xlsx
 data/raw/*.xlsx
 data/raw/CONTI ITALIA-BRASILE.xlsx
+v1/data/raw/*.xlsx
 
 .DS_Store
 
 # IP do servidor Epic (criado em cada PC cliente via abrir_epic_importacoes.bat)
 epic_server_ip.txt
+v1/epic_server_ip.txt

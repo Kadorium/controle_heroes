@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "epic_session",
+      "value": "f-YUydPY35V95Bfhm0D8fMHILUeOaq5UeqVxYhn2dxI",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1784816182.370862,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

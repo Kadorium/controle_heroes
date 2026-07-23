@@ -1,0 +1,40 @@
+---
+description: Arquitetura modular Epic V2 - Blueprint, Roadmap, package-by-domain, proibicao V2->V1
+globs: v2/**,docs/v2/**,ROADMAP_V2_EPIC.md,docs/README.md
+alwaysApply: false
+---
+
+# Epic V2 — arquitetura modular
+
+**Trilha V2.** Checklist F0–F12 **não** é DoD desta trilha.
+
+Canônicos: `docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md` (produto/arquitetura) · `ROADMAP_V2_EPIC.md` (fases/gates/ADRs).
+
+## Antes de alterar
+
+1. Investigar código e docs canônicos do assunto.
+2. Identificar o **módulo owner**.
+3. Validar o **contrato público** e o **grafo** (Blueprint §5.16): `A --> B` = A pode depender da API pública de B.
+4. Confirmar **sem ciclo** e **sem import de internals** de outro módulo.
+
+## Proibido
+
+- Regra de negócio em router/controller ou componente React de apresentação.
+- Import direto de ORM / repository / service interno de outro módulo.
+- **Qualquer** import `v2/**` → `v1/**` (inclui testes V2).
+- Ampliar arquivo grande sem avaliar decomposição (Blueprint §3.3) — revisão manual, não só AST.
+- Dumps globais multi-domínio (`models.py`, `services.py`, `utils.py`, `helpers.py`, `api.ts` manual monolítico).
+- Agregadores tipo `order_central`.
+- Editar client OpenAPI gerado.
+- Reporting escrever em domínio.
+
+## Obrigatório após mudança
+
+- Atualizar testes do módulo.
+- Rodar `test_import_boundaries` (quando existir) — falha em V2→V1, ciclos, internals, deps fora do grafo.
+- Atualizar Roadmap se a tarefa for de fase/gate.
+- Propor estrutura diferente só **com justificativa**.
+
+## Caracterização V1↔V2
+
+Processo V1 separado → golden versionado. V2 executa implementação própria e compara com o golden. **Sem** importar código V1.

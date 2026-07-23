@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "scenario": "parse_it_date",
+  "v1_function": "app.core.parse_it.parse_it_date",
+  "currency_context": "n/a",
+  "rounding": "n/a",
+  "origin": "v1 characterization export",
+  "generated_at": "2026-07-22T17:41:51.238544+00:00",
+  "generator_commit": "7d7f39806a76972895ba60ec162d484eb410d175",
+  "cases": [
+    {
+      "input": "15/03/2024",
+      "output": {
+        "iso_date": "2024-03-15",
+        "needs_review": false
+      }
+    },
+    {
+      "input": "2024-03-15",
+      "output": {
+        "iso_date": "2024-03-15",
+        "needs_review": false
+      }
+    },
+    {
+      "input": "01/02/24",
+      "output": {
+        "iso_date": "2024-02-01",
+        "needs_review": false
+      }
+    },
+    {
+      "input": "",
+      "output": {
+        "iso_date": null,
+        "needs_review": false
+      }
+    },
+    {
+      "input": null,
+      "output": {
+        "iso_date": null,
+        "needs_review": false
+      }
+    },
+    {
+      "input": "32/01/2024",
+      "output": {
+        "iso_date": null,
+        "needs_review": true
+      }
+    }
+  ],
+  "input_hash": "bf756454753ca4f1746a544f92d1bd16f01471c3d8a2bc9d6adece2f8ccf239a"
+}
