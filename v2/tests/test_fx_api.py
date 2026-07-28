@@ -277,11 +277,14 @@ def test_refresh_provider_failure_keeps_previous(admin_client, monkeypatch):
 
 
 def test_http_provider_frankfurter_then_awesome(monkeypatch):
+    """Legacy monkeypatch ainda cobre fallback; ver também test_fx_provider_http.py."""
     provider = HttpFxQuoteProvider(timeout=1.0)
 
     class Resp:
         def __init__(self, data):
             self._data = data
+            self.status_code = 200
+            self.headers = {}
 
         def raise_for_status(self):
             return None
@@ -302,8 +305,8 @@ def test_http_provider_frankfurter_then_awesome(monkeypatch):
             return False
 
         def get(self, url, params=None):
-            calls.append(url)
-            if "frankfurter" in url:
+            calls.append(str(url))
+            if "frankfurter" in str(url):
                 raise RuntimeError("offline")
             return Resp({"EURBRL": {"bid": "6.40"}})
 

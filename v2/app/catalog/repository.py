@@ -8,6 +8,14 @@ def get_supplier(db: Session, supplier_id: int) -> Supplier | None:
     return db.get(Supplier, supplier_id)
 
 
+def get_suppliers_by_ids(db: Session, supplier_ids: list[int] | set[int]) -> list[Supplier]:
+    """Uma query IN (...) — ids vazios → []."""
+    ids = sorted({int(i) for i in supplier_ids})
+    if not ids:
+        return []
+    return db.query(Supplier).filter(Supplier.id.in_(ids)).all()
+
+
 def get_supplier_by_code(db: Session, code: str) -> Supplier | None:
     return db.query(Supplier).filter(Supplier.code == code).first()
 

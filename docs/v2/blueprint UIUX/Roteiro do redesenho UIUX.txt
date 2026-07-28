@@ -1,0 +1,269 @@
+# Roteiro do redesenho UI/UX
+
+Trabalharemos com **uma única proposta canônica**. Em cada etapa, vou escolher a solução que considero mais profissional e adequada à EPIC. Você altera apenas o que não aprovar.
+
+## Etapa 1 — Arquitetura de produto
+
+Definir:
+
+* organização por Workbench, filas, fichas e workspaces;
+* superfícies necessárias;
+* relação entre Order, Invoice, Payable, Payment, Allocation e FX;
+* o que abre em página, drawer ou modal;
+* limites entre cockpit e telas proprietárias;
+* dependências de backend.
+
+**Entrega:** mapa funcional completo da experiência.
+
+**Status:** primeira versão concluída; ainda será incorporada ao documento final.
+
+---
+
+## Etapa 2 — App Shell
+
+Desenhar concretamente:
+
+* sidebar;
+* agrupamento atual de Compras e Financeiro;
+* estrutura preparada para módulos futuros;
+* header global;
+* breadcrumbs;
+* busca;
+* usuário e logout;
+* FX market strip;
+* notificações;
+* largura do conteúdo;
+* elementos sticky;
+* comportamento em diferentes resoluções.
+
+**Entrega:** wireframe completo do shell e regras de navegação global.
+
+O shell exibirá apenas capacidades implementadas, sem fingir que módulos futuros já existem, conforme a separação de horizontes do Blueprint UI/UX.
+
+**Status:** **DONE documental** (2026-07-27). Especificação incorporada em `BLUEPRINT_UI_UX_EPIC_v3.md` §20 (candidato v3.2). Sem implementação de código nesta etapa.
+
+---
+
+## Etapa 3 — Desenho completo de cada tela
+
+Redesenhar individualmente:
+
+1. Login;
+2. Orders;
+3. New Order;
+4. Order Cockpit;
+5. Invoices;
+6. Invoice Detail;
+7. Accounts Payable;
+8. Payable FX Workspace;
+9. Payments;
+10. New Payment;
+11. Payment Detail;
+12. variantes de RBAC.
+
+Para cada tela:
+
+* pergunta respondida;
+* hierarquia;
+* blocos;
+* dados;
+* ações;
+* filtros;
+* tabelas ou formulários;
+* drawers, tabs e modais;
+* loading;
+* vazio;
+* erro;
+* bloqueio;
+* sem permissão;
+* conteúdo volumoso;
+* dependências de API;
+* wireframe textual concreto.
+
+**Entrega:** especificação funcional e visual integral das telas.
+
+**Status:** **DONE documental** (2026-07-27). Especificações em `BLUEPRINT_UI_UX_EPIC_v3.md` §21–§22 (candidato v3.3 arquitetura). Fechamento de qualidade: **Etapa 3.1** → v3.4 (§21.0–§21.13). Sem implementação de código nesta etapa.
+
+---
+
+## Etapa 3.1 — Fechamento de qualidade (Horizon A)
+
+Completar estados, volume de filas, validação de formulários, confirmações financeiras críticas, retorno/preservação de contexto e RBAC — sem reiniciar a Etapa 3 nem alterar decisões de arquitetura.
+
+**Entrega:** UI/UX candidato v3.4; matriz §21.13 sem INC.
+
+**Status:** **DONE documental** (2026-07-28). Spec em `BLUEPRINT_UI_UX_EPIC_v3.md` §21.0–§21.13 (candidato v3.4). Sem implementação de código.
+
+---
+
+## Etapa 4 — Fluxos ponta a ponta
+
+Desenhar as travessias completas:
+
+```text
+Order → Invoice
+Invoice → Payable
+AP → Payment
+Payment → Allocation
+Payable → FX
+Cockpit → superfícies proprietárias
+Ficha → fila de origem
+```
+
+Cada fluxo mostrará:
+
+* origem;
+* contexto carregado;
+* ação;
+* confirmação;
+* resultado;
+* retorno;
+* recuperação de erro;
+* preservação de filtros e posição.
+
+O fluxo respeitará o modelo do sistema: Payable é a unidade de liquidação e Payment só reduz saldo por PaymentAllocation.
+
+**Status:** **DONE documental** (2026-07-28). Spec em `BLUEPRINT_UI_UX_EPIC_v3.md` §23–§24 (candidato v3.5). Sem implementação de código.
+
+---
+
+## Etapa 5 — Mockups prioritários
+
+Produzir mockups suficientemente detalhados para visualizar o produto final:
+
+1. Orders;
+2. Order Cockpit;
+3. Invoice Detail;
+4. Accounts Payable;
+5. New Payment e Payment Detail;
+6. FX Workspace.
+
+As seis telas serão desenhadas como uma única família visual.
+
+A direção escolhida será:
+
+* software corporativo de alta precisão;
+* alta densidade controlada;
+* filas operacionais eficientes;
+* fichas completas;
+* hierarquia financeira forte;
+* uso seletivo de exceções e indicadores;
+* documentos e auditoria próximos da decisão;
+* sem aparência de ERP antigo;
+* sem aparência de dashboard decorativo.
+
+A pesquisa de mercado sustenta a combinação de worklists operacionais com fichas de objeto, usando páginas completas, drawers e modais conforme a complexidade da tarefa.
+
+**Status:** **DONE** (2026-07-28) — **MCK v1.0** aprovado. Checkpoints A–D **APROVADOS**. UI/UX **v3.6** (§25). Histórico: mck-v0.1 … v0.4.
+
+**Entrega:** `docs/v2/blueprint UIUX/mockups/mck-v1.0/` + PDF `MCK-v1.0-approved-review.pdf`.
+
+**Próxima ação:** Etapa 6 — revisão visual consolidada (**não** iniciada).
+
+---
+
+## Etapa 6 — Revisão visual
+
+Você avalia os mockups pelos seguintes critérios:
+
+* consigo localizar qualquer informação?
+* a ação principal está evidente?
+* a tela suporta operação em volume?
+* Invoice, Payable, Payment e Allocation estão claramente separados?
+* o retorno entre telas preserva contexto?
+* o produto parece profissional?
+* existe espaço desperdiçado?
+* existe informação excessiva?
+* alguma ação está escondida ou ambígua?
+
+As correções serão feitas sobre a proposta única, sem reiniciar o processo com novas “direções”.
+
+**Status:** **DONE** (2026-07-28) — **6A** auditoria consolidada + **6B** correções autorizadas → **MCK v1.1**. Checkpoint **E6-A** aprovado com ajustes. Checkpoint **E6-B** pendente de confirmação externa final. UI/UX **v3.7**. Etapa 7 **não** iniciada.
+
+---
+
+## Etapa 7 — Design system derivado
+
+Depois das telas aprovadas, consolidar:
+
+* cores;
+* tipografia;
+* grids;
+* espaçamento;
+* densidade;
+* botões;
+* campos;
+* tabelas;
+* filtros;
+* badges;
+* alertas;
+* drawers;
+* tabs;
+* uploads;
+* toasts;
+* dialogs;
+* padrões de moeda;
+* padrões de data;
+* números e casas decimais;
+* estados de permissão e erro.
+
+O design system será extraído das telas aprovadas, não criado abstratamente antes delas.
+
+---
+
+## Etapa 8 — Handoff de produto
+
+Consolidar:
+
+* screen map;
+* especificação de todas as telas;
+* mockups;
+* fluxos;
+* inventário de componentes;
+* regras globais;
+* matriz AS-IS × TO-BE;
+* dependências de backend;
+* decisões abertas;
+* critérios objetivos de aceite;
+* prioridade de implementação.
+
+**Entrega:** pacote completo de TARGET DESIGN.
+
+---
+
+## Etapa 9 — Validação no código pelo Cursor
+
+Somente após aprovação visual.
+
+Modo recomendado: **Planning**, porque a execução será multi-arquivo, transversal e poderá exigir extensões de API.
+
+O Cursor deverá:
+
+* descrever o estado real do frontend e backend;
+* confirmar ou refutar as hipóteses;
+* mapear o target contra APIs existentes;
+* identificar extensões necessárias;
+* corrigir o plano caso encontre solução melhor;
+* propor fases de implementação;
+* executar apenas após validação;
+* atualizar o Roadmap ao concluir cada etapa, com `DONE`, `PARTIAL` ou `BLOCKED`, evidências, pendências e próxima etapa lógica.
+
+---
+
+# Ordem objetiva
+
+```text
+1. Arquitetura de produto
+2. App Shell
+3. Telas
+4. Fluxos
+5. Mockups
+6. Revisão
+7. Design system
+8. Handoff
+9. Cursor
+```
+
+**Próxima ação:** confirmação visual externa de **E6-B** / MCK v1.1 antes de planejar a Etapa 7.
+
+**Resumo:** Etapa 5 DONE · Etapa 6 **DONE** (6A+6B) · MCK v1.1 · UI/UX v3.7. Etapa 7 **não** iniciada. Sem implementação de código.

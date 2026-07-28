@@ -12,6 +12,11 @@ def get_supplier(db: Session, supplier_id: int) -> Supplier:
     return row
 
 
+def get_suppliers_bulk(db: Session, supplier_ids: list[int] | set[int]) -> dict[int, Supplier]:
+    """Resolve fornecedores em lote. Ids ausentes simplesmente não entram no mapa."""
+    return {s.id: s for s in repo.get_suppliers_by_ids(db, supplier_ids)}
+
+
 def list_suppliers(
     db: Session, *, q: str | None = None, active_only: bool = False, limit: int = 50, offset: int = 0
 ) -> list[Supplier]:

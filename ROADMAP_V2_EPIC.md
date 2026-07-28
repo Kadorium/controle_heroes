@@ -8,14 +8,15 @@
 
 | Campo | Valor |
 |---|---|
-| Versão / revisão documental | **0.5.6** — Inc-4A+4B FX três visões **DONE** |
-| Última atualização material | **2026-07-23** |
-| Fase atual | **Order-to-Pay (J#2)** — **IN_PROGRESS** · Inc-1…**Inc-4 DONE**; próxima **Inc-5** |
-| Última fase concluída | **Inc-4 — FX (três visões) = 4A+4B** |
-| Próxima fase | **Inc-5** — Fila AP + cockpit Reporting (§O.5) |
-| Working tree relevante | Fundação+Inc-1…Inc-4 **uncommitted** em `main` @ `008fb49` |
-| Commit / checkpoint de referência | Tip: `008fb49` · Checkpoint pré-Fundação: `checkpoint/pre-foundation` @ `7d7f398` |
-| Blueprint canônico | **v0.2.4** — três visões FX; ownership Treasury |
+| Versão / revisão documental | **0.5.21** — redesenho UI/UX Etapa 6 DONE · MCK v1.1 · UI/UX v3.7 |
+| Última atualização material | **2026-07-28** |
+| Fase atual | **Order-to-Pay (J#2)** — **IN_PROGRESS** · Inc-1…**Inc-5 DONE**; próxima **Inc-6** |
+| Última fase concluída | **Inc-5 — Fila AP + cockpit Reporting** (fechamento técnico) |
+| Próxima fase | **Inc-6** — E2E/goldens/aceite J#2 (§O.6) |
+| Working tree relevante | `main` @ `f9a83ed` + WIP Inc-4/Inc-5 + docs UI/UX Etapa 6 DONE / MCK v1.1 (sem commit automático) |
+| Commit / checkpoint de referência | Tip: `f9a83ed` · Checkpoint pré-Fundação: `checkpoint/pre-foundation` @ `7d7f398` |
+| Blueprint canônico | **v0.2.8** — Heroes-only operacional; Supplier bulk; REQ-V2-REP-001/002 |
+| UI/UX candidato | **v3.7** — mockups **MCK v1.1** · Etapa 6 DONE · E6-B pendente confirmação externa final; **não canônico** |
 
 ### Painel executivo de progresso
 
@@ -28,8 +29,8 @@ Visão curta do progresso V2. Detalhes técnicos, gates e comandos: §J / §N / 
 | Inc-1 Catalog + Orders | Supplier/Product; Order DRAFT→CONFIRM/CANCEL | **DONE** | Gates O.1 (§O.1) | — | — |
 | Inc-2 Billing + Payables | Invoice + Terms → Payables; sconto | **DONE** | Gates O.2 (§O.2); DEC-SCONTO-ITEM fechada | — | — |
 | Inc-3 Payment + Allocation | Payment; alocação em Payable | **DONE** | Gates O.3 (§O.3) | — | — |
-| Inc-4 FX (4A+4B) | Três visões; plan/quote/execution | **DONE** | §O.4 gates 2026-07-23 | Inc-5 | — |
-| Inc-5 Fila AP + cockpit | Fila AP; cockpit via Reporting | **TODO** | Plano §O.5 | Após Inc-4 DONE | — |
+| Inc-4 FX (4A+4B) | Três visões; plan/quote/execution | **DONE** | §O.4 remediação 2026-07-23 (006) | — | — |
+| Inc-5 Fila AP + cockpit | Fila AP; cockpit via Reporting; UX Foundation | **DONE** | §O.5 + UX-0; E2E `inc5-ap-cockpit` @8082/`epic_v2_test` | Inc-6 | — |
 | Inc-6 E2E/goldens/aceite | E2E; equivalência `parse_it`; DoD J#2 | **TODO** | Plano §O.6 | Após Inc-5 | — |
 | Ingestão | Adapters + contrato canônico | **TODO** | §J#3 | Após Order-to-Pay | — |
 | Logística | Shipment + PackingList | **TODO** | §J#4 | Após Ingestão | — |
@@ -84,7 +85,7 @@ Não há “trecho antigo vence trecho novo”. Em caso de aparente conflito **d
 - [L. Próxima etapa lógica](#l-proxima-etapa)
 - [M. Governança V2](#m-governanca)
 - [N. Fundação técnica (executada)](#n-fundacao)
-- [O. Execução Order-to-Pay — Inc-1, Inc-2 e Inc-3 concluídos](#o-order-to-pay-plan)
+- [O. Execução Order-to-Pay — Inc-1…Inc-5 concluídos](#o-order-to-pay-plan)
   - [O.1 Inc-1 — Catalog mínimo + Orders](#o-order-to-pay-plan)
   - [O.2 Inc-2 — Billing + Payables](#o-order-to-pay-plan)
   - [O.3 Inc-3 — Payment + PaymentAllocation](#o-order-to-pay-plan)
@@ -157,22 +158,25 @@ root/
 | Diagnóstico / baseline inicial | §B.1–B.2, §A–E | Monólito **na raiz**; motivação da Alt. B — **histórico** |
 | Checkpoint pré-move | §M.0 (pré-move) | SHA `7d7f398` antes do move — **histórico** |
 | Pós-move V1 | §M.0 (pós-move) + §N.2–N.5 | Monólito em `v1/`; sem regressão de path — **histórico da Fundação** |
-| **Estado atual V2** | **§B.0**, §I, §J, §L, §N, painel executivo | Layout `v1/`+`v2/`; Fundação **DONE**; Order-to-Pay **IN_PROGRESS** (Inc-1/2/3 DONE) |
+| **Estado atual V2** | **§B.0**, §I, §J, §L, §N, painel executivo | Layout `v1/`+`v2/`; Fundação **DONE**; Order-to-Pay **IN_PROGRESS** (Inc-1…Inc-5 DONE; Inc-6 pendente) |
 
-### B.0 Estado atual pós-Fundação `[FATO]` (2026-07-22) — **autoridade de “como está hoje”**
+### B.0 Estado atual pós-Inc-5 `[FATO]` (2026-07-23) — **autoridade de “como está hoje”**
 
 | Item | Valor |
 |---|---|
 | Layout | `root/{.git,.cursor,docs,ROADMAP,README,v1,v2}` — **sem** `app/`/`frontend/` na raiz |
-| Branch ativa | **`main`** @ `008fb49` (origin/main) |
+| Branch ativa | **`main`** @ `f9a83ed` (origin/main) |
 | Checkpoint segurança | `checkpoint/pre-foundation` @ `7d7f398` (preservada) |
-| Working tree | Fundação + Inc-1 + Inc-2 + Inc-3 **DONE e não commitados** sobre `main` (política: sem commit automático; commit **não** é gate) |
+| Working tree | Tip `f9a83ed` + WIP Inc-4 remediação + Inc-5/UX-0 (política: sem commit automático nesta tarefa) |
 | V1 | Monólito em `v1/` — porta **8080**, banco `epic_importacao` |
-| V2 | App em `v2/` — porta **8081**, bancos `epic_v2` / `epic_v2_test` · módulos: `foundation`, `identity`, `audit`, `documents`, `catalog`, `orders`, `billing`, `treasury` |
-| Orders / Billing / Treasury | Catalog + Orders (**Inc-1 DONE**); Billing + Payables (**Inc-2 DONE**); Treasury/Payment (**Inc-3 DONE**) |
-| Docs | `docs/v2/BLUEPRINT_*` **v0.2.3** canônico; histórico em `docs/v1/` |
+| V2 | App em `v2/` — porta **8081** (ops) / **8082** (E2E), bancos `epic_v2` / `epic_v2_test` · módulos: foundation…treasury + **reporting** |
+| Orders / Billing / Treasury / Reporting | Inc-1…Inc-4 **DONE**; Inc-5 AP+cockpit+UX Foundation **DONE** |
+| Alembic | **`006_fx_integrity` (head)** |
+| pytest V2 | **90 passed, 1 xfailed** |
+| Docs | `docs/v2/BLUEPRINT_*` **v0.2.8** canônico; Roadmap **v0.5.21**; UI/UX candidato **v3.7** + mockups MCK v1.1; histórico em `docs/v1/` |
 | Cursor | Router global + V1 `v1/**,docs/v1/**` + V2 `v2/**,docs/v2/**,ROADMAP,docs/README.md` |
 | Harness / goldens | **DONE** — goldens `parse_it_*` + testes de schema/presença; equivalência de cálculo = fase Order-to-Pay (§O Inc-6), **não** gate da Fundação |
+| Próxima etapa | **Inc-6** — E2E/goldens/aceite J#2 (**NOT_STARTED**) |
 
 ### B.1 Baseline histórico pré-Fundação `[FATO]` (diagnóstico — **não é estado atual**)
 
@@ -373,7 +377,7 @@ Caracterização / equivalência de cálculos e contratos — **sem** reconcilia
 |---|---|---|---|---|
 | 0 | **0B — Contrato** | Roadmap + Blueprint | §§1–17 | **DONE / APPROVED** (2026-07-22) |
 | 1 | **Fundação técnica** | Move `v1/`, scaffold `v2/`, Identity/Audit/Documents, OpenAPI+client, `epic_v2` vazio, harness/goldens de caracterização, **modularidade** | §§5.1–5.4, 11, 13.4; REQ-V2-MOD-001 | **DONE no working tree** (código + gates §N; commit **não** exigido) |
-| 2 | **Order-to-Pay** | Orders + Billing + Treasury (F.8); equivalência `parse_it` vs golden | §§5.6–5.8, 7.1–7.6, 8.3–8.13 | **IN_PROGRESS** — Inc-1/2/3 **DONE**; Inc-4 **NOT_STARTED**; aceite F.8 + DoD (§O) |
+| 2 | **Order-to-Pay** | Orders + Billing + Treasury (F.8); equivalência `parse_it` vs golden | §§5.6–5.8, 7.1–7.6, 8.3–8.13 | **IN_PROGRESS** — Inc-1…Inc-5 **DONE**; Inc-6 pendente; aceite F.8 + DoD (§O) |
 | 3 | **Ingestão documental** | Contrato canônico + adapters + fixtures | §§5.9, 7.2, 10 | Golden files + commit idempotente |
 | 4 | **Logística** | Shipment + PackingList | §§5.10, 7.7–7.8 | DoD |
 | 5 | **Aduana/DUIMP + Inventory** | ImportProcess 1:N + StockBalance | §§5.11–5.12, 7.9–7.11 | DoD com fixture Numerário |
@@ -402,11 +406,12 @@ Caracterização / equivalência de cálculos e contratos — **sem** reconcilia
 <a id="l-proxima-etapa"></a>
 ## L. Próxima etapa lógica
 
-**Próxima etapa:** revisar e executar **Inc-4 — FX mínimo + Documents + Audit**.
+**Próxima etapa:** planejar e executar Inc-6 —
+E2E vertical completo, goldens finance e aceite DoD J#2.
 
-**Contexto `[FATO]`:** 0B = DONE/APPROVED · Fundação = DONE · Inc-1/2/3 = DONE · Order-to-Pay = **IN_PROGRESS** · Inc-4 = **NOT_STARTED** · WIP em `main` @ `008fb49` (sem commit até pedido explícito) · checkpoint `7d7f398` preservada.
+**Contexto `[FATO]`:** 0B = DONE/APPROVED · Fundação = DONE · Inc-1…Inc-5 = **DONE** · Inc-6 = **NOT_STARTED** · Order-to-Pay = **IN_PROGRESS** · `main` @ `f9a83ed` · checkpoint `7d7f398` preservada · política: sem commit/branch/stash automático nesta sync documental.
 
-Gates de Inc-1/2/3 e DEC-SCONTO-ITEM estão **superados** — não são bloqueios atuais.
+Gates de Inc-1…Inc-5 e DEC-SCONTO-ITEM / DEC-FX-SCOPE estão **superados** — não são bloqueios atuais.
 
 ---
 
@@ -415,17 +420,17 @@ Gates de Inc-1/2/3 e DEC-SCONTO-ITEM estão **superados** — não são bloqueio
 
 ### M.0 Estado
 
-`0B APPROVED · Fundação J#1 DONE no working tree · Inc-1/2/3 DONE · Order-to-Pay J#2 IN_PROGRESS (Inc-4 NOT_STARTED) · checkpoint/pre-foundation @ 7d7f398 preservada · Blueprint v0.2.3.`
+`0B APPROVED · Fundação J#1 DONE · Inc-1…Inc-5 DONE · Inc-6 NOT_STARTED · Order-to-Pay J#2 IN_PROGRESS · main @ f9a83ed + WIP Inc-5 + docs UI/UX Etapa 6 DONE · checkpoint/pre-foundation @ 7d7f398 preservada · Blueprint v0.2.8 · Roadmap v0.5.21 · UI/UX candidato v3.7 · MCK v1.1 · E6-A aprovado com ajustes · E6-B pendente confirmação externa final · Etapa 7 não iniciada.`
 
 #### Git — normalização pós-Fundação (2026-07-22) `[FATO]`
 
 | Item | Valor |
 |---|---|
 | Procedimento | `git symbolic-ref HEAD refs/heads/main` + `git reset` (índice); working tree **intacto** |
-| Branch **ativa** / HEAD | **`main`** @ `008fb49` (= `origin/main`) |
+| Branch **ativa** / HEAD | **`main`** @ `f9a83ed` (= `origin/main`) |
 | Checkpoint | `checkpoint/pre-foundation` @ `7d7f398` **preservada** — **não** é o HEAD atual |
-| Commits novos | **Nenhum** (política: sem commits/branches automáticos) |
-| WIP | Fundação + Inc-1 + Inc-2 + Inc-3 + reorg + docs permanecem **uncommitted** sobre `main` |
+| Commits novos nesta sync | **Nenhum** (tarefa só documental) |
+| WIP / tip | Inc-1…Inc-4 no tip `f9a83ed` + WIP remediação Inc-4 (`006`/código/docs; sem commit automático) |
 | Política | `.cursor/rules/epic-project-router.mdc` — main default; commit só sob pedido |
 | Gate de fase | Fundação = **DONE** independentemente de commit |
 
@@ -445,7 +450,7 @@ Gates de Inc-1/2/3 e DEC-SCONTO-ITEM estão **superados** — não são bloqueio
 | Item | Resultado |
 |---|---|
 | Canônicos V2 | `ROADMAP_V2_EPIC.md` · `docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md` · `docs/README.md` |
-| Blueprint status | **Aprovado** — canônico atual **v0.2.3** (linha base v0.2; sconto/ownership em 0.2.2; ACCONTO vs Payment em 0.2.3) |
+| Blueprint status | **Aprovado** — canônico atual **v0.2.8** (fechamento Inc-5; base UX-0 v0.2.7) |
 | V1 histórico | `docs/v1/` + `archive/` |
 
 #### Checkpoint e baseline pré-move (2026-07-22)
@@ -556,6 +561,21 @@ Inalterada em substância (POST /orders, /invoices, /payments, /fx, /payables; `
 
 ### M.6 Changelog
 
+- **2026-07-28 — Rev 0.5.21 / Etapa 6B — MCK v1.1:** **DONE**. E6-A **APROVADO COM AJUSTES**. Correções E6-001…006 · 011 · 012 · 018. UI/UX **v3.7**. E6-B **PENDENTE DE CONFIRMAÇÃO EXTERNA**. Etapa 7 **não** iniciada. Sistema **0.2.8**. Inc-6=TODO. §M.12.
+- **2026-07-28 — Rev 0.5.20 / Etapa 6A — auditoria visual consolidada:** **PARTIAL**. Relatório `E6A-visual-audit.md` (17 achados; 0 BLOCKER; 1 MAJOR a11y bordas). MCK **v1.0** inalterado. UI/UX **v3.6** inalterado. Checkpoint **E6-A** pendente revisão externa. 6B/Etapa 7 **não** iniciadas. Inc-6=TODO. §M.12.
+- **2026-07-28 — Rev 0.5.19 / Etapa 5 fechamento — MCK v1.0:** **DONE**. Checkpoints A–D **APROVADOS**. UI/UX **v3.6** (§25). Ajustes editoriais finais. Etapa 6 **não** iniciada. Blueprint Sistema **0.2.8**. Inc-6=TODO. §M.11.
+- **2026-07-28 — Rev 0.5.18 / Etapa 5 Ciclo 2 remediação — MCK v0.4:** **PARTIAL**. Correções R1–R18 (KPI/temporalidade/linguagem PT/FX/AUX). A/B **APROVADOS**. C/D **pendentes de nova revisão externa**. UI/UX **v3.5**. Etapa 5 **não** DONE. mck-v0.1…v0.3 preservados. Inc-6=TODO. §M.11.
+- **2026-07-28 — Rev 0.5.17 / Etapa 5 Ciclo 2 — mockups MCK v0.3:** **PARTIAL**. Checkpoints A/B **APROVADOS** externamente. Produzidos MCK-001…007 + AUX; PDF ciclo 2; ajustes Rascunhos + valor sugerido (sem ID Payment futuro no drawer). C/D **pendentes**. UI/UX **v3.5**. Etapa 5 **não** DONE. Inc-6=TODO. §M.11.
+- **2026-07-28 — Rev 0.5.16 / Etapa 5 Ciclo 1 remediação MCK v0.2:** **PARTIAL**. Correções C1–C17 (KPI Hoje, ordenação AP, Sem plano FX, PT, Subtotal precificado, chevron, Admin/Sair, 12 linhas, viewport limpo). Checkpoints A/B **pendentes nova revisão**. UI/UX **v3.5**. Ciclo 2 **não** iniciado. mck-v0.1 preservado. Inc-6=TODO. §M.11 atualizado.
+- **2026-07-28 — Rev 0.5.15 / Redesenho UI/UX Etapa 5 Ciclo 1 — mockups prioritários:** **PARTIAL**. MCK **v0.1**: cenário canônico + direção visual + **MCK-001 Pedidos** + **MCK-004 AP** + PDF revisão; Checkpoints **A/B pendentes**. UI/UX permanece **v3.5** (sem §25). Ciclo 2 **não** iniciado. **Sem código/migration/teste.** Inc-6=TODO. Evidências: §M.11.
+- **2026-07-28 — Rev 0.5.14 / Redesenho UI/UX Etapa 4 — fluxos ponta a ponta:** **DONE documental**. Candidato UI/UX **v3.5** (§23 mapa mestre + FLW-001…007; §24 matrizes; Data cabeçalho **2026-07-28**). Roteiro Etapa 4 DONE → próxima Etapa 5 (mockups). **Sem código/migration/teste.** Inc-4/5/6 **inalterados** (Inc-6=TODO). Evidências H-E4: §M.10. Histórico v3.3/v3.4 preservado.
+- **2026-07-28 — Rev 0.5.13 / Redesenho UI/UX Etapa 3.1 — qualidade Horizon A:** **DONE documental**. Candidato UI/UX **v3.4** (§21.0 estados transversais; filas/forms/ações críticas/RBAC; §21.13 matriz sem INC). Roteiro Etapa 3.1 DONE → próxima Etapa 4. **Sem código/migration/teste.** Inc-4/5/6 **inalterados** (Inc-6=TODO). Evidências H-Q3: §M.9. Histórico v3.3 (arquitetura Etapa 3) preservado.
+- **2026-07-27 — Rev 0.5.12 / Redesenho UI/UX Etapa 3 — telas Horizon A:** **DONE documental**. Candidato UI/UX **v3.3** (§21.1–§21.12 + §22; §20.4 larguras por arquétipo; §7 ponte). Roteiro Etapa 3 DONE → próxima Etapa 4 (fluxos). **Sem código/migration/teste.** Inc-4/5/6 **inalterados** (Inc-6=TODO). Evidências H-E3: §M.8.
+- **2026-07-27 — Rev 0.5.11 / Redesenho UI/UX Etapa 2 — App Shell profissional:** **DONE documental**. Candidato `BLUEPRINT_UI_UX_EPIC_v3.md` **v3.2** (§20 App Shell; Compras+Faturas; hub Câmbio TARGET+GAP; DS/sequência descongelados). Roteiro Etapa 2 DONE → próxima Etapa 3. `docs/README.md` índice v3.2. **Sem código, migration, teste.** Status Inc-4/Inc-5/Inc-6 **inalterados** (Inc-6 = TODO). Evidências H1–H7: § abaixo “Redesenho UI/UX — evidências Etapa 2”.
+- **2026-07-24 — Rev 0.5.10 / fechamento técnico Inc-5:** `catalog.public.get_suppliers_bulk`; AP sem N+1 Supplier; UX Heroes-only (coluna secundária/drawer); `npm run e2e` / `e2e:prepare` (epic_v2_test@8082); reporting:read=admin→L-005; Blueprint **v0.2.8**; sem commit.
+- **2026-07-23 — Rev 0.5.9 / UX-0 + Inc-5 DONE:** Reporting `ap_queue`/`order_cockpit`; shell sidebar; FE foundation lean; pytest 88p/1xfail; E2E `inc5-ap-cockpit` @8082/`epic_v2_test`; evidências `docs/evidence/ux-0/`; Blueprint **v0.2.7**; sem commit.
+- **2026-07-23 — Rev 0.5.8 (remediação auditoria Inc-4):** PARTIAL→DONE; `006_fx_integrity`; Frankfurter canônico; cleanup órfão; locks/RBAC/concorrência; pytest 84p/1xfail; E2E+refresh live; Blueprint **v0.2.6**; sem commit.
+- **2026-07-23 — Rev 0.5.7 (sync pós-Inc-4):** remoção de estados pendentes obsoletos (Inc-4 NOT_STARTED / próxima ação Inc-4); alinhamento projetado/online/realizado; B.0/J/L/M.0/N/O/apêndice; Blueprint **v0.2.5**; tip `f9a83ed`; sem alteração de código.
 - **2026-07-23 — Rev 0.5.6 / Inc-4 DONE:** migration `005_fx`; três visões + N:M `FxExecutionAllocation`; HttpFxQuoteProvider (Frankfurter→AwesomeAPI); FE strip+painéis; gates canônicos −40/−90/−130; E2E `inc4-fx`; sem Accconto/Inc-5; sem commit.
 - **2026-07-22 — Rev 0.5.4 (sync ACCONTO):** Blueprint **v0.2.3**; refuta tipagem automática ACCONTO sem exemplar; distingue Invoice ACCONTO vs Payment antecipado; corrige frase “ANTECIPO ≠ tipo; Treasury”; apêndice evidências separado Fundação vs pós-Inc-3.
 - **2026-07-22 — Rev 0.5.3 (sync docs pós-Inc-3):** TOC §O + M.0 WIP alinhados a Inc-3 DONE; Blueprint changelog 0.2.2 explicitou ownership Inc-3; causa divergência advisor=upload v0.2 antigo.
@@ -567,18 +587,439 @@ Inalterada em substância (POST /orders, /invoices, /payments, /fx, /payables; `
 - **2026-07-22 — Inc-1 Catalog+Orders DONE (working tree):** modules catalog/orders; migration 002; FE features; Vitest+Playwright; decisões técnicas em §O.1; sem `/summary`; sem sconto no Inc-1.
 - **2026-07-22 — Etapa 0 pré-Inc-1 (docs) `[histórico]`:** `DEC-SCONTO-ITEM` no Blueprint §6.6/§9.3 (v0.2.1); ADR-16 congelamento funcional V1; nota ADR-10; destinos P1-b/c sconto, slug-shell, fila AP. **Sem código Inc-1** *naquele momento* — **superado**.
 - **2026-07-22 — §O cockpit ownership (rev 0.3.2):** `GET /api/orders/{id}/summary` mantido; composição financeira movida para `reporting.public.order_cockpit` / `OrderCockpitQuery` (Foundation orquestra). Orders **não** agrega Billing/Treasury (grafo §5.16 / Blueprint §5.6–5.15). Blueprint **não** alterado naquela revisão.
-- **2026-07-22 — Consolidação canônica + DOC_DELTA (rev 0.3) `[histórico]`:** precedência interna; cabeçalho; B.0–B.2; Fundação DONE; harness/goldens DONE; equivalência `parse_it` → §O Inc-6; Blueprint **v0.2** *confirmado à época* — **supersedido** (hoje **v0.2.3**).
+- **2026-07-22 — Consolidação canônica + DOC_DELTA (rev 0.3) `[histórico]`:** precedência interna; cabeçalho; B.0–B.2; Fundação DONE; harness/goldens DONE; equivalência `parse_it` → §O Inc-6; Blueprint **v0.2** *confirmado à época* — **supersedido** (hoje **v0.2.8**).
 - **2026-07-22 — Normalização Git + política + Roadmap pós-Fundação `[histórico]`:** branch `main`; WIP Fundação sem commit; checkpoint `7d7f398`; seções B/I/L/M. *Naquele momento* Order-to-Pay ainda não implementado — **superado** (Inc-1/Inc-2 DONE; fase IN_PROGRESS).
 - **2026-07-22 — Consolidação documental final:** Blueprint V2 *Aprovado*; Fase 0B DONE/APPROVED; V1 em `docs/v1/` + archive.
 - **2026-07-22 — Fundação técnica executada:** checkpoint `7d7f398`; move `v1/`/`docs/v1/`; scaffold `v2/`; gates Fundação **DONE**.
 - **2026-07-22 — Contrato pré-Fundação / Blueprint / ADR-14 / premissa de dados / diagnóstico.**
+
+### M.7 Redesenho UI/UX — evidências Etapa 2 (App Shell) `[FATO]` (2026-07-27)
+
+**Registro de conclusão:**
+
+```text
+2026-07-27 — Redesenho UI/UX, Etapa 2 — App Shell profissional:
+DONE documental. Blueprint UI/UX candidato atualizado para v3.2.
+Sem código, migration, teste ou alteração de status dos incrementos técnicos.
+Próxima etapa da trilha de design: Etapa 3 — desenho completo das telas.
+```
+
+#### Versões confirmadas no repositório (antes da edição)
+
+| Documento | Path | Versão |
+|---|---|---|
+| Blueprint Sistema | `docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md` | **0.2.8** (não alterado) |
+| Roadmap | `ROADMAP_V2_EPIC.md` | **0.5.10 → 0.5.11** (só registro documental) |
+| UI/UX candidato | `docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md` | **3.1 → 3.2** |
+| Roteiro | `docs/v2/blueprint UIUX/Roteiro do redesenho UIUX.txt` | Etapa 2 → DONE documental |
+| Índice | `docs/README.md` | aponta v3.2 |
+| Inc-4 / Inc-5 / Inc-6 | painel executivo | DONE / DONE / **TODO** (inalterados) |
+
+#### Estado AS-IS do shell e rotas
+
+- Rotas: `v2/frontend/src/App.tsx` — `/login`, `/orders`, `/orders/new`, `/orders/:orderId`, `/invoices`, `/invoices/:invoiceId`, `/payables`, `/payables/:payableId/fx`, `/payments`, `/payments/new`, `/payments/:paymentId`.
+- Shell: `v2/frontend/src/app-shell/AppShell.tsx` — grupos **Ordens** \| **Financeiro** (Faturas sob Financeiro); FX strip no footer; sem breadcrumbs/header global/busca/notificações.
+- Permissões de nav: `orders:read|write`, `billing:read`, `treasury:read`, `reporting:read` (AP queue vs lista; `reporting:read` = admin only).
+- Roles seed: `admin` + `comprador` — `v2/app/identity/public.py` (`ADMIN_PERMISSIONS`, `COMPRADOR_PERMISSIONS`).
+- Tokens AS-IS: `v2/frontend/src/index.css` (dark operacional; sidebar ~220px) — inventário, não DS aprovado.
+- FX API: `GET /api/fx/quotes/latest` e `payable_fx_view` em `v2/app/treasury/fx_routes.py` / `fx_queries.py` — `rate`, `source`, `status`, `stale`, `observed_at`, `retrieved_at`; planos INITIAL/REFORECAST/CORRECTION; execuções em payment fx-view.
+
+#### Hipóteses H1–H7
+
+| ID | Veredito | Evidência |
+|---|---|---|
+| **H1** Order 1:N Invoice; uma `order_id` por Invoice | **CONFIRMADA** | `v2/app/billing/models.py`; Blueprint Sistema §6; multi-Order = ADR |
+| **H2** Nav TARGET Compras(Pedidos+Faturas) / Financeiro(AP+Pagamentos+Câmbio) | **CONFIRMADA** | Blueprint básico; AS-IS Ordens\|Financeiro = técnico |
+| **H3** SCR-006/007 órfãs no mapa Compras | **CONFIRMADA** (pré-v3.2) | mapa listava SCR-003…005; corrigido em v3.2 → SCR-003…007 |
+| **H4** FX contrato suficiente; hub global = GAP | **CONFIRMADA** | strip+payable FX operacionais; sem rota `/fx` nem read model lista |
+| **H5** Roles só admin/comprador; L-005 aberta; divergência comprador×treasury | **CONFIRMADA** | seed; Blueprint básico vs `treasury:write`/`allocate` no comprador — **não resolvido** |
+| **H6** UX-1/tokens sem autoridade visual | **CONFIRMADA** | DS definitivo = Etapa 7 Roteiro |
+| **H7** Não congelar A0→Inc-6 no design | **CONFIRMADA** | v3.2 §14: Etapas 2–8 design; Etapa 9 plano técnico |
+
+#### Divergências registradas (não corrigidas por UI)
+
+| Assunto | Código / doc A | TARGET / doc B |
+|---|---|---|
+| Labels nav | Ordens; Faturas em Financeiro | Compras + Faturas; Câmbio em Financeiro |
+| Comprador × Payment | `treasury:write` + `allocate` | Blueprint básico: não altera pagamentos — L-005 / negócio |
+| Hub Câmbio | inexistente | SCR-028 TARGET; runtime não renderiza nav morta |
+
+#### Arquivos alterados nesta entrega documental
+
+- `docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md` (v3.2 + §20)
+- `docs/v2/blueprint UIUX/Roteiro do redesenho UIUX.txt`
+- `docs/README.md`
+- `ROADMAP_V2_EPIC.md` (este arquivo)
+
+#### Pendências (após Etapa 2; supersedidas em parte pela Etapa 3 / 3.1)
+
+- ~~Etapa 3 — desenho completo das telas~~ → **DONE** (v0.5.12 / UI/UX v3.3).
+- ~~Etapa 3.1 — qualidade~~ → **DONE** (v0.5.13 / UI/UX v3.4).
+- ~~Etapa 4 — fluxos~~ → **DONE** (v0.5.14 / UI/UX v3.5).
+- L-005 / matriz RBAC; hub Câmbio (implementação = Etapa 9).
+- Inc-6 técnico permanece **próxima fase** Order-to-Pay (inalterado).
+
+#### Próxima etapa (após Etapa 2; ver §M.10 para estado pós-Etapa 4)
+
+- **Design:** Etapa 5 — mockups prioritários.
+- **Técnica Order-to-Pay:** Inc-6 (§O.6), sob pedido explícito.
+
+### M.8 Redesenho UI/UX — evidências Etapa 3 (telas Horizon A) `[FATO]` (2026-07-27)
+
+```text
+2026-07-27 — Redesenho UI/UX, Etapa 3 — telas Horizon A:
+DONE documental. Blueprint UI/UX candidato atualizado para v3.3 (§21–§22).
+Sem código, migration, teste ou alteração de status dos incrementos técnicos.
+Próxima etapa da trilha de design: Etapa 4 — fluxos ponta a ponta.
+```
+
+#### Versões
+
+| Documento | Antes | Depois |
+|---|---|---|
+| UI/UX candidato | 3.2 | **3.3** |
+| Roadmap | 0.5.11 | **0.5.12** |
+| Blueprint Sistema | 0.2.8 | inalterado |
+| Inc-6 | TODO | **TODO** (inalterado) |
+
+#### Hipóteses H-E3
+
+| ID | Veredito | Evidência |
+|---|---|---|
+| **H-E3-1** Order list sem faturado/saldo/próximo vencimento | **CONFIRMADA** | `OrderListItem` / `OrdersListPage`: `commercial_total`, `unpriced_item_count`; sem campos billing — **GAP** read model fila |
+| **H-E3-2** Cockpit = summary Reporting + fallback Orders | **CONFIRMADA** | `OrderCockpitPage` + `GET /orders/{id}/summary` |
+| **H-E3-3** AP = ap-queue vs `/payables` | **CONFIRMADA** | `App.tsx` `useApQueue` |
+| **H-E3-4** Tipos Invoice `FINAL\|PROFORMA` | **CONFIRMADA** | models billing; ACCONTO = DECISAO |
+| **H-E3-5** Novo pagamento contextual desde AP | **CONFIRMADA como GAP** | `PaymentCreatePage` sem `useSearchParams`; `ApQueuePage` link `/payments/new` sem query — **G02** |
+| **H-E3-6** Hub Câmbio fora do detalhe Etapa 3 | **CONFIRMADA** | só nota TARGET+GAP |
+| **H-E3-7** Roles admin/comprador; L-005 | **CONFIRMADA** | `identity/public.py` |
+
+#### Endpoints × SCR `[FATO]`
+
+| SCR | Rota FE | Contratos HTTP principais | Perms |
+|---|---|---|---|
+| SCR-001 | `/login` | `POST /auth/login` · `GET /auth/me` · `POST /auth/logout` | sessão |
+| SCR-003 | `/orders` | `GET /orders` | `orders:read` |
+| SCR-004 | `/orders/new` | `POST /orders` · items · confirm | `orders:write` |
+| SCR-005 | `/orders/:id` | `GET /orders/{id}/summary` (+ fallback `GET /orders/{id}`) | `reporting:read`+`orders:read` / `orders:read` |
+| SCR-006 | `/invoices` | `GET /invoices` | `billing:read` |
+| SCR-007 | `/invoices/:id` | `GET/PATCH /invoices/{id}` · items · terms · issue · cancel | billing:* |
+| SCR-008 | `/payables` | `GET /reporting/ap-queue` **ou** `GET /payables` | `reporting:read`+`billing:read` / `billing:read` |
+| SCR-009 | `/payables/:id/fx` | `GET …/fx-view` · plan · quotes · refresh | `treasury:fx_*` |
+| SCR-010 | `/payments` | `GET /payments` | `treasury:read` |
+| SCR-011 | `/payments/new` | `POST /payments/with-document` | `treasury:write` |
+| SCR-012 | `/payments/:id` | `GET /payments/{id}` · eligible · allocations · cancel · fx-view | treasury:* |
+
+#### Gaps técnicos materializados na spec
+
+| Gap | SCR | Notas |
+|---|---|---|
+| Read model fila Orders (faturado/saldo/vencimento) | SCR-003 | H-E3-1 |
+| G02 Payment context desde AP | SCR-008→011 | H-E3-5 |
+| Hub Câmbio SCR-028 | — | TARGET; fora do detalhe Etapa 3 |
+| Nome fornecedor / # payables no list Invoice | SCR-006 | list sem `payable_count` / `supplier_name` |
+
+#### Consistência documental
+
+- Referências de **estado corrente** B.0 / M.0 / apêndice alinhadas a **v0.5.14** (Etapa 4).
+- Changelog 0.5.10 permanece histórico correto.
+
+#### Arquivos alterados (Etapa 3)
+
+- `docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md`
+- `ROADMAP_V2_EPIC.md`
+- `docs/v2/blueprint UIUX/Roteiro do redesenho UIUX.txt`
+- `docs/README.md`
+
+#### Pendências
+
+- ~~Etapa 4 — fluxos ponta a ponta~~ → **DONE** (§M.10 / v0.5.14 / UI/UX v3.5).
+- GAP: read model fila Orders; G02 Payment context; SCR-028 hub FX.
+- DECISAO: L-005; comprador×treasury; DEC-ACCONTO.
+- Inc-6 técnico (separado).
+
+#### Próxima etapa
+
+- **Design:** Etapa 5 — mockups (após Etapa 4 — ver §M.10).
+- **Técnica:** Inc-6, sob pedido explícito.
+
+### M.9 Redesenho UI/UX — Etapa 3.1 qualidade Horizon A `[FATO]` (2026-07-28)
+
+```text
+2026-07-28 — Redesenho UI/UX, Etapa 3.1 — fechamento de qualidade:
+DONE documental. Blueprint UI/UX candidato atualizado para v3.4 (§21.0–§21.13).
+Sem código, migration, teste ou alteração de status dos incrementos técnicos.
+Próxima etapa da trilha de design: Etapa 4 — fluxos ponta a ponta.
+```
+
+#### Versões
+
+| Documento | Antes | Depois |
+|---|---|---|
+| UI/UX candidato | 3.3 | **3.4** |
+| Roadmap | 0.5.12 | **0.5.13** |
+| Blueprint Sistema | 0.2.8 | inalterado |
+| Inc-6 | TODO | **TODO** (inalterado) |
+
+#### Hipóteses H-Q3 (qualidade)
+
+| ID | Veredito | Evidência |
+|---|---|---|
+| **H-Q3-1** Arquitetura preservável | **CONFIRMADA** | v3.3 intacta em ownership/rotas/gaps |
+| **H-Q3-2** Template integral inconsistente | **CONFIRMADA** → corrigido em v3.4 | §21.0 + particularidades por tela |
+| **H-Q3-3** Estados genéricos/ausentes | **CONFIRMADA** → corrigido | bloco Estados + transversais |
+| **H-Q3-4** Loading/empty/error/… incompletos | **CONFIRMADA** → corrigido | §21.0 + declarações por SCR |
+| **H-Q3-5** Filas sem volume/retorno | **CONFIRMADA** → corrigido | 003/006/008/010; API limit/offset AS-IS; UI paginação TARGET |
+| **H-Q3-6** Forms sem validação/recovery | **CONFIRMADA** → corrigido | 004/011; SKU duplicável AS-IS; G02 GAP |
+| **H-Q3-7** Críticas sem confirmação | **CONFIRMADA** → corrigido | Issue só DRAFT cancel; allocate idempotent; FX CORRECTION/rebind (não botão “supersede” genérico) |
+| **H-Q3-8** Cabe no §21 | **CONFIRMADA** | sem arquivo novo |
+
+#### Contratos revalidados na execução 3.1
+
+- Order items: unique `(order_id, position)` — **SKU pode repetir**.
+- Invoice cancel: **somente DRAFT** (`cancel_draft`).
+- `expected_version` / 409: orders, invoices, payments, allocations **AS-IS**.
+- Payment allocate: batch + `idempotency_key` **AS-IS**.
+- FX: kind CORRECTION + audit `fx.supersede`; HTTP **rebind** valuation + `treasury:fx_supersede`.
+- Login: redirect autenticado → `/orders`; **sem** `?next=` (GAP se TARGET).
+- Cockpit: um `GET …/summary`; sem loading por bloco; `commercial.updated_at` quando presente.
+- PaymentCreate: sem `useSearchParams` (G02).
+
+#### Matriz §21.13
+
+Resultado final: **sem células INC** (OK / NÃO SE APLICA). Detalhe no candidato UI/UX.
+
+#### Arquivos alterados (Etapa 3.1)
+
+- `docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md`
+- `ROADMAP_V2_EPIC.md`
+- `docs/v2/blueprint UIUX/Roteiro do redesenho UIUX.txt`
+- `docs/README.md`
+
+#### Pendências
+
+- ~~Etapa 4 — fluxos ponta a ponta~~ → **DONE** (v0.5.14 / UI/UX v3.5).
+- GAPs: read model fila Orders; G02 Payment context; SCR-028; redirect `next`; UI paginação; preservação linha/scroll.
+- DECISAO: L-005; comprador×treasury; DEC-ACCONTO.
+- Inc-6 técnico (separado).
+
+#### Próxima etapa
+
+- **Design:** Etapa 5 — mockups prioritários.
+- **Técnica:** Inc-6, sob pedido explícito.
+
+### M.10 Redesenho UI/UX — Etapa 4 fluxos ponta a ponta `[FATO]` (2026-07-28)
+
+```text
+2026-07-28 — Redesenho UI/UX, Etapa 4 — fluxos ponta a ponta:
+DONE documental. Blueprint UI/UX candidato atualizado para v3.5 (§23–§24).
+Sem código, migration, teste ou alteração de status dos incrementos técnicos.
+Próxima etapa da trilha de design: Etapa 5 — mockups prioritários.
+```
+
+#### Versões
+
+| Documento | Antes | Depois |
+|---|---|---|
+| UI/UX candidato | 3.4 | **3.5** |
+| Roadmap | 0.5.13 | **0.5.14** |
+| Blueprint Sistema | 0.2.8 | inalterado |
+| Inc-6 | TODO | **TODO** (inalterado) |
+
+#### Hipóteses H-E4
+
+| ID | Veredito | Evidência |
+|---|---|---|
+| **H-E4-1** Telas v3.4 bastam como origem/destino | **CONFIRMADA** | §21.1–§21.12; §23 só orquestra |
+| **H-E4-2** Etapa 4 = transições/contexto, não rewireframe | **CONFIRMADA** | Roteiro; anti-duplicação §21 |
+| **H-E4-3** Sete fluxos obrigatórios | **CONFIRMADA** | FLW-001…007 em §23.1–§23.7 |
+| **H-E4-4** AP→Payment TARGET/G02 | **CONFIRMADA** | `ApQueuePage` `to="/payments/new"` sem query; PaymentCreate sem `useSearchParams` |
+| **H-E4-5** Payment≠liquidação; só Allocation reduz saldo | **CONFIRMADA** | Sistema §6/§7.4; FLW-003/004 |
+| **H-E4-6** Payable nasce na emissão via Terms | **CONFIRMADA** | `issue_invoice` + `_generate_payables`; sem create Payable FE |
+| **H-E4-7** Cockpit só encaminha | **CONFIRMADA** | OrderCockpitPage links; FLW-006 |
+| **H-E4-8** Retorno query/linha/scroll TARGET, GAP parcial | **CONFIRMADA** | FLW-007 / §24.3 |
+| **H-E4-9** Fluxos cobrem perms + 4xx + recovery | **CONFIRMADA** | cada FLW + §21.0 |
+| **H-E4-10** Cabe no mesmo UI/UX | **CONFIRMADA** | sem arquivo novo; §23+§24 |
+
+Nenhuma refutada.
+
+#### Entry points reais (AS-IS) revalidados
+
+| Fluxo | Origem AS-IS | Destino |
+|---|---|---|
+| FLW-001 | `OrderInvoicesPanel` → `POST /orders/{id}/invoices` | `/invoices/{id}` DRAFT (**sem** `/invoices/new`) |
+| FLW-002 | Invoice Detail → issue | ISSUED + N Payables (PaymentTerms) |
+| FLW-003 | AP `/payments/new` **sem** query (G02) | Payment Detail; saldo Payable **inalterado** |
+| FLW-004 | Payment Detail allocate batch + `idempotency_key` | Allocation; Payable↓ |
+| FLW-005 | `/payables/:id/fx` | plan/quote/exec/valuation; CORRECTION + **rebind** |
+| FLW-006 | Cockpit summary links | Invoice/AP/Payment/FX; docs/audit = lista sem deep link dedicado |
+| FLW-007 | links básicos ficha→fila | preservação linha/scroll = GAP |
+
+**Contrato create Invoice:** API herda `supplier_id` + `currency` da Order (`create_invoice`) — documentado em FLW-001 sem inventar outros campos.
+
+#### Gates Etapa 4
+
+| # | Gate | Resultado |
+|---|---|---|
+| 1 | §23.0 mapa mestre | OK |
+| 2 | Sete fluxos completos | OK |
+| 3 | Happy path cada FLW | OK |
+| 4 | ≥1 exceção concreta por FLW | OK |
+| 5 | Origem/contexto/resultado/refresh/retorno | OK |
+| 6 | AS-IS/TARGET/GAP separados | OK |
+| 7 | Permissões explícitas | OK |
+| 8 | 401/403/404/409 quando aplicável | OK |
+| 9 | Efeitos domínio corretos (§24.2) | OK |
+| 10 | Payment ≠ Allocation | OK |
+| 11 | G02 permanece GAP | OK |
+| 12 | Preservação contexto especificada | OK |
+| 13 | Sem rota/capacidade inventada | OK |
+| 14 | Sem duplicação substancial §21 | OK |
+| 15 | Etapa 5 não iniciada | OK |
+| 16 | Blueprint Sistema intacto | OK |
+| 17 | Inc-6 TODO | OK |
+| 18 | Data cabeçalho 2026-07-28 | OK |
+| 19 | Nenhum arquivo novo (docs permitidos) | OK |
+
+#### Gaps técnicos (design)
+
+- **G02** — AP→Payment sem query/contexto.
+- Preservação linha/scroll retorno fila.
+- Login `?next=` (FLW-007 / 401).
+- Deep link dedicado Documentos/Auditoria a partir do Cockpit.
+- Hub SCR-028 Câmbio (fora do FLW-005 operacional).
+- Read model enrichment fila Orders (pré-existente).
+
+#### Arquivos alterados (Etapa 4)
+
+- `docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md`
+- `ROADMAP_V2_EPIC.md`
+- `docs/v2/blueprint UIUX/Roteiro do redesenho UIUX.txt`
+- `docs/README.md`
+
+#### Pendências
+
+- ~~Etapa 5 mockups~~ → **DONE** (§M.11 / MCK v1.0 / UI/UX v3.6).
+- GAPs de design (G02, enrichment, SCR-028, docs deep link) → Etapa 9.
+- Inc-6 técnico (separado).
+
+#### Próxima etapa
+
+- **Design:** Etapa 6 — revisão visual consolidada (§M.11; não iniciada).
+- **Técnica:** Inc-6, sob pedido explícito.
+
+### M.11 Redesenho UI/UX — Etapa 5 mockups `[FATO]` (2026-07-28)
+
+```text
+2026-07-28 — Etapa 5:
+DONE. Mockups prioritários consolidados como MCK v1.0.
+Checkpoints A/B/C/D = APROVADOS.
+UI/UX v3.6 (§25). Família visual aprovada.
+Etapa 6 NÃO iniciada. Inc-6 TODO.
+Histórico mck-v0.1 … v0.4 preservado.
+```
+
+#### Versões
+
+| Documento | Valor |
+|---|---|
+| Mockups aprovados | **MCK v1.0** |
+| UI/UX | **v3.6** |
+| Roadmap | **0.5.19** |
+| Blueprint Sistema | **0.2.8** |
+| Inc-6 | **TODO** |
+
+#### Checkpoints
+
+| CP | Escopo | Status |
+|---|---|---|
+| A | MCK-001 | **APROVADO** |
+| B | MCK-004 | **APROVADO** |
+| C | 002/003/005/006 | **APROVADO** |
+| D | 007 | **APROVADO** |
+
+#### Artefatos v1.0
+
+`docs/v2/blueprint UIUX/mockups/mck-v1.0/` — SVG 001–007 + AUX; `review/MCK-v1.0-approved-review.pdf`; cenário + direção + legenda. UI/UX §25.
+
+#### Pendências
+
+- Etapa 6A auditoria produzida (§M.12) — E6-A pendente revisão; 6B não iniciada.
+- Gaps técnicos (G02, enrichment, SCR-028, docs deep link) → Etapa 9.
+- Inc-6 técnico (trilha separada; prioridade inalterada).
+
+#### Próxima etapa
+
+- **Design:** Etapa 6 — revisão visual consolidada (§M.12).
+- **Técnica:** Inc-6, sob pedido explícito.
+
+### M.12 Redesenho UI/UX — Etapa 6 revisão visual `[FATO]` (2026-07-28)
+
+```text
+2026-07-28 — Etapa 6:
+DONE. 6A auditoria + 6B correções aprovadas.
+E6-A = APROVADO COM AJUSTES (autorização externa).
+E6-B = PENDENTE DE CONFIRMAÇÃO EXTERNA FINAL (fechamento MCK-007 aplicado; gates técnicos atendidos).
+MCK v1.1 · UI/UX v3.7 · Roadmap 0.5.21.
+E6-012 resolvido visualmente (borda interativa); token formal → Etapa 7.
+Etapa 7 NÃO iniciada. Blueprint Sistema 0.2.8. Inc-6 TODO.
+```
+
+#### Versões
+
+| Documento | Valor |
+|---|---|
+| Mockups vigentes | **MCK v1.1** (`mck-v1.0` preservado) |
+| UI/UX | **v3.7** (§25) |
+| Roadmap | **0.5.21** |
+| Blueprint Sistema | **0.2.8** |
+| Inc-6 | **TODO** |
+
+#### 6A — Auditoria
+
+`docs/v2/blueprint UIUX/mockups/mck-v1.0/annotations/E6A-visual-audit.md`  
+Evidências históricas: `…/review/e6a-evidence/`  
+§14: revisão externa E6-A + registro E6-018.
+
+#### 6B — Correções (MCK v1.1)
+
+Pacote: `docs/v2/blueprint UIUX/mockups/mck-v1.1/`  
+Changelog: `annotations/E6B-change-log.md`
+
+| ID | Status |
+|---|---|
+| E6-001…006 | **Resolvidos** (editorial) |
+| E6-011 | **Resolvido** (smoke AUX oficial) |
+| E6-012 | **Resolvido** (borda interativa `#818C9C`; decorativo preservado) |
+| E6-018 | **Resolvido** (AUX 2×4 sem clipping 1366) |
+| E6-007…010, 013…017 | **Não autorizados** — preservados |
+
+Destinos futuros: Etapa 7 → E6-013, E6-015, E6-016 + tokens; Etapa 9 → E6-017 + gaps técnicos.
+
+#### Checkpoints
+
+| CP | Status |
+|---|---|
+| A–D | **APROVADOS** (Etapa 5) |
+| E6-A | **APROVADO COM AJUSTES** |
+| E6-B | **PENDENTE DE CONFIRMAÇÃO EXTERNA FINAL** |
+
+#### Pendências
+
+- Confirmação visual externa final de E6-B / MCK v1.1 (incl. retorno MCK-007).
+- Etapa 7 / Inc-6 não iniciados nesta fatia.
+
+#### Próxima etapa
+
+- **Design:** confirmar E6-B → planejar **Etapa 7 — Design System derivado**.
+- **Técnica:** Inc-6, sob pedido explícito (prioridade inalterada).
 
 ---
 
 <a id="n-fundacao"></a>
 ## N. Fundação técnica (executada 2026-07-22)
 
-Status: **DONE no working tree** (código + gates abaixo). Commit **não** é gate. Order-to-Pay: **IN_PROGRESS** (Inc-1/2/3 **DONE**; Inc-4 **NOT_STARTED**) — ver §L / §O.
+Status: **DONE no working tree** (código + gates abaixo). Commit **não** é gate. Order-to-Pay: **IN_PROGRESS** (Inc-1…Inc-5 **DONE**; próxima ação **Inc-6**) — ver §L / §O.
 
 ### N.1 Checkpoint — DONE
 
@@ -610,7 +1051,7 @@ v2/tests/characterization/test_golden_schema.py
 
 ### N.7 Order-to-Pay
 
-**Critério de saída da Fundação atendido.** Order-to-Pay (J#2) = **IN_PROGRESS**: Inc-1/2/3 **DONE**; próxima ação = **Inc-4** (§L / §O).
+**Critério de saída da Fundação atendido.** Order-to-Pay (J#2) = **IN_PROGRESS**: Inc-1…Inc-5 **DONE**; próxima ação = **Inc-6** (§L / §O).
 
 ### N.8 Gate de modularidade — DONE
 
@@ -654,25 +1095,27 @@ v2/tests/characterization/test_golden_schema.py
 ---
 
 <a id="o-order-to-pay-plan"></a>
-## O. Execução Order-to-Pay — Inc-1…Inc-3 concluídos
+## O. Execução Order-to-Pay — Inc-1…Inc-5 concluídos
 
 ```text
 Inc-1 = DONE
 Inc-2 = DONE
 Inc-3 = DONE
-Inc-4–Inc-6 = TODO
+Inc-4 = DONE
+Inc-5 = DONE
+Inc-6 = TODO
 ```
 
-Fase J#2 = **IN_PROGRESS**. Planos e evidências de Inc-1…Inc-4 abaixo são **histórico de execução concluída**, não trabalho pendente. Próxima ação: **Inc-5** (§L / §O.5).
+Fase J#2 = **IN_PROGRESS**. Planos e evidências de Inc-1…Inc-5 abaixo são **histórico de execução concluída**, não trabalho pendente. Próxima ação: **Inc-6** (§L / §O.6).
 
 **Estado Git a registrar `[FATO]`** (não alterar o repositório):
 
 | Item | Valor |
 |---|---|
 | Branch **ativa** | `main` |
-| Tip de `main` / HEAD | `008fb49` (= `origin/main`) — **não** confundir com o checkpoint |
+| Tip de `main` / HEAD | `f9a83ed` (= `origin/main`) — **não** confundir com o checkpoint |
 | Checkpoint preservado | `checkpoint/pre-foundation` @ `7d7f398` (referência de segurança; **não** é HEAD) |
-| Working tree | Fundação + Inc-1 + Inc-2 + Inc-3 + reorganização + docs = **WIP não commitado** sobre `main` |
+| Working tree | Tip + WIP Inc-4 remediação + Inc-5/UX-0 (sem commit automático) |
 | Política | Sem commits/branches/tags/stashes automáticos (router global) |
 | Procedimento que alinhou `main` | `git symbolic-ref HEAD refs/heads/main` + `git reset` (índice); working tree intacto |
 
@@ -684,10 +1127,10 @@ git diff --stat checkpoint/pre-foundation
 # = Fundação + mudanças posteriores apenas
 
 git status --short
-# WIP completo não commitado; branch = main
+# tip atual inclui Inc-1…Inc-4; branch = main
 ```
 
-**Baseline de partida V2 `[histórico — início Order-to-Pay, pós-Fundação]`:** na saída da Fundação havia só `foundation` / `identity` / `audit` / `documents`; FE auth+shell; goldens `parse_it_*` (schema OK; equivalência = O.6); porta 8081; **ainda sem** Catalog/Orders/Billing/Treasury. **Estado atual:** Catalog + Orders (**Inc-1 DONE**) + Billing + Payables (**Inc-2 DONE**) + Treasury (**Inc-3 DONE**). Ver §B.0.
+**Baseline de partida V2 `[histórico — início Order-to-Pay, pós-Fundação]`:** na saída da Fundação havia só `foundation` / `identity` / `audit` / `documents`; FE auth+shell; goldens `parse_it_*` (schema OK; equivalência = O.6); porta 8081; **ainda sem** Catalog/Orders/Billing/Treasury. **Estado atual (ver §B.0):** Inc-1…Inc-5 **DONE**; Alembic head **`006_fx_integrity`**; Reporting + UX Foundation. *(Nota histórica Inc-4: migration `005_fx` introduzida então; head vigente = 006.)*
 
 #### DEC-CLOSE-ORDER `[DECISÃO]` (provisória)
 
@@ -695,17 +1138,23 @@ git status --short
 - `CLOSED` pode existir no vocabulário/modelo, mas a **ação de fechamento fica adiada** até Billing existir e fornecer dados para validar a regra (ex.: ausência de Payable OPEN). *Billing já existe (Inc-2 DONE); fechamento CLOSED permanece fora do escopo até decisão explícita.*
 - **Não** inventar fechamento só com dados de Orders.
 
-#### DEC-FX-SCOPE `[DECISÃO]` (provisória)
+#### DEC-FX-SCOPE `[FECHADA]`
 
-- Order-to-Pay implementa taxa **prevista** e **realizada** vinculada ao pagamento/alocação (`ExchangeRate` mínimo).
-- Contratos de hedge, bancos, spreads avançados e múltiplas pernas: **fora** deste slice.
+Treasury possui três visões independentes:
+- projetada: FxPlanRate;
+- online: FxMarketQuote;
+- realizada: FxExecution.
+
+FxExecutionAllocation representa a relação N:M entre execução e allocation.
+FxAllocationValuation preserva benchmarks históricos.
+Hedge, taxa contratada, spread e múltiplas pernas permanecem fora do Inc-4.
 
 **L-005 / L-006:** não bloqueiam O.1 — papéis baseline (Identity) + Catalog mínimo com campos avançados **nullable**.
 
 **Fora do slice J#2:** SC-08 retificação; Credit/Discount/BrazilCurrentAccount (L-003); landed cost; Logistics/Customs; cadastro mestre Catalog completo.
 
-**Grafo a estender em `module_graph.py` (alinhado ao Blueprint §5.16):**  
-`catalog → {documents, audit}` · `orders → {catalog, documents, audit}` · `billing → {orders, catalog, documents, audit}` · `treasury → {billing, documents, audit}` · `reporting → {orders, billing, treasury}` (somente leitura de APIs públicas; **sem** escrita em domínio).
+**Grafo vigente em `module_graph.py` (alinhado ao Blueprint §5.16 + Inc-5):**  
+`catalog → {documents, audit}` · `orders → {catalog, documents, audit}` · `billing → {orders, catalog, documents, audit}` · `treasury → {billing, catalog, documents, audit}` · `reporting → {orders, billing, treasury, catalog, documents, audit}` (somente leitura de APIs públicas; **sem** escrita em domínio). Arestas Logistics/Customs/Inventory/Costing no Reporting = destino futuro.
 
 **Proibido no slice:** aresta `orders → billing` ou `orders → treasury` (viola grafo; Orders §5.6). Cockpit financeiro composto = **Reporting** (ou orquestração Foundation → Reporting), não `orders.public`.
 
@@ -780,7 +1229,7 @@ Decisão e evidências: §M.5 / §O.2. **Não está aberta.** Pacote de decisão
 | **DEC-SCONTO-ITEM** | Fechada: `NONE\|UNIT_AMOUNT\|PERCENT`; emissão exige tipo definido; HALF_UP 2 casas |
 | **Tipos Invoice (Inc-2 entregue)** | `FINAL` \| `PROFORMA` no código/migration `003` |
 | **ACCONTO / Payment antecipado** | `ACCONTO` **pode** ser tipo documental de Invoice em Billing (**DEC-ACCONTO-INVOICE** pendente — sem exemplar *Fattura di acconto* tipado nos PDFs disponíveis). **Pagamento antecipado** = Payment em Treasury. Invoice e Payment são entidades distintas; emitir Invoice **não** cria Payment. Operação admite Payment antecipado sem Invoice ACCONTO (SC-04). Lacuna código: V2 ainda sem `invoice_type=ACCONTO` |
-| **Migration** | `003_billing` — aplicada `epic_v2` + `epic_v2_test`; heads=`003` à época; hoje stack em **004** pós-Inc-3 |
+| **Migration** | `003_billing` — aplicada `epic_v2` + `epic_v2_test`; heads=`003` à época; hoje stack em **005** pós-Inc-4 |
 | **Contratos públicos** | `billing.public` (create/update/items/terms/issue/cancel_draft/list/balances) |
 | **Endpoints** | `POST/GET /api/orders/{id}/invoices`; `GET/PATCH /api/invoices/{id}`; items/terms/issue/cancel; `GET /api/payables`; `GET .../invoiced-quantities` |
 | **UI** | Painel na Order; formulário Invoice; listas Invoices/Payables |
@@ -911,7 +1360,7 @@ Recriar o cenário do zero:
   - Códigos únicos (timestamp) para não colidir
 ```
 
-**Próxima ação após Inc-3:** **Inc-4 (O.4)** — FX mínimo — ainda em `main`, **sem** commit automático.
+**Próxima ação após Inc-3 `[histórico]`:** na época, Inc-4 (O.4). **Superado** — Inc-4 DONE.
 
 ### O.4 Inc-4 — FX (três visões) = Inc-4A + Inc-4B
 
@@ -924,11 +1373,11 @@ Recriar o cenário do zero:
 | **Status** | **DONE** |
 | **Objetivo** | Três visões (projetada/online/realizada); valuations; Manual/Fixture provider |
 | **Entidades** | FxPlanRate, FxMarketQuote, FxExecution, FxExecutionAllocation, FxAllocationValuation |
-| **Migration** | `005_fx` (alembic head; down/up OK em `epic_v2`) |
-| **Invariantes** | Billing↛Treasury; reforecast≠altera valuation; null≠0 online; benchmarks nomeados |
+| **Migration** | `005_fx` + **`006_fx_integrity`** (head; partial unique current; down/up OK em `epic_v2_test`) |
+| **Invariantes** | Billing↛Treasury; reforecast≠altera valuation; null≠0 online; benchmarks nomeados; **1 current/payable** (índice + `FOR UPDATE`); Σ foreign links ≤ exec/alloc (app + locks); operacional 1:1 (schema N:M) |
 | **UI/API** | fx-plan, executions, links, quotes manual, fx-view; painéis Payable/Payment |
-| **Testes** | `test_fx_money` (−40/−90/−130); `test_fx_api`; arch; Vitest `fxApi`; Playwright `inc4-fx.spec.ts` |
-| **Evidências** | pytest 66p/1xfail; arch green; OpenAPI drift OK; E2E canônico −40/−90/−130; walkthrough UI strip + painéis |
+| **Testes** | `test_fx_money`; `test_fx_api`; `test_fx_integrity` (orphan/concorrência/excesso); `test_fx_rbac`; arch; Vitest; Playwright `inc4-fx` |
+| **Evidências** | pytest **84p/1xfail**; arch green; OpenAPI drift OK; E2E canônico −40/−90/−130; orphan cleanup FX; runtime PID pós-restart |
 
 #### O.4b Inc-4B — provider HTTP
 
@@ -937,27 +1386,103 @@ Recriar o cenário do zero:
 | **Status** | **DONE** |
 | **Objetivo** | Frankfurter→AwesomeAPI atrás de FxQuoteProvider; refresh mount/click; stale |
 | **Gate** | falha explícita; sem fallback plan/realized; `HttpFxQuoteProvider` só na borda (`fx_routes`) |
-| **Evidências** | refresh no `FxQuoteStrip` (mount+click); teste provider fallback AwesomeAPI; stale ainda calcula |
+| **Endpoint** | Canônico `https://api.frankfurter.dev/v1/latest` (Location do 301 de `api.frankfurter.app`); redirect só se host frankfurter.*; AwesomeAPI fallback |
+| **Evidências** | MockTransport (Frankfurter OK / redirect / fallback / ambos falham); smoke real **Frankfurter (ECB) 5.7775**; refresh live 8081 `fx.quote.refresh` |
 
-**Inc-4 DONE** = 4A ∧ 4B (2026-07-23). **Próxima ação:** Inc-5 (§O.5) sob pedido explícito — sem commit automático.
+**Auditoria 2026-07-23:** veredito **PARTIAL** (Frankfurter 301 não seguido; `_cleanup` assinatura errada; E2E não reexecutado). **Remediação** fechou bloqueadores → **Inc-4 DONE** = 4A ∧ 4B.
+
+**Débitos aceitos (não bloqueiam DONE):** N:M operacional completo fora do Inc-4; sem Σ BRL explícito nos links (pro-rata); sem lógica especial de fim de semana no provider; `FxPanels`/`fx_routes` acima gatilho §3.3 (revisão futura).
+
+**Próxima ação:** Inc-6 (§O.6) sob pedido explícito — sem commit automático.
 
 ### O.5 Inc-5 — Fila de contas a pagar + cockpit read model (Reporting)
 
 | Campo | Conteúdo |
 |---|---|
-| **Status** | **TODO** |
-| **Objetivo** | Fila AP (Billing); cockpit da ordem = **read model transversal** que compõe leituras públicas — **não** vive em Orders |
-| **Entidades** | Nenhuma nova de escrita; projeção de leitura (`OrderCockpitView` / DTO) |
-| **Invariantes** | Cockpit **não** escreve domínio; sem `order_central`; **Orders não importa Billing/Treasury**; Reporting (ou Foundation→Reporting) só chama **APIs públicas de leitura**; sem internals |
-| **Migration** | Nenhuma (ou view SQL opcional depois, ainda read-only) |
-| **Contratos públicos** | `billing.public.payables_queue`; leituras `orders.public` (comercial), `billing.public` (invoice/payable balances), `treasury.public` (allocated/unallocated); **`reporting.public.order_cockpit`** (`OrderCockpitQuery`) = composição do resumo |
-| **Ownership do HTTP** | `GET /api/orders/{id}/summary` permanece como rota funcional (UX/OpenAPI), mas o **handler** orquestra via Foundation → `reporting.public.order_cockpit` — **não** via `orders.public` agregando financeiro |
-| **Endpoints** | `GET /api/orders/{id}/summary` (Reporting por baixo); `GET /api/payables` (fila Billing) |
-| **UI** | Cockpit mínimo (cards + drill-down) em feature FE que consome o summary; fila financeira |
-| **Testes** | summary read-only (sem side effects); arch: `orders` ↛ `billing`/`treasury`; `reporting` → só `public` de Orders/Billing/Treasury; Reporting sem comandos de escrita de domínio |
-| **Gate** | Summary composto sem escrita; fila lista obrigações; **arch prova ausência de Orders→Billing/Treasury** |
-| **Evidências** | E2E parcial + arch pytest + Roadmap |
-| **Arquivos previstos** | `v2/app/reporting/public.py` (`order_cockpit` / `OrderCockpitQuery`); opcional `reporting/queries/`; rota em `foundation` (ex. `orders_read_routes` ou router de summary); `module_graph.py` + `ALLOWED_DEPS["reporting"]`; FE cockpit; **não** colocar composição financeira em `orders/public.py` |
+| **Status** | **DONE** (Inc-5A ∧ Inc-5B ∧ Inc-5C + UX-0) |
+| **Objetivo** | Fila AP (Billing+Reporting); cockpit da ordem = **read model transversal**; UX Foundation lean + shell |
+| **Entidades** | Nenhuma nova de escrita |
+| **Invariantes** | Cockpit **não** escreve domínio; sem `order_central`; **Orders ↛ Billing/Treasury**; Reporting só APIs públicas; `paid` = Σ allocations; unallocated = candidatos |
+| **Migration** | Nenhuma |
+| **Contratos públicos** | `billing.public.payables_queue`; `reporting.public.ap_queue`; `reporting.public.order_cockpit`; FX bulk `treasury.public.fx.get_current_plans_bulk` |
+| **Ownership do HTTP** | `GET /api/orders/{id}/summary` e `GET /api/reporting/ap-queue` em **`reporting/routes.py`**; Foundation só `include_router` |
+| **UI** | Sidebar permission-aware; `/payables` = AP queue (admin/`reporting:read`); `/orders/:id` = cockpit + toggle comercial |
+| **Testes** | `tests/test_reporting_api.py`; arch boundaries; E2E `e2e/inc5-ap-cockpit.spec.ts` |
+| **Gate** | Summary read-only; fila lista obrigações; arch OK; drift OK; E2E em **`epic_v2_test`** (porta 8082) |
+| **Evidências** | pytest **88p/1xfail**; Playwright Inc-5 PASS; prints `docs/evidence/ux-0/{as-is,inc-5}/`; Roadmap UX-0 abaixo |
+| **Arquivos** | `v2/app/reporting/**`; FE `ui/`, `ApQueuePage`, `OrderCockpitPage`, `AppShell`; sem composition financeira em `orders/public.py` |
+
+#### UX-0 — Auditoria as-is + gaps `[FATO]`
+
+```mermaid
+flowchart LR
+  subgraph asIs [As-is pre-Inc-5]
+    TopNav[Top nav plana]
+    PayMin[Payables tabela minima]
+    OrdDet[OrderDetail so comercial]
+  end
+  subgraph toBe [Pos Inc-5]
+    Side[Sidebar Ordens Financeiro]
+    AP[AP queue KPI filtro URL]
+    Cock[Order cockpit Reporting]
+  end
+  asIs --> toBe
+```
+
+| Gap | Prioridade | Resolução |
+|---|---|---|
+| Sem shell/sidebar | P0 | Inc-5A `AppShell` sidebar |
+| Payables sem KPI/sort/filtro URL | P0 | Inc-5B `ap-queue` server-side |
+| Sem cockpit /summary | P0 | Inc-5C Reporting routes |
+| Status texto cru | P1 | StatusBadge |
+| Tema dark decorativo | P1 | Densificar contraste (validável) |
+| `reporting:read` em comprador | P2 | Mantido **admin only** até matriz |
+
+**Tema:** dark operacional densificado — **validável**, não irrevogável.  
+**Massa auditoria:** prefixo `UX0-*` / evidências as-is; E2E isolado ≠ ops `epic_v2`.
+
+#### Gates Inc-5 `[FATO]`
+
+| Gate | Resultado |
+|---|---|
+| pytest V2 | **90 passed, 1 xfailed** (fechamento 0.5.10) |
+| arch import boundaries | PASS (reporting → publics) |
+| `npm run build` / vitest | OK |
+| `check:api-drift` | up to date |
+| E2E bootstrap | `npm run e2e:prepare` + `npm run e2e` · DB **`epic_v2_test`** · porta **8082** |
+| E2E `inc5-ap-cockpit` | PASS (reproduzível 2×) |
+| Runtime ops | uvicorn **8081** · `epic_v2` (intacto) |
+| Supplier | `get_suppliers_bulk` · 1 call/página · sem inventar nomes |
+
+**Débito resolvido neste fechamento:** Supplier via `get_suppliers_bulk` (1 call/página); E2E bootstrap `npm run e2e` / `e2e:prepare` (reset controlado só `epic_v2_test`).
+
+**Premissa operacional:** fornecedor atual = Heroes; modelo continua multi-supplier.
+
+**Estado implementado:** `reporting:read` = admin only. **Produto-alvo:** financeiro/gestor. **Pendência:** validar matriz **L-005** antes de ampliar.
+
+```text
+ETAPA
+Fechamento técnico Inc-5
+
+STATUS
+DONE
+
+EVIDÊNCIAS
+- Supplier bulk/deduplicado (`catalog.public.get_suppliers_bulk`)
+- E2E bootstrap reproduzível (`npm run e2e` → epic_v2_test @ 8082)
+- gates pytest/vitest/drift/E2E
+- docs Blueprint v0.2.8 / Roadmap v0.5.20 / UI/UX candidato v3.6 / MCK v1.0
+
+PENDÊNCIAS
+- reporting:read para financeiro/gestor depende de L-005
+- suporte multi-supplier permanece no modelo, sem ênfase UX atual
+
+PRÓXIMA ETAPA LÓGICA
+Inc-6, somente se Inc-5 estiver DONE
+```
+
+**Próxima ação: Inc-6, sob pedido explícito.**
+Ainda em `main`; sem commit automático nesta sync documental.
 
 ### O.6 Inc-6 — E2E, walkthrough, goldens e aceite
 
@@ -983,7 +1508,8 @@ Supplier + Product → Order + items → CONFIRM → Invoice → N Payables
 → Audit (mesma UoW nas ações críticas)
 ```
 
-**Próxima ação após este plano:** executar **Inc-4 (O.4)** sob pedido explícito — ainda em `main`, **sem** commit automático.
+**Próxima ação: Inc-6, sob pedido explícito.**
+Ainda em `main`; sem commit automático nesta sync documental.
 
 ---
 
@@ -1000,14 +1526,17 @@ Supplier + Product → Order + items → CONFIRM → Invoice → N Payables
 - Extratos temporários `_tmp_pdfs/`: só leitura histórica; não são fixture canônica.
 - Sem `app/`/`frontend/` na raiz; monólito em `v1/`.
 
-### Estado atual pós-Inc-3 `[FATO]`
+### Estado atual pós-Inc-5 `[FATO]`
 
-- Módulos: Catalog, Orders, Billing e Treasury **implementados** (working tree).
-- pytest V2: **56 passed, 1 xfailed** (fechamento Inc-3).
-- Alembic: **004 (head)** em `epic_v2` / `epic_v2_test`.
-- Inc-1…Inc-4 = **DONE**; Inc-5 = **TODO**.
-- Blueprint canônico **v0.2.3**; Roadmap **v0.5.4**.
+- Módulos: Catalog, Orders, Billing, Treasury (FX) e **Reporting** (AP queue + order cockpit).
+- pytest V2: **90 passed, 1 xfailed**.
+- Alembic: **`006_fx_integrity` (head)** em `epic_v2` / `epic_v2_test`.
+- Runtime ops: uvicorn **8081**, DB `epic_v2`; E2E: `npm run e2e` → **8082** + `epic_v2_test`.
+- E2E: `inc5-ap-cockpit` PASS ×2 via bootstrap; `e2e_prepare` recusa `epic_v2`.
+- Evidências UX: `docs/evidence/ux-0/as-is/`, `docs/evidence/ux-0/inc-5/`.
+- Inc-1…Inc-5 = **DONE**; Inc-6 = **TODO** (**NOT_STARTED**).
+- Blueprint canônico **v0.2.8**; Roadmap **v0.5.21**; UI/UX candidato **v3.7** + mockups **MCK v1.1** (Etapa 6 DONE; E6-B pendente confirmação externa final; não canônico).
 
-**Limitações abertas (não contradizem Fundação/Inc-1/Inc-2/Inc-3 DONE):** L-001/L-003; **DEC-ACCONTO-INVOICE**; DEC-DUIMP-MULTI-SHIP; DEC-ENDERECO; equivalência `parse_it` V2↔golden pendente em **§O Inc-6** (`test_v2_parse_equivalence_placeholder` xfail).
+**Limitações abertas (não contradizem Fundação/Inc-1…Inc-5 DONE):** L-001/L-003; **L-005** (ampliar `reporting:read`); **DEC-ACCONTO-INVOICE**; DEC-DUIMP-MULTI-SHIP; DEC-ENDERECO; equivalência `parse_it` V2↔golden pendente em **§O Inc-6** (`test_v2_parse_equivalence_placeholder` xfail); débitos FX §O.4.
 
-**Documentação:** Blueprint V2 **v0.2.3**; `docs/README.md` (DOC_DELTA); `docs/v1/*`; ADR-14/15/16; regra Cursor V1 congelada.
+**Documentação:** Blueprint V2 **v0.2.8**; `docs/README.md` (DOC_DELTA); `docs/v1/*`; ADR-14/15/16; regra Cursor V1 congelada.

@@ -292,6 +292,7 @@ def list_payments(
     *,
     supplier_id: int | None = None,
     status: str | None = None,
+    currency: str | None = None,
     unallocated_only: bool = False,
     limit: int = 50,
     offset: int = 0,
@@ -301,6 +302,8 @@ def list_payments(
         q = q.filter(Payment.supplier_id == supplier_id)
     if status:
         q = q.filter(Payment.status == status)
+    if currency:
+        q = q.filter(Payment.currency == currency.upper())
     rows = q.order_by(Payment.payment_date.desc(), Payment.id.desc()).offset(offset).limit(limit).all()
     if unallocated_only:
         rows = [p for p in rows if amount_unallocated(db, p) > 0 and p.status == "REGISTERED"]

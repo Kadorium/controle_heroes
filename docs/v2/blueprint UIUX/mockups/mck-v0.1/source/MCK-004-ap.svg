@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="MCK-004 Contas a pagar">
+  <title>MCK-004 — Contas a pagar (TARGET DESIGN · Ciclo 1)</title>
+  <desc>Mockup estático Epic Controle V2. Drawer PY-8841-2 aberto. Viewport 1440×900.</desc>
+  <defs><style type="text/css"><![CDATA[
+  .bg { fill: #F4F6F8; }
+  .surface { fill: #FFFFFF; }
+  .sidebar { fill: #1B2A41; }
+  .accent-fill { fill: #1F4E79; }
+  .text { fill: #1A2332; font-family: 'Segoe UI', Calibri, Arial, sans-serif; }
+  .muted { fill: #5B6B7C; font-family: 'Segoe UI', Calibri, Arial, sans-serif; }
+  .side-text { fill: #E8EEF4; font-family: 'Segoe UI', Calibri, Arial, sans-serif; }
+  .side-muted { fill: #9AA8B8; font-family: 'Segoe UI', Calibri, Arial, sans-serif; }
+  .mono { font-family: 'Cascadia Mono', Consolas, monospace; }
+  .border { stroke: #D5DCE5; stroke-width: 1; fill: none; }
+  .hair { stroke: #E6EBF1; stroke-width: 1; }
+  .row-focus { fill: #E8F1F8; }
+  .row-alt { fill: #FAFBFC; }
+  .danger { fill: #B42318; }
+  .warn { fill: #B54708; }
+  .white { fill: #FFFFFF; }
+  .badge-conf { fill: #E8F5EE; } .badge-conf-t { fill: #067647; }
+  .badge-draft { fill: #EEF2F6; } .badge-draft-t { fill: #5B6B7C; }
+  .badge-open { fill: #E8F1F8; } .badge-open-t { fill: #1F4E79; }
+  .badge-part { fill: #FEF4E6; } .badge-part-t { fill: #B54708; }
+  .badge-over { fill: #FCEBEA; } .badge-over-t { fill: #B42318; }
+  .badge-att { fill: #FEF4E6; } .badge-att-t { fill: #B54708; }
+  .kpi-box { fill: #FFFFFF; stroke: #D5DCE5; stroke-width: 1; }
+  .drawer-shade { fill: #1A2332; fill-opacity: 0.18; }
+  .drawer { fill: #FFFFFF; stroke: #D5DCE5; stroke-width: 1; }
+  .btn-ghost { fill: #FFFFFF; stroke: #D5DCE5; stroke-width: 1; }
+  .input { fill: #FFFFFF; stroke: #D5DCE5; stroke-width: 1; }
+  .filter-chip { fill: #FFFFFF; stroke: #D5DCE5; stroke-width: 1; }
+  .filter-chip-on { fill: #E8F1F8; stroke: #1F4E79; stroke-width: 1; }
+]]></style></defs>
+  <rect class="bg" width="1440" height="900"/>
+  
+  <rect class="sidebar" x="0" y="0" width="220" height="900"/>
+  <text class="side-text" x="24" y="36" font-size="15" font-weight="700">Epic Controle</text>
+  <text class="side-muted" x="24" y="54" font-size="11">V2 · Order-to-Pay</text>
+  <line x1="24" y1="68" x2="196" y2="68" stroke="#2F4158" stroke-width="1"/>
+  <text class="side-muted" x="24" y="96" font-size="11" font-weight="600" letter-spacing="0.06em">COMPRAS</text>
+  <text class="side-muted" x="36" y="124" font-size="12.5">Pedidos</text>
+  <text class="side-muted" x="36" y="152" font-size="12.5">Faturas</text>
+  <text class="side-muted" x="24" y="192" font-size="11" font-weight="600" letter-spacing="0.06em">FINANCEIRO</text>
+  <rect x="12" y="206" width="196" height="28" rx="4" fill="#243447"/><text class="side-text" x="36" y="220" font-size="12.5">Contas a pagar</text>
+  <text class="side-muted" x="36" y="248" font-size="12.5">Pagamentos</text>
+  <rect x="16" y="820" width="188" height="60" rx="6" fill="#243447"/>
+  <text class="side-muted" x="28" y="842" font-size="10">EUR / BRL</text>
+  <text class="side-text mono" x="28" y="862" font-size="14" font-weight="600">6,2180</text>
+  <text class="side-muted" x="120" y="862" font-size="10">stale</text>
+
+  
+  <text class="muted" x="244" y="28" font-size="12">Financeiro  /  Contas a pagar</text>
+  <text class="text" x="244" y="56" font-size="22" font-weight="700">Contas a pagar</text>
+  <text class="muted" x="244" y="76" font-size="12">Fila operacional · Heroes · ordenação: vencidos primeiro</text>
+  
+
+  <rect class="btn-ghost" x="852" y="28" width="112" height="36" rx="5"/>
+  <text class="text" x="908" y="51" font-size="13" font-weight="600" text-anchor="middle">Atualizar</text>
+  <rect class="kpi-box" x="244" y="88" width="140" height="68" rx="6"/><text class="muted" x="254" y="106" font-size="10" font-weight="600">Vencido</text><text class="danger mono" x="254" y="128" font-size="14" font-weight="700">315,00</text><text class="muted" x="254" y="146" font-size="9">1 título</text><rect class="kpi-box" x="390" y="88" width="140" height="68" rx="6"/><text class="muted" x="400" y="106" font-size="10" font-weight="600">Hoje</text><text class="text mono" x="400" y="128" font-size="14" font-weight="700">0,00</text><text class="muted" x="400" y="146" font-size="9">—</text><rect class="kpi-box" x="536" y="88" width="140" height="68" rx="6"/><text class="muted" x="546" y="106" font-size="10" font-weight="600">Próx. 7d</text><text class="text mono" x="546" y="128" font-size="14" font-weight="700">1.220,00</text><text class="muted" x="546" y="146" font-size="9">PY-8841-2</text><rect class="kpi-box" x="682" y="88" width="140" height="68" rx="6"/><text class="muted" x="692" y="106" font-size="10" font-weight="600">Saldo aberto</text><text class="text mono" x="692" y="128" font-size="14" font-weight="700">2.450,00</text><text class="muted" x="692" y="146" font-size="9">3 títulos</text><rect class="kpi-box" x="828" y="88" width="140" height="68" rx="6"/><text class="muted" x="838" y="106" font-size="10" font-weight="600">Unalloc. residual</text><text class="text mono" x="838" y="128" font-size="14" font-weight="700">900,00</text><text class="muted" x="838" y="146" font-size="9">PAY-0042</text>
+  
+  <rect class="surface" x="244" y="168" width="720" height="44" rx="6"/>
+  <rect class="border" x="244" y="168" width="720" height="44" rx="6"/>
+  <rect class="filter-chip-on" x="256" y="178" width="72" height="24" rx="12"/>
+  <text class="text" x="292" y="194" font-size="11" text-anchor="middle" font-weight="600">Todos</text>
+  <rect class="filter-chip" x="336" y="178" width="80" height="24" rx="12"/>
+  <text class="muted" x="376" y="194" font-size="11" text-anchor="middle">Abertos</text>
+  <rect class="filter-chip" x="424" y="178" width="88" height="24" rx="12"/>
+  <text class="muted" x="468" y="194" font-size="11" text-anchor="middle">Vencidos</text>
+  <rect class="filter-chip" x="520" y="178" width="64" height="24" rx="12"/>
+  <text class="muted" x="552" y="194" font-size="11" text-anchor="middle">EUR</text>
+  <text class="muted" x="620" y="194" font-size="11">Order: PO-2026-0181</text>
+
+  
+  <rect class="surface" x="244" y="224" width="720" height="612" rx="6"/>
+  <rect class="border" x="244" y="224" width="720" height="612" rx="6"/>
+  <rect fill="#F8FAFC" x="245" y="225" width="718" height="34"/>
+  <text class="muted" x="256" y="246" font-size="10.5" font-weight="600">Payable</text>
+  <text class="muted" x="360" y="246" font-size="10.5" font-weight="600">Vencimento</text>
+  <text class="muted" x="470" y="246" font-size="10.5" font-weight="600">Invoice</text>
+  <text class="muted" x="580" y="246" font-size="10.5" font-weight="600">Saldo</text>
+  <text class="muted" x="670" y="246" font-size="10.5" font-weight="600">FX / BRL</text>
+  <text class="muted" x="800" y="246" font-size="10.5" font-weight="600">Status</text>
+  <text class="muted" x="880" y="246" font-size="10.5" font-weight="600">Ações</text>
+  <line class="hair" x1="245" y1="259" x2="964" y2="259"/>
+
+  <text class="text mono" x="256" y="282" font-size="12" font-weight="600">PY-8841-1</text><text class="danger mono" x="360" y="282" font-size="11.5">15/06/2026</text><text class="muted mono" x="470" y="282" font-size="11">INV-H-8841</text><text class="text mono" x="640" y="282" font-size="12" text-anchor="end">315,00</text><text class="muted mono" x="670" y="282" font-size="11">—</text><rect class="badge-over" x="800" y="268" width="64" height="20" rx="4"/><text class="badge-over-t" x="832.0" y="282" font-size="10.5" font-weight="600" text-anchor="middle">VENCIDO</text><text fill="#1F4E79" x="880" y="282" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="282" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="304" x2="964" y2="304"/><rect class="row-focus" x="245" y="304" width="718" height="44"/><rect class="accent-fill" x="245" y="304" width="3" height="44"/><text class="text mono" x="256" y="326" font-size="12" font-weight="600">PY-8841-2</text><text class="muted mono" x="360" y="326" font-size="11.5">30/07/2026</text><text class="muted mono" x="470" y="326" font-size="11">INV-H-8841</text><text class="text mono" x="640" y="326" font-size="12" text-anchor="end">1.220,00</text><text class="muted mono" x="670" y="326" font-size="11">6,1500</text><text class="muted mono" x="670" y="338" font-size="9">BRL 7.503,00</text><rect class="badge-open" x="800" y="312" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="326" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="326" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="326" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="348" x2="964" y2="348"/><text class="text mono" x="256" y="370" font-size="12" font-weight="600">PY-8841-3</text><text class="muted mono" x="360" y="370" font-size="11.5">15/09/2026</text><text class="muted mono" x="470" y="370" font-size="11">INV-H-8841</text><text class="text mono" x="640" y="370" font-size="12" text-anchor="end">915,00</text><text class="muted mono" x="670" y="370" font-size="11">—</text><rect class="badge-open" x="800" y="356" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="370" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="370" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="370" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="392" x2="964" y2="392"/><rect class="row-alt" x="245" y="392" width="718" height="44"/><text class="text mono" x="256" y="414" font-size="12" font-weight="600">PY-8790-2</text><text class="muted mono" x="360" y="414" font-size="11.5">05/08/2026</text><text class="muted mono" x="470" y="414" font-size="11">INV-H-8790</text><text class="text mono" x="640" y="414" font-size="12" text-anchor="end">420,00</text><text class="muted mono" x="670" y="414" font-size="11">—</text><rect class="badge-open" x="800" y="400" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="414" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="414" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="414" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="436" x2="964" y2="436"/><text class="text mono" x="256" y="458" font-size="12" font-weight="600">PY-8712-1</text><text class="muted mono" x="360" y="458" font-size="11.5">02/08/2026</text><text class="muted mono" x="470" y="458" font-size="11">INV-H-8712</text><text class="text mono" x="640" y="458" font-size="12" text-anchor="end">890,00</text><text class="muted mono" x="670" y="458" font-size="11">6,1800</text><text class="muted mono" x="670" y="470" font-size="9">BRL 5.500,20</text><rect class="badge-open" x="800" y="444" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="458" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="458" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="458" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="480" x2="964" y2="480"/><rect class="row-alt" x="245" y="480" width="718" height="44"/><text class="text mono" x="256" y="502" font-size="12" font-weight="600">PY-8855-1</text><text class="muted mono" x="360" y="502" font-size="11.5">28/07/2026</text><text class="muted mono" x="470" y="502" font-size="11">INV-H-8855</text><text class="text mono" x="640" y="502" font-size="12" text-anchor="end">700,00</text><text class="muted mono" x="670" y="502" font-size="11">—</text><rect class="badge-open" x="800" y="488" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="502" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="502" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="502" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="524" x2="964" y2="524"/><text class="text mono" x="256" y="546" font-size="12" font-weight="600">PY-8860-3</text><text class="muted mono" x="360" y="546" font-size="11.5">20/08/2026</text><text class="muted mono" x="470" y="546" font-size="11">INV-H-8860</text><text class="text mono" x="640" y="546" font-size="12" text-anchor="end">880,00</text><text class="muted mono" x="670" y="546" font-size="11">—</text><rect class="badge-open" x="800" y="532" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="546" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="546" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="546" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="568" x2="964" y2="568"/><rect class="row-alt" x="245" y="568" width="718" height="44"/><text class="text mono" x="256" y="590" font-size="12" font-weight="600">PY-8701-1</text><text class="muted mono" x="360" y="590" font-size="11.5">10/09/2026</text><text class="muted mono" x="470" y="590" font-size="11">INV-H-8701</text><text class="text mono" x="640" y="590" font-size="12" text-anchor="end">1.390,00</text><text class="muted mono" x="670" y="590" font-size="11">—</text><rect class="badge-open" x="800" y="576" width="52" height="20" rx="4"/><text class="badge-open-t" x="826.0" y="590" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text><text fill="#1F4E79" x="880" y="590" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">Pag</text><text fill="#1F4E79" x="916" y="590" font-size="11" font-weight="600" font-family="Segoe UI, Calibri, Arial, sans-serif">FX</text><line class="hair" x1="245" y1="612" x2="964" y2="612"/>
+  
+  <rect class="drawer-shade" x="972" y="0" width="468" height="900"/>
+  <rect class="drawer" x="980" y="0" width="460" height="900"/>
+  <text class="muted" x="1004" y="36" font-size="12">Payable · preview</text>
+  <text class="text" x="1004" y="62" font-size="18" font-weight="700">PY-8841-2</text>
+  <rect class="badge-open" x="1004" y="74" width="52" height="20" rx="4"/><text class="badge-open-t" x="1030.0" y="88" font-size="10.5" font-weight="600" text-anchor="middle">OPEN</text>
+  <text class="warn" x="1066" y="88" font-size="11" font-weight="600">FX planejado</text>
+  <text class="muted" x="1004" y="118" font-size="11">Fornecedor</text>
+  <text class="text" x="1004" y="136" font-size="13" font-weight="600">Heroes</text>
+  <text class="muted" x="1004" y="164" font-size="11">Order</text>
+  <text fill="#1F4E79" x="1004" y="182" font-size="13" font-family="Cascadia Mono, Consolas, monospace">PO-2026-0181</text>
+  <text class="muted" x="1200" y="164" font-size="11">Invoice</text>
+  <text class="text mono" x="1200" y="182" font-size="13">INV-H-8841</text>
+  <line class="hair" x1="1004" y1="200" x2="1416" y2="200"/>
+  <text class="muted" x="1004" y="224" font-size="11">Vencimento</text>
+  <text class="text mono" x="1004" y="244" font-size="14">30/07/2026</text>
+  <text class="muted" x="1004" y="276" font-size="11">Amount</text>
+  <text class="text mono" x="1004" y="296" font-size="14">EUR 1.220,00</text>
+  <text class="muted" x="1200" y="276" font-size="11">Allocated</text>
+  <text class="text mono" x="1200" y="296" font-size="14">EUR 0,00</text>
+  <text class="muted" x="1004" y="328" font-size="11">Balance</text>
+  <text class="text mono" x="1004" y="348" font-size="18" font-weight="700">EUR 1.220,00</text>
+  <text class="muted" x="1004" y="380" font-size="11">FX plan (current)</text>
+  <text class="text mono" x="1004" y="400" font-size="14">6,1500 INITIAL</text>
+  <text class="muted" x="1004" y="424" font-size="11">BRL projetado (plan × saldo)</text>
+  <text class="text mono" x="1004" y="444" font-size="14">BRL 7.503,00</text>
+  <text class="muted" x="1004" y="468" font-size="11">Mercado</text>
+  <text class="warn mono" x="1004" y="488" font-size="13">6,2180 · stale</text>
+  <line class="hair" x1="1004" y1="508" x2="1416" y2="508"/>
+  <text class="muted" x="1004" y="532" font-size="11" font-weight="600">Próxima ação</text>
+  <text class="text" x="1004" y="554" font-size="12">Registrar pagamento a partir desta obrigação.</text>
+  <text class="muted" x="1004" y="574" font-size="11">Criar Payment não liquida o saldo — alocar depois.</text>
+  <rect class="accent-fill" x="1004" y="596" width="200" height="36" rx="5"/>
+  <text class="white" x="1104" y="619" font-size="13" font-weight="600" text-anchor="middle">Registrar pagamento</text>
+  <rect class="btn-ghost" x="1216" y="596" width="100" height="36" rx="5"/>
+  <text class="text" x="1266" y="619" font-size="13" font-weight="600" text-anchor="middle">Câmbio</text>
+  <text class="muted" x="1004" y="660" font-size="10.5">Destino previsto: PAY-2026-0043 · EUR 700,00</text>
+  <text class="muted" x="1004" y="678" font-size="10.5">Saldo Payable permanece 1.220,00 até Allocation.</text>
+  <text class="muted" x="1004" y="720" font-size="11" font-weight="600">Documento / auditoria</text>
+  <text class="muted" x="1004" y="740" font-size="11">Invoice ISSUED · doc anexado · audit issue 20/05</text>
+  <text class="muted" x="1004" y="758" font-size="11">FX plan INITIAL · audit 21/05 · admin</text>
+  <text class="muted" x="1004" y="860" font-size="11">Fechar drawer · fila preservada</text>
+
+  <text class="muted" x="256" y="860" font-size="11">Ordenação: vencidos primeiro · Contexto Order PO-2026-0181</text>
+</svg>

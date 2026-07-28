@@ -35,6 +35,7 @@ ADMIN_PERMISSIONS = [
     "treasury:fx_supersede",
     "treasury:fx_without_document",
     "treasury:fx_quote_refresh",
+    "reporting:read",
 ]
 
 COMPRADOR_PERMISSIONS = [

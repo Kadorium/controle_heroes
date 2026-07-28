@@ -5,9 +5,9 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.4 |
+| **Versão** | 0.2.8 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
-| **Data** | 2026-07-22 |
+| **Data** | 2026-07-24 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
 
 ### 1.1 Documentos relacionados
@@ -59,6 +59,8 @@ A Epic controla importações (Heroes / China / despachante BR) com planilhas, e
 | Fabricação | China |
 | Despacho | Despachante brasileiro (DUIMP, Numerário, etc.) |
 | Operação do sistema | App web local em LAN; PostgreSQL local; sem Docker nesta fase |
+| Fornecedor operacional atual | **Heroes** — único fornecedor usado pela Epic na operação corrente |
+| Arquitetura multi-supplier | `Supplier` permanece entidade própria; modelo e APIs suportam múltiplos fornecedores futuros **sem** impor complexidade multi-supplier à UX atual e **sem** hardcode financeiro por `supplier_id` |
 
 ### 2.3 Usuários
 
@@ -488,12 +490,13 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | Objetivo | Read models, dashboard, exportações |
 | Owner | Gestor |
 | Entidades | Projeções / materializações de leitura |
-| Funcionalidades | KPIs; filas; exports |
+| Funcionalidades | KPIs; filas; exports; **order cockpit**; **AP queue enriquecida** |
 | Comandos | — (não escreve domínio) |
-| Consultas | dashboard, queues |
-| **Deps permitidas** | Leitura das APIs públicas dos módulos de domínio |
-| Proibido | Escrever em tabelas de domínio |
-| UI | Dashboard (fase tardia) |
+| Consultas | `order_cockpit`; `ap_queue`; (futuro) dashboard |
+| **Deps permitidas (Inc-5 atual)** | APIs públicas de **Orders, Billing, Treasury, Catalog, Documents, Audit** — só as arestas usadas no código; Logistics/Customs/Inventory/Costing entram quando houver seções reais |
+| Proibido | Escrever em tabelas de domínio; N+1 de FX (usar bulk); tratar payment unallocated como relação ordem↔pagamento |
+| HTTP | `GET /api/reporting/ap-queue`; `GET /api/orders/{id}/summary` (**handler em `reporting/routes`**, path UX sob `/orders`) |
+| UI | Contas a pagar; cockpit da ordem; Dashboard (fase tardia) |
 
 ### 5.16 Grafo canônico de dependências
 
@@ -555,12 +558,16 @@ flowchart LR
   Reporting --> Orders
   Reporting --> Billing
   Reporting --> Treasury
-  Reporting --> Logistics
-  Reporting --> Customs
-  Reporting --> Inventory
-  Reporting --> Costing
+  Reporting --> Catalog
+  Reporting --> Documents
+  Reporting --> Audit
+  Reporting -.-> Logistics
+  Reporting -.-> Customs
+  Reporting -.-> Inventory
+  Reporting -.-> Costing
 ```
 
+Arestas **sólidas** = Inc-5 implementadas. Arestas **tracejadas** = destino quando o módulo existir / seção do cockpit for ligada.  
 Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reporting + Documents + Audit; **sem escrita** em domínio alheio.
 
 **Proibido no grafo:** qualquer aresta inversa às listadas; ciclos; V2→V1.
@@ -574,7 +581,7 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 | Order / OrderItem | Pedido comercial e linhas | Orders |
 | Invoice / InvoiceItem / Payable | Fatura e obrigações por scadenza | Billing |
 | Payment / PaymentAllocation | Dinheiro e liquidação de Payable | Treasury |
-| Fx* | Câmbio previsto/contratado/realizado | Treasury |
+| FxPlanRate / FxMarketQuote / FxExecution / FxExecutionAllocation / FxAllocationValuation | Câmbio projetado, online e realizado | Treasury |
 | Credit / Discount | Crédito e desconto documentados | Treasury |
 | Shipment / ShipmentItem | Embarque físico ligado a OrderItem | Logistics |
 | ImportProcess | Processo aduaneiro (DUIMP etc.) | Customs |
@@ -611,7 +618,8 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 
 - Documentos imutáveis; substituição = nova versão + supersede + histórico.  
 - Valores oficiais têm origem documental.  
-- Landed cost e FX versionados (planejado / revisado / realizado).  
+- Landed cost versionado (planejado / revisado / realizado).  
+- FX (Inc-4): projeções (`FxPlanRate`) versionadas; cotações online (`FxMarketQuote`) append-only com `source` e timestamps; valuations realizadas (`FxAllocationValuation`) preservam snapshots históricos; **reforecast não altera** resultado realizado congelado. Taxa contratada/hedge/spread = capacidades futuras.  
 - AuditLog + reason codes em exceções, cancelamentos, reaberturas, overrides.
 
 ### 6.6 Decisões abertas (não inventar)
@@ -752,6 +760,19 @@ Cada fluxo: pré-condições → passos → regras → exceções → resultado.
 Convenção: cada tela documenta propósito, usuário, header, KPIs, filtros, agrupamentos, tabela/colunas, ações, inline edit, drill-down, alertas, empty, permissões e aceite.
 UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece nos módulos. Cockpit é **read model** — não recria domínios.
 
+### 8.0 Arquitetura de interação (shell / IA)
+
+| Campo | Conteúdo |
+|---|---|
+| Propósito | Continuidade operacional: shell, navegação, estados e composição de telas Order-to-Pay |
+| Shell | Sidebar agrupada (**Ordens** · **Financeiro**); permission-aware; brand + usuário; strip FX de mercado |
+| Foundation UI | Componentes lean reutilizados: PageHeader, breadcrumb, KpiStrip, StatusBadge, Money/FxDisplay, Empty/Error/Loading, FilterBar, DetailDrawer — **sem** DataTable genérico excessivo |
+| Tipos de tela | Fila (lista+KPI+filtro URL); Cockpit (resumo+drill); Formulário/detalhe de domínio; Drawer de contexto |
+| Navegação | Deep link preserva filtros na URL; item sem permissão omitido; API 403 + UI gated |
+| Tema | Dark operacional densificado (contraste/legibilidade); **validável** — não irrevogável |
+| Permissões | **Produto-alvo:** financeiro/gestor com `reporting:read`. **Implementação atual:** admin only até validação **L-005**. Demais módulos por `*:read`/`*:write` |
+| Aceite | Shell não escreve domínio; Reporting não vira `order_central`; FE só consome HTTP público |
+
 ### 8.1 Login
 
 | Campo | Conteúdo |
@@ -811,17 +832,18 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 | Propósito | Resumir e direcionar: comercial + links aos domínios |
 | Usuário | Comprador; financeiro; logística; gestor |
 | Header | Código ordem; fornecedor; status comercial; ações contextuais |
-| KPIs | Pedido; faturado; pago; saldo; embarcado; nacionalizado; LC versão atual |
+| KPIs | Pedido; faturado; **pago = Σ allocations**; saldo; próximo venc.; FX exposição/realizado; (futuro) embarcado/nacionalizado/LC |
 | Filtros | — (contexto = uma ordem) |
-| Agrupamentos | Seções: Comercial; Financeiro; Logística; Aduana; Documentos; Auditoria |
-| Tabelas | Itens; invoices/payables (resumo); shipments; processos; anexos |
-| Ações | Confirmar/cancelar/fechar (Orders); atalhos “ir para” Invoice/Shipment/DUIMP/Ingestão |
+| Agrupamentos | Seções: Comercial; Financeiro; Tesouraria; FX; Documentos; Auditoria; (futuro Logística/Aduana) |
+| Tabelas | Resumos truncados (limites explícitos); invoices/payables; payments; docs/audit recentes |
+| Ações | Toggle comercial/edição (Orders); atalhos “ir para” Invoice/Payable/FX/Payment |
 | Inline | Campos comerciais permitidos em DRAFT; demais via módulos |
 | Drill-down | Cada linha → tela dona do agregado |
-| Alertas | Pendências por seção; bloqueios de fechamento |
+| Alertas | Pendências por seção; unallocated **candidatos** (nunca como relação) |
 | Empty | Seção sem dados com CTA do módulo dono |
-| Permissões | Leitura ampla; escritas por permissão do módulo |
-| Aceite | Zero mega-aggregator; só consume APIs públicas / read models |
+| Permissões | `reporting:read` + `orders:read` para summary; escritas por permissão do módulo |
+| Fonte HTTP | `GET /api/orders/{id}/summary` → **Reporting** (`order_cockpit`) |
+| Aceite | Zero mega-aggregator; `paid` só via allocations; payload limitado; Orders ↛ Billing/Treasury |
 
 ### 8.5 Nova ordem
 
@@ -869,20 +891,22 @@ Cadastro mestre Catalog. Header com busca; tabela de atributos; ações CRUD; in
 
 | Campo | Conteúdo |
 |---|---|
-| Propósito | Trabalhar Payables (unidade de liquidação) |
-| Usuário | Financeiro |
-| Header | Filtros rápidos: hoje / 7d / vencidos / unallocated |
-| KPIs | Vencido; a vencer 7d; saldo total; qtd sem comprovante |
-| Filtros | Vencimento; fornecedor; invoice; ordem; tipo; moeda; aprovação |
-| Agrupamentos | Por vencimento ou fornecedor |
-| **Colunas** | Vencimento; atraso; fornecedor; invoice; ordem; tipo; moeda; valor; alocado; saldo; FX previsto; BRL previsto; comprovante; aprovação; pendências; ações rápidas |
-| Ações | Alocar; registrar pagamento; anexar comprovante; abrir invoice/ordem |
-| Inline | Não para saldos; observação/pendência se permitido |
-| Drill-down | Invoice; ordem; payment |
-| Alertas | Atraso; saldo≠0 com payment unallocated; L-001 |
+| Propósito | Trabalhar Payables (unidade de liquidação) com projeção FX |
+| Usuário | Financeiro; gestor (**produto-alvo** com `reporting:read`; **implementação atual** admin only até L-005) |
+| Header | Título; atualizar; filtros na **URL**; contexto de fornecedor **uma vez** se a página for mono-supplier (ex. Heroes) |
+| KPIs | Do **conjunto filtrado** (não da página): vencido; hoje; próx. 7d; saldo aberto; candidatos unallocated |
+| Filtros | Status; pendência; moeda; ordem; invoice; vencimento (server-side). Filtro `supplier_id` permanece na **API**; **não** é eixo principal da UX com um único fornecedor operacional |
+| Ordenação | Vencidos primeiro; depois `due_date ASC`, `id ASC` |
+| Agrupamentos | — (lista plana paginada) |
+| **Colunas** | Vencimento; atraso; invoice; ordem; moeda; valor; alocado; saldo; FX proj.; BRL proj.; status; pendências; ações — **Supplier** no drawer/contexto, não coluna principal |
+| Ações | Abrir drawer; navegar invoice/ordem/FX/payment (sem escrever na fila) |
+| Inline | Não para saldos |
+| Drill-down | Drawer → invoice / cockpit / FX / novo payment (+ fornecedor como metadado) |
+| Alertas | Atraso; saldo aberto; candidatos unallocated ≠ relação |
 | Empty | “Nada a pagar no filtro” |
-| Permissões | treasury:allocate; billing:read |
-| Aceite | Linha = Payable; antecipo sem allocation não zera saldo |
+| Permissões | `reporting:read` + `billing:read` (fila rica); `GET /api/payables` Billing core sem FX |
+| Fonte HTTP | `GET /api/reporting/ap-queue` (Reporting + `billing.public.payables_queue` + FX bulk + **Supplier bulk**) |
+| Aceite | Paginação/sort/KPIs server-side; sem N+1 FX/Supplier; linha = Payable |
 
 ### 8.10 Invoices
 
@@ -926,20 +950,21 @@ Cadastro mestre Catalog. Header com busca; tabela de atributos; ações CRUD; in
 
 | Campo | Conteúdo |
 |---|---|
-| Propósito | Taxas previstas/contratadas/realizadas e PnL |
+| Propósito | Três visões FX (projetada / online / realizada) e resultados nomeados por benchmark |
 | Usuário | Financeiro; gestor |
-| Header | Período; moeda par |
-| KPIs | PnL realizado; exposição; taxa média |
-| Filtros | Período; payment |
-| Agrupamentos | Por payment / mês |
-| Colunas | Ref; previsto; contratado; realizado; delta; BRL |
-| Ações | Registrar taxa versionada; export |
-| Inline | Não sobrescrever histórico — nova versão |
-| Drill-down | Payment |
-| Alertas | Sem taxa realizada em payment liquidado |
-| Empty | “Sem movimentos FX” |
-| Permissões | treasury:fx |
-| Aceite | Versionamento; Costing apenas **lê** taxas |
+| Header | Payable / Payment; par (ex. EUR/BRL) |
+| KPIs | Open foreign; BRL projetado; BRL online; BRL realizado; totais vs current / vs initial |
+| Filtros | Payable; payment; par |
+| Agrupamentos | Por payable / payment |
+| Colunas / blocos | Taxa original (INITIAL); current forecast; online (source, observed_at, stale); realizada/avg; exposição aberta; resultado realizado vs referência congelada; online vs projeção atual; online vs initial; totais vs current e vs initial |
+| Ações | Registrar plano; refresh cotação; registrar execução + link + freeze valuation |
+| Inline | Não sobrescrever histórico — reforecast cria nova current; valuation congelada permanece |
+| Drill-down | Payment / Payable |
+| Alertas | Cotação missing/stale; sem taxa projetada current no freeze; sem taxa realizada em settlement FX |
+| Empty | “—” para online missing (nunca 0); “Sem movimentos FX” |
+| Permissões | treasury:fx_read / fx_write / fx_quote_refresh / … |
+| Aceite | Benchmarks nomeados; Costing futuro apenas **lê** taxas públicas Treasury |
+| Nota | Taxa contratada, hedge e spread são capacidades futuras, fora do Inc-4. |
 
 ### 8.13 Créditos e descontos
 
@@ -1093,6 +1118,10 @@ total_vs_initial = realized_result_vs_initial + online_result_vs_initial
 ```
 
 Positivo = favorável. Cotação ausente → `null` (nunca zero). Reforecast **não** altera valuation congelada. Cotação online via `FxQuoteProvider` (Manual/Fixture/HTTP); domínio sem HTTP concreto.
+
+**Provider HTTP (borda):** Frankfurter canônico `https://api.frankfurter.dev/v1/latest` (BRL por 1 EUR); AwesomeAPI somente fallback; sem usar plan/realized como mercado. Redirect HTTP só aceito se Location permanecer em host `frankfurter.*`.
+
+**Integridade:** no máximo uma `FxPlanRate` com `is_current=true` por Payable (unique parcial + lock via `billing.public.get_payable_for_update`). Links execution↔allocation: schema N:M; Inc-4 operacional 1:1 com `FOR UPDATE` e Σ foreign ≤ limites.
 ### 9.3 Descontos, créditos, despesas, impostos
 
 - Desconto ≠ crédito ≠ conta corrente BR (**L-003**).  
@@ -1141,6 +1170,8 @@ Critérios de rateio documentados por versão; componentes rastreáveis.
 ### 11.1 Papéis (baseline)
 
 admin, gestor, financeiro, comprador, operador/logistica — refinar com L-005.
+
+**Reporting (`reporting:read`):** produto-alvo = financeiro e gestor. **Estado implementado** = admin only até validar matriz L-005. Não ampliar automaticamente.
 
 ### 11.2 Ações críticas (exigem permissão + audit ± documento ± reason)
 
@@ -1280,6 +1311,10 @@ Mapeamento dos cenários do Roadmap M.3 + fluxos §7. **Sem status de execução
 | **Entreposto** | Regime/estoque intermediário |
 | **Payable** | Unidade de liquidação |
 | **PaymentAllocation** | Elo Payment→Payable |
+| **FxPlanRate** | Taxa FX projetada por Payable (INITIAL / REFORECAST / CORRECTION); uma current |
+| **FxMarketQuote** | Cotação online do par (append-only); fresh/stale/missing |
+| **FxExecution** | Taxa/BRL realizados vinculados a um Payment |
+| **FxAllocationValuation** | Snapshot congelado do resultado realizado vs referência no freeze |
 | **ImportProcess** | Agregado aduaneiro V2 |
 | **Cockpit** | Read model de navegação da Order |
 | **Staging** | Camada pré-oficial da ingestão |
@@ -1308,7 +1343,8 @@ Formato: `REQ-V2-{MOD}-{nnn}`. Sem coluna de status de execução.
 | REQ-V2-INV-001 | Inventory | 5.12, 7.11, 8.17 | 5 | Saldo derivado |
 | REQ-V2-CST-001 | Costing | 5.13, 7.12, 8.18 | 6 | LC por SKU + Expense |
 | REQ-V2-REC-001 | Reconciliation | 5.14, 7.15, 8.19 | 6 | Casos; L-001 isolado |
-| REQ-V2-REP-001 | Reporting | 5.15, 8.2, 12 | 7 | Dashboard read-only |
+| REQ-V2-REP-001 | Reporting | 5.15, 8.0, 8.4, 8.9 | 2 | Reporting operacional — AP queue + order cockpit (read-only) |
+| REQ-V2-REP-002 | Reporting | 5.15, 8.2, 12 | 7 | Dashboard executivo read-only |
 | REQ-V2-MOD-001 | Transversal | 3.2–3.3, 5.16, 13.4–13.5 | 1 | Arch test + revisão manual; sem ciclos; V2↛V1; regra Cursor |
 | REQ-V2-ACC-001 | Aceite | 15 | 8 | SC-01…SC-17 + equivalência cálculos |
 
@@ -1357,6 +1393,10 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 
 | Versão | Data | Notas |
 |---|---|---|
+| 0.2.8 | 2026-07-24 | Fechamento Inc-5: Heroes-only operacional (multi-supplier no modelo); Supplier bulk; AP UX sem eixo fornecedor; REQ-V2-REP-001/002; reporting:read admin→L-005 |
+| 0.2.7 | 2026-07-23 | Inc-5 / UX-0: §8.0 shell+IA; Reporting AP queue + order cockpit; arestas Catalog/Documents/Audit; §8.4/§8.9 alinhados; `paid`=allocations |
+| 0.2.6 | 2026-07-23 | Remediação auditoria Inc-4: Frankfurter URL canônica; unique current plan; locks FX; cleanup órfão alinhado Inc-3 |
+| 0.2.5 | 2026-07-23 | Sync pós-Inc-4: §6.1/§6.5/§8.12 alinhados a projetado/online/realizado; glossário FX; taxa contratada/hedge marcada como futura |
 | 0.2.4 | 2026-07-23 | Inc-4: três visões FX (plan/quote/execution); ownership Treasury; benchmarks separados; N:M execution↔allocation; §5.8/§9.2 |
 | 0.2.3 | 2026-07-22 | Clarificação Invoice ACCONTO vs Payment antecipado; DEC-ACCONTO-INVOICE pendente; §5.7/§8.10/§10/§7.4/glossário; tipos alvo `PROFORMA\|ACCONTO\|FINAL` (código Inc-2 ainda só PROFORMA\|FINAL) |
 | 0.2.2 | 2026-07-22 | DEC-SCONTO-ITEM fechada; §5.7 Billing Inc-2 (FINAL/PROFORMA; ISSUED imutável; terms PERCENT\|AMOUNT); **Inc-3:** ownership de saldo Payable (`balance` só via `billing.public.apply_payable_allocations`; status OPEN\|PARTIALLY_PAID\|PAID\|CANCELLED) |

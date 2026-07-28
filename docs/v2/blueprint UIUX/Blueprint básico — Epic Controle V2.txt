@@ -1,0 +1,216 @@
+Blueprint básico — Epic Controle V2 final
+
+O sistema final será uma plataforma operacional de importação, não um ERP genérico. A navegação combinará filas de trabalho, fichas de objetos e workspaces especializados. O Blueprint do Sistema continuará sendo a autoridade de domínio; o Blueprint UI/UX definirá a experiência após aprovação.
+
+EPIC CONTROLE
+│
+├── Workbench
+│   ├── Pendências prioritárias
+│   ├── Vencimentos
+│   ├── Atrasos e bloqueios
+│   └── Atividade relevante
+│
+├── Produtos
+│   ├── Catálogo e SKUs
+│   ├── Famílias e variantes
+│   └── Fornecedores e referências Heroes
+│
+├── Compras
+│   ├── Pedidos
+│   ├── Faturas
+│   └── Obrigações geradas
+│
+├── Importação
+│   ├── Processos de importação
+│   ├── Embarques
+│   ├── DUIMP e desembaraço
+│   └── Documentos
+│
+├── Abastecimento
+│   ├── Estoque disponível
+│   ├── Em trânsito
+│   ├── Nacionalizado
+│   └── Movimentos
+│
+├── Financeiro
+│   ├── Contas a pagar
+│   ├── Pagamentos e alocações
+│   ├── Câmbio e PnL
+│   └── Créditos e descontos
+│
+├── Custos
+│   ├── Despesas de importação
+│   ├── Landed cost por SKU
+│   └── Conciliação e fechamento
+│
+└── Administração
+    ├── Usuários e permissões
+    ├── Auditoria
+    └── Configurações
+
+Essa estrutura segue os módulos finais previstos no Blueprint: Catalog, Orders, Billing, Treasury, Ingestion, Logistics, Customs, Inventory, Costing, Reconciliation, Reporting, Documents, Audit e Identity.
+
+Modelo de navegação
+Workbench
+    ↓ identifica uma pendência
+Fila do domínio
+    ↓ seleciona um objeto
+Ficha completa
+    ↓ executa ou aprofunda
+Workspace especializado
+
+Exemplo:
+
+Obrigação vencendo
+→ Contas a pagar
+→ Payable
+→ Registrar pagamento
+→ Alocar ao Payable
+→ Conferir FX e PnL
+
+O cockpit de uma Order apenas resume e conecta os objetos. Invoice, Payment, Shipment, DUIMP e Landed Cost permanecem em páginas próprias.
+
+Jornadas por usuário
+1. Comprador
+
+Objetivo: criar e acompanhar pedidos.
+
+Workbench do comprador
+→ Pedidos com pendências
+→ Criar ou abrir Order
+→ Adicionar produtos e quantidades
+→ Confirmar pedido
+→ Acompanhar faturas relacionadas
+→ Resolver divergências de produto ou documento
+
+Vê principalmente Produtos, Compras, documentos comerciais e o resumo financeiro da Order. Não altera pagamentos ou alocações.
+
+2. Financeiro
+
+Objetivo: controlar obrigações, pagamentos e exposição cambial.
+
+Workbench financeiro
+→ Obrigações vencidas ou próximas
+→ Abrir Payable
+→ Conferir Invoice e documentos
+→ Analisar FX
+→ Registrar Payment
+→ Alocar Payment aos Payables
+→ Conferir saldo e PnL
+
+A interface preserva a separação:
+
+Invoice = cobrança
+Payable = obrigação
+Payment = movimento financeiro
+Allocation = liquidação
+FX = taxa e exposição
+
+O saldo só diminui por PaymentAllocation.
+
+3. Logística
+
+Objetivo: acompanhar o movimento físico das mercadorias.
+
+Workbench logístico
+→ Embarques pendentes ou atrasados
+→ Abrir Shipment
+→ Vincular itens das Orders
+→ Registrar booking e documentos
+→ Atualizar trânsito e chegada
+→ Encaminhar para processo aduaneiro
+
+Shipment será um agregado independente, relacionado às linhas da Order, mas não subordinado ao cockpit da Order.
+
+4. Aduana / despachante
+
+Objetivo: controlar DUIMP, tributos e nacionalização.
+
+Processos pendentes
+→ Abrir ImportProcess
+→ Vincular Invoices e Shipments
+→ Registrar documentos e impostos
+→ Tratar divergências
+→ Nacionalizar total ou parcialmente
+→ Gerar movimentos de estoque
+
+Um processo aduaneiro poderá reunir múltiplas Invoices, sem transformar Order em contêiner universal.
+
+5. Estoque / operação
+
+Objetivo: saber o que está disponível e registrar movimentos.
+
+Posição de estoque
+→ Ver disponível, em trânsito e nacionalizado
+→ Abrir SKU ou lote
+→ Conferir origem da entrada
+→ Registrar movimento permitido
+→ Consultar histórico
+
+O saldo não será editável: será derivado dos movimentos de estoque.
+
+6. Gestor
+
+Objetivo: enxergar riscos e controlar fechamento.
+
+Workbench executivo
+→ Pendências financeiras, logísticas e aduaneiras
+→ Abrir fila ou objeto responsável
+→ Avaliar divergências e impactos
+→ Aprovar exceções autorizadas
+→ Revisar landed cost
+→ Fechar ou reabrir período/processo com justificativa
+
+A visão executiva deriva dos fluxos reais. Não haverá dashboard com números sem origem.
+
+7. Administrador
+
+Objetivo: governar acesso e rastreabilidade.
+
+Administração
+→ Usuários e papéis
+→ Conceder permissões
+→ Consultar auditoria
+→ Investigar ação crítica
+→ Manter saúde e configurações do sistema
+
+O administrador não deve corrigir manualmente saldos ou substituir operações de domínio.
+
+Jornada completa da operação
+Produto/SKU
+→ Order
+→ Invoice
+→ Payable
+→ Payment + Allocation
+→ FX
+
+OrderItem
+→ Shipment
+→ ImportProcess / DUIMP
+→ Nationalization
+→ InventoryMovement
+→ StockBalance
+
+Invoice + Shipment + Customs + Expenses + FX
+→ Landed Cost
+→ Reconciliation
+→ Closure
+
+Documents e Audit acompanham transversalmente todo o fluxo.
+
+Estado inicial versus sistema final
+
+A primeira versão visual profissional terá:
+
+Compras
+├── Pedidos
+└── Faturas
+
+Financeiro
+├── Contas a pagar
+├── Pagamentos
+└── Câmbio
+
+O shell já será desenhado para receber os demais módulos sem reconstrução, mas eles só aparecerão quando estiverem implementados.
+
+Resumo: input recebido — blueprint sucinto do produto final e jornadas por perfil. Ação proposta — usar esta arquitetura como visão macro aprovada antes de avançar para as três direções visuais e para o desenho detalhado das telas atuais.

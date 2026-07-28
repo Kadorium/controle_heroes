@@ -4,15 +4,16 @@ import { AppShell } from "./app-shell/AppShell";
 import { useAuth } from "./features/auth/useAuth";
 import { OrdersListPage } from "./features/orders/OrdersListPage";
 import { OrderCreatePage } from "./features/orders/OrderCreatePage";
-import { OrderDetailPage } from "./features/orders/OrderDetailPage";
 import { InvoiceDetailPage } from "./features/billing/InvoiceDetailPage";
 import { InvoicesListPage, PayablesListPage } from "./features/billing/InvoicesListPage";
+import { ApQueuePage } from "./features/billing/ApQueuePage";
 import {
   PaymentCreatePage,
   PaymentDetailPage,
   PaymentsListPage,
 } from "./features/treasury/PaymentsPages";
 import { PayableFxPage } from "./features/treasury/PayableFxPage";
+import { OrderCockpitPage } from "./features/orders/OrderCockpitPage";
 
 export function App() {
   const { user, loading, refresh } = useAuth();
@@ -20,6 +21,9 @@ export function App() {
   if (loading) {
     return <div className="page-center">Carregando…</div>;
   }
+
+  const useApQueue =
+    !!user && (user.role === "admin" || (user.permissions ?? []).includes("reporting:read"));
 
   return (
     <Routes>
@@ -34,10 +38,13 @@ export function App() {
         <Route index element={<Navigate to="/orders" replace />} />
         <Route path="orders" element={<OrdersListPage user={user!} />} />
         <Route path="orders/new" element={<OrderCreatePage user={user!} />} />
-        <Route path="orders/:orderId" element={<OrderDetailPage user={user!} />} />
+        <Route path="orders/:orderId" element={<OrderCockpitPage user={user!} />} />
         <Route path="invoices" element={<InvoicesListPage user={user!} />} />
         <Route path="invoices/:invoiceId" element={<InvoiceDetailPage user={user!} />} />
-        <Route path="payables" element={<PayablesListPage user={user!} />} />
+        <Route
+          path="payables"
+          element={useApQueue ? <ApQueuePage user={user!} /> : <PayablesListPage user={user!} />}
+        />
         <Route path="payables/:payableId/fx" element={<PayableFxPage user={user!} />} />
         <Route path="payments" element={<PaymentsListPage user={user!} />} />
         <Route path="payments/new" element={<PaymentCreatePage user={user!} />} />

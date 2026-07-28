@@ -19,6 +19,7 @@ from app.orders.routes import router as orders_router
 from app.billing.routes import router as billing_router
 from app.treasury.routes import router as treasury_router
 from app.treasury.fx_routes import router as treasury_fx_router
+from app.reporting.routes import router as reporting_router
 
 
 @asynccontextmanager
@@ -56,6 +57,7 @@ def create_app() -> FastAPI:
     application.include_router(billing_router, prefix="/api")
     application.include_router(treasury_router, prefix="/api")
     application.include_router(treasury_fx_router, prefix="/api")
+    application.include_router(reporting_router, prefix="/api")
     dist = settings.frontend_dist_path
     if dist.exists():
         assets = dist / "assets"

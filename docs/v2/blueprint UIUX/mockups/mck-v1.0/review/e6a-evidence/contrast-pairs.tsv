@@ -1,0 +1,23 @@
+Elemento	FG	BG	Razão	Tipo	≥4.5	≥3.0
+texto principal / canvas	#1A2332	#F4F6F8	14.57	texto	True	True
+muted / canvas	#5B6B7C	#F4F6F8	5.05	texto	True	True
+texto principal / surface	#1A2332	#FFFFFF	15.78	texto	True	True
+muted / surface	#5B6B7C	#FFFFFF	5.47	texto	True	True
+branco / accent	#FFFFFF	#1F4E79	8.66	texto	True	True
+danger / canvas	#B42318	#F4F6F8	6.07	texto	True	True
+warn / canvas	#B54708	#F4F6F8	5.01	texto	True	True
+side-text / sidebar	#E8EEF4	#1B2A41	12.36	texto	True	True
+side-muted / sidebar	#9AA8B8	#1B2A41	5.96	texto	True	True
+badge-ok-t / badge-ok	#067647	#E8F5EE	5.07	texto	True	True
+badge-over-t / badge-over	#B42318	#FCEBEA	5.70	texto	True	True
+badge-att-t / badge-att	#B54708	#FEF4E6	4.99	texto	True	True
+badge-open-t / badge-open	#1F4E79	#E8F1F8	7.58	texto	True	True
+badge-draft-t / badge-draft	#5B6B7C	#EEF2F6	4.86	texto	True	True
+badge-conf-t / badge-conf	#067647	#E8F5EE	5.07	texto	True	True
+danger / white	#B42318	#FFFFFF	6.57	texto	True	True
+warn / white	#B54708	#FFFFFF	5.43	texto	True	True
+warn on warnbox	#B54708	#FEF4E6	4.99	texto	True	True
+text on okbox	#1A2332	#E8F5EE	14.08	texto	True	True
+text on errbox	#1A2332	#FCEBEA	13.69	texto	True	True
+border D5DCE5 / white	#D5DCE5	#FFFFFF	1.38	UI	False	False
+border accent / white	#1F4E79	#FFFFFF	8.66	UI	True	True

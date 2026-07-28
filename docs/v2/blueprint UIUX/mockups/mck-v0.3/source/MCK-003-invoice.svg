@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="MCK-003 Fatura">
+  <title>MCK-003 — Fatura DRAFT (v0.3)</title>
+  <defs><style type="text/css"><![CDATA[
+.bg{fill:#F4F6F8}.surface{fill:#FFFFFF}.sidebar{fill:#1B2A41}.accent{fill:#1F4E79}
+.text{fill:#1A2332;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.muted{fill:#5B6B7C;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-text{fill:#E8EEF4;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-muted{fill:#9AA8B8;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.mono{font-family:'Cascadia Mono',Consolas,monospace}
+.border{stroke:#D5DCE5;stroke-width:1;fill:none}.hair{stroke:#E6EBF1;stroke-width:1}
+.row-focus{fill:#E8F1F8}.row-alt{fill:#FAFBFC}.danger{fill:#B42318}.warn{fill:#B54708}.white{fill:#FFFFFF}
+.badge-conf{fill:#E8F5EE}.badge-conf-t{fill:#067647}.badge-draft{fill:#EEF2F6}.badge-draft-t{fill:#5B6B7C}
+.badge-open{fill:#E8F1F8}.badge-open-t{fill:#1F4E79}.badge-part{fill:#FEF4E6}.badge-part-t{fill:#B54708}
+.badge-over{fill:#FCEBEA}.badge-over-t{fill:#B42318}.badge-att{fill:#FEF4E6}.badge-att-t{fill:#B54708}
+.badge-today{fill:#FEF4E6}.badge-today-t{fill:#B54708}.badge-ok{fill:#E8F5EE}.badge-ok-t{fill:#067647}
+.kpi-box{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.drawer-shade{fill:#1A2332;fill-opacity:.18}.drawer{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.btn-ghost{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}.input{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.filter-chip{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}.filter-chip-on{fill:#E8F1F8;stroke:#1F4E79;stroke-width:1}
+.close-hit{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}.panel{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.banner{fill:#E8F1F8;stroke:#1F4E79;stroke-width:1}.okbox{fill:#E8F5EE;stroke:#067647;stroke-width:1}
+.warnbox{fill:#FEF4E6;stroke:#B54708;stroke-width:1}.errbox{fill:#FCEBEA;stroke:#B42318;stroke-width:1}
+]]></style></defs>
+  <rect class="bg" width="1440" height="900"/>
+  
+  <rect class="sidebar" x="0" y="0" width="220" height="900"/>
+  <text class="side-text" x="24" y="36" font-size="15" font-weight="700">Epic Controle</text>
+  <text class="side-muted" x="24" y="54" font-size="11">V2 · Order-to-Pay</text>
+  <line x1="24" y1="68" x2="196" y2="68" stroke="#2F4158" stroke-width="1"/>
+  <text class="side-muted" x="24" y="96" font-size="11" font-weight="600" letter-spacing=".06em">COMPRAS</text>
+  <text class="side-muted" x="36" y="124" font-size="12.5">Pedidos</text>
+  <rect x="12" y="138" width="196" height="28" rx="4" fill="#243447"/><text class="side-text" x="36" y="152" font-size="12.5">Faturas</text>
+  <text class="side-muted" x="24" y="192" font-size="11" font-weight="600" letter-spacing=".06em">FINANCEIRO</text>
+  <text class="side-muted" x="36" y="220" font-size="12.5">Contas a pagar</text>
+  <text class="side-muted" x="36" y="248" font-size="12.5">Pagamentos</text>
+  <rect x="16" y="768" width="188" height="52" rx="6" fill="#243447"/>
+  <text class="side-muted" x="28" y="788" font-size="10">EUR / BRL</text>
+  <text class="side-text mono" x="28" y="808" font-size="13" font-weight="600">6,2180</text>
+  <text class="side-muted" x="118" y="808" font-size="10">desatualizado</text>
+  <text class="side-text" x="28" y="848" font-size="12.5" font-weight="600">Admin</text>
+  <text class="side-muted" x="28" y="870" font-size="12">Sair</text>
+
+  <text class="muted" x="244" y="28" font-size="12">Compras  /  Faturas  /  INV-H-8910</text>
+  <text class="text" x="244" y="56" font-size="22" font-weight="700">Fatura</text>
+  <text class="muted" x="244" y="76" font-size="12">INV-H-8910 · Rascunho · PO-2026-0181 · Heroes · EUR</text><rect class="badge-draft" x="244" y="92" width="68" height="20" rx="4"/><text class="badge-draft-t" x="278.0" y="106" font-size="10.5" font-weight="600" text-anchor="middle">Rascunho</text><rect class="badge-ok" x="322" y="92" width="88" height="20" rx="4"/><text class="badge-ok-t" x="366.0" y="106" font-size="10.5" font-weight="600" text-anchor="middle">Pronta p/ emitir</text><text class="muted" x="430" y="106" font-size="12">Documento anexado · blockers resolvidos · desconto NONE</text><rect class="btn-ghost" x="1040" y="88" width="100" height="32" rx="5"/><text class="text" x="1090" y="109" font-size="12" font-weight="600" text-anchor="middle">Salvar</text><rect class="accent" x="1152" y="88" width="120" height="32" rx="5"/><text class="white" x="1212" y="109" font-size="12" font-weight="600" text-anchor="middle">Emitir fatura</text><rect class="btn-ghost" x="1284" y="88" width="116" height="32" rx="5"/><text class="danger" x="1342" y="109" font-size="12" font-weight="600" text-anchor="middle">Cancelar rascunho</text><rect class="panel" x="244" y="140" width="1156" height="160" rx="6"/><text class="text" x="260" y="164" font-size="13" font-weight="700">Itens</text><text class="muted" x="260" y="178" font-size="11" font-weight="600">SKU</text><text class="muted" x="420" y="178" font-size="11" font-weight="600">Qtd</text><text class="muted" x="500" y="178" font-size="11" font-weight="600">Preço unit.</text><text class="muted" x="640" y="178" font-size="11" font-weight="600">Desconto</text><text class="muted" x="760" y="178" font-size="11" font-weight="600">Total líquido</text><text class="text mono" x="260" y="210" font-size="13">HR-BAG-015</text><text class="text mono" x="420" y="210" font-size="13">20</text><text class="text mono" x="500" y="210" font-size="13">EUR 28,00</text><text class="muted" x="640" y="210" font-size="13">NONE</text><text class="text mono" x="760" y="210" font-size="13" font-weight="700">EUR 560,00</text><text class="muted" x="260" y="250" font-size="12">Disponibilidade na Order: qty pedida 20 · faturada ISSUED 0 · disponível 20</text><text class="text" x="260" y="278" font-size="13" font-weight="600">Total da fatura: EUR 560,00</text><rect class="panel" x="244" y="320" width="560" height="280" rx="6"/><text class="text" x="260" y="344" font-size="13" font-weight="700">Condições de pagamento (50% / 50%)</text><text class="muted" x="260" y="360" font-size="12">Modo PERCENT · soma 100%</text><text class="text" x="260" y="396" font-size="13" font-weight="600">Parcela 1 · 50% · venc. 28/08/2026</text><text class="text mono" x="260" y="420" font-size="14">EUR 280,00</text><text class="text" x="260" y="460" font-size="13" font-weight="600">Parcela 2 · 50% · venc. 28/10/2026</text><text class="text mono" x="260" y="484" font-size="14">EUR 280,00</text><text class="muted" x="260" y="530" font-size="12">Obrigações ainda não existem — nascem na emissão.</text><text class="muted" x="260" y="560" font-size="12">Datas due_date conforme PaymentTerm do domínio.</text><rect class="panel" x="820" y="320" width="580" height="280" rx="6"/><text class="text" x="836" y="344" font-size="13" font-weight="700">Preview da emissão</text><text class="text" x="836" y="360" font-size="13" font-weight="700">Emitir esta fatura criará 2 obrigações:</text><text class="text mono" x="836" y="396" font-size="13">1. EUR 280,00 · venc. 28/08/2026</text><text class="text mono" x="836" y="424" font-size="13">2. EUR 280,00 · venc. 28/10/2026</text><text class="muted" x="836" y="464" font-size="12">Status passará a Emitida · comercial readonly.</text><text class="muted" x="836" y="492" font-size="12">Cancelamento disponível apenas em Rascunho.</text><rect class="okbox" x="836" y="520" width="528" height="48" rx="6"/><text class="text" x="852" y="550" font-size="12">Documento presente · sem blockers · pronto para Emitir.</text><rect class="panel" x="244" y="620" width="1156" height="120" rx="6"/><text class="text" x="260" y="644" font-size="13" font-weight="700">Documento e auditoria</text><text class="muted" x="260" y="660" font-size="12">draft-inv-8910.pdf · anexado · 25/07/2026</text><text class="muted" x="260" y="688" font-size="12">create Invoice · 25/07 · Admin · set_terms 50/50 · 25/07</text><text class="muted" x="260" y="716" font-size="12">A confirmação de emissão pede revisão das duas obrigações antes de concluir.</text>
+</svg>

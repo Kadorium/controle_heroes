@@ -26,7 +26,7 @@ INTERNAL_SUFFIXES = (
 )
 
 MODULE_PACKAGES = frozenset(
-    {"identity", "audit", "documents", "catalog", "orders", "billing", "treasury"}
+    {"identity", "audit", "documents", "catalog", "orders", "billing", "treasury", "reporting"}
 )
 
 ALLOWED_DEPS: dict[str, frozenset[str]] = {
@@ -37,6 +37,8 @@ ALLOWED_DEPS: dict[str, frozenset[str]] = {
     "orders": frozenset({"catalog", "documents", "audit"}),
     "billing": frozenset({"orders", "catalog", "documents", "audit"}),
     "treasury": frozenset({"billing", "catalog", "documents", "audit"}),
+    # Reporting: arestas validadas pelo uso real em queries.py (públicas apenas)
+    "reporting": frozenset({"orders", "billing", "treasury", "catalog", "documents", "audit"}),
 }
 
 # Arquivos de domínio que podem importar foundation (além de models→database)

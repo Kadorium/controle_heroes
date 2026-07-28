@@ -5,7 +5,8 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 
-from sqlalchemy import func, update
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.billing import public as billing_public
@@ -66,6 +67,17 @@ def get_current_plan(db: Session, payable_id: int) -> FxPlanRate | None:
     )
 
 
+def get_current_plans_bulk(db: Session, payable_ids: list[int]) -> dict[int, FxPlanRate]:
+    if not payable_ids:
+        return {}
+    rows = (
+        db.query(FxPlanRate)
+        .filter(FxPlanRate.payable_id.in_(payable_ids), FxPlanRate.is_current.is_(True))
+        .all()
+    )
+    return {r.payable_id: r for r in rows}
+
+
 def get_initial_plan(db: Session, payable_id: int) -> FxPlanRate | None:
     return (
         db.query(FxPlanRate)
@@ -114,7 +126,8 @@ def register_plan_rate(
             return existing
 
     try:
-        payable = billing_public.get_payable(db, payable_id)
+        # Serializa mutações de current por Payable (Billing public API)
+        payable = billing_public.get_payable_for_update(db, payable_id)
     except billing_public.BillingError as e:
         raise PaymentValidationError(getattr(e, "message", str(e))) from e
 
@@ -123,7 +136,12 @@ def register_plan_rate(
     if rate_d <= 0:
         raise PaymentValidationError("Taxa deve ser > 0")
 
-    current = get_current_plan(db, payable_id)
+    current = (
+        db.query(FxPlanRate)
+        .filter(FxPlanRate.payable_id == payable_id, FxPlanRate.is_current.is_(True))
+        .with_for_update()
+        .first()
+    )
     if kind == "INITIAL" and current is not None:
         raise PaymentValidationError("Payable já possui taxa projetada INITIAL/current")
     if kind == "CORRECTION" and supersedes_id is None and current is None:
@@ -150,7 +168,10 @@ def register_plan_rate(
         created_by_actor_id=str(created_by_actor_id).strip(),
     )
     db.add(row)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError as exc:
+        raise FxConflict("Já existe uma projeção current para este Payable") from exc
     return row
 
 
@@ -249,16 +270,23 @@ def link_execution_allocation(
     foreign_amount: str | Decimal | None = None,
     created_by_actor_id: str,
 ) -> FxExecutionAllocation:
-    execution = db.query(FxExecution).filter(FxExecution.id == fx_execution_id).first()
+    execution = (
+        db.query(FxExecution).filter(FxExecution.id == fx_execution_id).with_for_update().first()
+    )
     if not execution:
         raise FxNotFound(f"Execução FX #{fx_execution_id} não encontrada")
-    alloc = db.query(PaymentAllocation).filter(PaymentAllocation.id == payment_allocation_id).first()
+    alloc = (
+        db.query(PaymentAllocation)
+        .filter(PaymentAllocation.id == payment_allocation_id)
+        .with_for_update()
+        .first()
+    )
     if not alloc:
         raise FxNotFound(f"Allocation #{payment_allocation_id} não encontrada")
     if alloc.payment_id != execution.payment_id:
         raise PaymentValidationError("Execution e Allocation devem pertencer ao mesmo Payment")
 
-    # Inc-4A: one link per allocation
+    # Inc-4A: one link per allocation (schema N:M permanece aberto)
     existing_link = (
         db.query(FxExecutionAllocation)
         .filter(FxExecutionAllocation.payment_allocation_id == payment_allocation_id)
@@ -279,6 +307,15 @@ def link_execution_allocation(
     used = money2(Decimal(str(used_exec)))
     if used + fa > execution.foreign_amount:
         raise PaymentValidationError("Soma dos links excede foreign_amount da execução")
+
+    used_alloc = (
+        db.query(func.coalesce(func.sum(FxExecutionAllocation.foreign_amount), 0))
+        .filter(FxExecutionAllocation.payment_allocation_id == payment_allocation_id)
+        .scalar()
+    )
+    used_a = money2(Decimal(str(used_alloc)))
+    if used_a + fa > alloc.amount:
+        raise PaymentValidationError("Soma dos links excede amount da allocation")
 
     # pro-rata BRL
     ba = money2(execution.brl_amount * (fa / execution.foreign_amount))

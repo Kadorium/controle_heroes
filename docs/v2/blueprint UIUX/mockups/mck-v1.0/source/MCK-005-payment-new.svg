@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="MCK-005 Novo pagamento">
+  <title>MCK-005 — Novo pagamento (v1.0)</title>
+  <defs><style type="text/css"><![CDATA[
+.bg{fill:#F4F6F8}.surface{fill:#FFFFFF}.sidebar{fill:#1B2A41}.accent{fill:#1F4E79}
+.text{fill:#1A2332;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.muted{fill:#5B6B7C;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-text{fill:#E8EEF4;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-muted{fill:#9AA8B8;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.mono{font-family:'Cascadia Mono',Consolas,monospace}
+.border{stroke:#D5DCE5;stroke-width:1;fill:none}.hair{stroke:#E6EBF1;stroke-width:1}
+.row-focus{fill:#E8F1F8}.danger{fill:#B42318}.warn{fill:#B54708}.white{fill:#FFFFFF}
+.badge-conf{fill:#E8F5EE}.badge-conf-t{fill:#067647}.badge-draft{fill:#EEF2F6}.badge-draft-t{fill:#5B6B7C}
+.badge-open{fill:#E8F1F8}.badge-open-t{fill:#1F4E79}.badge-part{fill:#FEF4E6}.badge-part-t{fill:#B54708}
+.badge-over{fill:#FCEBEA}.badge-over-t{fill:#B42318}.badge-att{fill:#FEF4E6}.badge-att-t{fill:#B54708}
+.badge-ok{fill:#E8F5EE}.badge-ok-t{fill:#067647}
+.kpi-box{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.btn-ghost{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}.input{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.panel{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.banner{fill:#E8F1F8;stroke:#1F4E79;stroke-width:1}.okbox{fill:#E8F5EE;stroke:#067647;stroke-width:1}
+.warnbox{fill:#FEF4E6;stroke:#B54708;stroke-width:1}.errbox{fill:#FCEBEA;stroke:#B42318;stroke-width:1}
+.edit{fill:#FFFFFF;stroke:#1F4E79;stroke-width:1.5}
+]]></style></defs>
+  <rect class="bg" width="1440" height="900"/>
+  <rect class="sidebar" x="0" y="0" width="220" height="900"/>
+  <text class="side-text" x="24" y="36" font-size="15" font-weight="700">Epic Controle</text>
+  <text class="side-muted" x="24" y="54" font-size="11">V2 · Order-to-Pay</text>
+  <line x1="24" y1="68" x2="196" y2="68" stroke="#2F4158" stroke-width="1"/>
+  <text class="side-muted" x="24" y="96" font-size="11" font-weight="600" letter-spacing=".06em">COMPRAS</text>
+  <text class="side-muted" x="36" y="124" font-size="12.5">Pedidos</text>
+  <text class="side-muted" x="36" y="152" font-size="12.5">Faturas</text>
+  <text class="side-muted" x="24" y="192" font-size="11" font-weight="600" letter-spacing=".06em">FINANCEIRO</text>
+  <text class="side-muted" x="36" y="220" font-size="12.5">Contas a pagar</text>
+  <rect x="12" y="234" width="196" height="28" rx="4" fill="#243447"/><text class="side-text" x="36" y="248" font-size="12.5">Pagamentos</text>
+  <rect x="16" y="768" width="188" height="52" rx="6" fill="#243447"/>
+  <text class="side-muted" x="28" y="788" font-size="10">EUR / BRL</text>
+  <text class="side-text mono" x="28" y="808" font-size="13" font-weight="600">6,2180</text>
+  <text class="side-muted" x="118" y="808" font-size="10">desatualizado</text>
+  <text class="side-text" x="28" y="848" font-size="12.5" font-weight="600">Admin</text>
+  <text class="side-muted" x="28" y="870" font-size="12">Sair</text>
+
+  <text class="muted" x="244" y="28" font-size="12">Financeiro  /  Pagamentos  /  Novo</text>
+  <text class="text" x="244" y="56" font-size="22" font-weight="700">Novo pagamento</text>
+  <text class="muted" x="244" y="76" font-size="12">Origem: contas a pagar · PY-8841-2 · saldo EUR 1.220,00</text>
+  <rect class="banner" x="244" y="92" width="1156" height="100" rx="6"/>
+  <text class="text" x="260" y="118" font-size="13" font-weight="700">Origem: obrigação PY-8841-2</text>
+  <text class="muted" x="260" y="142" font-size="12">Pedido PO-2026-0181 · Fatura INV-H-8841 · Heroes · EUR</text>
+  <text class="muted" x="260" y="166" font-size="12">Saldo da obrigação: EUR 1.220,00 · Valor sugerido: EUR 700,00</text>
+  <text fill="#1F4E79" x="1260" y="142" font-size="12">Voltar à AP ›</text>
+  <rect class="panel" x="244" y="212" width="620" height="460" rx="6"/>
+  <text class="text" x="260" y="236" font-size="13" font-weight="700">Dados do pagamento</text>
+  <text class="muted" x="260" y="262" font-size="11">Fornecedor</text>
+  <rect class="input" x="260" y="270" width="560" height="32" rx="4"/>
+  <text class="text" x="272" y="291" font-size="13">Heroes</text>
+  <text class="muted" x="260" y="326" font-size="11">Moeda</text>
+  <rect class="input" x="260" y="334" width="200" height="32" rx="4"/>
+  <text class="text" x="272" y="355" font-size="13">EUR</text>
+  <text class="muted" x="500" y="326" font-size="11">Valor</text>
+  <rect class="input" x="500" y="334" width="200" height="32" rx="4"/>
+  <text class="text mono" x="512" y="355" font-size="13">700,00</text>
+  <text class="muted" x="260" y="390" font-size="11">Data</text>
+  <rect class="input" x="260" y="398" width="200" height="32" rx="4"/>
+  <text class="text mono" x="272" y="419" font-size="13">28/07/2026</text>
+  <text class="muted" x="500" y="390" font-size="11">Referência</text>
+  <rect class="input" x="500" y="398" width="320" height="32" rx="4"/>
+  <text class="text" x="512" y="419" font-size="13">WT-8891</text>
+  <text class="muted" x="260" y="454" font-size="11">Comprovante</text>
+  <rect class="input" x="260" y="462" width="560" height="32" rx="4"/>
+  <text class="text" x="272" y="483" font-size="13">comprovante-wt-8891.pdf</text>
+  <text class="muted" x="260" y="520" font-size="11">O identificador do pagamento só aparece depois do registro.</text>
+  <text class="muted" x="260" y="544" font-size="11">Informe fornecedor, data, valor, moeda, referência e comprovante.</text>
+  <rect class="panel" x="884" y="212" width="516" height="300" rx="6"/>
+  <text class="text" x="900" y="236" font-size="13" font-weight="700">Importante</text>
+  <rect class="warnbox" x="900" y="252" width="484" height="88" rx="6"/>
+  <text class="text" x="916" y="280" font-size="13" font-weight="600">Registrar o pagamento não reduz o saldo da obrigação.</text>
+  <text class="text" x="916" y="308" font-size="13">A liquidação ocorre na etapa de alocação.</text>
+  <text class="muted" x="900" y="370" font-size="12">Depois de registrar, você poderá alocar o valor às obrigações elegíveis.</text>
+  <text class="muted" x="900" y="400" font-size="12">O saldo de PY-8841-2 permanece EUR 1.220,00 até a alocação.</text>
+  <rect class="accent" x="900" y="440" width="220" height="40" rx="5"/>
+  <text class="white" x="1010" y="465" font-size="13" font-weight="600" text-anchor="middle">Registrar pagamento</text>
+
+</svg>

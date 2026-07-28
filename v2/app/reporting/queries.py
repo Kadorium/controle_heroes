@@ -1,0 +1,326 @@
+"""Consultas compostas Reporting — só APIs públicas de outros módulos."""
+
+from __future__ import annotations
+
+from datetime import date, datetime, timezone
+from decimal import Decimal
+from typing import Any
+
+from sqlalchemy.orm import Session
+
+from app.audit import public as audit_public
+from app.billing import public as billing_public
+from app.catalog import public as catalog_public
+from app.documents import public as documents_public
+from app.orders import public as orders_public
+from app.treasury import public as treasury_public
+
+COCKPIT_LIST_LIMIT = 10
+COCKPIT_DOC_LIMIT = 5
+COCKPIT_AUDIT_LIMIT = 10
+
+
+def _money2(v: Decimal | None) -> str | None:
+    if v is None:
+        return None
+    return f"{Decimal(v):.2f}"
+
+
+def ap_queue(
+    db: Session,
+    *,
+    due_before: date | None = None,
+    due_after: date | None = None,
+    supplier_id: int | None = None,
+    order_id: int | None = None,
+    invoice_id: int | None = None,
+    currency: str | None = None,
+    status: str | None = None,
+    pending: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """Fila AP enriquecida (FX via Treasury public, bulk)."""
+    core = billing_public.payables_queue(
+        db,
+        due_before=due_before,
+        due_after=due_after,
+        supplier_id=supplier_id,
+        order_id=order_id,
+        invoice_id=invoice_id,
+        currency=currency,
+        status=status,
+        pending=pending,
+        limit=limit,
+        offset=offset,
+    )
+    items = core["items"]
+    payable_ids = [int(r["id"]) for r in items]
+    supplier_ids = {int(r["supplier_id"]) for r in items if r.get("supplier_id") is not None}
+    # Uma operação bulk (não get_supplier por linha / por id)
+    suppliers = catalog_public.get_suppliers_bulk(db, supplier_ids)
+
+    plans = treasury_public.fx.get_current_plans_bulk(db, payable_ids)
+    quote = treasury_public.fx.get_latest_quote(db, "EUR", "BRL")
+    market = None
+    if quote:
+        market = {
+            "rate": str(quote.rate),
+            "source": quote.source,
+            "status": treasury_public.fx.quote_status(quote),
+            "stale": quote.stale_after < datetime.now(timezone.utc),
+        }
+
+    enriched = []
+    for row in items:
+        pid = int(row["id"])
+        plan = plans.get(pid)
+        bal = Decimal(str(row["balance"]))
+        projected_rate = str(plan.rate) if plan else None
+        projected_brl = _money2(bal * plan.rate) if plan else None
+        pendencies: list[str] = []
+        if row["status"] in ("OPEN", "PARTIALLY_PAID") and row.get("due_date"):
+            if date.fromisoformat(row["due_date"]) < date.today():
+                pendencies.append("OVERDUE")
+        if projected_rate is None and row["status"] != "CANCELLED" and row.get("currency") != "BRL":
+            pendencies.append("MISSING_FX")
+        sid = int(row["supplier_id"]) if row.get("supplier_id") is not None else None
+        supplier = suppliers.get(sid) if sid is not None else None
+        enriched.append(
+            {
+                **row,
+                "supplier_name": supplier.name if supplier else None,
+                "supplier_resolved": supplier is not None,
+                "fx_projected_rate": projected_rate,
+                "fx_projected_brl": projected_brl,
+                "pendencies": pendencies,
+            }
+        )
+
+    unallocated_candidates = _unallocated_candidates(db, enriched)
+    return {
+        "items": enriched,
+        "total": core["total"],
+        "limit": core["limit"],
+        "offset": core["offset"],
+        "kpis": {
+            **core["kpis"],
+            "unallocated_candidates_count": len(unallocated_candidates),
+            "unallocated_candidates_total": _money2(
+                sum((Decimal(c["amount_unallocated"]) for c in unallocated_candidates), Decimal("0"))
+            )
+            if unallocated_candidates
+            else "0.00",
+        },
+        "market_quote": market,
+        "unallocated_candidates": unallocated_candidates,
+        "sort": "overdue_first,due_date_asc,id_asc",
+        "note": "unallocated_candidates are NOT payment↔payable relations; paid uses allocations only",
+    }
+
+
+def _unallocated_candidates(db: Session, rows: list[dict]) -> list[dict[str, Any]]:
+    pairs = {(int(r["supplier_id"]), r["currency"]) for r in rows if r.get("supplier_id")}
+    out: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for supplier_id, currency in pairs:
+        payments = treasury_public.list_payments(
+            db, supplier_id=supplier_id, currency=currency, limit=50, offset=0
+        )
+        for p in payments:
+            if p.id in seen or p.status != "REGISTERED":
+                continue
+            residual = treasury_public.amount_unallocated(db, p)
+            if residual <= 0:
+                continue
+            seen.add(p.id)
+            out.append(
+                {
+                    "payment_id": p.id,
+                    "supplier_id": p.supplier_id,
+                    "currency": p.currency,
+                    "amount": str(p.amount),
+                    "amount_unallocated": f"{residual:.2f}",
+                    "relation": False,
+                    "role": "candidate_by_supplier_currency",
+                }
+            )
+    return out[:20]
+
+
+def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
+    """Read model transversal — payload limitado."""
+    order = orders_public.get_order(db, order_id)
+    commercial_totals = orders_public.totals_as_strings(order)
+    suppliers = catalog_public.get_suppliers_bulk(db, {order.supplier_id})
+    supplier = suppliers.get(order.supplier_id)
+    supplier_name = supplier.name if supplier else None
+
+    invoices = billing_public.list_invoices(db, order_id=order_id, limit=COCKPIT_LIST_LIMIT, offset=0)
+    inv_summaries = [
+        {
+            "id": inv.id,
+            "invoice_number": inv.invoice_number,
+            "status": inv.status,
+            "currency": inv.currency,
+            "type": inv.invoice_type,
+        }
+        for inv in invoices
+    ]
+
+    payable_rows = billing_public.list_payables(db, order_id=order_id, limit=200, offset=0)
+    payable_ids = [p.id for p in payable_rows if p.status != "CANCELLED"]
+    plans = treasury_public.fx.get_current_plans_bulk(db, payable_ids)
+
+    invoiced = Decimal("0")
+    open_balance = Decimal("0")
+    paid_via_alloc = Decimal("0")
+    next_due: date | None = None
+    pay_summaries = []
+    fx_exposure_open = Decimal("0")
+    missing_fx = False
+
+    for p in payable_rows:
+        if p.status == "CANCELLED":
+            continue
+        invoiced += p.amount
+        open_balance += p.balance
+        paid_via_alloc += p.amount - p.balance
+        if p.status in ("OPEN", "PARTIALLY_PAID"):
+            if next_due is None or p.due_date < next_due:
+                next_due = p.due_date
+            fx_exposure_open += p.balance
+            if p.currency != "BRL" and p.id not in plans:
+                missing_fx = True
+        pay_summaries.append(
+            {
+                "id": p.id,
+                "invoice_id": p.invoice_id,
+                "due_date": p.due_date.isoformat(),
+                "amount": str(p.amount),
+                "balance": str(p.balance),
+                "status": p.status,
+                "currency": p.currency,
+            }
+        )
+
+    # Realized FX sum — only for payables that have valuation (via fx_view; bounded)
+    fx_realized_total = Decimal("0")
+    for p in payable_rows[:COCKPIT_LIST_LIMIT]:
+        if p.status == "CANCELLED":
+            continue
+        view = treasury_public.fx_queries.payable_fx_view(db, p.id)
+        if view.get("realized_result_vs_reference") is not None:
+            fx_realized_total += Decimal(str(view["realized_result_vs_reference"]))
+
+    payments = treasury_public.list_payments(
+        db, supplier_id=order.supplier_id, currency=order.currency, limit=COCKPIT_LIST_LIMIT, offset=0
+    )
+    payment_summaries = []
+    unallocated_candidates = []
+    for pay in payments:
+        residual = treasury_public.amount_unallocated(db, pay)
+        payment_summaries.append(
+            {
+                "id": pay.id,
+                "amount": str(pay.amount),
+                "currency": pay.currency,
+                "status": pay.status,
+                "amount_unallocated": f"{residual:.2f}",
+            }
+        )
+        if residual > 0 and pay.status == "REGISTERED":
+            unallocated_candidates.append(
+                {
+                    "payment_id": pay.id,
+                    "amount_unallocated": f"{residual:.2f}",
+                    "relation": False,
+                    "role": "candidate_by_supplier_currency",
+                }
+            )
+
+    docs = list(documents_public.list_by_entity(db, "order", str(order_id))[:COCKPIT_DOC_LIMIT])
+    for inv in invoices[:3]:
+        docs.extend(documents_public.list_by_entity(db, "invoice", str(inv.id))[:2])
+    doc_summaries = [
+        {
+            "id": d.id,
+            "filename": d.original_filename,
+            "created_at": d.created_at.isoformat() if d.created_at else None,
+        }
+        for d in docs[:COCKPIT_DOC_LIMIT]
+    ]
+
+    audit_rows = audit_public.history_by_entity(db, "order", str(order_id), limit=COCKPIT_AUDIT_LIMIT)
+    audit_summaries = [
+        {
+            "id": a.id,
+            "action": a.action,
+            "actor_id": a.actor_id,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in audit_rows
+    ]
+
+    alerts: list[dict[str, str]] = []
+    if any(p.status in ("OPEN", "PARTIALLY_PAID") and p.due_date < date.today() for p in payable_rows):
+        alerts.append(
+            {"code": "OVERDUE", "message": "Há payables vencidos", "href": f"/payables?order_id={order_id}"}
+        )
+    if unallocated_candidates:
+        alerts.append(
+            {
+                "code": "UNALLOCATED_CANDIDATE",
+                "message": "Pagamentos com residual (candidatos — não relação com a ordem)",
+                "href": "/payments",
+            }
+        )
+    if missing_fx:
+        alerts.append(
+            {"code": "MISSING_FX", "message": "Payable sem taxa projetada", "href": f"/payables?order_id={order_id}"}
+        )
+
+    return {
+        "order_id": order.id,
+        "commercial": {
+            "code": order.code,
+            "status": order.status,
+            "supplier_id": order.supplier_id,
+            "supplier_name": supplier_name,
+            "currency": order.currency,
+            "totals": commercial_totals,
+            "items_count": len(order.items),
+            "updated_at": order.updated_at.isoformat() if order.updated_at else None,
+        },
+        "billing": {
+            "invoices": inv_summaries,
+            "invoices_count": len(inv_summaries),
+            "payables": pay_summaries[:COCKPIT_LIST_LIMIT],
+            "payables_count": len(pay_summaries),
+            "invoiced_amount": f"{invoiced:.2f}",
+            "open_balance": f"{open_balance:.2f}",
+            "next_due_date": next_due.isoformat() if next_due else None,
+        },
+        "treasury": {
+            "paid_via_allocations": f"{paid_via_alloc:.2f}",
+            "payments": payment_summaries,
+            "unallocated_candidates": unallocated_candidates,
+            "note": "paid_via_allocations = Σ(amount−balance) from Payables (allocations). Candidates ≠ relations.",
+        },
+        "fx": {
+            "open_foreign_exposure": f"{fx_exposure_open:.2f}",
+            "realized_result_vs_reference_sum": f"{fx_realized_total:.2f}",
+        },
+        "documents": {"items": doc_summaries, "count": len(doc_summaries), "truncated": True},
+        "audit": {"items": audit_summaries, "count": len(audit_summaries), "truncated": True},
+        "alerts": alerts,
+        "kpis": {
+            "ordered": commercial_totals.get("commercial_total"),
+            "invoiced": f"{invoiced:.2f}",
+            "paid": f"{paid_via_alloc:.2f}",
+            "balance": f"{open_balance:.2f}",
+            "next_due": next_due.isoformat() if next_due else None,
+            "fx_exposure": f"{fx_exposure_open:.2f}",
+            "fx_realized": f"{fx_realized_total:.2f}",
+        },
+    }

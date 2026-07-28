@@ -7,52 +7,63 @@ type Props = {
   onLogout: () => Promise<void> | void;
 };
 
+function can(user: User, perm: string) {
+  return user.role === "admin" || (user.permissions ?? []).includes(perm);
+}
+
 export function AppShell({ user, onLogout }: Props) {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     await onLogout();
   }
 
-  const canOrders = user.role === "admin" || user.permissions.includes("orders:read");
-  const canBilling = user.role === "admin" || user.permissions.includes("billing:read");
-  const canTreasury = user.role === "admin" || user.permissions.includes("treasury:read");
+  const canOrders = can(user, "orders:read");
+  const canBilling = can(user, "billing:read");
+  const canTreasury = can(user, "treasury:read");
+  const canReporting = can(user, "reporting:read");
 
   return (
-    <div className="shell">
-      <header className="shell-header">
+    <div className="shell shell-sidebar-layout">
+      <aside className="shell-sidebar" aria-label="Navegação">
         <div className="shell-brand">
-          <strong>Epic Controle V2</strong>
+          <strong>Epic Controle</strong>
           <div className="shell-user">
             {user.name} · {user.role}
           </div>
         </div>
-        <nav className="shell-nav" aria-label="Principal">
+        <nav className="shell-side-nav">
           {canOrders ? (
-            <>
+            <div className="nav-group">
+              <div className="nav-group-title">Ordens</div>
               <NavLink to="/orders" end>
-                Ordens
+                Fila
               </NavLink>
-              {(user.role === "admin" || user.permissions.includes("orders:write")) && (
-                <NavLink to="/orders/new">Nova ordem</NavLink>
-              )}
-            </>
+              {can(user, "orders:write") ? <NavLink to="/orders/new">Nova</NavLink> : null}
+            </div>
           ) : null}
-          {canBilling ? (
-            <>
-              <NavLink to="/invoices">Faturas</NavLink>
-              <NavLink to="/payables">Payables</NavLink>
-            </>
+          {canBilling || canTreasury || canReporting ? (
+            <div className="nav-group">
+              <div className="nav-group-title">Financeiro</div>
+              {canReporting || canBilling ? (
+                <NavLink to="/payables">{canReporting ? "Contas a pagar" : "Payables"}</NavLink>
+              ) : null}
+              {canBilling ? <NavLink to="/invoices">Faturas</NavLink> : null}
+              {canTreasury ? <NavLink to="/payments">Pagamentos</NavLink> : null}
+            </div>
           ) : null}
-          {canTreasury ? <NavLink to="/payments">Pagamentos</NavLink> : null}
         </nav>
-        <FxQuoteStrip user={user} />
-        <button type="button" onClick={() => void logout()}>
-          Sair
-        </button>
-      </header>
-      <main className="shell-main">
-        <Outlet />
-      </main>
+        <div className="shell-side-footer">
+          <FxQuoteStrip user={user} />
+          <button type="button" className="btn" onClick={() => void logout()}>
+            Sair
+          </button>
+        </div>
+      </aside>
+      <div className="shell-content">
+        <main className="shell-main">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

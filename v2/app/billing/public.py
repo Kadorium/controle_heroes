@@ -13,6 +13,7 @@ from app.billing.liquidation import apply_payable_allocations, list_eligible_pay
 from app.billing.queries import (
     get_invoice,
     get_payable,
+    get_payable_for_update,
     invoice_totals_as_strings,
     issue_blockers,
     item_amounts_as_strings,
@@ -20,6 +21,7 @@ from app.billing.queries import (
     list_payables,
     order_invoiced_quantities,
     order_qty_availability,
+    payables_queue,
     preview_payables,
 )
 
@@ -33,8 +35,10 @@ __all__ = [
     "cancel_draft",
     "get_invoice",
     "get_payable",
+    "get_payable_for_update",
     "list_invoices",
     "list_payables",
+    "payables_queue",
     "item_amounts_as_strings",
     "invoice_totals_as_strings",
     "preview_payables",

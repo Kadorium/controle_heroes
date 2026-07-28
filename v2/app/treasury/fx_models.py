@@ -9,11 +9,13 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,6 +29,13 @@ class FxPlanRate(Base):
         CheckConstraint("rate > 0", name="ck_fx_plan_rate_positive"),
         CheckConstraint("base_currency = 'BRL'", name="ck_fx_plan_base_brl"),
         UniqueConstraint("payable_id", "idempotency_key", name="uq_fx_plan_idempotency"),
+        # Uma projeção current por Payable (schema; app também serializa via lock)
+        Index(
+            "uq_fx_plan_one_current_per_payable",
+            "payable_id",
+            unique=True,
+            postgresql_where=text("is_current IS TRUE"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

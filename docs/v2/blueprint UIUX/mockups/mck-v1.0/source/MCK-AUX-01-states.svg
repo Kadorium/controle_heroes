@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="MCK-AUX-01 Estados">
+  <title>MCK-AUX-01 — Estados (v1.0)</title>
+  <defs><style type="text/css"><![CDATA[
+.bg{fill:#F4F6F8}.surface{fill:#FFFFFF}.sidebar{fill:#1B2A41}.accent{fill:#1F4E79}
+.text{fill:#1A2332;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.muted{fill:#5B6B7C;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-text{fill:#E8EEF4;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-muted{fill:#9AA8B8;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.mono{font-family:'Cascadia Mono',Consolas,monospace}
+.border{stroke:#D5DCE5;stroke-width:1;fill:none}.hair{stroke:#E6EBF1;stroke-width:1}
+.row-focus{fill:#E8F1F8}.danger{fill:#B42318}.warn{fill:#B54708}.white{fill:#FFFFFF}
+.badge-conf{fill:#E8F5EE}.badge-conf-t{fill:#067647}.badge-draft{fill:#EEF2F6}.badge-draft-t{fill:#5B6B7C}
+.badge-open{fill:#E8F1F8}.badge-open-t{fill:#1F4E79}.badge-part{fill:#FEF4E6}.badge-part-t{fill:#B54708}
+.badge-over{fill:#FCEBEA}.badge-over-t{fill:#B42318}.badge-att{fill:#FEF4E6}.badge-att-t{fill:#B54708}
+.badge-ok{fill:#E8F5EE}.badge-ok-t{fill:#067647}
+.kpi-box{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.btn-ghost{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}.input{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.panel{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.banner{fill:#E8F1F8;stroke:#1F4E79;stroke-width:1}.okbox{fill:#E8F5EE;stroke:#067647;stroke-width:1}
+.warnbox{fill:#FEF4E6;stroke:#B54708;stroke-width:1}.errbox{fill:#FCEBEA;stroke:#B42318;stroke-width:1}
+.edit{fill:#FFFFFF;stroke:#1F4E79;stroke-width:1.5}
+]]></style></defs>
+  <rect class="bg" width="1440" height="900"/>
+  <rect class="sidebar" x="0" y="0" width="220" height="900"/>
+  <text class="side-text" x="24" y="36" font-size="15" font-weight="700">Epic Controle</text>
+  <text class="side-muted" x="24" y="54" font-size="11">V2 · Order-to-Pay</text>
+  <line x1="24" y1="68" x2="196" y2="68" stroke="#2F4158" stroke-width="1"/>
+  <text class="side-muted" x="24" y="96" font-size="11" font-weight="600" letter-spacing=".06em">COMPRAS</text>
+  <rect x="12" y="110" width="196" height="28" rx="4" fill="#243447"/><text class="side-text" x="36" y="124" font-size="12.5">Pedidos</text>
+  <text class="side-muted" x="36" y="152" font-size="12.5">Faturas</text>
+  <text class="side-muted" x="24" y="192" font-size="11" font-weight="600" letter-spacing=".06em">FINANCEIRO</text>
+  <text class="side-muted" x="36" y="220" font-size="12.5">Contas a pagar</text>
+  <text class="side-muted" x="36" y="248" font-size="12.5">Pagamentos</text>
+  <rect x="16" y="768" width="188" height="52" rx="6" fill="#243447"/>
+  <text class="side-muted" x="28" y="788" font-size="10">EUR / BRL</text>
+  <text class="side-text mono" x="28" y="808" font-size="13" font-weight="600">6,2180</text>
+  <text class="side-muted" x="118" y="808" font-size="10">desatualizado</text>
+  <text class="side-text" x="28" y="848" font-size="12.5" font-weight="600">Admin</text>
+  <text class="side-muted" x="28" y="870" font-size="12">Sair</text>
+
+  <text class="muted" x="244" y="28" font-size="12">Referência  /  Estados auxiliares</text>
+  <text class="text" x="244" y="56" font-size="22" font-weight="700">Estados essenciais</text>
+  <text class="muted" x="244" y="76" font-size="12">Família visual · recuperação · sem fluxos novos</text>
+
+  <rect class="okbox" x="244" y="100" width="460" height="160" rx="8"/>
+  <text class="text" x="264" y="132" font-size="14" font-weight="700">Confirmar emissão</text>
+  <text class="muted" x="264" y="160" font-size="12">Emitir INV-H-8910 cria 2 obrigações de EUR 280,00. Confirmar?</text>
+  <rect class="accent" x="264" y="184" width="130" height="32" rx="5"/>
+  <text class="white" x="329" y="205" font-size="12" font-weight="600" text-anchor="middle">Emitir fatura</text>
+  <rect class="btn-ghost" x="410" y="184" width="90" height="32" rx="5"/>
+  <text class="text" x="455" y="205" font-size="12" font-weight="600" text-anchor="middle">Voltar</text>
+  <text class="muted" x="264" y="240" font-size="11">SCR-007 · FLW-002</text>
+
+  <rect class="okbox" x="740" y="100" width="460" height="160" rx="8"/>
+  <text class="text" x="760" y="132" font-size="14" font-weight="700">Confirmar alocação</text>
+  <text class="muted" x="760" y="160" font-size="12">Alocar EUR 700,00 → PY-8841-2. Saldo → 520,00. Residual → 0.</text>
+  <rect class="accent" x="760" y="184" width="160" height="32" rx="5"/>
+  <text class="white" x="840" y="205" font-size="12" font-weight="600" text-anchor="middle">Confirmar alocação</text>
+  <rect class="btn-ghost" x="936" y="184" width="90" height="32" rx="5"/>
+  <text class="text" x="981" y="205" font-size="12" font-weight="600" text-anchor="middle">Voltar</text>
+  <text class="muted" x="760" y="240" font-size="11">SCR-012 · FLW-004</text>
+
+  <rect class="okbox" x="244" y="280" width="460" height="160" rx="8"/>
+  <text class="text" x="264" y="312" font-size="14" font-weight="700">Pagamento registrado</text>
+  <text class="muted" x="264" y="340" font-size="12">PAY-2026-0043 registrado. Residual disponível: EUR 700,00.</text>
+  <text class="muted" x="264" y="362" font-size="12">Saldo de PY-8841-2: EUR 1.220,00.</text>
+  <rect class="accent" x="264" y="384" width="160" height="32" rx="5"/>
+  <text class="white" x="344" y="405" font-size="12" font-weight="600" text-anchor="middle">Alocar pagamento</text>
+  <text class="muted" x="264" y="430" font-size="11">T1 · SCR-011 · FLW-003</text>
+
+  <rect class="okbox" x="740" y="280" width="460" height="160" rx="8"/>
+  <text class="text" x="760" y="312" font-size="14" font-weight="700">Alocação confirmada</text>
+  <text class="muted" x="760" y="340" font-size="12">PAY-2026-0043 residual: EUR 0,00.</text>
+  <text class="muted" x="760" y="362" font-size="12">PY-8841-2 saldo: EUR 520,00 · parcialmente pago.</text>
+  <rect class="btn-ghost" x="760" y="384" width="140" height="32" rx="5"/>
+  <text class="text" x="830" y="405" font-size="12" font-weight="600" text-anchor="middle">Ver pagamento</text>
+  <text class="muted" x="760" y="430" font-size="11">T3 · SCR-012 · FLW-004</text>
+
+  <rect class="errbox" x="244" y="460" width="280" height="180" rx="8"/>
+  <text class="text" x="260" y="492" font-size="13" font-weight="700">Conflito</text>
+  <text class="muted" x="260" y="520" font-size="12">Os dados mudaram. Recarregue e tente novamente.</text>
+  <rect class="accent" x="260" y="552" width="110" height="32" rx="5"/>
+  <text class="white" x="315" y="573" font-size="12" font-weight="600" text-anchor="middle">Recarregar</text>
+  <text class="muted" x="260" y="610" font-size="11">SCR-012 · 409</text>
+
+  <rect class="errbox" x="544" y="460" width="280" height="180" rx="8"/>
+  <text class="text" x="560" y="492" font-size="13" font-weight="700">Acesso negado</text>
+  <text class="muted" x="560" y="520" font-size="12">Você não tem permissão para acessar esta página.</text>
+  <rect class="btn-ghost" x="560" y="552" width="90" height="32" rx="5"/>
+  <text class="text" x="605" y="573" font-size="12" font-weight="600" text-anchor="middle">Voltar</text>
+  <text class="muted" x="560" y="610" font-size="11">403 · deep link</text>
+
+  <rect class="panel" x="844" y="460" width="270" height="180" rx="8"/>
+  <text class="text" x="860" y="492" font-size="13" font-weight="700">Sem resultados</text>
+  <text class="muted" x="860" y="520" font-size="12">Nenhuma obrigação com os filtros atuais.</text>
+  <rect class="btn-ghost" x="860" y="552" width="120" height="32" rx="5"/>
+  <text class="text" x="920" y="573" font-size="12" font-weight="600" text-anchor="middle">Limpar filtros</text>
+  <text class="muted" x="860" y="610" font-size="11">SCR-008</text>
+
+  <rect class="warnbox" x="1134" y="460" width="266" height="180" rx="8"/>
+  <text class="text" x="1150" y="492" font-size="13" font-weight="700">Cotação indisponível</text>
+  <text class="muted" x="1150" y="516" font-size="11">Atualização falhou.</text>
+  <text class="muted" x="1150" y="536" font-size="11">Mantém a cotação anterior,</text>
+  <text class="muted" x="1150" y="556" font-size="11">se existir.</text>
+  <rect class="btn-ghost" x="1150" y="572" width="120" height="32" rx="5"/>
+  <text class="text" x="1210" y="593" font-size="12" font-weight="600" text-anchor="middle">Tentar de novo</text>
+  <text class="muted" x="1150" y="622" font-size="11">SCR-009</text>
+
+</svg>

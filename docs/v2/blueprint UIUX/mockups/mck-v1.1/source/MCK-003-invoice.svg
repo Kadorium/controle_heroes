@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="MCK-003 Fatura">
+  <title>MCK-003 — Fatura (v1.1)</title>
+  <defs><style type="text/css"><![CDATA[
+.bg{fill:#F4F6F8}.surface{fill:#FFFFFF}.sidebar{fill:#1B2A41}.accent{fill:#1F4E79}
+.text{fill:#1A2332;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.muted{fill:#5B6B7C;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-text{fill:#E8EEF4;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.side-muted{fill:#9AA8B8;font-family:'Segoe UI',Calibri,Arial,sans-serif}
+.mono{font-family:'Cascadia Mono',Consolas,monospace}
+.border{stroke:#D5DCE5;stroke-width:1;fill:none}.hair{stroke:#E6EBF1;stroke-width:1}
+.row-focus{fill:#E8F1F8}.danger{fill:#B42318}.warn{fill:#B54708}.white{fill:#FFFFFF}
+.badge-conf{fill:#E8F5EE}.badge-conf-t{fill:#067647}.badge-draft{fill:#EEF2F6}.badge-draft-t{fill:#5B6B7C}
+.badge-open{fill:#E8F1F8}.badge-open-t{fill:#1F4E79}.badge-part{fill:#FEF4E6}.badge-part-t{fill:#B54708}
+.badge-over{fill:#FCEBEA}.badge-over-t{fill:#B42318}.badge-att{fill:#FEF4E6}.badge-att-t{fill:#B54708}
+.badge-ok{fill:#E8F5EE}.badge-ok-t{fill:#067647}
+.kpi-box{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.btn-ghost{fill:#FFFFFF;stroke:#818C9C;stroke-width:1}.input{fill:#FFFFFF;stroke:#818C9C;stroke-width:1}
+.panel{fill:#FFFFFF;stroke:#D5DCE5;stroke-width:1}
+.banner{fill:#E8F1F8;stroke:#1F4E79;stroke-width:1}.okbox{fill:#E8F5EE;stroke:#067647;stroke-width:1}
+.warnbox{fill:#FEF4E6;stroke:#B54708;stroke-width:1}.errbox{fill:#FCEBEA;stroke:#B42318;stroke-width:1}
+.edit{fill:#FFFFFF;stroke:#1F4E79;stroke-width:1.5}
+]]></style></defs>
+  <rect class="bg" width="1440" height="900"/>
+  <rect class="sidebar" x="0" y="0" width="220" height="900"/>
+  <text class="side-text" x="24" y="36" font-size="15" font-weight="700">Epic Controle</text>
+  <text class="side-muted" x="24" y="54" font-size="11">V2 · Order-to-Pay</text>
+  <line x1="24" y1="68" x2="196" y2="68" stroke="#2F4158" stroke-width="1"/>
+  <text class="side-muted" x="24" y="96" font-size="11" font-weight="600" letter-spacing=".06em">COMPRAS</text>
+  <text class="side-muted" x="36" y="124" font-size="12.5">Pedidos</text>
+  <rect x="12" y="138" width="196" height="28" rx="4" fill="#243447"/><text class="side-text" x="36" y="152" font-size="12.5">Faturas</text>
+  <text class="side-muted" x="24" y="192" font-size="11" font-weight="600" letter-spacing=".06em">FINANCEIRO</text>
+  <text class="side-muted" x="36" y="220" font-size="12.5">Contas a pagar</text>
+  <text class="side-muted" x="36" y="248" font-size="12.5">Pagamentos</text>
+  <rect x="16" y="768" width="188" height="52" rx="6" fill="#243447"/>
+  <text class="side-muted" x="28" y="788" font-size="10">EUR / BRL</text>
+  <text class="side-text mono" x="28" y="808" font-size="13" font-weight="600">6,2180</text>
+  <text class="side-muted" x="118" y="808" font-size="10">desatualizado</text>
+  <text class="side-text" x="28" y="848" font-size="12.5" font-weight="600">Admin</text>
+  <text class="side-muted" x="28" y="870" font-size="12">Sair</text>
+
+  <text class="muted" x="244" y="28" font-size="12">Compras  /  Faturas  /  INV-H-8910</text>
+  <text class="text" x="244" y="56" font-size="22" font-weight="700">Fatura</text>
+  <text class="muted" x="244" y="76" font-size="12">INV-H-8910 · Rascunho · PO-2026-0181 · Heroes · EUR · edição</text>
+<rect class="badge-draft" x="244" y="92" width="72" height="20" rx="4"/><text class="badge-draft-t" x="280.0" y="106" font-size="10.5" font-weight="600" text-anchor="middle">Rascunho</text><rect class="badge-ok" x="326" y="92" width="120" height="20" rx="4"/><text class="badge-ok-t" x="386.0" y="106" font-size="10.5" font-weight="600" text-anchor="middle">Pronta para emitir</text>
+  <text class="muted" x="460" y="106" font-size="12">Documento anexado · sem impedimentos · Sem desconto</text>
+  <rect class="btn-ghost" x="1040" y="88" width="100" height="32" rx="5"/>
+  <text class="text" x="1090" y="109" font-size="12" font-weight="600" text-anchor="middle">Salvar</text>
+  <rect class="accent" x="1152" y="88" width="120" height="32" rx="5"/>
+  <text class="white" x="1212" y="109" font-size="12" font-weight="600" text-anchor="middle">Emitir fatura</text>
+  <rect class="btn-ghost" x="1284" y="88" width="116" height="32" rx="5"/>
+  <text class="danger" x="1342" y="109" font-size="11" font-weight="600" text-anchor="middle">Cancelar rascunho</text>
+
+  <rect class="panel" x="244" y="136" width="720" height="280" rx="6"/>
+  <text class="text" x="260" y="160" font-size="13" font-weight="700">Itens</text>
+  <text class="muted" x="260" y="184" font-size="10.5" font-weight="600">SKU</text>
+  <text class="muted" x="380" y="184" font-size="10.5" font-weight="600">Qtd</text>
+  <text class="muted" x="460" y="184" font-size="10.5" font-weight="600">Preço unitário</text>
+  <text class="muted" x="620" y="184" font-size="10.5" font-weight="600">Desconto</text>
+  <text class="muted" x="780" y="184" font-size="10.5" font-weight="600">Total líquido</text>
+  <line class="hair" x1="260" y1="192" x2="944" y2="192"/>
+  <text class="text mono" x="260" y="230" font-size="13">HR-BAG-015</text>
+  <text class="text mono" x="380" y="230" font-size="13">20</text>
+  <rect class="edit" x="460" y="210" width="120" height="28" rx="4"/>
+  <text class="text mono" x="472" y="229" font-size="13">28,00</text>
+  <rect class="edit" x="620" y="210" width="130" height="28" rx="4"/>
+  <text class="text" x="632" y="229" font-size="12">Sem desconto</text>
+  <text class="text mono" x="780" y="230" font-size="13" font-weight="700">EUR 560,00</text>
+  <text class="muted" x="260" y="270" font-size="11">Disponibilidade no pedido: quantidade pedida 20 · faturada emitida 0 · disponível 20</text>
+  <text class="text" x="260" y="300" font-size="13" font-weight="600">Total da fatura: EUR 560,00</text>
+  <text class="muted" x="260" y="354" font-size="11">Pedido vinculado: PO-2026-0181 · Fornecedor Heroes · Moeda EUR</text>
+
+  <rect class="panel" x="244" y="432" width="720" height="280" rx="6"/>
+  <text class="text" x="260" y="456" font-size="13" font-weight="700">Condições de pagamento</text>
+  <text class="muted" x="260" y="478" font-size="12">Modo: Percentual · soma 100%</text>
+  <text class="muted" x="260" y="510" font-size="10.5" font-weight="600">Parcela</text>
+  <text class="muted" x="360" y="510" font-size="10.5" font-weight="600">Percentual</text>
+  <text class="muted" x="500" y="510" font-size="10.5" font-weight="600">Data de vencimento</text>
+  <text class="muted" x="700" y="510" font-size="10.5" font-weight="600">Valor previsto</text>
+  <line class="hair" x1="260" y1="518" x2="944" y2="518"/>
+  <text class="text" x="260" y="552" font-size="13">Parcela 1</text>
+  <rect class="edit" x="360" y="532" width="100" height="28" rx="4"/>
+  <text class="text mono" x="372" y="551" font-size="13">50%</text>
+  <rect class="edit" x="500" y="532" width="150" height="28" rx="4"/>
+  <text class="text mono" x="512" y="551" font-size="13">28/08/2026</text>
+  <text class="text mono" x="700" y="552" font-size="13" font-weight="700">EUR 280,00</text>
+  <text class="text" x="260" y="600" font-size="13">Parcela 2</text>
+  <rect class="edit" x="360" y="580" width="100" height="28" rx="4"/>
+  <text class="text mono" x="372" y="599" font-size="13">50%</text>
+  <rect class="edit" x="500" y="580" width="150" height="28" rx="4"/>
+  <text class="text mono" x="512" y="599" font-size="13">28/10/2026</text>
+  <text class="text mono" x="700" y="600" font-size="13" font-weight="700">EUR 280,00</text>
+  <text class="muted" x="260" y="650" font-size="12">As obrigações ainda não existem — nascem na emissão.</text>
+  <text class="muted" x="260" y="674" font-size="11">Cancelamento disponível apenas enquanto a fatura estiver em rascunho.</text>
+
+  <rect class="panel" x="980" y="136" width="420" height="360" rx="6"/>
+  <text class="text" x="996" y="160" font-size="13" font-weight="700">Prévia da emissão</text>
+  <text class="text" x="996" y="190" font-size="13">Emitir esta fatura criará 2 obrigações:</text>
+  <text class="text mono" x="996" y="220" font-size="13">1. EUR 280,00 · venc. 28/08/2026</text>
+  <text class="text mono" x="996" y="248" font-size="13">2. EUR 280,00 · venc. 28/10/2026</text>
+  <text class="muted" x="996" y="286" font-size="12">Após emitir, o status passa a Emitida e o comercial fica somente leitura.</text>
+  <rect class="okbox" x="996" y="310" width="388" height="72" rx="6"/>
+  <text class="text" x="1012" y="340" font-size="12" font-weight="600">Documento presente · sem impedimentos</text>
+  <text class="text" x="1012" y="362" font-size="12">Pronta para emitir</text>
+  <text class="muted" x="996" y="420" font-size="11">A confirmação de emissão aparece em estado auxiliar.</text>
+  <rect class="panel" x="980" y="512" width="420" height="200" rx="6"/>
+  <text class="text" x="996" y="536" font-size="13" font-weight="700">Documento e auditoria</text>
+  <text class="muted" x="996" y="568" font-size="12">draft-inv-8910.pdf · anexado · 25/07/2026</text>
+  <text class="muted" x="996" y="596" font-size="12">Fatura criada · 25/07/2026 · Admin</text>
+  <text class="muted" x="996" y="624" font-size="12">Condições definidas · 50% / 50% · 25/07/2026</text>
+  <text class="muted" x="996" y="660" font-size="11">Documentos vinculados a esta fatura.</text>
+
+</svg>

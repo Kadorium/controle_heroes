@@ -34,9 +34,14 @@ def _map_error(exc: TreasuryError | billing_public.BillingError) -> AppError:
     return AppError(getattr(exc, "message", str(exc)), code=code, status_code=status)
 
 
-def _cleanup(paths: list[Path]) -> None:
+def _cleanup_pending_files(paths: list[Path]) -> None:
+    """Mesmo padrão Inc-3 (`treasury.routes._cleanup_files`): unlink dos paths pendentes."""
     for p in paths:
-        documents_public.delete_stored_file(p)
+        try:
+            if p.is_file():
+                p.unlink()
+        except OSError:
+            pass
 
 
 class PlanBody(BaseModel):
@@ -276,10 +281,10 @@ async def post_execution_with_doc(
             uow.commit()
             return {"id": row.id, "rate": decimal_str(row.rate), "brl_amount": decimal_str(row.brl_amount)}
     except (TreasuryError, billing_public.BillingError) as e:
-        _cleanup(pending)
+        _cleanup_pending_files(pending)
         raise _map_error(e) from e
     except Exception:
-        _cleanup(pending)
+        _cleanup_pending_files(pending)
         raise
 
 
