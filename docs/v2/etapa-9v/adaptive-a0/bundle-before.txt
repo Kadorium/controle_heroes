@@ -1,0 +1,13 @@
+﻿
+> epic-controle-v2-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v5.4.21 building for production...
+transforming...
+Ô£ô 94 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB Ôöé gzip:  0.28 kB
+dist/assets/index-B_6jGVgR.css   20.10 kB Ôöé gzip:  4.41 kB
+dist/assets/index-CHmgySSO.js   273.31 kB Ôöé gzip: 80.69 kB
+Ô£ô built in 988ms

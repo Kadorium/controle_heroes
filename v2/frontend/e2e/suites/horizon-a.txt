@@ -1,0 +1,21 @@
+# Horizon A E2E suite (canônico pós-Onda C)
+# Uma spec por linha. Comentários (#) e linhas vazias ignorados.
+# Usado por: npm run e2e:horizon-a
+
+e2e/adaptive-b-ap-pilot.spec.ts
+e2e/adaptive-c-queues.spec.ts
+e2e/adaptive-d-details.spec.ts
+e2e/i9-0-shell.spec.ts
+e2e/i9-1-login-next.spec.ts
+e2e/i9-grupo-b.spec.ts
+e2e/i9-grupo-c.spec.ts
+e2e/i9-grupo-d.spec.ts
+e2e/i9v-v0-foundation.spec.ts
+e2e/i9v-v1-v2.spec.ts
+e2e/i9v-vf-12scr.spec.ts
+e2e/inc1-orders.spec.ts
+e2e/inc1-walkthrough.spec.ts
+e2e/inc2-billing.spec.ts
+e2e/inc3-treasury.spec.ts
+e2e/inc4-fx.spec.ts
+e2e/inc5-ap-cockpit.spec.ts

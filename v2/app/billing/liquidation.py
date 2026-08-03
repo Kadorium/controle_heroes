@@ -49,10 +49,16 @@ def apply_payable_allocations(
         row = repo.get_payable_for_update(db, payable_id)
         if not row:
             raise PayableNotFound(payable_id)
+        if row.invoice_id is None:
+            raise PayableValidationError(
+                f"Payable #{payable_id} sem fatura (origem {row.source_type}) "
+                "não é elegível para alocação via Payment atual"
+            )
         if row.status in ("PAID", "CANCELLED"):
             raise PayableValidationError(
                 f"Payable #{payable_id} não aceita liquidação (status {row.status})"
             )
+
         if amount > row.balance:
             raise PayableValidationError(
                 f"Valor {amount} excede saldo {row.balance} do payable #{payable_id}"
@@ -77,7 +83,11 @@ def list_eligible_payables(
     limit: int = 100,
     offset: int = 0,
 ) -> list[Payable]:
-    """Payables liquidáveis: mesmo supplier/moeda; exclui PAID e CANCELLED."""
+    """Payables liquidáveis: mesmo supplier/moeda; exclui PAID e CANCELLED.
+
+    I5-3B: INNER JOIN Invoice — payables CUSTOMS_FUNDING (invoice_id NULL)
+    ficam visíveis na AP mas NÃO elegíveis para alocação Payment (gap intencional).
+    """
     cur = (currency or "").strip().upper()
     q = (
         db.query(Payable)

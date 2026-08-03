@@ -11,8 +11,12 @@ from app.orders.commands import (
 )
 from app.orders.errors import OrdersError
 from app.orders.queries import (
+    find_confirmed_order_items,
     get_order,
+    get_order_item,
+    get_order_items_bulk,
     get_order_locked,
+    get_orders_bulk,
     item_line_total_str,
     list_orders,
     totals_as_strings,
@@ -28,8 +32,12 @@ __all__ = [
     "confirm_order",
     "cancel_order",
     "get_order",
+    "get_order_item",
+    "get_order_items_bulk",
     "get_order_locked",
+    "get_orders_bulk",
     "list_orders",
+    "find_confirmed_order_items",
     "item_line_total_str",
     "totals_as_strings",
 ]

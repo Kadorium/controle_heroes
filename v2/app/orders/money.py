@@ -33,3 +33,17 @@ def decimal_str(value: Decimal | None) -> str | None:
     if value is None:
         return None
     return format(value, "f")
+
+
+def normalize_unit(value: str | None) -> str | None:
+    """Optional documentary unit snapshot (PZ, SET, CTNS, UN, …). Not a full UoM module."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    if len(s) > 16:
+        from app.orders.errors import OrderValidationError
+
+        raise OrderValidationError("unit máximo 16 caracteres")
+    return s.upper()

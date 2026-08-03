@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
 from app.billing import public as billing_public
+from app.catalog import public as catalog_public
 from app.documents import public as documents_public
 from app.foundation.database import get_db
 from app.foundation.deps import enforce_permission, get_current_user
@@ -70,6 +71,7 @@ class DocumentBrief(BaseModel):
 class PaymentResponse(BaseModel):
     id: int
     supplier_id: int
+    supplier_name: str | None = None
     amount: str
     currency: str
     payment_date: date
@@ -90,7 +92,9 @@ class PaymentResponse(BaseModel):
 class EligiblePayable(BaseModel):
     id: int
     invoice_id: int
+    invoice_number: str | None = None
     order_id: int
+    order_code: str | None = None
     sequence: int
     due_date: date
     amount: str
@@ -115,15 +119,24 @@ def _map_error(exc: TreasuryError | billing_public.BillingError) -> AppError:
     )
 
 
-def _payment_response(db: Session, payment) -> PaymentResponse:
+def _supplier_name(suppliers: dict, supplier_id: int) -> str | None:
+    supplier = suppliers.get(supplier_id)
+    return supplier.name if supplier is not None else None
+
+
+def _payment_response(db: Session, payment, *, supplier_name: str | None = None) -> PaymentResponse:
     allocated = payment.amount - treasury_public.amount_unallocated(db, payment)
     docs = [
         DocumentBrief(id=d.id, original_filename=d.original_filename)
         for d in documents_public.list_by_entity(db, "payment", str(payment.id))
     ]
+    if supplier_name is None:
+        bulk = catalog_public.get_suppliers_bulk(db, {payment.supplier_id})
+        supplier_name = _supplier_name(bulk, payment.supplier_id)
     return PaymentResponse(
         id=payment.id,
         supplier_id=payment.supplier_id,
+        supplier_name=supplier_name,
         amount=decimal_str(payment.amount) or "0",
         currency=payment.currency,
         payment_date=payment.payment_date,
@@ -296,7 +309,11 @@ def list_payments(
         limit=limit,
         offset=offset,
     )
-    return [_payment_response(db, p) for p in rows]
+    suppliers = catalog_public.get_suppliers_bulk(db, {p.supplier_id for p in rows})
+    return [
+        _payment_response(db, p, supplier_name=_supplier_name(suppliers, p.supplier_id))
+        for p in rows
+    ]
 
 
 @router.get("/payments/{payment_id}", response_model=PaymentResponse)
@@ -328,7 +345,9 @@ def eligible_payables(
                 EligiblePayable(
                     id=p.id,
                     invoice_id=p.invoice_id,
+                    invoice_number=inv.invoice_number,
                     order_id=inv.order_id,
+                    order_code=None,
                     sequence=p.sequence,
                     due_date=p.due_date,
                     amount=decimal_str(p.amount) or "0",

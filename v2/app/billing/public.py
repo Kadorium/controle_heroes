@@ -8,6 +8,10 @@ from app.billing.commands import (
     set_terms,
     update_invoice_header,
 )
+from app.billing.customs_payables import (
+    cancel_customs_payable,
+    create_customs_payable_from_funding,
+)
 from app.billing.errors import BillingError
 from app.billing.liquidation import apply_payable_allocations, list_eligible_payables
 from app.billing.queries import (
@@ -20,7 +24,9 @@ from app.billing.queries import (
     list_invoices,
     list_payables,
     order_invoiced_quantities,
+    order_list_financials,
     order_qty_availability,
+    payable_counts_by_invoice,
     payables_queue,
     preview_payables,
 )
@@ -44,7 +50,11 @@ __all__ = [
     "preview_payables",
     "order_invoiced_quantities",
     "order_qty_availability",
+    "order_list_financials",
+    "payable_counts_by_invoice",
     "issue_blockers",
     "apply_payable_allocations",
     "list_eligible_payables",
+    "create_customs_payable_from_funding",
+    "cancel_customs_payable",
 ]

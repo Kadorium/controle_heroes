@@ -1,0 +1,278 @@
+[
+  {
+    "step": 0,
+    "title": "Login",
+    "action": "Login admin",
+    "element": "login form",
+    "observed": "Sessão autenticada",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 0.5,
+    "title": "Fixture pedido confirmado",
+    "action": "Criar e confirmar pedido via /orders/new",
+    "element": "order-create-page / save-confirm",
+    "observed": "Pedido UIJ-09227615 confirmado por UI",
+    "screenshot": "00-order-confirmed.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 0.6,
+    "title": "Cadastro prestador",
+    "action": "Cadastrar empresa transportadora",
+    "element": "logistics-providers-page",
+    "observed": "Prestador Carrier UIJ-09227615 ativo",
+    "screenshot": "00b-provider-created.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 1,
+    "title": "Abrir /shipments",
+    "action": "Navegar para lista",
+    "element": "[data-testid=shipments-list]",
+    "observed": "Lista de embarques visível",
+    "screenshot": "01-shipments-list.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 2,
+    "title": "Clicar Novo embarque",
+    "action": "Abrir formulário de criação",
+    "element": "[data-testid=shipments-new-cta] → shipment-create-page",
+    "observed": "Modal=SELECT; Transportador=SELECT; options modal=[\"Selecione o modal\",\"Marítimo\",\"Aéreo\",\"Rodoviário\",\"Courier\",\"Multimodal\",\"Outro\"]; options provider=[\"Selecione a transportadora\",\"Carrier UIJ-09227615\"]; microcopy=Cadastre os dados básicos. Itens, volumes e documentos serão adicionados após a criação.",
+    "screenshot": "02-shipment-create.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 3,
+    "title": "Preencher campos",
+    "action": "Preencher modal, rota, prestador, datas, notas",
+    "element": "shipment-modal/origin/destination/provider/dates/notes",
+    "observed": "Datas type=date valor ISO 2026-08-01/20; hint contexto inclui: dd/mm/aaaa; campos PLANNED opcionais no FE",
+    "screenshot": "03-shipment-create-filled.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 4,
+    "title": "Criar embarque",
+    "action": "Submit criar",
+    "element": "[data-testid=shipment-create-submit]",
+    "observed": "POST /api/shipments status=201; payload={\"modal\":\"SEA\",\"origin\":\"Gênova\",\"destination\":\"Santos\",\"logistics_provider_id\":1,\"planned_departure\":\"2026-08-01\",\"planned_arrival\":\"2026-08-20\",\"notes\":\"Notas jornada UI UIJ-09227615\"}; body.id=1",
+    "request": {
+      "method": "POST",
+      "url": "/api/shipments",
+      "body": {
+        "modal": "SEA",
+        "origin": "Gênova",
+        "destination": "Santos",
+        "logistics_provider_id": 1,
+        "planned_departure": "2026-08-01",
+        "planned_arrival": "2026-08-20",
+        "notes": "Notas jornada UI UIJ-09227615"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "code": "SHP-0862E7E93D81",
+        "status": "PLANNED",
+        "version": 1,
+        "cancelled_at": null,
+        "modal": "SEA",
+        "origin": "Gênova",
+        "destination": "Santos",
+        "logistics_provider_id": 1,
+        "carrier_name_snapshot": "Carrier UIJ-09227615",
+        "logistics_provider": {
+          "id": 1,
+          "legal_name": "Transportadora UIJ-09227615 LTDA",
+          "trade_name": "Carrier UIJ-09227615",
+          "provider_type": "TRANSPORTADOR"
+        },
+        "planned_departure": "2026-08-01",
+        "planned_arrival": "2026-08-20",
+        "actual_departure": null,
+        "actual_arrival": null,
+        "status_changed_at": "2026-08-02T19:20:30.245202-03:00",
+        "notes": "Notas jornada UI UIJ-09227615",
+        "created_at": "2026-08-02T19:20:30.240496-03:00",
+        "updated_at": "2026-08-02T19:20:30.240496-03:00",
+        "items": [],
+        "packages": [],
+        "references": [],
+        "document_summaries": []
+      }
+    },
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 5,
+    "title": "Redirect detalhe",
+    "action": "Confirmar URL e detalhe",
+    "element": "[data-testid=shipment-detail]",
+    "observed": "URL /shipments/1; código SHP-0862E7E93D81",
+    "screenshot": "05-shipment-detail-created.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 6,
+    "title": "Adicionar ShipmentItem",
+    "action": "Picker: código pedido + candidato",
+    "element": "shipment-add-item / picker-*",
+    "observed": "Item adicionado a partir do pedido UIJ-09227615",
+    "screenshot": "06-item-picker.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 7,
+    "title": "Quantidade parcial",
+    "action": "Informar qty=5 (pedido 20)",
+    "element": "[data-testid=picker-qty]",
+    "observed": "Quantidade parcial 5 persistida na tabela de itens",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 8,
+    "title": "Adicionar package",
+    "action": "Adicionar volume CARTON x3",
+    "element": "package-type / package-count / shipment-add-package",
+    "observed": "Volume adicionado; UI NÃO expõe peso/dimensões (só tipo/qtd/pai) — totais derivados tendem a zero",
+    "screenshot": "08-package-added.png",
+    "verdict": "PARTIAL",
+    "channel": "NOT_IN_UI"
+  },
+  {
+    "step": 9,
+    "title": "Referências DDT e BL",
+    "action": "Adicionar duas referências",
+    "element": "reference-type / reference-value / shipment-add-reference",
+    "observed": "DDT-UIJ-09227615 e BL-UIJ-09227615 visíveis",
+    "screenshot": "09-references.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 10,
+    "title": "Totais derivados",
+    "action": "Conferir seção Totais",
+    "element": "[data-testid=shipment-totals]",
+    "observed": "TotaisPeso líquido (kg)0Peso bruto (kg)0Volume (m³)0Paletes0Caixas3Linhas de volume1",
+    "screenshot": "10-totals.png",
+    "verdict": "PARTIAL",
+    "channel": "UI"
+  },
+  {
+    "step": 11,
+    "title": "Avançar PLANNED → BOOKED",
+    "action": "CTA avançar + data evento",
+    "element": "shipment-advance-cta / advance-event-date",
+    "observed": "Status BOOKED; banner somente leitura na estrutura",
+    "screenshot": "11-booked.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 12,
+    "title": "Estrutura bloqueada após BOOKED",
+    "action": "Verificar ausência de CTAs de estrutura",
+    "element": "shipment-add-item / shipment-add-package",
+    "observed": "add-item count=0; add-package count=0; readonly-banner presente",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 13,
+    "title": "IN_TRANSIT e ARRIVED",
+    "action": "Dois advances com datas pela UI",
+    "element": "shipment-advance-cta / advance-event-date",
+    "observed": "Chegou a ARRIVED com datas 2026-08-10 e 2026-08-20",
+    "screenshot": "13b-arrived.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 14,
+    "title": "Voltar à lista e reabrir",
+    "action": "Lista → clique no código",
+    "element": "shipments-list / RowLink",
+    "observed": "Detalhe reaberto id=1 code=SHP-0862E7E93D81",
+    "screenshot": "14-reopen-detail.png",
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 15,
+    "title": "Tela criação — payload e persistência",
+    "action": "Inspecionar POST create + resposta",
+    "element": "network POST /api/shipments",
+    "observed": "{\"modalFieldType\":\"SELECT\",\"providerFieldType\":\"SELECT\",\"modalOptions\":[\"Selecione o modal\",\"Marítimo\",\"Aéreo\",\"Rodoviário\",\"Courier\",\"Multimodal\",\"Outro\"],\"providerOptions\":[\"Selecione a transportadora\",\"Carrier UIJ-09227615\"],\"payload\":{\"modal\":\"SEA\",\"origin\":\"Gênova\",\"destination\":\"Santos\",\"logistics_provider_id\":1,\"planned_departure\":\"2026-08-01\",\"planned_arrival\":\"2026-08-20\",\"notes\":\"Notas jornada UI UIJ-09227615\"},\"persisted\":{\"modal\":\"SEA\",\"logistics_provider_id\":1,\"carrier_name_snapshot\":\"Carrier UIJ-09227615\",\"origin\":\"Gênova\",\"destination\":\"Santos\"},\"emptyBehavior\":\"PLANNED permite create sem modal/prestador (não exercitado neste happy path); BOOKED exige ambos no domínio\",\"requiredOnCreate\":\"Nenhum campo marcado required no create PLANNED; Notice informa exigência no BOOKED\",\"dateFormat\":\"input type=date (ISO yyyy-mm-dd no value; locale do browser na UI nativa); hint dd/mm/aaaa\"}",
+    "request": {
+      "method": "POST",
+      "url": "/api/shipments",
+      "body": {
+        "modal": "SEA",
+        "origin": "Gênova",
+        "destination": "Santos",
+        "logistics_provider_id": 1,
+        "planned_departure": "2026-08-01",
+        "planned_arrival": "2026-08-20",
+        "notes": "Notas jornada UI UIJ-09227615"
+      }
+    },
+    "response": {
+      "status": 201,
+      "body": {
+        "id": 1,
+        "code": "SHP-0862E7E93D81",
+        "status": "PLANNED",
+        "version": 1,
+        "cancelled_at": null,
+        "modal": "SEA",
+        "origin": "Gênova",
+        "destination": "Santos",
+        "logistics_provider_id": 1,
+        "carrier_name_snapshot": "Carrier UIJ-09227615",
+        "logistics_provider": {
+          "id": 1,
+          "legal_name": "Transportadora UIJ-09227615 LTDA",
+          "trade_name": "Carrier UIJ-09227615",
+          "provider_type": "TRANSPORTADOR"
+        },
+        "planned_departure": "2026-08-01",
+        "planned_arrival": "2026-08-20",
+        "actual_departure": null,
+        "actual_arrival": null,
+        "status_changed_at": "2026-08-02T19:20:30.245202-03:00",
+        "notes": "Notas jornada UI UIJ-09227615",
+        "created_at": "2026-08-02T19:20:30.240496-03:00",
+        "updated_at": "2026-08-02T19:20:30.240496-03:00",
+        "items": [],
+        "packages": [],
+        "references": [],
+        "document_summaries": []
+      }
+    },
+    "verdict": "PASS",
+    "channel": "UI"
+  },
+  {
+    "step": 16,
+    "title": "Document summary / package contents",
+    "action": "Procurar editor na UI",
+    "element": "section Documentos / volumes contents",
+    "observed": "Upload/resumo documental: Notice diz fora de escopo; sem UI de set_package_contents — API_ONLY",
+    "verdict": "PARTIAL",
+    "channel": "NOT_IN_UI"
+  }
+]

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "scenario": "fx_canonical",
+  "v2_function": "app.treasury.fx_money.canonical_scenario_numbers",
+  "origin": "v2-contract",
+  "rule_ref": "Inc-4 canonical: INITIAL=6.00 REFORECAST=6.10 MARKET=6.25 ALLOC=400@6.20 OPEN=600; positive=favourable; result = foreign*(ref-rate)",
+  "rounding": "HALF_UP commercial 0.01",
+  "null_policy": "missing market quote → null (not covered by this golden; tested in API)",
+  "currency_context": "foreign EUR → BRL",
+  "input": {
+    "settled_foreign": "400",
+    "open_foreign": "600",
+    "initial_rate": "6.00",
+    "current_forecast_rate": "6.10",
+    "market_rate": "6.25",
+    "realized_rate": "6.20"
+  },
+  "cases": [
+    {
+      "input": "realized_brl",
+      "output": "2480.00"
+    },
+    {
+      "input": "realized_vs_reference",
+      "output": "-40.00"
+    },
+    {
+      "input": "realized_vs_initial",
+      "output": "-80.00"
+    },
+    {
+      "input": "projected_open_brl",
+      "output": "3660.00"
+    },
+    {
+      "input": "market_open_brl",
+      "output": "3750.00"
+    },
+    {
+      "input": "online_vs_current",
+      "output": "-90.00"
+    },
+    {
+      "input": "online_vs_initial",
+      "output": "-150.00"
+    },
+    {
+      "input": "total_vs_current",
+      "output": "-130.00"
+    },
+    {
+      "input": "total_vs_initial",
+      "output": "-230.00"
+    }
+  ]
+}

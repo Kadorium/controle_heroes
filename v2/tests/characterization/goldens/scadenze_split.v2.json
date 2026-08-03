@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scenario": "scadenze_split",
+  "v2_function": "app.billing.money.split_scadenze_percent",
+  "origin": "v2-contract",
+  "rule_ref": "PaymentTerms PERCENT sum 100%; ROUND_HALF_UP 2dp on non-last; residual on last parcel so Σ=net",
+  "rounding": "HALF_UP commercial 0.01; last = net - sum(previous)",
+  "null_policy": "n/a — percents and net required positive",
+  "currency_context": "invoice net currency",
+  "cases": [
+    {
+      "input": { "net": "100.00", "percents": ["33.33", "33.33", "33.34"] },
+      "output": { "amounts": ["33.33", "33.33", "33.34"] }
+    },
+    {
+      "input": { "net": "900.00", "percents": ["30", "70"] },
+      "output": { "amounts": ["270.00", "630.00"] }
+    },
+    {
+      "input": { "net": "1000.00", "percents": ["50", "50"] },
+      "output": { "amounts": ["500.00", "500.00"] }
+    }
+  ]
+}

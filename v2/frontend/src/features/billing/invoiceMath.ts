@@ -57,3 +57,7 @@ export function canWriteBilling(user: { role: string; permissions: string[] }) {
 export function canIssueBilling(user: { role: string; permissions: string[] }) {
   return user.role === "admin" || user.permissions.includes("billing:issue");
 }
+
+export function canIssueWithoutDoc(user: { role: string; permissions: string[] }) {
+  return user.role === "admin" || user.permissions.includes("billing:issue_without_doc");
+}

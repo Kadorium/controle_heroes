@@ -7,12 +7,14 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +25,7 @@ INVOICE_TYPES = ("FINAL", "PROFORMA")
 DISCOUNT_TYPES = ("NONE", "UNIT_AMOUNT", "PERCENT")
 TERMS_MODES = ("PERCENT", "AMOUNT")
 PAYABLE_STATUSES = ("OPEN", "CANCELLED")
+PAYABLE_SOURCE_TYPES = ("INVOICE", "CUSTOMS_FUNDING")
 
 
 class Invoice(Base):
@@ -94,6 +97,7 @@ class InvoiceItem(Base):
     sku_snapshot: Mapped[str] = mapped_column(String(64), nullable=False)
     description_snapshot: Mapped[str] = mapped_column(String(512), nullable=False)
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(16), nullable=True)
     unit_price_gross: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     discount_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
     discount_unit_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
@@ -131,22 +135,49 @@ class Payable(Base):
             "status IN ('OPEN', 'PARTIALLY_PAID', 'PAID', 'CANCELLED')",
             name="ck_payables_status",
         ),
-        UniqueConstraint("invoice_id", "sequence", name="uq_payable_invoice_sequence"),
+        CheckConstraint(
+            "source_type <> 'CUSTOMS_FUNDING' OR invoice_id IS NULL",
+            name="ck_payables_customs_invoice_null",
+        ),
+        # Comercial: UNIQUE(invoice_id, sequence) só quando há fatura
+        Index(
+            "uq_payable_invoice_sequence",
+            "invoice_id",
+            "sequence",
+            unique=True,
+            postgresql_where=text("invoice_id IS NOT NULL"),
+        ),
+        # Origem genérica (INVOICE / CUSTOMS_FUNDING)
+        Index(
+            "uq_payable_source_sequence",
+            "source_type",
+            "source_id",
+            "sequence",
+            unique=True,
+            postgresql_where=text("source_id IS NOT NULL"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    invoice_id: Mapped[int] = mapped_column(ForeignKey("invoices.id"), nullable=False, index=True)
-    payment_term_id: Mapped[int] = mapped_column(ForeignKey("payment_terms.id"), nullable=False)
+    invoice_id: Mapped[int | None] = mapped_column(
+        ForeignKey("invoices.id"), nullable=True, index=True
+    )
+    payment_term_id: Mapped[int | None] = mapped_column(
+        ForeignKey("payment_terms.id"), nullable=True
+    )
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     balance: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="OPEN")
+    source_type: Mapped[str] = mapped_column(String(32), nullable=False, default="INVOICE", index=True)
+    source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payee_display_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    invoice: Mapped["Invoice"] = relationship(back_populates="payables")
+    invoice: Mapped["Invoice | None"] = relationship(back_populates="payables")

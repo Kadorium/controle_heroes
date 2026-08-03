@@ -178,7 +178,7 @@ Você avalia os mockups pelos seguintes critérios:
 
 As correções serão feitas sobre a proposta única, sem reiniciar o processo com novas “direções”.
 
-**Status:** **DONE** (2026-07-28) — **6A** auditoria consolidada + **6B** correções autorizadas → **MCK v1.1**. Checkpoint **E6-A** aprovado com ajustes. Checkpoint **E6-B** pendente de confirmação externa final. UI/UX **v3.7**. Etapa 7 **não** iniciada.
+**Status:** **DONE** (2026-07-28) — **6A** + **6B** → **MCK v1.1**. E6-A/E6-B aprovados. UI/UX vigente **v3.10** (após correção de fechamento Etapa 7).
 
 ---
 
@@ -209,7 +209,11 @@ Depois das telas aprovadas, consolidar:
 
 O design system será extraído das telas aprovadas, não criado abstratamente antes delas.
 
+**Status:** **DONE** (2026-07-29) — **7A** + **7B** → Design System em §26–§27 (UI/UX **v3.10**). **E7-A = APROVADO COM AJUSTES** (ajustes concluídos); **E7-B = APROVADO**. Entrega vigente: UI/UX v3.10 + MCK v1.1.
+
 ---
+
+## Etapa 8 — Handoff de produto
 
 ## Etapa 8 — Handoff de produto
 
@@ -229,7 +233,7 @@ Consolidar:
 
 **Entrega:** pacote completo de TARGET DESIGN.
 
----
+**Status:** **DONE** (2026-07-29) — **8A** + **8B** → [`HANDOFF_UI_UX_EPIC_V2.md`](HANDOFF_UI_UX_EPIC_V2.md) **v1.0** CONSOLIDADO. **E8-A = APROVADO COM AJUSTES** (ajustes concluídos); **E8-B = APROVADO**. DoR Etapa 9 fechado. Etapa 9 **não** iniciada. UI/UX v3.10 · MCK v1.1 intactos.
 
 ## Etapa 9 — Validação no código pelo Cursor
 
@@ -264,6 +268,6 @@ O Cursor deverá:
 9. Cursor
 ```
 
-**Próxima ação:** confirmação visual externa de **E6-B** / MCK v1.1 antes de planejar a Etapa 7.
+**Próxima ação:** planejar/autorizar a **Etapa 9** (investigação e planejamento técnico). Não executar implementação sem autorização.
 
-**Resumo:** Etapa 5 DONE · Etapa 6 **DONE** (6A+6B) · MCK v1.1 · UI/UX v3.7. Etapa 7 **não** iniciada. Sem implementação de código.
+**Resumo:** Etapa 5–8 **DONE** · Handoff v1.0 · MCK v1.1 · UI/UX v3.10 · E8-B APROVADO · DoR fechado. Etapa 9 **não** iniciada. Sem implementação de código.

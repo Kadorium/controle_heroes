@@ -2,9 +2,10 @@
  * Bootstrap + Playwright E2E isolado (epic_v2_test @ 8082).
  *
  * npm run e2e:prepare  — só prepara o banco
- * npm run e2e          — prepare + servidor 8082 + Playwright + teardown
+ * npm run e2e          — prepare + build dist + servidor 8082 + Playwright + teardown
  *
  * Nunca usa epic_v2 / 8081.
+ * O alvo HTTP é StaticFiles de frontend/dist — build é obrigatório (exceto E2E_SKIP_BUILD=1).
  */
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
@@ -45,7 +46,7 @@ function run(cmd, args, opts = {}) {
       cwd: opts.cwd || v2Root,
       env: { ...process.env, ...opts.env },
       stdio: opts.stdio || "inherit",
-      shell: false,
+      shell: opts.shell ?? false,
     });
     child.on("error", reject);
     child.on("close", (code) => {
@@ -53,6 +54,20 @@ function run(cmd, args, opts = {}) {
       else reject(new Error(`${cmd} ${args.join(" ")} exited ${code}`));
     });
   });
+}
+
+/**
+ * Uvicorn serve `frontend/dist` (StaticFiles). Sem build, E2E mede artefato stale.
+ * Skip só com E2E_SKIP_BUILD=1 (debug explícito — não usar em baseline).
+ */
+async function buildFrontendDist() {
+  if (process.env.E2E_SKIP_BUILD === "1") {
+    console.warn("[e2e] E2E_SKIP_BUILD=1 — dist NÃO reconstruído (risco de falso verde)");
+    return;
+  }
+  console.log("[e2e] build frontend → dist (alvo servido em :8082)");
+  const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+  await run(npmCmd, ["run", "build"], { cwd: frontendRoot, shell: true });
 }
 
 async function waitHealth(url, timeoutMs = 30000) {
@@ -80,10 +95,11 @@ async function prepare() {
 async function runE2E() {
   assertTestDb(E2E_DB_URL);
   await prepare();
+  await buildFrontendDist();
 
   const logDir = path.join(frontendRoot, "test-results");
   await mkdir(logDir, { recursive: true });
-  const logPath = path.join(logDir, "e2e-server-8082.log");
+  const logPath = path.join(logDir, `e2e-server-${E2E_PORT}.log`);
   const logStream = createWriteStream(logPath, { flags: "w" });
 
   const startedAt = new Date().toISOString();

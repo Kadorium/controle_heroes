@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "scenario": "billing_line",
+  "v2_function": "app.billing.money.compute_line",
+  "origin": "v2-contract",
+  "rule_ref": "DEC-SCONTO-ITEM; ROUND_HALF_UP 2dp; empty discount_type → disc/net null (never zero)",
+  "rounding": "HALF_UP commercial 0.01",
+  "null_policy": "discount_type null/empty → discount=null, net=null; NONE → discount=0.00",
+  "currency_context": "EUR commercial amounts",
+  "cases": [
+    {
+      "input": {
+        "quantity": "10",
+        "unit_price_gross": "100",
+        "discount_type": "NONE",
+        "discount_unit_amount": null,
+        "discount_percent": null
+      },
+      "output": { "gross": "1000.00", "discount": "0.00", "net": "1000.00" }
+    },
+    {
+      "input": {
+        "quantity": "10",
+        "unit_price_gross": "100",
+        "discount_type": "PERCENT",
+        "discount_unit_amount": null,
+        "discount_percent": "10"
+      },
+      "output": { "gross": "1000.00", "discount": "100.00", "net": "900.00" }
+    },
+    {
+      "input": {
+        "quantity": "10",
+        "unit_price_gross": "100",
+        "discount_type": "UNIT_AMOUNT",
+        "discount_unit_amount": "5",
+        "discount_percent": null
+      },
+      "output": { "gross": "1000.00", "discount": "50.00", "net": "950.00" }
+    },
+    {
+      "input": {
+        "quantity": "1",
+        "unit_price_gross": "10",
+        "discount_type": null,
+        "discount_unit_amount": null,
+        "discount_percent": null
+      },
+      "output": { "gross": "10.00", "discount": null, "net": null }
+    },
+    {
+      "input": {
+        "quantity": "3",
+        "unit_price_gross": "10.005",
+        "discount_type": "NONE",
+        "discount_unit_amount": null,
+        "discount_percent": null
+      },
+      "output": { "gross": "30.02", "discount": "0.00", "net": "30.02" }
+    }
+  ]
+}

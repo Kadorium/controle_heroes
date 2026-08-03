@@ -39,7 +39,7 @@ print(json.dumps(app.openapi(), ensure_ascii=False, indent=2))
 const result = spawnSync(python, ["-c", dump], {
   cwd: v2Root,
   encoding: "utf-8",
-  env: { ...process.env, PYTHONPATH: v2Root },
+  env: { ...process.env, PYTHONPATH: v2Root, PYTHONIOENCODING: "utf-8" },
 });
 if (result.status !== 0) {
   console.error(result.stderr || result.stdout);

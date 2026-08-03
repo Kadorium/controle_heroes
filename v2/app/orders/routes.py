@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
+from app.catalog import public as catalog_public
 from app.catalog.public import CatalogError
 from app.documents import public as documents_public
 from app.foundation.database import get_db
@@ -43,12 +44,14 @@ class ItemCreate(BaseModel):
     sku: str | None = None
     quantity: str
     unit_price: str | None = None
+    unit: str | None = None
 
 
 class ItemUpdate(BaseModel):
     expected_version: int
     quantity: str | None = None
     unit_price: str | None = None
+    unit: str | None = None
 
 
 class VersionBody(BaseModel):
@@ -66,6 +69,7 @@ class OrderItemResponse(BaseModel):
     sku_snapshot: str
     description_snapshot: str
     quantity: str
+    unit: str | None = None
     unit_price: str | None
     line_total: str | None
     position: int
@@ -74,6 +78,7 @@ class OrderItemResponse(BaseModel):
 class DocumentBrief(BaseModel):
     id: int
     original_filename: str
+    mime_type: str | None = None
     role: str | None = None
 
 
@@ -83,6 +88,8 @@ class OrderResponse(BaseModel):
     external_ref: str | None
     source_system: str
     supplier_id: int
+    supplier_name: str | None = None
+    supplier_is_active: bool | None = None
     status: str
     currency: str
     order_date: date
@@ -104,6 +111,7 @@ class OrderListItem(BaseModel):
     id: int
     code: str
     supplier_id: int
+    supplier_name: str | None = None
     status: str
     currency: str
     order_date: date
@@ -135,6 +143,7 @@ def _order_response(db: Session, order: Order, *, include_docs: bool = True) -> 
             sku_snapshot=i.sku_snapshot,
             description_snapshot=i.description_snapshot,
             quantity=decimal_str(i.quantity) or "0",
+            unit=i.unit,
             unit_price=decimal_str(i.unit_price),
             line_total=orders_public.item_line_total_str(i),
             position=i.position,
@@ -144,13 +153,23 @@ def _order_response(db: Session, order: Order, *, include_docs: bool = True) -> 
     docs: list[DocumentBrief] = []
     if include_docs:
         for d in documents_public.list_by_entity(db, "order", str(order.id)):
-            docs.append(DocumentBrief(id=d.id, original_filename=d.original_filename))
+            docs.append(
+                DocumentBrief(
+                    id=d.id,
+                    original_filename=d.original_filename,
+                    mime_type=d.mime_type,
+                )
+            )
+    # Enrichment via Catalog public API only (same pattern as list_orders).
+    supplier = catalog_public.get_suppliers_bulk(db, {order.supplier_id}).get(order.supplier_id)
     return OrderResponse(
         id=order.id,
         code=order.code,
         external_ref=order.external_ref,
         source_system=order.source_system,
         supplier_id=order.supplier_id,
+        supplier_name=supplier.name if supplier else None,
+        supplier_is_active=supplier.is_active if supplier else None,
         status=order.status,
         currency=order.currency,
         order_date=order.order_date,
@@ -213,14 +232,19 @@ def list_orders(
 ):
     enforce_permission(user, "orders:read")
     rows = orders_public.list_orders(db, status=status, limit=limit, offset=offset)
+    from app.catalog import public as catalog_public
+
+    suppliers = catalog_public.get_suppliers_bulk(db, {o.supplier_id for o in rows})
     out: list[OrderListItem] = []
     for o in rows:
         t = orders_public.totals_as_strings(o)
+        supplier = suppliers.get(o.supplier_id)
         out.append(
             OrderListItem(
                 id=o.id,
                 code=o.code,
                 supplier_id=o.supplier_id,
+                supplier_name=supplier.name if supplier else None,
                 status=o.status,
                 currency=o.currency,
                 order_date=o.order_date,
@@ -258,15 +282,20 @@ def patch_order(
     enforce_permission(user, "orders:write")
     try:
         with UnitOfWork(db) as uow:
+            kwargs: dict = {
+                "expected_version": payload.expected_version,
+                "supplier_id": payload.supplier_id,
+                "currency": payload.currency,
+                "order_date": payload.order_date,
+            }
+            if "notes" in payload.model_fields_set:
+                kwargs["notes"] = payload.notes
+            if "external_ref" in payload.model_fields_set:
+                kwargs["external_ref"] = payload.external_ref
             order, actions = orders_public.update_order_header(
                 uow.session,
                 order_id,
-                expected_version=payload.expected_version,
-                supplier_id=payload.supplier_id,
-                currency=payload.currency,
-                order_date=payload.order_date,
-                notes=payload.notes,
-                external_ref=payload.external_ref,
+                **kwargs,
             )
             for action in actions or ["update_header"]:
                 audit_public.record_event(
@@ -302,6 +331,7 @@ def add_item(
                 sku=payload.sku,
                 quantity=payload.quantity,
                 unit_price=payload.unit_price,
+                unit=payload.unit,
             )
             audit_public.record_event(
                 uow.session,
@@ -334,6 +364,8 @@ def patch_item(
                 kwargs["quantity"] = payload.quantity
             if "unit_price" in payload.model_fields_set:
                 kwargs["unit_price"] = payload.unit_price
+            if "unit" in payload.model_fields_set:
+                kwargs["unit"] = payload.unit
             order, material = orders_public.update_item(uow.session, order_id, item_id, **kwargs)
             if material:
                 audit_public.record_event(

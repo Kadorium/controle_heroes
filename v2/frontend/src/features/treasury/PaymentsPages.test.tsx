@@ -11,6 +11,7 @@ vi.mock("./treasuryApi", async (importOriginal) => {
       {
         id: 7,
         supplier_id: 1,
+        supplier_name: "Heroes Metalúrgica LTDA",
         amount: "1000.00",
         currency: "EUR",
         payment_date: "2026-07-22",
@@ -26,7 +27,7 @@ vi.mock("./treasuryApi", async (importOriginal) => {
 });
 
 describe("PaymentsListPage", () => {
-  it("lists residual and link to allocate", async () => {
+  it("apresenta primitives V0 (data, money, status, fornecedor)", async () => {
     render(
       <MemoryRouter>
         <PaymentsListPage
@@ -41,8 +42,14 @@ describe("PaymentsListPage", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByTestId("payments-list")).toBeInTheDocument();
-    expect(screen.getAllByText("1000.00").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("22/07/2026")).toBeInTheDocument();
+    expect(screen.getByText("Heroes Metalúrgica LTDA")).toBeInTheDocument();
+    expect(screen.getByText("Registrado")).toBeInTheDocument();
+    expect(screen.queryByText("REGISTERED")).toBeNull();
+    expect(screen.getAllByText("EUR 1.000,00").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/#1/)).toBeNull();
     expect(screen.getByRole("link", { name: /abrir/i })).toHaveAttribute("href", "/payments/7");
+    expect(screen.queryByRole("link", { name: /^—$/ })).toBeNull();
     expect(screen.getByRole("link", { name: /novo pagamento/i })).toBeInTheDocument();
   });
 });

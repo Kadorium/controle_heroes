@@ -36,6 +36,15 @@ ADMIN_PERMISSIONS = [
     "treasury:fx_without_document",
     "treasury:fx_quote_refresh",
     "reporting:read",
+    "logistics:read",
+    "logistics:write",
+    "customs:read",
+    "customs:write",
+    "customs:clear",
+    "customs:override",
+    "inventory:read",
+    "inventory:write",
+    "inventory:adjust",
 ]
 
 COMPRADOR_PERMISSIONS = [
@@ -55,6 +64,28 @@ COMPRADOR_PERMISSIONS = [
     "treasury:allocate",
     "treasury:fx_read",
     "treasury:fx_write",
+    "logistics:read",
+    "customs:read",
+    "inventory:read",
+]
+
+# Papel operacional Aduana (I5-5) — sem usuário seed em epic_v2.
+ADUANA_PERMISSIONS = [
+    "customs:read",
+    "customs:write",
+    "customs:clear",
+    "documents:read",
+    "documents:write",
+    "audit:read",
+]
+
+# Papel operacional Estoque (I5-5) — sem usuário seed em epic_v2.
+ESTOQUE_PERMISSIONS = [
+    "inventory:read",
+    "inventory:write",
+    "inventory:adjust",
+    "documents:read",
+    "audit:read",
 ]
 
 
@@ -168,9 +199,55 @@ def ensure_comprador_role(db: Session) -> Role:
     return role
 
 
+def _ensure_named_role(
+    db: Session,
+    *,
+    name: str,
+    description: str,
+    permissions: list[str],
+) -> Role:
+    role = db.query(Role).filter(Role.name == name).first()
+    desired = json.dumps(permissions)
+    if role:
+        if role.permissions_json != desired:
+            role.permissions_json = desired
+            db.flush()
+        return role
+    role = Role(
+        name=name,
+        description=description,
+        permissions_json=desired,
+    )
+    db.add(role)
+    db.flush()
+    return role
+
+
+def ensure_aduana_role(db: Session) -> Role:
+    """Papel operacional Aduana — sem criar usuário em epic_v2."""
+    return _ensure_named_role(
+        db,
+        name="aduana",
+        description="Aduana",
+        permissions=ADUANA_PERMISSIONS,
+    )
+
+
+def ensure_estoque_role(db: Session) -> Role:
+    """Papel operacional Estoque — sem criar usuário em epic_v2."""
+    return _ensure_named_role(
+        db,
+        name="estoque",
+        description="Estoque",
+        permissions=ESTOQUE_PERMISSIONS,
+    )
+
+
 def ensure_admin_user(db: Session, email: str, password: str, name: str) -> User:
     role = ensure_admin_role(db)
     ensure_comprador_role(db)
+    ensure_aduana_role(db)
+    ensure_estoque_role(db)
     user = db.query(User).filter(User.email == email).first()
     if user:
         return user

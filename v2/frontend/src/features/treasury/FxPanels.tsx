@@ -1,10 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import {
+  Button,
+  FileUpload,
+  FormField,
+  LoadingState,
+  MoneyInput,
+  Notice,
+  RateInput,
+  SectionCard,
+  SelectField,
+  SummaryGrid,
+  TextInput,
+  formatMoney,
+  formatRate,
+} from "../../ui";
+import {
   canReadFx,
   canRefreshFxQuote,
   canWriteFx,
-  fmtFx,
   getLatestQuote,
   getPayableFxView,
   getPaymentFxView,
@@ -63,8 +77,8 @@ export function FxQuoteStrip({ user }: { user: User }) {
 
   if (!canRead) return null;
 
-  const rateLabel = quote?.rate ?? "—";
-  const stale = quote?.stale ? " · stale" : "";
+  const rateLabel = formatRate(quote?.rate ?? null, 4);
+  const stale = quote?.stale ? " · desatualizado" : "";
   const src = quote?.source ? ` · ${quote.source}` : "";
 
   return (
@@ -84,13 +98,12 @@ export function FxQuoteStrip({ user }: { user: User }) {
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="fx-metric">
-      <span className="fx-metric-label">{label}</span>
-      <strong data-benchmark={hint}>{value}</strong>
-    </div>
-  );
+function fxMoney(value: string | null | undefined, currency?: string) {
+  return formatMoney(value, currency);
+}
+
+function fxRate(value: string | null | undefined) {
+  return formatRate(value, 4);
 }
 
 export function PayableFxPanel({
@@ -106,6 +119,7 @@ export function PayableFxPanel({
   const [kind, setKind] = useState("INITIAL");
   const [reason, setReason] = useState("");
   const [manualMkt, setManualMkt] = useState("6.25");
+  const [busy, setBusy] = useState(false);
 
   async function reload() {
     setView(await getPayableFxView(payableId));
@@ -116,128 +130,165 @@ export function PayableFxPanel({
   }, [payableId]);
 
   if (!canReadFx(user)) return null;
-  if (!view) return <p className="muted">Carregando FX…</p>;
+  if (!view) return <LoadingState message="Carregando câmbio…" />;
+
+  const marketStatusLabel =
+    view.market.status === "fresh"
+      ? "atualizada"
+      : view.market.status === "stale"
+        ? "desatualizada"
+        : view.market.status;
+  const marketStale = view.market.stale ? " · desatualizado" : "";
 
   return (
-    <section className="fx-panel" data-testid="payable-fx-panel">
-      <h2>FX — três visões</h2>
-      {error ? <div className="error">{error}</div> : null}
-      <div className="fx-grid">
-        <Metric label="Taxa original (INITIAL)" value={fmtFx(view.initial_planned_rate)} />
-        <Metric label="Current forecast" value={fmtFx(view.current_forecast_rate)} />
-        <Metric
-          label={`Online (${view.market.status}${view.market.stale ? ", stale" : ""})`}
-          value={fmtFx(view.market.rate)}
-        />
-        <Metric label="Open foreign" value={fmtFx(view.open_foreign)} />
-        <Metric label="BRL projetado (open×current)" value={fmtFx(view.projected_open_brl)} />
-        <Metric label="BRL online (open×market)" value={fmtFx(view.market_open_brl)} />
-        <Metric label="BRL realizado" value={fmtFx(view.realized_brl)} />
-        <Metric
-          label="Resultado realizado vs reference"
-          value={fmtFx(view.realized_result_vs_reference)}
-          hint="frozen_reference"
-        />
-        <Metric
-          label="Resultado realizado vs initial"
-          value={fmtFx(view.realized_result_vs_initial)}
-          hint="initial"
-        />
-        <Metric
-          label="Online vs current"
-          value={fmtFx(view.online_result_vs_current)}
-          hint="current"
-        />
-        <Metric
-          label="Online vs initial"
-          value={fmtFx(view.online_result_vs_initial)}
-          hint="initial"
-        />
-        <Metric label="Total vs current" value={fmtFx(view.total_vs_current)} hint="current" />
-        <Metric label="Total vs initial" value={fmtFx(view.total_vs_initial)} hint="initial" />
+    <section className="fx-panel stack" data-testid="payable-fx-panel">
+      <h2 className="section-card-title">Visões de câmbio</h2>
+      {error ? (
+        <Notice tone="danger">{error}</Notice>
+      ) : null}
+      <div className="fx-columns">
+        <SectionCard title="Planejado">
+          <SummaryGrid
+            items={[
+              { label: "Taxa original", value: fxRate(view.initial_planned_rate) },
+              { label: "Projeção atual", value: fxRate(view.current_forecast_rate) },
+              { label: "Saldo em moeda", value: fxMoney(view.open_foreign) },
+              { label: "BRL projetado", value: fxMoney(view.projected_open_brl, "BRL") },
+            ]}
+          />
+        </SectionCard>
+        <SectionCard title="Mercado">
+          <SummaryGrid
+            items={[
+              {
+                label: `Cotação online (${marketStatusLabel}${marketStale})`,
+                value: fxRate(view.market.rate),
+              },
+              { label: "BRL a mercado", value: fxMoney(view.market_open_brl, "BRL") },
+              { label: "Online vs projeção", value: fxMoney(view.online_result_vs_current, "BRL") },
+              { label: "Online vs original", value: fxMoney(view.online_result_vs_initial, "BRL") },
+            ]}
+          />
+        </SectionCard>
+        <SectionCard title="Executado e avaliação">
+          <SummaryGrid
+            items={[
+              { label: "BRL realizado", value: fxMoney(view.realized_brl, "BRL") },
+              {
+                label: "Resultado vs referência",
+                value: fxMoney(view.realized_result_vs_reference, "BRL"),
+              },
+              {
+                label: "Resultado vs original",
+                value: fxMoney(view.realized_result_vs_initial, "BRL"),
+              },
+              { label: "Total vs projeção", value: fxMoney(view.total_vs_current, "BRL") },
+              { label: "Total vs original", value: fxMoney(view.total_vs_initial, "BRL") },
+            ]}
+          />
+        </SectionCard>
       </div>
 
       {canWriteFx(user) ? (
-        <form
-          className="fx-form"
-          data-testid="fx-plan-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void (async () => {
-              setError(null);
-              try {
-                await postFxPlan(payableId, {
-                  kind,
-                  rate,
-                  effective_from: new Date().toISOString().slice(0, 10),
-                  reason_code: kind === "INITIAL" ? undefined : reason || "MARKET_UPDATE",
-                });
-                await reload();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "Erro");
-              }
-            })();
-          }}
-        >
-          <h3>Taxa projetada</h3>
-          <label>
-            Kind
-            <select data-testid="fx-plan-kind" value={kind} onChange={(e) => setKind(e.target.value)}>
-              <option value="INITIAL">INITIAL</option>
-              <option value="REFORECAST">REFORECAST</option>
-              <option value="CORRECTION">CORRECTION</option>
-            </select>
-          </label>
-          <label>
-            Rate
-            <input data-testid="fx-plan-rate" value={rate} onChange={(e) => setRate(e.target.value)} />
-          </label>
-          {kind !== "INITIAL" ? (
-            <label>
-              Reason
-              <input
-                data-testid="fx-plan-reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
+        <SectionCard title="Taxa projetada">
+          <form
+            className="fx-form"
+            data-testid="fx-plan-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void (async () => {
+                setBusy(true);
+                setError(null);
+                try {
+                  await postFxPlan(payableId, {
+                    kind,
+                    rate,
+                    effective_from: new Date().toISOString().slice(0, 10),
+                    reason_code: kind === "INITIAL" ? undefined : reason || "MARKET_UPDATE",
+                  });
+                  await reload();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Erro");
+                } finally {
+                  setBusy(false);
+                }
+              })();
+            }}
+          >
+            <FormField label="Tipo" htmlFor="fx-plan-kind">
+              <SelectField
+                id="fx-plan-kind"
+                data-testid="fx-plan-kind"
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+                options={[
+                  { value: "INITIAL", label: "Inicial" },
+                  { value: "REFORECAST", label: "Replanejar" },
+                  { value: "CORRECTION", label: "Corrigir" },
+                ]}
               />
-            </label>
-          ) : null}
-          <button type="submit" data-testid="fx-plan-save">
-            Salvar plano
-          </button>
-        </form>
+            </FormField>
+            <FormField label="Taxa" htmlFor="fx-plan-rate">
+              <RateInput
+                id="fx-plan-rate"
+                data-testid="fx-plan-rate"
+                value={rate}
+                onValueChange={setRate}
+                fractionDigits={4}
+              />
+            </FormField>
+            {kind !== "INITIAL" ? (
+              <FormField label="Motivo" htmlFor="fx-plan-reason">
+                <TextInput
+                  id="fx-plan-reason"
+                  data-testid="fx-plan-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </FormField>
+            ) : null}
+            <Button type="submit" data-testid="fx-plan-save" busy={busy}>
+              Salvar plano
+            </Button>
+          </form>
+        </SectionCard>
       ) : null}
 
       {canWriteFx(user) ? (
-        <form
-          className="fx-form"
-          data-testid="fx-manual-quote-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void (async () => {
-              setError(null);
-              try {
-                await postManualQuote(manualMkt);
-                await reload();
-              } catch (err) {
-                setError(err instanceof Error ? err.message : "Erro");
-              }
-            })();
-          }}
-        >
-          <h3>Cotação manual (Inc-4A)</h3>
-          <label>
-            Market rate
-            <input
-              data-testid="fx-manual-rate"
-              value={manualMkt}
-              onChange={(e) => setManualMkt(e.target.value)}
-            />
-          </label>
-          <button type="submit" data-testid="fx-manual-save">
-            Gravar cotação
-          </button>
-        </form>
+        <SectionCard title="Cotação manual">
+          <form
+            className="fx-form"
+            data-testid="fx-manual-quote-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void (async () => {
+                setBusy(true);
+                setError(null);
+                try {
+                  await postManualQuote(manualMkt);
+                  await reload();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Erro");
+                } finally {
+                  setBusy(false);
+                }
+              })();
+            }}
+          >
+            <FormField label="Taxa de mercado" htmlFor="fx-manual-rate">
+              <RateInput
+                id="fx-manual-rate"
+                data-testid="fx-manual-rate"
+                value={manualMkt}
+                onValueChange={setManualMkt}
+                fractionDigits={4}
+              />
+            </FormField>
+            <Button type="submit" data-testid="fx-manual-save" busy={busy}>
+              Atualizar cotação
+            </Button>
+          </form>
+        </SectionCard>
       ) : null}
     </section>
   );
@@ -260,7 +311,7 @@ export function PaymentFxPanel({ user, paymentId }: { user: User; paymentId: num
   }, [paymentId]);
 
   if (!canReadFx(user)) return null;
-  if (!view) return <p className="muted">Carregando FX…</p>;
+  if (!view) return <LoadingState message="Carregando câmbio…" />;
   const fxView = view;
 
   async function onRegisterExec(e: React.FormEvent) {
@@ -295,59 +346,92 @@ export function PaymentFxPanel({ user, paymentId }: { user: User; paymentId: num
   }
 
   return (
-    <section className="fx-panel" data-testid="payment-fx-panel">
-      <h2>FX realizado</h2>
+    <SectionCard title="Câmbio realizado" data-testid="payment-fx-panel">
       {error ? (
-        <div className="error" role="alert">
+        <Notice tone="danger" className="error">
           {error}
-        </div>
+        </Notice>
       ) : null}
-      <ul data-testid="fx-exec-list">
-        {fxView.executions.map((ex) => (
-          <li key={ex.id}>
-            Exec #{ex.id} · {ex.foreign_amount} @ {ex.rate} = R$ {ex.brl_amount}
-          </li>
-        ))}
-      </ul>
-      <ul data-testid="fx-alloc-vals">
-        {fxView.allocations.map((a) => (
-          <li key={a.allocation_id}>
-            Alloc #{a.allocation_id} → payable #{a.payable_id}
-            {a.valuation
-              ? ` · vs ref ${a.valuation.realized_result_vs_reference} (freeze ${a.valuation.planned_rate_used_at_realization})`
-              : " · sem valuation"}
-          </li>
-        ))}
-      </ul>
+      {fxView.executions.length === 0 ? (
+        <p className="muted" data-testid="fx-exec-list">
+          Nenhuma execução registrada
+        </p>
+      ) : (
+        <table className="mini-table" data-testid="fx-exec-list">
+          <thead>
+            <tr>
+              <th className="num">Valor</th>
+              <th className="num">Taxa</th>
+              <th className="num">BRL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fxView.executions.map((ex) => (
+              <tr key={ex.id}>
+                <td className="num">{formatMoney(ex.foreign_amount)}</td>
+                <td className="num">{formatRate(ex.rate)}</td>
+                <td className="num">{formatMoney(ex.brl_amount, "BRL")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <table className="mini-table" data-testid="fx-alloc-vals">
+        <thead>
+          <tr>
+            <th>Alocação</th>
+            <th className="num">Avaliação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fxView.allocations.map((a) => (
+            <tr key={a.allocation_id}>
+              <td>
+                Parcela vinculada
+              </td>
+              <td className="num">
+                {a.valuation
+                  ? formatMoney(a.valuation.realized_result_vs_reference, "BRL")
+                  : "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       {canWriteFx(user) && fxView.executions.length === 0 ? (
         <form className="fx-form" data-testid="fx-exec-form" onSubmit={(e) => void onRegisterExec(e)}>
-          <h3>Registrar execução</h3>
-          <label>
-            Foreign amount
-            <input
+          <h3 className="section-subtitle">Registrar execução</h3>
+          <FormField label="Valor em moeda" htmlFor="fx-exec-amount">
+            <MoneyInput
+              id="fx-exec-amount"
               data-testid="fx-exec-amount"
               value={foreignAmt}
+              onValueChange={setForeignAmt}
               placeholder={fxView.amount}
-              onChange={(e) => setForeignAmt(e.target.value)}
             />
-          </label>
-          <label>
-            Rate
-            <input data-testid="fx-exec-rate" value={rate} onChange={(e) => setRate(e.target.value)} />
-          </label>
-          <label>
-            Evidência
-            <input
+          </FormField>
+          <FormField label="Taxa" htmlFor="fx-exec-rate">
+            <RateInput
+              id="fx-exec-rate"
+              data-testid="fx-exec-rate"
+              value={rate}
+              onValueChange={setRate}
+              fractionDigits={4}
+            />
+          </FormField>
+          <FormField label="Evidência">
+            <FileUpload
               data-testid="fx-exec-doc"
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              fileName={file?.name}
+              onFileChange={setFile}
+              label="Anexar evidência"
             />
-          </label>
-          <button type="submit" data-testid="fx-exec-save" disabled={busy}>
-            Registrar + vincular + freeze
-          </button>
+          </FormField>
+          <Button type="submit" data-testid="fx-exec-save" busy={busy}>
+            Registrar e vincular
+          </Button>
         </form>
       ) : null}
-    </section>
+    </SectionCard>
   );
 }

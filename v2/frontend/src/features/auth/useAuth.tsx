@@ -5,8 +5,9 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function refresh() {
-    setLoading(true);
+  async function refresh(options?: { silent?: boolean }) {
+    const silent = options?.silent === true;
+    if (!silent) setLoading(true);
     try {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) {
@@ -17,7 +18,7 @@ export function useAuth() {
     } catch {
       setUser(null);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 

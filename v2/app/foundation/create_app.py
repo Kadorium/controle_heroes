@@ -20,6 +20,12 @@ from app.billing.routes import router as billing_router
 from app.treasury.routes import router as treasury_router
 from app.treasury.fx_routes import router as treasury_fx_router
 from app.reporting.routes import router as reporting_router
+from app.logistics.routes import router as logistics_router
+from app.customs.doganale_routes import router as customs_doganale_router
+from app.customs.funding_routes import router as customs_funding_router
+from app.customs.nationalization_routes import router as customs_nationalization_router
+from app.customs.routes import router as customs_router
+from app.inventory.routes import router as inventory_router
 
 
 @asynccontextmanager
@@ -58,6 +64,12 @@ def create_app() -> FastAPI:
     application.include_router(treasury_router, prefix="/api")
     application.include_router(treasury_fx_router, prefix="/api")
     application.include_router(reporting_router, prefix="/api")
+    application.include_router(logistics_router, prefix="/api")
+    application.include_router(customs_router, prefix="/api")
+    application.include_router(customs_doganale_router, prefix="/api")
+    application.include_router(customs_funding_router, prefix="/api")
+    application.include_router(customs_nationalization_router, prefix="/api")
+    application.include_router(inventory_router, prefix="/api")
     dist = settings.frontend_dist_path
     if dist.exists():
         assets = dist / "assets"

@@ -38,6 +38,7 @@ class InvoiceItemIn(BaseModel):
     order_item_id: int
     quantity: str
     unit_price_gross: str | None = None
+    unit: str | None = None
     discount_type: str | None = None
     discount_unit_amount: str | None = None
     discount_percent: str | None = None
@@ -82,6 +83,7 @@ class InvoiceItemResponse(BaseModel):
     sku_snapshot: str
     description_snapshot: str
     quantity: str
+    unit: str | None = None
     unit_price_gross: str | None
     discount_type: str | None
     discount_unit_amount: str | None
@@ -102,14 +104,16 @@ class TermResponse(BaseModel):
 
 class PayableResponse(BaseModel):
     id: int
-    invoice_id: int
-    payment_term_id: int
+    invoice_id: int | None
+    payment_term_id: int | None
     sequence: int
     due_date: date
     amount: str
     balance: str
     currency: str
     status: str
+    source_type: str = "INVOICE"
+    payee_display_name: str | None = None
     version: int = 1
 
 
@@ -122,12 +126,15 @@ class PayablePreview(BaseModel):
 class DocumentBrief(BaseModel):
     id: int
     original_filename: str
+    mime_type: str | None = None
 
 
 class InvoiceResponse(BaseModel):
     id: int
     order_id: int
+    order_code: str | None = None
     supplier_id: int
+    supplier_name: str | None = None
     invoice_number: str
     invoice_type: str
     status: str
@@ -156,7 +163,9 @@ class InvoiceResponse(BaseModel):
 class InvoiceListItem(BaseModel):
     id: int
     order_id: int
+    order_code: str | None = None
     supplier_id: int
+    supplier_name: str | None = None
     invoice_number: str
     invoice_type: str
     status: str
@@ -165,6 +174,7 @@ class InvoiceListItem(BaseModel):
     version: int
     net_amount: str | None = None
     balance: str | None = None
+    payable_count: int | None = None
 
 
 class OrderQtyRow(BaseModel):
@@ -197,6 +207,7 @@ def _invoice_response(db: Session, inv: Invoice) -> InvoiceResponse:
                 sku_snapshot=i.sku_snapshot,
                 description_snapshot=i.description_snapshot,
                 quantity=decimal_str(i.quantity) or "0",
+                unit=i.unit,
                 unit_price_gross=decimal_str(i.unit_price_gross),
                 discount_type=i.discount_type,
                 discount_unit_amount=decimal_str(i.discount_unit_amount),
@@ -234,13 +245,30 @@ def _invoice_response(db: Session, inv: Invoice) -> InvoiceResponse:
     ]
     preview = [PayablePreview(**row) for row in billing_public.preview_payables(inv)]
     docs = [
-        DocumentBrief(id=d.id, original_filename=d.original_filename)
+        DocumentBrief(
+            id=d.id,
+            original_filename=d.original_filename,
+            mime_type=d.mime_type,
+        )
         for d in documents_public.list_by_entity(db, "invoice", str(inv.id))
     ]
+    from app.catalog import public as catalog_public
+    from app.orders import public as orders_public
+
+    order_code = None
+    try:
+        order = orders_public.get_order(db, inv.order_id)
+        order_code = order.code
+    except orders_public.OrdersError:
+        order_code = None
+    suppliers = catalog_public.get_suppliers_bulk(db, {inv.supplier_id})
+    supplier_name = suppliers.get(inv.supplier_id)
     return InvoiceResponse(
         id=inv.id,
         order_id=inv.order_id,
+        order_code=order_code,
         supplier_id=inv.supplier_id,
+        supplier_name=supplier_name.name if supplier_name else None,
         invoice_number=inv.invoice_number,
         invoice_type=inv.invoice_type,
         status=inv.status,
@@ -309,7 +337,14 @@ def list_order_invoices(
     user=Depends(get_current_user),
 ):
     enforce_permission(user, "billing:read")
+    from app.orders import public as orders_public
+
     rows = billing_public.list_invoices(db, order_id=order_id, limit=100)
+    order = None
+    try:
+        order = orders_public.get_order(db, order_id)
+    except orders_public.OrdersError:
+        order = None
     out = []
     for inv in rows:
         full = billing_public.get_invoice(db, inv.id)
@@ -318,6 +353,7 @@ def list_order_invoices(
             InvoiceListItem(
                 id=full.id,
                 order_id=full.order_id,
+                order_code=order.code if order else None,
                 supplier_id=full.supplier_id,
                 invoice_number=full.invoice_number,
                 invoice_type=full.invoice_type,
@@ -357,15 +393,25 @@ def list_invoices(
 ):
     enforce_permission(user, "billing:read")
     rows = billing_public.list_invoices(db, order_id=order_id, status=status, limit=limit, offset=offset)
+    from app.catalog import public as catalog_public
+    from app.orders import public as orders_public
+
+    suppliers = catalog_public.get_suppliers_bulk(db, {inv.supplier_id for inv in rows})
+    orders = orders_public.get_orders_bulk(db, {inv.order_id for inv in rows})
+    counts = billing_public.payable_counts_by_invoice(db, [inv.id for inv in rows])
     out = []
     for inv in rows:
         full = billing_public.get_invoice(db, inv.id)
         totals = billing_public.invoice_totals_as_strings(full)
+        supplier = suppliers.get(full.supplier_id)
+        order = orders.get(full.order_id)
         out.append(
             InvoiceListItem(
                 id=full.id,
                 order_id=full.order_id,
+                order_code=order.code if order else None,
                 supplier_id=full.supplier_id,
+                supplier_name=supplier.name if supplier else None,
                 invoice_number=full.invoice_number,
                 invoice_type=full.invoice_type,
                 status=full.status,
@@ -374,6 +420,7 @@ def list_invoices(
                 version=full.version,
                 net_amount=totals["net_amount"],  # type: ignore[arg-type]
                 balance=totals["balance"],  # type: ignore[arg-type]
+                payable_count=counts.get(full.id, 0 if full.status == "ISSUED" else None),
             )
         )
     return out
@@ -436,7 +483,7 @@ def replace_items(
                 uow.session,
                 invoice_id,
                 expected_version=payload.expected_version,
-                items=[i.model_dump() for i in payload.items],
+                items=[i.model_dump(exclude_unset=True) for i in payload.items],
             )
             audit_public.record_event(
                 uow.session,
@@ -552,6 +599,23 @@ def cancel_invoice(
         raise _map_error(e) from e
 
 
+def _payable_response(p) -> PayableResponse:
+    return PayableResponse(
+        id=p.id,
+        invoice_id=p.invoice_id,
+        payment_term_id=p.payment_term_id,
+        sequence=p.sequence,
+        due_date=p.due_date,
+        amount=decimal_str(p.amount) or "0",
+        balance=decimal_str(p.balance) or "0",
+        currency=p.currency,
+        status=p.status,
+        source_type=getattr(p, "source_type", None) or "INVOICE",
+        payee_display_name=getattr(p, "payee_display_name", None),
+        version=getattr(p, "version", 1),
+    )
+
+
 @router.get("/payables", response_model=list[PayableResponse])
 def list_payables(
     order_id: int | None = None,
@@ -575,18 +639,19 @@ def list_payables(
         limit=limit,
         offset=offset,
     )
-    return [
-        PayableResponse(
-            id=p.id,
-            invoice_id=p.invoice_id,
-            payment_term_id=p.payment_term_id,
-            sequence=p.sequence,
-            due_date=p.due_date,
-            amount=decimal_str(p.amount) or "0",
-            balance=decimal_str(p.balance) or "0",
-            currency=p.currency,
-            status=p.status,
-            version=getattr(p, "version", 1),
-        )
-        for p in rows
-    ]
+    return [_payable_response(p) for p in rows]
+
+
+@router.get("/payables/{payable_id}", response_model=PayableResponse)
+def get_payable(
+    payable_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Read-only — contexto SCR-009 sem scan listPayables(limit=100)."""
+    enforce_permission(user, "billing:read")
+    try:
+        p = billing_public.get_payable(db, payable_id)
+        return _payable_response(p)
+    except BillingError as e:
+        raise _map_error(e) from e

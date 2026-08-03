@@ -7,6 +7,7 @@ function errMsg(error: unknown, fallback: string) {
 export type Payment = {
   id: number;
   supplier_id: number;
+  supplier_name?: string | null;
   amount: string;
   currency: string;
   payment_date: string;
@@ -22,7 +23,9 @@ export type Payment = {
 export type EligiblePayable = {
   id: number;
   invoice_id: number;
+  invoice_number?: string | null;
   order_id: number;
+  order_code?: string | null;
   due_date: string;
   amount: string;
   balance: string;
@@ -32,8 +35,10 @@ export type EligiblePayable = {
   version: number;
 };
 
-export async function listPayments() {
-  const res = await fetch("/api/payments?limit=100", { credentials: "include" });
+export async function listPayments(opts?: { unallocated_only?: boolean }) {
+  const q = new URLSearchParams({ limit: "100" });
+  if (opts?.unallocated_only) q.set("unallocated_only", "true");
+  const res = await fetch(`/api/payments?${q}`, { credentials: "include" });
   if (!res.ok) throw new Error("Erro ao listar pagamentos");
   return (await res.json()) as Payment[];
 }
@@ -103,7 +108,27 @@ export async function allocatePayment(
   });
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
-    throw new Error(j.message || "Erro ao alocar");
+    const err = new Error(j.message || "Erro ao alocar") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
+  return (await res.json()) as Payment;
+}
+
+export async function cancelPayment(
+  paymentId: number,
+  expected_version: number,
+  reason_code?: string,
+) {
+  const res = await fetch(`/api/payments/${paymentId}/cancel`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ expected_version, reason_code }),
+  });
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j.message || "Erro ao cancelar pagamento");
   }
   return (await res.json()) as Payment;
 }
@@ -116,6 +141,13 @@ export function canAllocateTreasury(user: { role: string; permissions: string[] 
   return user.role === "admin" || user.permissions.includes("treasury:allocate");
 }
 
-// silence unused api import until OpenAPI regen uses it
+export function canCancelTreasury(user: { role: string; permissions: string[] }) {
+  return user.role === "admin" || user.permissions.includes("treasury:cancel");
+}
+
+export function canRegisterWithoutDoc(user: { role: string; permissions: string[] }) {
+  return user.role === "admin" || user.permissions.includes("treasury:register_without_doc");
+}
+
 void api;
 void errMsg;

@@ -14,7 +14,7 @@ from app.orders.errors import (
     OrderValidationError,
 )
 from app.orders.models import Order, OrderItem
-from app.orders.money import parse_decimal, require_positive_qty
+from app.orders.money import normalize_unit, parse_decimal, require_positive_qty
 
 
 def _require_draft(order: Order) -> None:
@@ -109,6 +109,7 @@ def add_item(
     sku: str | None = None,
     quantity: str | Decimal,
     unit_price: str | Decimal | None = None,
+    unit: str | None = None,
 ) -> Order:
     order = repo.get_order(db, order_id)
     if not order:
@@ -126,6 +127,7 @@ def add_item(
             sku_snapshot=product.sku,
             description_snapshot=product.description,
             quantity=qty,
+            unit=normalize_unit(unit),
             unit_price=price,
             position=pos,
         ),
@@ -141,6 +143,7 @@ def update_item(
     expected_version: int,
     quantity: str | Decimal | None = None,
     unit_price: str | Decimal | None | object = ...,
+    unit: str | None | object = ...,
 ) -> tuple[Order, bool]:
     """Retorna (order, price_or_qty_changed)."""
     order = repo.get_order(db, order_id)
@@ -156,6 +159,9 @@ def update_item(
         material = True
     if unit_price is not ...:
         item.unit_price = parse_decimal(unit_price)  # type: ignore[arg-type]
+        material = True
+    if unit is not ...:
+        item.unit = normalize_unit(unit)  # type: ignore[arg-type]
         material = True
     return _lock(db, order, expected_version), material
 

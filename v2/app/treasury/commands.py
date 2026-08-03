@@ -208,6 +208,11 @@ def allocate_payment(
             payable = billing_public.get_payable(db, pid)
         except billing_public.BillingError as e:
             raise PaymentValidationError(getattr(e, "message", str(e))) from e
+        if payable.invoice_id is None:
+            raise PaymentValidationError(
+                f"Payable #{pid} sem fatura (origem Customs/outro) não é elegível "
+                "para alocação via Payment atual"
+            )
         inv = billing_public.get_invoice(db, payable.invoice_id)
         if inv.supplier_id != payment.supplier_id:
             raise PaymentValidationError(
@@ -217,6 +222,7 @@ def allocate_payment(
             raise PaymentValidationError(
                 f"Payable #{pid} está em moeda diferente ({payable.currency})"
             )
+
 
     applications = [
         {

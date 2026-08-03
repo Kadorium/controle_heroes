@@ -1,0 +1,5 @@
+# J#4 Logistics acceptance suite
+# Usado por: npm run e2e:logistics
+
+e2e/j4-logistics.spec.ts
+e2e/j4-ux2-logistics-readiness.spec.ts

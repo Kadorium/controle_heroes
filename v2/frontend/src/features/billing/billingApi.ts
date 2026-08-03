@@ -10,6 +10,12 @@ function errMsg(error: unknown, fallback: string) {
   return (error as { message?: string } | undefined)?.message || fallback;
 }
 
+function throwApi(error: unknown, response: Response | undefined, fallback: string): never {
+  const err = new Error(errMsg(error, fallback)) as Error & { status?: number };
+  err.status = response?.status;
+  throw err;
+}
+
 export async function listOrderInvoices(orderId: number) {
   const { data, error } = await api.GET("/api/orders/{order_id}/invoices", {
     params: { path: { order_id: orderId } },
@@ -51,6 +57,24 @@ export async function createInvoice(
   return data!;
 }
 
+export async function updateInvoice(
+  invoiceId: number,
+  body: {
+    expected_version: number;
+    invoice_number?: string | null;
+    invoice_type?: string | null;
+    invoice_date?: string | null;
+    notes?: string | null;
+  },
+) {
+  const { data, error, response } = await api.PATCH("/api/invoices/{invoice_id}", {
+    params: { path: { invoice_id: invoiceId } },
+    body,
+  });
+  if (error) throwApi(error, response, "Erro ao atualizar fatura");
+  return data!;
+}
+
 export async function replaceItems(
   invoiceId: number,
   expected_version: number,
@@ -58,16 +82,17 @@ export async function replaceItems(
     order_item_id: number;
     quantity: string;
     unit_price_gross?: string | null;
+    unit?: string | null;
     discount_type?: string | null;
     discount_unit_amount?: string | null;
     discount_percent?: string | null;
   }[],
 ) {
-  const { data, error } = await api.PUT("/api/invoices/{invoice_id}/items", {
+  const { data, error, response } = await api.PUT("/api/invoices/{invoice_id}/items", {
     params: { path: { invoice_id: invoiceId } },
     body: { expected_version, items },
   });
-  if (error) throw new Error(errMsg(error, "Erro ao salvar itens"));
+  if (error) throwApi(error, response, "Erro ao salvar itens");
   return data!;
 }
 
@@ -77,11 +102,11 @@ export async function setTerms(
   mode: string,
   terms: { due_date: string; percent?: string | null; amount?: string | null }[],
 ) {
-  const { data, error } = await api.PUT("/api/invoices/{invoice_id}/terms", {
+  const { data, error, response } = await api.PUT("/api/invoices/{invoice_id}/terms", {
     params: { path: { invoice_id: invoiceId } },
     body: { expected_version, mode, terms },
   });
-  if (error) throw new Error(errMsg(error, "Erro ao salvar scadenze"));
+  if (error) throwApi(error, response, "Erro ao salvar scadenze");
   return data!;
 }
 
@@ -90,7 +115,7 @@ export async function issueInvoice(
   expected_version: number,
   opts?: { issue_without_document?: boolean; reason_code?: string },
 ) {
-  const { data, error } = await api.POST("/api/invoices/{invoice_id}/issue", {
+  const { data, error, response } = await api.POST("/api/invoices/{invoice_id}/issue", {
     params: { path: { invoice_id: invoiceId } },
     body: {
       expected_version,
@@ -98,7 +123,20 @@ export async function issueInvoice(
       reason_code: opts?.reason_code,
     },
   });
-  if (error) throw new Error(errMsg(error, "Erro ao emitir"));
+  if (error) throwApi(error, response, "Erro ao emitir");
+  return data!;
+}
+
+export async function cancelInvoice(
+  invoiceId: number,
+  expected_version: number,
+  reason_code?: string,
+) {
+  const { data, error, response } = await api.POST("/api/invoices/{invoice_id}/cancel", {
+    params: { path: { invoice_id: invoiceId } },
+    body: { expected_version, reason_code },
+  });
+  if (error) throwApi(error, response, "Erro ao cancelar fatura");
   return data!;
 }
 
@@ -112,6 +150,14 @@ export async function listPayables(query?: {
   });
   if (error) throw new Error(errMsg(error, "Erro ao listar payables"));
   return data ?? [];
+}
+
+export async function getPayable(payableId: number) {
+  const { data, error } = await api.GET("/api/payables/{payable_id}", {
+    params: { path: { payable_id: payableId } },
+  });
+  if (error) throw new Error(errMsg(error, "Erro ao carregar obrigação"));
+  return data!;
 }
 
 export async function invoicedQuantities(orderId: number) {

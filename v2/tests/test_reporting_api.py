@@ -323,3 +323,75 @@ def _issued_two_payables_same_supplier(client, *, supplier_id: int):
     )
     assert issued.status_code == 200, issued.text
     return issued.json()
+
+
+def test_orders_list_enrichment_absence_is_null(admin_client):
+    """GET /api/reporting/orders-list — sem fatura: financeiros None (não zero)."""
+    c = admin_client
+    sku = f"OL-{_uid()}"
+    s = c.post("/api/suppliers", json={"name": f"Sup-{_uid()}", "country_code": "IT"}).json()
+    p = c.post("/api/products", json={"sku": sku, "description": "Item"}).json()
+    o = c.post(
+        "/api/orders",
+        json={"code": f"OL-{_uid()}", "supplier_id": s["id"], "currency": "EUR"},
+    ).json()
+    o = c.post(
+        f"/api/orders/{o['id']}/items",
+        json={
+            "expected_version": o["version"],
+            "product_id": p["id"],
+            "quantity": "2",
+            "unit_price": "10",
+        },
+    ).json()
+    r = c.get("/api/reporting/orders-list")
+    assert r.status_code == 200, r.text
+    row = next(x for x in r.json() if x["id"] == o["id"])
+    assert row["supplier_name"] == s["name"]
+    assert row["commercial_total"] is not None
+    assert row["invoiced_amount"] is None
+    assert row["open_balance"] is None
+    assert row["next_due_date"] is None
+    assert row["invoiced_amount"] != "0.00"
+    assert row["open_balance"] != "0.00"
+
+
+def test_orders_list_enrichment_after_issue(admin_client):
+    c = admin_client
+    s, o, inv = _issued_two_payables(c, amount1="400", amount2="600")
+    r = c.get("/api/reporting/orders-list")
+    assert r.status_code == 200, r.text
+    row = next(x for x in r.json() if x["id"] == o["id"])
+    assert row["supplier_name"] == s["name"]
+    assert row["invoiced_amount"] == "1000.00"
+    assert row["open_balance"] == "1000.00"
+    assert row["next_due_date"] is not None
+
+    inv_list = c.get("/api/invoices")
+    assert inv_list.status_code == 200, inv_list.text
+    inv_row = next(x for x in inv_list.json() if x["id"] == inv["id"])
+    assert inv_row["supplier_name"] == s["name"]
+    assert inv_row["payable_count"] == 2
+
+def test_invoice_list_and_ap_queue_order_code(admin_client):
+    c = admin_client
+    s, inv, o = None, None, None
+    s = c.post("/api/suppliers", json={"name": "Heroes OrderCode", "country_code": "IT"}).json()
+    p = c.post("/api/products", json={"sku": "OC-1", "description": "Item"}).json()
+    o = c.post("/api/orders", json={"code": "OC-ORDER-1", "supplier_id": s["id"], "currency": "EUR"}).json()
+    o = c.post(f"/api/orders/{o['id']}/items", json={"expected_version": o["version"], "product_id": p["id"], "quantity": "1", "unit_price": "10"}).json()
+    o = c.post(f"/api/orders/{o['id']}/confirm", json={"expected_version": o["version"]}).json()
+    inv = c.post(f"/api/orders/{o['id']}/invoices", json={"invoice_number": "OC-INV-1"}).json()
+    item = inv["items"][0]
+    inv = c.put(f"/api/invoices/{inv['id']}/items", json={"expected_version": inv["version"], "items": [{"order_item_id": item["order_item_id"], "quantity": "1", "unit_price_gross": "10", "discount_type": "NONE"}]}).json()
+    from datetime import date
+    from io import BytesIO
+    inv = c.put(f"/api/invoices/{inv['id']}/terms", json={"expected_version": inv["version"], "mode": "amount", "terms": [{"due_date": date.today().isoformat(), "amount": "10"}]}).json()
+    c.post("/api/documents", files={"file": ("f.pdf", BytesIO(b"%PDF"), "application/pdf")}, data={"entity_type": "invoice", "entity_id": str(inv["id"]), "role": "official"})
+    inv = c.post(f"/api/invoices/{inv['id']}/issue", json={"expected_version": inv["version"]}).json()
+    listed = c.get("/api/invoices").json()
+    row = next(x for x in listed if x["id"] == inv["id"])
+    assert row["order_code"] == "OC-ORDER-1"
+    ap = c.get("/api/reporting/ap-queue", params={"order_id": o["id"]}).json()
+    assert ap["items"]
+    assert ap["items"][0]["order_code"] == "OC-ORDER-1"

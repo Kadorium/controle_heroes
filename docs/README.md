@@ -1,102 +1,74 @@
-# Documentação Epic Controle
+# Documentação EPIC Controle V2
 
-## Autoridade por assunto
+Ponto de entrada da documentação. O desenvolvimento ativo é a **V2**; a V1 é legado congelado (consulta excepcional).
 
-| Assunto | Documento / autoridade |
-|---|---|
-| Entidades, cardinalidades, ownership, regras de domínio, arquitetura-alvo, fluxos e aceite de domínio | [`docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md`](v2/BLUEPRINT_SISTEMA_EPIC_V2.md) — **canônico** |
-| Fases, status, gates, ADRs, evidências, bloqueios | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) (raiz do repo) — **canônico** |
-| Arquitetura de informação, interação, design system e critérios de UX | [`docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md`](v2/blueprint%20UIUX/BLUEPRINT_UI_UX_EPIC_v3.md) — **candidato v3.7 não canônico**; mockups [`mockups/`](v2/blueprint%20UIUX/mockups/) **MCK v1.1** (Etapa 6 DONE) |
-| Índice e autoridade documental | **Este arquivo** — **canônico** (índice) |
-| Roteamento V1 vs V2 + política Git | [`.cursor/rules/epic-project-router.mdc`](../.cursor/rules/epic-project-router.mdc) (global) |
-| Método em código/docs V2 | [`.cursor/rules/epic-v2-architecture.mdc`](../.cursor/rules/epic-v2-architecture.mdc) |
-| Método legado MVP V1 | [`.cursor/rules/importacao-epic-indice.mdc`](../.cursor/rules/importacao-epic-indice.mdc) + docs em `docs/v1/` |
-| Histórico / as-built V1 | [`docs/v1/README.md`](v1/README.md) |
-| Validação em execução / evidência na investigação | Código real (inspecionar) |
-| Benchmark de mercado | Evidência consultiva, sem autoridade (corpus em `docs/v2/blueprint UIUX/`) |
+**Checklist V1 nunca é DoD da V2.** Estado e sequência atuais: consultar o [Roadmap](../ROADMAP_V2_EPIC.md).
 
-**Canônicos ativos V2:** Blueprint do Sistema · Roadmap V2 · este README.
+---
 
-**Candidato documental em revisão:** Blueprint UI/UX EPIC [v3.7](v2/blueprint%20UIUX/BLUEPRINT_UI_UX_EPIC_v3.md). Mockups prioritários: [MCK v1.1](v2/blueprint%20UIUX/mockups/) (Etapa 6 DONE; E6-B pendente confirmação externa). Não integra o conjunto canônico até promoção explícita.
+## 1. Mapa documental
 
-**Checklist V1 nunca é DoD da V2.**
+| Preciso saber | Documento | Autoridade | Ciclo de vida |
+|---|---|---|---|
+| Onde estamos, o que vem agora, gates, ADRs | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) | Canônico (estado/sequência) | Ativo — atualizar após mudança operacional material |
+| Como o sistema deve funcionar (produto/arch/aceite) | [`BLUEPRINT_SISTEMA_EPIC_V2.md`](v2/BLUEPRINT_SISTEMA_EPIC_V2.md) | Canônico (produto) | Ativo — atualizar em mudança de domínio/arch |
+| Design de interface, Handoff, mockups | [Blueprint UI/UX](v2/blueprint%20UIUX/BLUEPRINT_UI_UX_EPIC_v3.md) · [Handoff](v2/blueprint%20UIUX/HANDOFF_UI_UX_EPIC_V2.md) · [MCK](v2/blueprint%20UIUX/mockups/) | Referência de design; autoridade e status de implementação definidos no Roadmap e nos próprios artefatos | Ativo / histórico conforme o artefato |
+| Regras operacionais do Cursor | [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) | Canônica (`alwaysApply`) | Ativo — método de trabalho |
+| Evidências de execuções materiais | [`docs/v2/etapa-*`](v2/) (ex.: [`etapa-inc-6/`](v2/etapa-inc-6/), [`etapa-9/`](v2/etapa-9/), [`etapa-9v/`](v2/etapa-9v/)) | Histórico local de evidência | Imutável após fechamento da entrega |
+| Diário integral até Inc-6 | [Snapshot 0.5.42](v2/archive/roadmap/ROADMAP_V2_EPIC_0.5.42_FULL.md) · [como ler](v2/archive/roadmap/README.md) | Histórico (não operacional) | **Imutável** |
+| Legado V1 | [`docs/v1/README.md`](v1/README.md) · código `v1/` | Histórico / consulta | Congelado (ADR-16) |
 
-### Regra de conflito
+O código evidencia o estado implementado na investigação. Divergências corrigem-se no documento responsável.
 
-- Domínio, entidades, cardinalidades, ownership e invariantes → Blueprint do Sistema.
-- Fases, status, gates e evidências → Roadmap.
-- Arquitetura de informação, interação e design system → Blueprint UI/UX **após aprovação**.
-- Enquanto candidato, divergências do UI/UX devem ser registradas e **não** alteram os canônicos.
-- Código real prevalece como evidência durante investigação; divergências documentais resolvem-se nos documentos responsáveis.
+---
 
-Precedência operacional **dentro** do Roadmap (anti-regressão documental): ver cabeçalho + bloco “Precedência interna” em [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) — Blueprint / §M.1 / §J / §L / §N prevalecem sobre A–E/B histórico.
+## 2. Histórico e evidências
 
-## Layout documental (pós-Fundação)
+- **Snapshot 0.5.42** = narrativa integral da reconstrução até a Inc-6; **imutável**. Links relativos do snapshot resolvem a partir da **raiz** do repositório, não de `docs/v2/archive/roadmap/`.
+- **`docs/v2/etapa-*`** = logs, testes, screenshots e evidências reproduzíveis de execuções materiais.
+- Status dentro de READMEs/evidências de etapa é **histórico** do momento em que foram produzidos.
+- **Status atual** pertence exclusivamente ao Roadmap.
+- **`docs/v1/**`** = legado histórico (não é DoD nem backlog da V2).
 
-```text
-docs/
-├── README.md                          ← este índice
-├── v1/
-│   ├── README.md
-│   ├── BLUEPRINT_SISTEMA_EPIC_V1.md   ← histórico
-│   ├── DOCUMENTACAO_TECNICA_EPIC_V1.md
-│   ├── CHECKLIST_MVP_IMPORTACAO_EPIC_V1.md
-│   ├── CURSOR_RULES_IMPORTACAO_EPIC.md
-│   └── archive/                       ← entregas, guias, relatórios, prompts
-└── v2/
-    ├── BLUEPRINT_SISTEMA_EPIC_V2.md   ← canônico V2
-    └── blueprint UIUX/
-        ├── BLUEPRINT_UI_UX_EPIC_v3.md   ← candidato v3.7 não canônico
-        └── mockups/                    ← MCK v1.1 vigente (v0.1–v1.0 histórico)
+### Linha do tempo (marcos concluídos)
 
-```
+| Marco | Resultado | Relato | Evidência |
+|---|---|---|---|
+| Decisão de reconstrução modular | Alternativa B | snapshot §§A–E | Blueprint Sistema |
+| Fundação | V1 movida + scaffold V2 | snapshot §N | — |
+| Inc-1 | Catalog + Orders | snapshot §O.1 | — |
+| Inc-2 | Billing + Payables | snapshot §O.2 | — |
+| Inc-3 | Payments + Allocation | snapshot §O.3 | — |
+| Inc-4 | FX (três visões) | snapshot §O.4 | — |
+| Inc-5 | AP + Cockpit + UX-0 | snapshot §O.5 | [`docs/evidence/ux-0/`](evidence/ux-0/) |
+| Design + Horizon A | UI/UX Etapas 2–9 + 9V | snapshot §§M.7–M.28 | [`etapa-9/`](v2/etapa-9/) · [`etapa-9v/`](v2/etapa-9v/) |
+| Inc-6 | E2E / goldens / aceite Order-to-Pay | snapshot §O.6 | [`etapa-inc-6/`](v2/etapa-inc-6/) |
+| Document Readiness A1+A2+DR-UX | Capacidade documental + fechamento UI operacional (H-FIX) | Roadmap 0.5.54 | [`etapa-doc-readiness/`](v2/etapa-doc-readiness/) |
+| J#5 I5-0 | Decisões Customs/Inventory + scaffold | Roadmap 0.5.55 | [`etapa-j5/`](v2/etapa-j5/) |
+| J#5 I5-1 | ImportProcess + joins + UI `/customs` | Roadmap 0.5.56 | [`etapa-j5/`](v2/etapa-j5/) |
+| J#5 DONE (I5-0…I5-6) | Aduana + Inventory; SC-07/09/10; e2e:j5 | Roadmap 0.5.62 | [`etapa-j5/`](v2/etapa-j5/) |
 
-Código: `v1/` (legado) · `v2/` (novo) · `ROADMAP_V2_EPIC.md` na raiz.
+Estado e sequência atuais: consultar o Roadmap. Evidências concluídas ficam em `docs/v2/etapa-*`.
 
-## O que não misturar
+---
 
-| Colocar no Blueprint do Sistema | Colocar no Roadmap | Colocar no Blueprint UI/UX (quando aprovado) |
-|---|---|---|
-| Destino funcional e arquitetural | Status, gates, evidências | Arquitetura de informação e telas |
-| Critérios de aceite de domínio | Resultados de testes/comandos | Interação, design system, aceite de UX |
-| Grafo de dependências / ownership | Checkpoint Git, plano de move | Padrões de grade, a11y, navegação |
-| Gatilhos de manutenibilidade de domínio | Changelog operacional | Sequência visual A0/A1 (proposta) |
+## 3. Protocolo DOC_DELTA
 
-## Protocolo DOC_DELTA (sincronização com advisor)
-
-Toda entrega futura do Cursor que toque a trilha V2 deve **terminar** com o bloco abaixo (preenchido). Objetivo: evitar uploads desnecessários ao advisor.
+Toda entrega da trilha V2 deve terminar com o bloco abaixo (preenchido). Registrar fatos; não classificar em enums extras.
 
 ```text
 DOC_DELTA
-- Blueprint: NONE | UPDATED
-- Roadmap: NONE | UPDATED
-- Cursor Rules: NONE | UPDATED
-
-MATERIALIDADE
-- NONE
-- EXECUTION_ONLY
-- PHASE_CHANGE
-- ARCHITECTURE_CHANGE
-
-UPLOAD_RECOMMENDATION
-- NO_UPLOAD
-- UPLOAD_ROADMAP
-- UPLOAD_BLUEPRINT_AND_ROADMAP
-- UPLOAD_RULES
+- Updated: NONE | <paths alterados>
+- Evidence: NONE | <paths de evidência>
+- Roadmap status: UNCHANGED | <mudança e versão>
+- Next TODO: <ação confirmada no Roadmap>
+- Return to advisor: NONE | <paths a retornar>
 ```
 
-### Critérios de materialidade → upload
+- **Updated** — arquivos alterados nesta entrega (ou `NONE`).
+- **Evidence** — paths em `docs/v2/etapa-*` / `docs/evidence/` quando houver execução material; senão `NONE`.
+- **Roadmap status** — `UNCHANGED` se o Roadmap não mudou; caso contrário descrever a mudança e a versão.
+- **Next TODO** — próxima ação confirmada **no Roadmap** (não inventar aqui).
+- **Return to advisor** — paths que o advisor deve reler, ou `NONE`.
 
-| Situação | MATERIALIDADE típica | UPLOAD_RECOMMENDATION |
-|---|---|---|
-| Só código/teste, sem mudança de fase nem de docs canônicos | `EXECUTION_ONLY` (ou `NONE` se trivial) | `NO_UPLOAD` |
-| Encerramento ou mudança de fase / status em §J·§L·§N | `PHASE_CHANGE` | `UPLOAD_ROADMAP` |
-| Mudança de módulo, ownership, cardinalidade, fluxo, estado ou aceite | `ARCHITECTURE_CHANGE` | `UPLOAD_BLUEPRINT_AND_ROADMAP` |
-| Mudança no método de trabalho (rules, gates de processo, DOC_DELTA) | — | `UPLOAD_RULES` (e Roadmap/README se o protocolo/status mudou) |
-| Atualização do candidato UI/UX e/ou índice documental sem promover canônico | `DOCUMENTATION_GOVERNANCE` | `UPLOAD_UIUX_CANDIDATE_AND_DOCS_README` |
-
-Notas:
-
-- Atualizar o **cabeçalho de sincronização** do Roadmap quando a entrega for `PHASE_CHANGE` ou `ARCHITECTURE_CHANGE`.
-- `UPDATED` no DOC_DELTA só se o arquivo correspondente foi de fato editado na entrega.
-- Se Blueprint e Rules mudarem na mesma entrega, combinar recomendações (upload Blueprint+Roadmap **e** Rules).
+Não criar pasta `etapa-*` só por edição documental de índice/regra/README.

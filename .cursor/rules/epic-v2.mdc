@@ -1,0 +1,63 @@
+---
+description: Regras operacionais do EPIC V2 — ciclo, arquitetura, Git e guarda V1
+alwaysApply: true
+---
+
+# EPIC Controle — regras operacionais V2
+
+## 1. Autoridades
+
+| Assunto | Canônico |
+|---|---|
+| Estado, sequência, gates, próxima ação | `ROADMAP_V2_EPIC.md` |
+| Produto, arquitetura, invariantes, aceite | `docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md` |
+| Mapa documental e protocolo de atualização | `docs/README.md` |
+| Estado implementado (investigação) | Código real |
+
+O código evidencia o estado implementado. Divergências devem ser reportadas e corrigidas no documento responsável; implementação não vira automaticamente decisão de produto.
+
+**Checklist V1 nunca é DoD da V2.**
+
+## 2. Ciclo operacional
+
+**Antes:** (1) ler no Roadmap estado, próxima ação e bloqueios; (2) investigar código e docs relevantes; (3) identificar módulo owner, hipóteses, escopo e gates; (4) confirmar ou refutar hipóteses antes de alterar.
+
+**Durante:** preservar WIP; respeitar ownership e contratos públicos; testes proporcionais; registrar evidência em `docs/v2/etapa-*` somente quando a execução material justificar.
+
+**Ao fechar:** confirmar gates; atualizar o Roadmap **somente** se houver mudança operacional material; confirmar a próxima ação no Roadmap; retornar status, arquivos, evidências, pendências e DOC_DELTA (ver `docs/README.md`).
+
+## 3. Restrições técnicas
+
+- Cross-módulo somente por contrato público; sem ciclos; sem import de internals.
+- **V2 nunca importa `v1/**`** (inclui testes).
+- Foundation = composition root (orquestra sem absorver regra de negócio).
+- Reporting = read-only (não escreve domínio).
+- Audit de ação crítica na **mesma** UoW da ação.
+- Identity, Audit e Documents sem ciclos; actor opaco.
+- Sem regra de negócio em router/UI de apresentação; sem god files / agregadores multi-domínio; sem ampliar arquivo grande sem avaliar decomposição.
+- Testes destrutivos / reset / E2E **somente** em `epic_v2_test`; **nunca** resetar destrutivamente `epic_v2`.
+- Não editar client OpenAPI gerado; validar drift (`check:api-drift`) quando aplicável.
+- **DONE** só após gates e sem BLOCKER/MAJOR aberto.
+- Snapshot `docs/v2/archive/roadmap/ROADMAP_V2_EPIC_0.5.42_FULL.md` **imutável**.
+- Detalhe de execução material → `docs/v2/etapa-*`.
+
+## 4. Git e segurança operacional
+
+Trabalhar em **`main`**. Não criar commits, branches, tags ou stashes automaticamente. Commit/branch/checkpoint **somente** com pedido explícito. **Nunca** descartar WIP (`reset --hard`, `clean -fd`, checkout forçado).
+
+## 5. Guarda V1
+
+V1 (`v1/**`, `docs/v1/**`) está **congelada** (ADR-16). Permitida só para baseline, goldens, caracterização e risco crítico. Sem features, redesign ou evolução de modelo. V2 nunca importa código V1. Detalhe de domínio e histórico do legado: `docs/v1/**`.
+
+## 6. Fechamento
+
+Retornar: ETAPA · STATUS (`DONE`/`PARTIAL`/`BLOCKED`) · estado encontrado · hipóteses · evidências/gates · arquivos alterados · pendências · próxima etapa lógica · DOC_DELTA:
+
+```text
+DOC_DELTA
+- Updated: NONE | <paths>
+- Evidence: NONE | <paths>
+- Roadmap status: UNCHANGED | <mudança e versão>
+- Next TODO: <ação confirmada no Roadmap>
+- Return to advisor: NONE | <paths>
+```

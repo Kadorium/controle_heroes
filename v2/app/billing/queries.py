@@ -51,6 +51,69 @@ def list_payables(
     )
 
 
+def order_list_financials(db: Session, order_ids: list[int]) -> dict[int, dict]:
+    """Agrega faturado / saldo aberto / próximo vencimento por Order (somente leitura).
+
+    Ausência de invoices/payables → campos None (não zero inventado).
+    """
+    from sqlalchemy import func
+
+    out: dict[int, dict] = {oid: {"invoiced_amount": None, "open_balance": None, "next_due_date": None} for oid in order_ids}
+    if not order_ids:
+        return out
+
+    # Invoiced = Σ net de invoices ISSUED (via items); sem invoice ISSUED → None
+    issued = (
+        db.query(Invoice)
+        .filter(Invoice.order_id.in_(order_ids), Invoice.status == "ISSUED")
+        .all()
+    )
+    invoiced_acc: dict[int, Decimal] = {}
+    for inv in issued:
+        net = invoice_net(list(inv.items))
+        if net is None:
+            continue
+        invoiced_acc[inv.order_id] = invoiced_acc.get(inv.order_id, Decimal("0")) + net
+    for oid, total in invoiced_acc.items():
+        out[oid]["invoiced_amount"] = decimal_str(money2(total))
+
+    # Open balance + next due from OPEN payables with balance > 0
+    rows = (
+        db.query(
+            Invoice.order_id,
+            func.sum(Payable.balance),
+            func.min(Payable.due_date),
+        )
+        .join(Payable, Payable.invoice_id == Invoice.id)
+        .filter(
+            Invoice.order_id.in_(order_ids),
+            Payable.status == "OPEN",
+            Payable.balance > 0,
+        )
+        .group_by(Invoice.order_id)
+        .all()
+    )
+    for oid, bal, due in rows:
+        if bal is not None:
+            out[int(oid)]["open_balance"] = decimal_str(money2(Decimal(bal)))
+        out[int(oid)]["next_due_date"] = due
+    return out
+
+
+def payable_counts_by_invoice(db: Session, invoice_ids: list[int]) -> dict[int, int]:
+    from sqlalchemy import func
+
+    if not invoice_ids:
+        return {}
+    rows = (
+        db.query(Payable.invoice_id, func.count(Payable.id))
+        .filter(Payable.invoice_id.in_(invoice_ids))
+        .group_by(Payable.invoice_id)
+        .all()
+    )
+    return {int(iid): int(cnt) for iid, cnt in rows}
+
+
 def payables_queue(
     db: Session,
     *,
@@ -73,7 +136,8 @@ def payables_queue(
     from app.billing.models import Invoice, Payable
 
     today = date_cls.today()
-    q = db.query(Payable).join(Invoice)
+    # outerjoin: payables Customs (sem Invoice) entram na fila AP
+    q = db.query(Payable).outerjoin(Invoice, Invoice.id == Payable.invoice_id)
     if order_id is not None:
         q = q.filter(Invoice.order_id == order_id)
     if invoice_id is not None:
@@ -216,6 +280,8 @@ def payables_queue(
                 "version": p.version,
                 "invoice_number": inv.invoice_number if inv else None,
                 "invoice_type": inv.invoice_type if inv else None,
+                "source_type": p.source_type,
+                "payee_display_name": p.payee_display_name,
                 "days_overdue": (today - p.due_date).days
                 if p.due_date < today and p.status in ("OPEN", "PARTIALLY_PAID")
                 else 0,

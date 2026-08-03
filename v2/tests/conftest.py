@@ -26,6 +26,9 @@ import app.orders.models  # noqa: F401
 import app.billing.models  # noqa: F401
 import app.treasury.models  # noqa: F401
 import app.treasury.fx_models  # noqa: F401
+import app.logistics.models  # noqa: F401
+import app.customs.models  # noqa: F401
+import app.inventory.models  # noqa: F401
 
 get_settings.cache_clear()
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
@@ -48,6 +51,9 @@ def engine():
             password=settings.seed_admin_password,
             name=settings.seed_admin_name,
         )
+        from app.inventory.repository import ensure_default_locations
+
+        ensure_default_locations(db)
         db.commit()
     finally:
         db.close()

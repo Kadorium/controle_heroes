@@ -17,6 +17,7 @@ from app.billing.money import (
     invoice_net,
     line_derived,
     money2,
+    normalize_unit,
     parse_decimal,
     require_positive_qty,
     split_scadenze_percent,
@@ -131,6 +132,7 @@ def create_invoice(
                 sku_snapshot=oi.sku_snapshot,
                 description_snapshot=oi.description_snapshot,
                 quantity=oi.quantity,
+                unit=oi.unit,
                 unit_price_gross=oi.unit_price,
                 discount_type=None,
                 position=pos,
@@ -198,6 +200,11 @@ def replace_items(
             raise InvoiceValidationError(f"order_item_id {oid} não pertence à ordem")
         qty = require_positive_qty(raw["quantity"])
         price = parse_decimal(raw.get("unit_price_gross"))
+        # Explicit unit in payload overrides; otherwise inherit OrderItem.unit (no silent dual SoT).
+        if "unit" in raw:
+            unit = normalize_unit(raw.get("unit"))
+        else:
+            unit = oi.unit
         dt, dua, dp = _normalize_discount_fields(
             raw.get("discount_type"),
             parse_decimal(raw.get("discount_unit_amount")),
@@ -219,6 +226,7 @@ def replace_items(
                 sku_snapshot=oi.sku_snapshot,
                 description_snapshot=oi.description_snapshot,
                 quantity=qty,
+                unit=unit,
                 unit_price_gross=price,
                 discount_type=dt,
                 discount_unit_amount=dua,
@@ -376,6 +384,9 @@ def _generate_payables(db: Session, inv: Invoice, net: Decimal) -> None:
                 balance=amount,
                 currency=inv.currency,
                 status="OPEN",
+                source_type="INVOICE",
+                source_id=inv.id,
+                payee_display_name=None,
             )
         )
     db.flush()

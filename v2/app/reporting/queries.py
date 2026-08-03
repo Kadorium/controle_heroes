@@ -60,6 +60,9 @@ def ap_queue(
     # Uma operação bulk (não get_supplier por linha / por id)
     suppliers = catalog_public.get_suppliers_bulk(db, supplier_ids)
 
+    order_ids = {int(r["order_id"]) for r in items if r.get("order_id") is not None}
+    orders = orders_public.get_orders_bulk(db, order_ids)
+
     plans = treasury_public.fx.get_current_plans_bulk(db, payable_ids)
     quote = treasury_public.fx.get_latest_quote(db, "EUR", "BRL")
     market = None
@@ -86,11 +89,18 @@ def ap_queue(
             pendencies.append("MISSING_FX")
         sid = int(row["supplier_id"]) if row.get("supplier_id") is not None else None
         supplier = suppliers.get(sid) if sid is not None else None
+        oid = int(row["order_id"]) if row.get("order_id") is not None else None
+        order = orders.get(oid) if oid is not None else None
+        payee_display = row.get("payee_display_name")
+        supplier_name = supplier.name if supplier else (payee_display or None)
         enriched.append(
             {
                 **row,
-                "supplier_name": supplier.name if supplier else None,
+                "supplier_name": supplier_name,
                 "supplier_resolved": supplier is not None,
+                "payee_display_name": payee_display,
+                "source_type": row.get("source_type") or "INVOICE",
+                "order_code": order.code if order else None,
                 "fx_projected_rate": projected_rate,
                 "fx_projected_brl": projected_brl,
                 "pendencies": pendencies,
@@ -265,19 +275,23 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
     alerts: list[dict[str, str]] = []
     if any(p.status in ("OPEN", "PARTIALLY_PAID") and p.due_date < date.today() for p in payable_rows):
         alerts.append(
-            {"code": "OVERDUE", "message": "Há payables vencidos", "href": f"/payables?order_id={order_id}"}
+            {"code": "OVERDUE", "message": "Há obrigações vencidas", "href": f"/payables?order_id={order_id}"}
         )
     if unallocated_candidates:
         alerts.append(
             {
                 "code": "UNALLOCATED_CANDIDATE",
-                "message": "Pagamentos com residual (candidatos — não relação com a ordem)",
+                "message": "Pagamentos com residual (candidatos a alocação — não são vínculos com o pedido)",
                 "href": "/payments",
             }
         )
     if missing_fx:
         alerts.append(
-            {"code": "MISSING_FX", "message": "Payable sem taxa projetada", "href": f"/payables?order_id={order_id}"}
+            {
+                "code": "MISSING_FX",
+                "message": "Obrigação sem taxa projetada",
+                "href": f"/payables?order_id={order_id}",
+            }
         )
 
     return {
@@ -324,3 +338,49 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
             "fx_realized": f"{fx_realized_total:.2f}",
         },
     }
+
+
+def orders_list(
+    db: Session,
+    *,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Fila Pedidos enriquecida (read model Reporting) — ausência financeira = None."""
+    rows = orders_public.list_orders(db, status=status, limit=limit, offset=offset)
+    ids = [o.id for o in rows]
+    suppliers = catalog_public.get_suppliers_bulk(db, {o.supplier_id for o in rows})
+    financials = billing_public.order_list_financials(db, ids)
+    out: list[dict[str, Any]] = []
+    for o in rows:
+        t = orders_public.totals_as_strings(o)
+        fin = financials.get(o.id, {})
+        unpriced = int(t.get("unpriced_item_count") or 0)
+        supplier = suppliers.get(o.supplier_id)
+        pendencies: str | None = None
+        if unpriced > 0:
+            pendencies = f"{unpriced} item(ns) sem preço"
+        out.append(
+            {
+                "id": o.id,
+                "code": o.code,
+                "supplier_id": o.supplier_id,
+                "supplier_name": supplier.name if supplier else None,
+                "status": o.status,
+                "currency": o.currency,
+                "order_date": o.order_date.isoformat() if o.order_date else None,
+                "created_by_actor_id": o.created_by_actor_id,
+                "version": o.version,
+                "updated_at": o.updated_at.isoformat() if o.updated_at else None,
+                "commercial_total": t.get("commercial_total"),
+                "unpriced_item_count": unpriced,
+                "invoiced_amount": fin.get("invoiced_amount"),
+                "open_balance": fin.get("open_balance"),
+                "next_due_date": fin.get("next_due_date").isoformat()
+                if fin.get("next_due_date")
+                else None,
+                "pendencies": pendencies,
+            }
+        )
+    return out

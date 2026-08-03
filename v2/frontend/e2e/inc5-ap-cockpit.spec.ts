@@ -8,7 +8,7 @@ test("Inc-5 AP queue + order cockpit (Reporting)", async ({ page }) => {
   await page.getByRole("button", { name: /entrar/i }).click();
   await expect(page.getByRole("link", { name: /contas a pagar/i })).toBeVisible({ timeout: 15000 });
 
-  await page.getByRole("link", { name: /^Nova$/i }).click();
+  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
   await page.getByTestId("line-sku").fill(`SKU-${code}`);
@@ -18,6 +18,7 @@ test("Inc-5 AP queue + order cockpit (Reporting)", async ({ page }) => {
   await page.getByTestId("line-price").fill("100");
   await page.getByRole("button", { name: /adicionar linha/i }).click();
   await page.getByTestId("save-confirm").click();
+  await page.getByTestId("confirm-modal-ok").click();
   await expect(page.getByTestId("order-cockpit")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("kpi-strip")).toBeVisible();
 
@@ -25,8 +26,8 @@ test("Inc-5 AP queue + order cockpit (Reporting)", async ({ page }) => {
   const orderId = Number(orderUrl.match(/orders\/(\d+)/)?.[1]);
   expect(orderId).toBeGreaterThan(0);
 
-  await page.getByRole("button", { name: /comercial \/ edição/i }).click();
-  await expect(page.getByTestId("commercial-embed")).toBeVisible();
+  await page.getByTestId("cockpit-commercial-link").click();
+  await expect(page.getByTestId("order-detail")).toBeVisible();
   await expect(page.getByTestId("order-detail")).toBeVisible();
 
   await page.getByTestId("new-invoice-number").fill(`F-${code}`);
@@ -46,18 +47,18 @@ test("Inc-5 AP queue + order cockpit (Reporting)", async ({ page }) => {
   await page.getByTestId("term-amt-0").fill("1000");
   await page.getByTestId("save-terms").click();
   await expect(page.getByTestId("invoice-blockers")).toHaveCount(0, { timeout: 10000 });
-  page.once("dialog", (d) => d.accept());
   await page.getByTestId("issue-invoice").click();
+  await page.getByTestId("confirm-modal-ok").click();
   await expect(page.getByTestId("invoice-readonly")).toBeVisible({ timeout: 15000 });
 
   await page.goto(`/orders/${orderId}`);
   await expect(page.getByTestId("order-cockpit")).toBeVisible({ timeout: 10000 });
-  await expect(page.getByTestId("kpi-strip")).toContainText(/Pago \(alloc\)/i);
+  await expect(page.getByTestId("kpi-strip")).toContainText(/Pago/i);
 
-  await page.getByRole("link", { name: /contas a pagar/i }).click();
+  await page.goto(`/payables?order_id=${orderId}`);
   await expect(page.getByTestId("ap-queue-page")).toBeVisible({ timeout: 10000 });
   await expect(page.getByTestId("kpi-strip")).toBeVisible();
-  await page.getByTestId("ap-filter-order").fill(String(orderId));
+  await expect(page.getByTestId("ap-filter-order")).toHaveValue(String(orderId));
   await expect(page.getByTestId("ap-table")).toBeVisible({ timeout: 10000 });
   await expect(page.locator(`[data-testid^="ap-row-"]`)).toHaveCount(1, { timeout: 10000 });
 

@@ -1,0 +1,4 @@
+# Document Readiness A2 — Orders/Billing
+# Usado por: npm run e2e:a2
+
+e2e/a2-orders-billing-readiness.spec.ts

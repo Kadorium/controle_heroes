@@ -546,13 +546,13 @@ Abas mínimas no detalhe da importação: Resumo · Itens/SKUs · Invoices · Pa
 2. Não criar documentos `.md` extras sem justificativa objetiva
 3. Sempre atualizar checklist após cada módulo
 4. Preferir atualizar estes dois arquivos a criar novos
-5. **Regra Cursor (índice):** o agente deve seguir [`.cursor/rules/importacao-epic-indice.mdc`](../../.cursor/rules/importacao-epic-indice.mdc) — roteador que aponta para a § correta deste arquivo e para os itens `Fx-xxx` do checklist conforme o módulo ou fase em execução
+5. **Regra Cursor (guarda V1):** o agente segue [`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc) §4 (legado congelado ADR-16). O roteamento fino para §§ deste arquivo / itens `Fx-xxx` do checklist foi **retirado** das regras ativas; o detalhe permanece nestes documentos históricos.
 
 ---
 
 ## 27. Referências do projeto
 
-- [`.cursor/rules/importacao-epic-indice.mdc`](../../.cursor/rules/importacao-epic-indice.mdc) — índice Cursor (trilha V1)
+- [`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc) — regra operacional V2 (guarda do legado V1 na §4)
 - [`BLUEPRINT_SISTEMA_EPIC_V1.md`](BLUEPRINT_SISTEMA_EPIC_V1.md) — blueprint funcional histórico
 - [`archive/RESUMO_EXECUTIVO_INICIAL_EPIC_V1.md`](archive/RESUMO_EXECUTIVO_INICIAL_EPIC_V1.md)
 - [`archive/PROMPT_MESTRE_CURSOR_EPIC_V1.md`](archive/PROMPT_MESTRE_CURSOR_EPIC_V1.md)

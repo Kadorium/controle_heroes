@@ -45,3 +45,31 @@ export async function fetchOrderSummary(orderId: number) {
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()) as OrderCockpit;
 }
+
+export type OrderListRow = {
+  id: number;
+  code: string;
+  supplier_id: number;
+  supplier_name?: string | null;
+  status: string;
+  currency: string;
+  order_date?: string | null;
+  commercial_total?: string | null;
+  unpriced_item_count?: number;
+  invoiced_amount?: string | null;
+  open_balance?: string | null;
+  next_due_date?: string | null;
+  pendencies?: string | null;
+};
+
+export async function fetchOrdersList(params?: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const res = await fetch(`/api/reporting/orders-list${qs(params ?? {})}`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as OrderListRow[];
+}

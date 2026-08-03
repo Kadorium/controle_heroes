@@ -38,6 +38,13 @@ def compute_totals(items: list[OrderItem]) -> OrderTotals:
     )
 
 
+def get_orders_bulk(db: Session, order_ids: list[int] | set[int]) -> dict[int, Order]:
+    """Resolve pedidos em lote. Ids ausentes não entram no mapa."""
+    from app.orders import repository as repo
+
+    return {o.id: o for o in repo.get_orders_by_ids(db, order_ids)}
+
+
 def get_order(db: Session, order_id: int) -> Order:
     order = repo.get_order(db, order_id)
     if not order:
@@ -52,10 +59,56 @@ def get_order_locked(db: Session, order_id: int) -> Order:
     return order
 
 
+def get_order_item(db: Session, order_item_id: int) -> OrderItem:
+    from app.orders.errors import OrderItemNotFound
+
+    item = repo.get_item_by_id(db, order_item_id)
+    if not item:
+        raise OrderItemNotFound(order_item_id)
+    return item
+
+
+def get_order_items_bulk(db: Session, item_ids: list[int] | set[int]) -> dict[int, OrderItem]:
+    return {i.id: i for i in repo.get_items_by_ids(db, item_ids)}
+
+
 def list_orders(
     db: Session, *, status: str | None = None, limit: int = 50, offset: int = 0
 ) -> list[Order]:
     return repo.list_orders(db, status=status, limit=limit, offset=offset)
+
+
+def find_confirmed_order_items(
+    db: Session,
+    *,
+    order_id: int | None = None,
+    order_code: str | None = None,
+    external_ref: str | None = None,
+    sku: str | None = None,
+    supplier_id: int | None = None,
+    limit: int = 50,
+) -> list[tuple[Order, OrderItem]]:
+    """Candidatos para Logistics — só CONFIRMED. Retorna pares (order, item)."""
+    from sqlalchemy.orm import joinedload
+
+    q = (
+        db.query(OrderItem)
+        .join(Order)
+        .options(joinedload(OrderItem.order))
+        .filter(Order.status == "CONFIRMED")
+    )
+    if order_id is not None:
+        q = q.filter(Order.id == order_id)
+    if order_code:
+        q = q.filter(Order.code == order_code.strip())
+    if external_ref:
+        q = q.filter(Order.external_ref == external_ref.strip())
+    if supplier_id is not None:
+        q = q.filter(Order.supplier_id == supplier_id)
+    if sku:
+        q = q.filter(OrderItem.sku_snapshot.ilike(f"%{sku.strip()}%"))
+    items = q.limit(min(limit, 100)).all()
+    return [(item.order, item) for item in items]
 
 
 def item_line_total_str(item: OrderItem) -> str | None:

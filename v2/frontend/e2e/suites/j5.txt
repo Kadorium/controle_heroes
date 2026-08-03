@@ -1,0 +1,7 @@
+# J#5 — aceite final I5-6 (Customs + Inventory)
+# Usado por: npm run e2e:j5
+
+e2e/i5-1-customs.spec.ts
+e2e/i5-2-doganale.spec.ts
+e2e/i5-5-ux-smoke.spec.ts
+e2e/j5-acceptance.spec.ts

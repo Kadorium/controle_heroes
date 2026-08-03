@@ -1,0 +1,4 @@
+# Inc-6 vertical Order-to-Pay acceptance suite
+# Usado por: npm run e2e:inc-6
+
+e2e/inc6-order-to-pay.spec.ts

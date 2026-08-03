@@ -11,7 +11,17 @@
     "generate:api": "node scripts/generate-api.mjs",
     "check:api-drift": "node scripts/check-api-drift.mjs",
     "e2e:prepare": "node scripts/e2e.mjs prepare",
-    "e2e": "node scripts/e2e.mjs run"
+    "e2e": "node scripts/e2e.mjs run",
+    "e2e:horizon-a": "node scripts/e2e-suite.mjs horizon-a",
+    "e2e:inc-6": "node scripts/e2e-suite.mjs inc-6",
+    "e2e:logistics": "node scripts/e2e-suite.mjs logistics",
+    "e2e:j5-i5-1": "node scripts/e2e-suite.mjs j5-i5-1",
+    "e2e:j5-i5-2": "node scripts/e2e-suite.mjs j5-i5-2",
+    "e2e:j5-i5-5": "node scripts/e2e-suite.mjs j5-i5-5",
+    "e2e:j5": "node scripts/e2e-suite.mjs j5",
+    "e2e:a2": "node scripts/e2e-suite.mjs doc-readiness-a2",
+    "e2e:dr-ux": "node scripts/e2e-suite.mjs dr-ux",
+    "test:e2e-guard": "node --test scripts/e2e-stale-guard.test.mjs"
   },
   "dependencies": {
     "openapi-fetch": "^0.13.5",

@@ -62,6 +62,7 @@ class OrderItem(Base):
     sku_snapshot: Mapped[str] = mapped_column(String(64), nullable=False)
     description_snapshot: Mapped[str] = mapped_column(String(512), nullable=False)
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(16), nullable=True)
     unit_price: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

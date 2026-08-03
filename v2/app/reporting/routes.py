@@ -66,3 +66,16 @@ def get_order_summary(
         return reporting_public.order_cockpit(db, order_id)
     except OrdersError as e:
         raise _map_orders_error(e) from e
+
+
+@router.get("/reporting/orders-list")
+def get_orders_list(
+    status: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Fila Pedidos enriquecida. Permissão orders:read (superfície Pedidos; RM em Reporting)."""
+    enforce_permission(user, "orders:read")
+    return reporting_public.orders_list(db, status=status, limit=limit, offset=offset)

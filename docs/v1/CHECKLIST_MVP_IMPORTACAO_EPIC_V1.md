@@ -9,7 +9,7 @@ NÃO UTILIZAR COMO ESPECIFICAÇÃO OU DoD DA V2
 
 **Legenda de colunas:** cada item lista ID · Módulo · Regra/Requisito · Prioridade · Status · Dependência · Evidência · Teste · Observação
 
-**Índice Cursor:** [`.cursor/rules/importacao-epic-indice.mdc`](../../.cursor/rules/importacao-epic-indice.mdc) roteia tarefas → § de [`CURSOR_RULES_IMPORTACAO_EPIC.md`](CURSOR_RULES_IMPORTACAO_EPIC.md) + itens `Fx-xxx` deste checklist.
+**Cursor (legado):** o índice fino Fx-xxx foi **retirado** das regras ativas. Guarda V1: [`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc) §4. Detalhe de método permanece neste checklist e em [`CURSOR_RULES_IMPORTACAO_EPIC.md`](CURSOR_RULES_IMPORTACAO_EPIC.md) (histórico).
 
 **Status:** `TODO` · `PARTIAL` · `DONE` · `BLOCKED`  
 **Prioridade:** `P0` (bloqueante MVP) · `P1` (importante) · `P2` (desejável pós-núcleo)

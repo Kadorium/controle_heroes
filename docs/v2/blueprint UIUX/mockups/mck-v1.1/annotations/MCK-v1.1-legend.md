@@ -1,6 +1,6 @@
 # Legenda — MCK v1.1 (Etapa 6B)
 
-Checkpoints A–D aprovados. E6-A aprovado com ajustes. E6-B pendente confirmação externa final.
+Checkpoints A–D · E6-A/B · E7-A/B **APROVADOS**. Design System §26–§27 (UI/UX v3.9).
 
 ## Correções aplicadas
 

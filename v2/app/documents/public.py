@@ -79,8 +79,54 @@ def list_by_entity(db: Session, entity_type: str, entity_id: str) -> list[Docume
     return list(q.all())
 
 
+def get_document(db: Session, document_id: int) -> Document | None:
+    return db.get(Document, document_id)
+
+
+def list_links_for_document(db: Session, document_id: int) -> list[DocumentLink]:
+    return (
+        db.query(DocumentLink)
+        .filter(DocumentLink.document_id == document_id)
+        .order_by(DocumentLink.id.asc())
+        .all()
+    )
+
+
 def absolute_path(attachments_path: Path, doc: Document) -> Path:
     return attachments_path / doc.storage_path
+
+
+def resolve_content_path(attachments_path: Path, doc: Document) -> Path | None:
+    """Resolve arquivo no storage autorizado. None se path inválido ou arquivo ausente."""
+    root = attachments_path.resolve()
+    rel = (doc.storage_path or "").replace("\\", "/").lstrip("/")
+    if not rel or ".." in rel.split("/"):
+        return None
+    candidate = (attachments_path / rel).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        return None
+    if not candidate.is_file():
+        return None
+    return candidate
+
+
+# entity_type (DocumentLink) → permissão de leitura do módulo owner
+ENTITY_READ_PERMISSION: dict[str, str] = {
+    "order": "orders:read",
+    "invoice": "billing:read",
+    "shipment": "logistics:read",
+    "import_process": "customs:read",
+    "payment": "treasury:read",
+    "payable": "billing:read",
+    "supplier": "catalog:read",
+    "product": "catalog:read",
+}
+
+
+def entity_read_permission(entity_type: str) -> str | None:
+    return ENTITY_READ_PERMISSION.get((entity_type or "").strip().lower())
 
 
 def delete_stored_file(attachments_path: Path, doc: Document) -> None:

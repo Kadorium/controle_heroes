@@ -64,7 +64,8 @@ def list_payables(
     limit: int = 100,
     offset: int = 0,
 ) -> list[Payable]:
-    q = db.query(Payable).join(Invoice)
+    # outerjoin: payables Customs (invoice_id NULL) aparecem na listagem geral
+    q = db.query(Payable).outerjoin(Invoice, Invoice.id == Payable.invoice_id)
     if order_id is not None:
         q = q.filter(Invoice.order_id == order_id)
     if invoice_id is not None:

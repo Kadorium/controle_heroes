@@ -13,6 +13,14 @@ def get_order(db: Session, order_id: int) -> Order | None:
     )
 
 
+def get_orders_by_ids(db: Session, order_ids: list[int] | set[int]) -> list[Order]:
+    """Uma query IN (...) — ids vazios → []. Sem joinedload (só cabeçalho)."""
+    ids = sorted({int(i) for i in order_ids})
+    if not ids:
+        return []
+    return db.query(Order).filter(Order.id.in_(ids)).all()
+
+
 def get_order_for_update(db: Session, order_id: int) -> Order | None:
     """Lock order row + items for concurrent invoice qty checks (Billing)."""
     order = (
@@ -63,6 +71,17 @@ def get_item(db: Session, order_id: int, item_id: int) -> OrderItem | None:
         .filter(OrderItem.id == item_id, OrderItem.order_id == order_id)
         .first()
     )
+
+
+def get_item_by_id(db: Session, item_id: int) -> OrderItem | None:
+    return db.query(OrderItem).filter(OrderItem.id == item_id).first()
+
+
+def get_items_by_ids(db: Session, item_ids: list[int] | set[int]) -> list[OrderItem]:
+    ids = sorted({int(i) for i in item_ids})
+    if not ids:
+        return []
+    return db.query(OrderItem).filter(OrderItem.id.in_(ids)).all()
 
 
 def delete_item(db: Session, item: OrderItem) -> None:

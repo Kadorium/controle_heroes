@@ -1,0 +1,4 @@
+# Validação jornada Logistics só-UI (evidência, não gate Roadmap)
+# npm run e2e -- com E2E_SPECS ou: node scripts/e2e-suite.mjs logistics-ui-journey
+
+e2e/j4-logistics-ui-journey.spec.ts

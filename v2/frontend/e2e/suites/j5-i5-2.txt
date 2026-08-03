@@ -1,0 +1,1 @@
+e2e/i5-2-doganale.spec.ts

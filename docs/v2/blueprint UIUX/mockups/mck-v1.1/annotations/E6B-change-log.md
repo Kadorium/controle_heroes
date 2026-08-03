@@ -48,5 +48,7 @@ Oito SVG · PDF 8 págs · PNG 1440×8 · smoke 1366×8 · v1.0 preservado · Se
 - sem alteração de versão ou arquitetura;
 - PDF regenerado.
 
-**Detalhe:** cluster `Aberto · Heroes · EUR · sem execução vinculada` deslocado à direita na linha contextual do MCK-007 (`badge` x=470), preservando `‹ Voltar para contas a pagar` em `font-size="12"`. Demais artboards inalterados. Checkpoint: **E6-B PENDENTE DE CONFIRMAÇÃO EXTERNA FINAL**.
+**Detalhe:** cluster `Aberto · Heroes · EUR · sem execução vinculada` deslocado à direita na linha contextual do MCK-007 (`badge` x=470), preservando `‹ Voltar para contas a pagar` em `font-size="12"`. Demais artboards inalterados.
+
+**Sincronização Etapa 7A:** Checkpoint **E6-B = APROVADO** (fato histórico; não reverter em rollback da Etapa 7).
 

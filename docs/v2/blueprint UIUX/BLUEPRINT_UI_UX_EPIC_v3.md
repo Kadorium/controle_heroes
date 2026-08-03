@@ -1,20 +1,21 @@
 # Epic Controle — Blueprint de Produto (UI/UX)
 
 ```text
-Status: CANDIDATO NÃO CANÔNICO — revisão humana pendente
-Versão: 3.7
-Data: 2026-07-28
-Autoridade atual: consultiva para arquitetura de informação e UX
+Status: referência de design (não canônico de domínio)
+Versão: 3.10
+Data: 2026-07-29
+Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
-Natureza: candidato parcialmente consolidado — Etapa 2 (§20) + Etapa 3/3.1 (§21–§22)
-          + Etapa 4 (§23–§24) + Etapa 5 mockups (§25) + Etapa 6 revisão visual
-          (MCK v1.1); seções dependentes de ADR, fontes de dados ou validação
-          do negócio permanecem decisões abertas. Não é especificação integralmente executável.
+Status de implementação das superfícies: consultar o Roadmap
+Segmentação: Horizon A (superfícies já DONE no Roadmap) = baseline documental de UI/UX;
+             Horizons B–D e superfícies não implementadas = candidato
+Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
+          Não é especificação integralmente executável nem promoção automática a canônico.
 ```
 
-**Precedência durante investigação:** código e runtime reais. Divergências documentais resolvem-se nos documentos responsáveis (ver matriz de autoridade). Benchmarks são evidência consultiva, sem autoridade.
+**Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
 
-**Fontes de consolidação:** Blueprint Sistema V2 · Roadmap V2 · auditoria UX-1 (2026-07-24) · código `v2/` · corpus em `docs/v2/blueprint UIUX/` (benchmark, não canônico). Evidências de investigação e vereditos H1–H7: **Roadmap**, não este arquivo.
+**Fontes de consolidação:** Blueprint Sistema V2 · Roadmap V2 · auditoria UX-1 (2026-07-24) · código `v2/` · corpus em `docs/v2/blueprint UIUX/` (benchmark, não canônico). Evidências de investigação e vereditos: **Roadmap**, não este arquivo.
 
 **Legenda de classificação (síntese normativa):**
 
@@ -130,8 +131,9 @@ Total de superfícies inventariadas: **36**.
 | SCR-017 | Triagem de produtos | 2 | B | Ingestão |
 | SCR-018 | Fornecedores e operadores | 2 | B | Supplier A; operador = validação |
 | SCR-019 | Pipeline de importação | 4 | B | ImportProcess |
-| SCR-020 | Embarques (lista) | 4 | B | Logistics |
-| SCR-021 | Embarque (detalhe) | 4 | B | Shipment Detail próprio |
+| SCR-020 | Embarques (lista) | 4 | B | Logistics; filtros status/modal/prestador; CTA prestadores |
+| SCR-021 | Embarque (detalhe) | 4 | B | Shipment Detail próprio; selects modal + empresa transportadora |
+| SCR-021b | Prestadores logísticos | 4 | B | `/logistics-providers` list+create (J4-UX1) |
 | SCR-022 | Processo aduaneiro / DUIMP (detalhe) | 4 | B | ImportProcess Detail próprio |
 | SCR-023 | Documentos (biblioteca) | 4/8 | B | documents API (A) |
 | SCR-024 | Posição de estoque | 5 | B | Inventory |
@@ -203,7 +205,7 @@ Unidade do gatilho de fontes: **somente CAP-***. Telas (SCR) e capacidades não 
 | CAP-018 | FX plan / quote / execution / PnL | Taxas versionadas e valuation | SCR-009 | Fx* models | Treasury FX | A | `V2_OPERATIONAL_NOW` |
 | CAP-019 | Trade Finance (taxonomia) | Contratos ACC/ACE/Finimp/hedge/etc. | SCR-027 | Não | Não formalizado | — | `REQUIRES_BUSINESS_VALIDATION` · `EPIC_NOT_VALIDATED` |
 | CAP-020 | Pipeline importação | Milestones previstos vs realizados | SCR-019 | Não | Logistics + Customs | B | `V2_APPROVED_NOT_IMPLEMENTED` |
-| CAP-021 | Shipment | Embarque agregado independente | SCR-020/021 | Não | Logistics; sem order_id | B | `V2_APPROVED_NOT_IMPLEMENTED` |
+| CAP-021 | Shipment | Embarque agregado independente | SCR-020/021 | Não | Logistics; sem order_id; modal+prestador (J4-UX1) | B | `AS-IS` |
 | CAP-022 | ImportProcess / DUIMP | Processo aduaneiro Detail | SCR-022 | Não | Customs | B | `V2_APPROVED_NOT_IMPLEMENTED` |
 | CAP-023 | Documents + links | Bytes imutáveis + DocumentLink N:M | SCR-023 | documents API | Documents | A API / B UI | `V2_OPERATIONAL_NOW` (API) |
 | CAP-024 | Posição temporal estoque | Disponível / em trânsito / planejado | SCR-024 | Não | Inventory | B | `V2_APPROVED_NOT_IMPLEMENTED` (defs C) |
@@ -326,7 +328,7 @@ Para SCR-013…036: ID · seção · pergunta · entidade · módulo · perfil �
 |---|---|---|---|---|
 | SCR-013 | O que precisa de ação agora? | Reporting | B read model; D se persistir | CAP-003 ADR |
 | SCR-021 | Qual o estado deste embarque? | Logistics | B | Sem order_id |
-| SCR-022 | Onde está o processo aduaneiro? | Customs | B | DEC-DUIMP-MULTI-SHIP |
+| SCR-022 | Onde está o processo aduaneiro? | Customs | B | DEC-DUIMP-MULTI-SHIP **fechada** (1:N + UNIQUE shipment) |
 | SCR-026 | Qual a urgência de reposição? | Reporting + Inventory | C | Defs demanda |
 | SCR-027 | Qual cobertura cambial contratual? | Treasury? | Pendente | CAP-019 |
 | SCR-031 | Qual o LC do lote e versão? | Costing | B | Accrual vs posted |
@@ -390,21 +392,21 @@ Workbench é agregador/orquestrador de ação via read model — **não** dono d
 
 ---
 
-## 12. Design system (orientação provisória — não normativa)
+## 12. Design system (orientação provisória — histórico)
 
-**Não é autoridade visual.** Inventário `AS-IS` (CSS/tokens em `v2/frontend/src/index.css`) e propostas UX-1 = referência consultiva. O Design System definitivo deriva das telas e mockups aprovados (**Roteiro Etapa 7**).
+> **Supersedido para decisões vigentes por §26–§27** (Etapa 7A).  
+> O texto abaixo permanece como **histórico consultivo** (orientação pré-mockup / pré-derivação).  
+> Não usar §12 para tokens, dimensões, tipografia, responsividade visual ou anatomia de componentes.
 
-**Inventário consultivo (não congelar):** canvas/surface/text/muted/border/accent/success/warning/danger; space 4/8/12/16/24/32; type 12/14/16/20/28 + numeric tabular; density compact 32 / standard 40; radius 4/6/8; focus 2px+offset; sidebar ~208–240; content ~1200–1360; sticky header/filter; z dropdown/drawer/dialog/toast.
+**Não era autoridade visual.** Inventário `AS-IS` (CSS/tokens em `v2/frontend/src/index.css`) e propostas UX-1 = referência consultiva. O Design System candidato deriva das telas e mockups aprovados (**§26–§27**).
 
-**Foundation (orientação):** PageHeader/Breadcrumb; KpiStrip/StatusBadge/Money/Fx/Empty/Error/FilterBar; DetailDrawer (a11y); OperationalTable + Toast — criar/refinar só após casos estáveis nas telas aprovadas.
+**Inventário consultivo histórico (não congelar):** canvas/surface/text/muted/border/accent/success/warning/danger; space 4/8/12/16/24/32; type 12/14/16/20/28 + numeric tabular; density compact 32 / standard 40; radius 4/6/8; focus 2px+offset; sidebar ~208–240; content ~1200–1360; sticky header/filter; z dropdown/drawer/dialog/toast.
 
-**Drawers:** preview / revisão / histórico / ação curta. **Full page:** Invoice, Payment, Shipment, ImportProcess, Product, Landed Cost, fluxos longos. **Modal:** confirmação / busca / vínculo simples.
+**Foundation histórica:** PageHeader/Breadcrumb; KpiStrip/StatusBadge/Money/Fx/Empty/Error/FilterBar; DetailDrawer (a11y); OperationalTable + Toast.
 
-**A11y:** skip link, foco visível, trap no drawer, Escape, restore, erro associado ao campo, não só cor.
+**Drawers / Full page / Modal:** ver §21 (IA) e §27 (anatomia DS).
 
-**Responsividade:** priorizar 1366×768, 1440×900, 1920×1080. Não transformar tabelas em cards automaticamente.
-
-**Grades:** objeto/linha, ordenação, busca, filtros (URL), views (alvo), colunas, densidade, seleção, lote, export, totais, paginação/virtualização, stale, empty/loading/error/no-results/partial/retry, permissões. Metas de performance alinhadas ao stack real — sem inventar SLAs incompatíveis.
+**A11y / Responsividade / Grades:** ver §26.7–§26.8 e §27.3 (vigentes).
 
 ---
 
@@ -451,10 +453,10 @@ Na **Etapa 9**, o Cursor decide autonomamente, com base no código e no Roadmap,
 | Etapa 3.1 qualidade | §21.0–§21.13 | **DONE documental** (v3.4) |
 | Etapa 4 fluxos | §23–§24 | **DONE documental** (v3.5) |
 | Etapa 5 mockups | §25 · MCK v1.0 | **DONE** (v3.6) |
-| Etapa 6 revisão visual | §25 · MCK v1.1 | **DONE** (v3.7); E6-B pendente confirmação externa final |
-| Etapa 7 Design System | tokens derivados de MCK v1.1 | **próxima** (não iniciada) |
-| Etapa 8 | handoff | Pendente |
-| Etapa 9 | Plano técnico de implementação | Após aprovação visual |
+| Etapa 6 revisão visual | §25 · MCK v1.1 | **DONE** (v3.7); E6-B **APROVADO** |
+| Etapa 7 Design System | §26–§27 derivados de MCK v1.1 | **DONE** (v3.10); E7-A/E7-B aprovados |
+| Etapa 8 | handoff operacional | **DONE** — [`HANDOFF_UI_UX_EPIC_V2.md`](HANDOFF_UI_UX_EPIC_V2.md) v1.0; E8-A/E8-B aprovados |
+| Etapa 9 | Plano técnico de implementação | **próxima** (não iniciada; DoR fechado no Handoff) |
 
 Implementação futura em fatias verticais. Protótipo não finge capacidade inexistente. Runtime **não** renderiza item de navegação quebrado, morto ou desabilitado para hub Câmbio até existir rota/read model.
 
@@ -492,7 +494,7 @@ Implementação futura em fatias verticais. Protótipo não finge capacidade ine
 - `order_id` em Shipment (proibido no Sistema).
 - Payment liquidando Payable sem Allocation.
 - Herança automática irrestrita de atributos fiscais/logísticos.
-- DUIMP 1:1 Shipment (ver DEC-DUIMP-MULTI-SHIP).
+- ~~DUIMP 1:1 Shipment (ver DEC-DUIMP-MULTI-SHIP).~~ **Resolvido I5-0:** DUIMP **1:N** Shipment (`shipment_id` UNIQUE); ver Blueprint Sistema §6.6.
 
 ### 16.2 `REQUIRES_BUSINESS_VALIDATION`
 
@@ -594,8 +596,47 @@ Evidência de mercado: majoritariamente `OBSERVED_SECONDARY` / `INFERRED`. Só e
 - **v3.6** permanece registro de MCK v1.0 (§25 histórico).
 - **v3.7** = Etapa 6 **DONE**: correções 6B → **MCK v1.1**; §25 aponta o pacote vigente.
 - E6-012 (borda interativa) resolvido visualmente em MCK v1.1 **antes** da derivação formal de tokens (Etapa 7).
-- E6-A aprovado com ajustes; E6-B pendente confirmação externa final.
-- Próxima fatia de design: **Etapa 7 — Design System derivado** (não iniciada).
+- E6-A aprovado com ajustes; E6-B pendente confirmação externa final *(sincronizado como APROVADO na v3.8)*.
+- Próxima fatia de design: **Etapa 7 — Design System derivado**.
+
+## 18.7 Changelog v3.7 → v3.8 (Etapa 7A — DS candidato)
+
+- E6-B registrado como **APROVADO** (fato histórico; não reverter).
+- §12 marcado histórico; decisões vigentes em **§26–§27**.
+- Autoridade visual formal: sobreposição §20 vs §26–§27 declarada no §26.0.
+- Tokens/componentes **candidatos** com classificação de proveniência; Checkpoint **E7-A** pendente.
+- Etapa 7 = **PARTIAL**. Etapa 8 **não** iniciada. MCK permanece **v1.1**.
+
+## 18.8 Changelog v3.8 → v3.9 (Etapa 7B — consolidação)
+
+- E7-A tratado como aprovado na autorização da 7B.
+- **I1:** tabela de pares de contraste texto/fundo em §26.7 (sem WCAG global); nenhum par AA-normal falhou.
+- **I2:** densidades de tabela fechadas — `standard` (40) e `finance` (44) em §27.3.
+- Etapa 7 = **DONE**. Etapa 8 registrada apenas como próxima. MCK **v1.1** intacto.
+
+## 18.9 Changelog v3.9 → v3.10 (correção de fechamento Etapa 7)
+
+- E7-A = **APROVADO COM AJUSTES**; E7-B = **PENDENTE DE CONFIRMAÇÃO EXTERNA FINAL** (governança).
+- AuditDocumentsBlock promovido a template completo (evidência 002/003/004/007).
+- Taxonomia: eliminado `NORMALIZED→TARGET`; chip com classificação única **TARGET**.
+- Tokens determinísticos: `button.size.md/lg`, `type.size.id`, `radius.chip`; `detailDrawer.width`.
+- Etapa 7 = **PARTIAL** de governança até confirmação E7-B. Etapa 8 **não** iniciada.
+
+## 18.10 Changelog v3.10 — fechamento de governança Etapa 7
+
+- Confirmação externa final: **E7-A = APROVADO COM AJUSTES** (ajustes da v3.10 **concluídos**); **E7-B = APROVADO**.
+- Etapa 7 = **DONE**. Conteúdo normativo §§26–§27 **inalterado** nesta sync (somente status).
+- UI/UX permanece **v3.10**. Próxima = **Etapa 8 — Handoff** (**não** iniciada). MCK **v1.1** intacto.
+
+## 18.11 Changelog v3.10 — ponteiro Etapa 8A (sem bump)
+
+- Status: Etapa 8 **PARTIAL**; ponteiro para `HANDOFF_UI_UX_EPIC_V2.md` **v0.1**.
+- Conteúdo normativo §§20–§27 **inalterado**. E8-A pendente. Etapa 9 não iniciada.
+
+## 18.12 Changelog v3.10 — ponteiro Etapa 8B (sem bump)
+
+- Status: Etapa 8 **DONE**; ponteiro para `HANDOFF_UI_UX_EPIC_V2.md` **v1.0**.
+- E8-A APROVADO COM AJUSTES; E8-B APROVADO. Conteúdo normativo §§20–§27 **inalterado**. Etapa 9 não iniciada.
 
 ---
 
@@ -610,6 +651,10 @@ A cópia na raiz do repositório foi eliminada por duplicidade byte-idêntica co
 ---
 
 ## 20. App Shell profissional (Etapa 2 — TARGET DESIGN)
+
+> **Vigência (Etapa 7A):** §20 permanece a especificação de **arquitetura de informação do shell** (grupos, slots, contratos FX, regras de navegação).  
+> Para **tokens, dimensões medidas, anatomia visual, gutters/sticky/z-index, larguras de sidebar/drawer, header/breadcrumb e responsividade por arquétipo**, as decisões vigentes estão em **§26–§27**.  
+> Em caso de sobreposição numérica/visual, **§26–§27 prevalecem**; §20 não é reescrito — fica histórico estrutural + ponteiro.
 
 Única proposta concreta. Wireframes abaixo mostram **apenas o chrome** aplicado às rotas; o desenho funcional das telas é **Etapa 3**.
 
@@ -1573,10 +1618,10 @@ Ficha → (histórico | link fila) → fila origem · fallback default se sem hi
 
 ## 25. Mockups prioritários — MCK v1.1 (Etapa 6 DONE)
 
-**Status:** mockups prioritários Horizon A vigentes = **MCK v1.1** (correções Etapa 6B sobre v1.0).  
-**Checkpoints:** A · B · C · D = **APROVADOS** · E6-A = **APROVADO COM AJUSTES** · E6-B = **PENDENTE DE CONFIRMAÇÃO EXTERNA FINAL**.  
-**Família visual:** aprovada (v1.0) + ajustes editoriais/contraste/AUX (v1.1).  
-**Importante:** mockup **não** é implementação. Não altera frontend, backend, APIs. Design System = **Etapa 7** (não iniciada). Gaps técnicos → **Etapa 9**. E6-012 resolvido visualmente; token formal deriva na Etapa 7.
+**Status:** mockups prioritários Horizon A vigentes = **MCK v1.1**.  
+**Checkpoints:** A · B · C · D = **APROVADOS** · E6-A = **APROVADO COM AJUSTES** · E6-B = **APROVADO**.  
+**Família visual:** aprovada. Design System = **§26–§27** (Etapa 7 **DONE**).  
+**Importante:** mockup **não** é implementação. Gaps técnicos → **Etapa 9**.
 
 ### 25.1 Artefatos
 
@@ -1631,14 +1676,14 @@ Resoluções validadas: **1440×900** (artboard) · smoke **1366×768** (oito ar
 
 | Tema | Classificação | Destino |
 |---|---|---|
-| Layout/shell/hierarquia mockados | TARGET visual aprovado (v1.1) | Etapa 7 |
+| Layout/shell/hierarquia mockados | TARGET visual aprovado (v1.1) | §26–§27 (7A) |
 | G02 contexto AP→Payment | TARGET no mock · **GAP** wiring | Etapa 9 |
 | Enrichment Orders / reporting | TARGET · **GAP** read model | Etapa 9 |
 | Docs/audit deep link | AS-IS listagem · **GAP** páginas | Etapa 9 |
 | SCR-028 hub Câmbio | **omitido** | Etapa 9 / ADR |
 | Fallback `reporting:read` | legenda | Etapa 9 |
-| E6-013 / 015 / 016 | fora do escopo 6B | Etapa 7 |
-| E6-017 volume | fora do escopo 6B | Etapa 9 |
+| E6-013 / 015 / 016 | regras candidatas no DS | §26 (7A) |
+| E6-017 volume | regras visuais DS; perf | §27.3 / Etapa 9 |
 
 ### 25.6 Decisões visuais aprovadas
 
@@ -1654,7 +1699,500 @@ Resoluções validadas: **1440×900** (artboard) · smoke **1366×768** (oito ar
 ### 25.7 Limitações
 
 - Não cobre Horizon B–D.
-- Não é protótipo funcional nem Design System (Etapa 7 ainda não iniciada).
+- Não é protótipo funcional. Design System em **§26–§27** (Etapa 7 DONE).
 - Valores do cenário canônico são fictícios de revisão (não inserir no banco).
-- Próxima etapa de design: **Etapa 7 — Design System derivado**.
+- Próxima etapa de design: **Etapa 8 — Handoff** (não iniciada).
 
+---
+
+## 26. Design System derivado (Etapa 7 DONE)
+
+**Status:** consolidado · **E7-A = APROVADO COM AJUSTES** (ajustes concluídos) · **E7-B = APROVADO**.  
+**Fonte visual:** MCK v1.1. **Não** é implementação. Sem React/CSS de produção.
+
+### 26.0 Autoridade e precedência (C2)
+
+Precedência de produto:
+
+```text
+MCK v1.1 → Etapa 6 → Blueprint UI/UX → §26–§27 (DS) → Etapa 8 → Etapa 9
+```
+
+| Tema em sobreposição | Documento histórico | Documento vigente (7A) |
+|---|---|---|
+| Responsividade / max-width por arquétipo | §20.4 (hipótese estrutural) | **§26.8** |
+| Gutters | §20.4 | **§26.5 / §26.8** |
+| Sticky / z-index | §20.4 / §12 | **§26.6 / §26.8** |
+| Largura sidebar / DetailDrawer | §20 (~224) / §21 | **§26.5** (sidebar **220** DERIVED; **`detailDrawer.width` 460** DERIVED) |
+| Anatomia header / breadcrumb | §20.3 | **§27.1** (PageHeader, Breadcrumb) |
+| Tokens / tipografia / densidade / bordas | §12 | **§26** |
+| Componentes e estados | §12 / §22 | **§27** |
+
+§12 e trechos numéricos de §20 **não são apagados**; ficam históricos. **Não duplicar** a regra vigente nos dois lugares — citar §26–§27.
+
+CSS/React AS-IS (`v2/frontend`) = inventário técnico, **sem autoridade visual**.
+
+### 26.1 Princípios
+
+1. Derivar do MCK; não redesenhar mockups nesta etapa.
+2. Três camadas: `primitive` · `semantic` · `component`.
+3. Toda regra tem classificação: DERIVED | NORMALIZED | TARGET | DEFERRED_RUNTIME | EXCEPTION.
+4. Diferença MCK↔DS é **explícita** (proveniência).
+5. Sem declarar conformidade WCAG global; registrar pares medidos.
+6. Permissão ausente → controle **oculto** (não `disabled` theater).
+7. Ausência ≠ zero (`—`).
+
+### 26.2 Tokens primitivos (candidatos)
+
+| Primitive | Valor | Class. | Nota |
+|---|---|---|---|
+| `color.navy.sidebar` | `#1B2A41` | DERIVED | 8/8 |
+| `color.navy.navActive` | `#243447` | DERIVED | nav + FX strip |
+| `color.canvas` | `#F4F6F8` | DERIVED | |
+| `color.surface` | `#FFFFFF` | DERIVED | |
+| `color.text` | `#1A2332` | DERIVED | |
+| `color.muted` | `#5B6B7C` | DERIVED | |
+| `color.sidebarText` | `#E8EEF4` | DERIVED | |
+| `color.sidebarMuted` | `#9AA8B8` | DERIVED | |
+| `color.accent` | `#1F4E79` | DERIVED | |
+| `color.accentWash` | `#E8F1F8` | DERIVED | selected / chip-on / banner |
+| `color.border.interactive` | `#818C9C` | DERIVED | E6-012; ≈3,41:1/#FFF; ≈3,14:1/canvas |
+| `color.border.decorative` | `#D5DCE5` | DERIVED | panel/kpi/drawer |
+| `color.border.hair` | `#E6EBF1` | DERIVED | |
+| `color.success.bg/fg` | `#E8F5EE` / `#067647` | DERIVED | |
+| `color.warning.bg/fg` | `#FEF4E6` / `#B54708` | DERIVED | |
+| `color.danger.bg/fg` | `#FCEBEA` / `#B42318` | DERIVED | |
+| `color.draft.bg` | `#EEF2F6` | DERIVED | badge draft |
+| `font.family.ui.ref` | Segoe UI | DERIVED | referência visual |
+| `font.family.ui.stack` | `Segoe UI, system-ui, -apple-system, Calibri, Arial, sans-serif` | TARGET | sem arquivos de fonte |
+| `font.family.mono.ref` | Cascadia Mono | DERIVED | |
+| `font.family.mono.stack` | `ui-monospace, Cascadia Mono, Consolas, monospace` | TARGET | uso seletivo |
+
+### 26.3 Tokens semânticos (candidatos)
+
+`color.background.{canvas,surface,sidebar,selected,inverse}`  
+`color.text.{primary,secondary,inverse,sidebar,sidebarMuted}`  
+`color.border.{decorative,interactive,focus,hair}` — focus = accent  
+`color.action.primary` / `primaryText`  
+`color.status.{success,warning,danger,information,neutral}.{bg,fg}`  
+`color.fx.stale` → warning (NORMALIZED)
+
+### 26.4 Tipografia (processo aplicado)
+
+Inventário MCK (contagens): 12(209) · 11(121) · 10.5(112) · 13(73) · 12.5(54) · 11.5(34) · 10(29) · 14(16) · 22(10) · 16(10) · 15(8) · 9(7) · 18(7) · 9.5(1).
+
+| Papel | Escala candidata | Class. | Decisão |
+|---|---|---|---|
+| page title | **22** | DERIVED | H1 das 8 pranchas |
+| section title | **14** (16→14 quando mesma função) | NORMALIZED | |
+| body | **12** (13 = ênfase/botão) | NORMALIZED | |
+| label | **11** | DERIVED | |
+| caption | **10.5** (10/9 agrupados se caption) | NORMALIZED | |
+| financial value | **13** tabela; **18** KPI hero | DERIVED | dois papéis, não um token único |
+| ID/reference | **`type.size.id` = 12** (+ mono se legibilidade) | NORMALIZED | 11,5 no MCK (células/chips) dobrado em 12; sem variante compacta distinta |
+
+Line-height e legibilidade 1366: validação em implementação (**DEFERRED_RUNTIME**).  
+**Sem** rampa fechada 9…22 de valores órfãos.
+
+### 26.5 Espaçamento e dimensões
+
+**Spacing candidatos (recorrentes):** 4 · 8 · 12 · 16 · 20 · 24 · 32. Gutters: **24** @1366 / **32** @1440+ (hipótese §20.4 → NORMALIZED no DS).
+
+| Conceito | Candidato | Class. | Evidência |
+|---|---|---|---|
+| `sidebar.width` | **220** | DERIVED | 8/8 (não 224 do wire §20) |
+| `detailDrawer.width` | **460** | DERIVED | Somente `DetailDrawer` (MCK-004); **não** modal/overlay genérico |
+| `badge.visualHeight` | **20** | DERIVED | estável |
+| `closeHit.visualHeight` | **32** | DERIVED | |
+| `button.size.md.visualHeight` | **32** | NORMALIZED | ghost / secondary / default |
+| `button.size.lg.visualHeight` | **36** | NORMALIZED | primary de página; ocorrências MCK em 40 dobradas em lg |
+| `input.visualHeight` | **32** formulário; **28** toolbar/edit | NORMALIZED | 001=28; 005=32 — dois contextos nomeados |
+| `chip.visualHeight` (MCK) | 28 (001) / 24 (004) | — | evidência divergente (origem) |
+| `chip.visualHeight` | **28** | TARGET | decisão DS; origem = normalização 28/24 |
+| `chip.hitAreaMin` | **≥32** | TARGET | E6-015; distinto de visualHeight |
+| `table.density.standard.rowHeight` | **40** | NORMALIZED | MCK-001 · MCK-006 |
+| `table.density.finance.rowHeight` | **44** | NORMALIZED | MCK-004 (fila AP) |
+| `radius.control` | **4** | DERIVED | |
+| `radius.panel` | **6** | DERIVED | |
+| `radius.chip` | **14** | NORMALIZED | pill coerente com chip vh 28; rx 12 (004) dobrado |
+
+**E6-015 (chip):** origem no MCK = alturas 28 (001) e 24 (004). Classificação normativa **única: TARGET**. Decisão: `chip.visualHeight = 28` e `chip.hitAreaMin ≥ 32`. Sem classificação composta.
+
+### 26.6 Bordas, radius e elevação
+
+| Uso | Valor | Class. |
+|---|---|---|
+| Contorno controle | `#818C9C` | DERIVED |
+| Contorno superfície | `#D5DCE5` | DERIVED |
+| Hair divider | `#E6EBF1` | DERIVED |
+| Focus / edit | `#1F4E79` 1.5px | DERIVED |
+| Drawer shade | `#1A2332` @18% | EXCEPTION | overlay |
+
+Z-index mínimo: `base → stickyHeader → stickyFilter → dropdown → drawer → modal → toast`.
+
+### 26.7 Interação e acessibilidade
+
+**Especificar:** focus-visible; ordem teclado; skip link; Escape; labels; erro associado ao campo; não só cor; hitAreaMin ≠ visualHeight; status/alertas.
+
+**DEFERRED_RUNTIME (Etapa 9):** trap de foco real; restore focus; SR; DOM; teclado E2E; touch targets medidos.
+
+Não declarar conformidade WCAG **global**. Permissão → **ocultar**.
+
+#### Pares de contraste calculados (I1 — texto / fundo em uso)
+
+Método: razão de contraste WCAG 2.x relativa (luminância relativa). Referência AA texto normal ≥ **4,5:1** usada só como **sinalização**; **não** afirma conformidade do produto.
+
+| Par | Foreground | Background | Razão | Sinal AA texto normal |
+|---|---|---|---:|---|
+| body / canvas | `#1A2332` | `#F4F6F8` | **14,57:1** | OK |
+| body / surface | `#1A2332` | `#FFFFFF` | **15,78:1** | OK |
+| muted / canvas | `#5B6B7C` | `#F4F6F8` | **5,05:1** | OK |
+| muted / surface | `#5B6B7C` | `#FFFFFF` | **5,47:1** | OK |
+| success fg / bg | `#067647` | `#E8F5EE` | **5,07:1** | OK |
+| warning fg / bg | `#B54708` | `#FEF4E6` | **4,99:1** | OK |
+| danger fg / bg | `#B42318` | `#FCEBEA` | **5,70:1** | OK |
+
+**Resultado I1:** nenhum dos pares obrigatórios falhou o limiar AA de texto normal. Nenhuma correção de cor do MCK nesta etapa.
+
+Pares de **borda/controle** (identificação, não texto) permanecem em §26.2 / E6-012 (`#818C9C` ≈3,41:1 sobre branco; ≈3,14:1 sobre canvas) — escopo distinto de contraste de texto.
+### 26.8 Responsividade por arquétipo
+
+Viewports: **1366×768** · **1440×900** (referência MCK) · **1920×1080** (E6-016).
+
+| Arquétipo | 1366 | 1440 | 1920 |
+|---|---|---|---|
+| Fila | Largura remanescente; gutters 24; scroll V; H se colunas; sidebar 220 expandida | Igual; gutters 32 | Fluida com **teto ~1680**; alinhada ao início do main (não centralizar fila) |
+| Formulário | Largura útil; scroll V | Ref. mock | **max-width ~1120**; bloco alinhado ao início do main |
+| Detalhe | Largura útil | Ref. | **max-width ~1440**; início do main |
+| Cockpit | Painéis empilháveis se necessário; scroll V | Ref. composição | max ~1440; preservar hierarquia KPI→painéis |
+| FX | Três colunas se couber; senão stack V | Ref. 3-col | Fluida; distribuir colunas sem forçar 1120 |
+| Drawer (DetailDrawer) | `detailDrawer.width` 460 sobre conteúdo; shade | Idem | Largura **460** fixa do DetailDrawer; não expandir; **não** aplicar a modal |
+
+Critérios verificáveis: sem clipping H em smoke 1366; AUX íntegro (E6-018); tabelas **não** viram cards.
+
+### 26.9 Formatação e conteúdo operacional
+
+- Datas `DD/MM/AAAA`; horário com timezone explícito.
+- Moeda sempre visível (EUR / BRL); taxa com precisão do **domínio**.
+- Ausência = `—`; nunca zero silencioso.
+- `tabular-nums`; IDs sem tradução; UI em português.
+- Vocabulário: pedido · fatura · obrigação · pagamento · alocação · **câmbio da obrigação**.
+- **E6-013:** preferir termo completo; espaço restrito → label acessível + contexto com termo completo; **não** tooltip como padrão.
+- **E6-007:** código de domínio pouco evidente → label/explicação contextual; **tooltip não obrigatório**.
+- **E6-008:** “Order-to-Pay” = branding provisório de produto; DS só estiliza subtítulo.
+
+### 26.10 Iconografia mínima
+
+Ícones só se ação comprovada; sem biblioteca nesta etapa; chevron/fechar/voltar consistentes; ícone ≠ label em ações financeiras críticas; nome acessível na implementação; sem set decorativo. Biblioteca = Etapa 9.
+
+### 26.11 Matriz de proveniência (síntese 7A)
+
+| Token/regra | Valor candidato | Fonte MCK | Freq. | Class. | Decisão |
+|---|---|---|---|---|---|
+| border.interactive | `#818C9C` | E6-012 / CSS SVG | 8 | DERIVED | Adotar |
+| border.decorative | `#D5DCE5` | panel/kpi | 8 | DERIVED | Adotar |
+| sidebar.width | 220 | rect.sidebar | 8 | DERIVED | Prevalece sobre 224 §20 |
+| detailDrawer.width | 460 | MCK-004 DetailDrawer | 1 | DERIVED | Escopo **só** DetailDrawer |
+| chip.visualHeight | 28 | 001=28 / 004=24 (origem) | 2 | TARGET | hitAreaMin≥32; class. única |
+| button.size.md | 32 | ghost/secondary | ≥5 | NORMALIZED | |
+| button.size.lg | 36 | primary página | ≥5 | NORMALIZED | 40 no MCK → lg |
+| type.size.id | 12 | IDs/refs | alta | NORMALIZED | 11,5 dobrado |
+| radius.chip | 14 | chips 001 (vh28) | 2 | NORMALIZED | rx12@004 dobrado |
+| input.vh | 28–32 | 001/005 | ≥2 | NORMALIZED | form 32; toolbar 28 |
+| rowHeight standard | 40 | 001/006 | 2 | NORMALIZED | `table.density.standard` |
+| rowHeight finance | 44 | 004 | 1 | NORMALIZED | `table.density.finance` (não chamar “compact”) |
+| page title | 22 | H1 | 8 | DERIVED | |
+| body | 12 | dominante | 8 | DERIVED | |
+| focus trap | — | — | — | DEFERRED_RUNTIME | Etapa 9 |
+| FX 3-col | layout | 007 | 1 | EXCEPTION | composição |
+
+---
+
+## 27. Componentes e padrões (Etapa 7 DONE)
+
+### 27.0 Critério de documentação (C1)
+
+| Evidência MCK | Template |
+|---|---|
+| **3+ telas** | **Completo** (propósito · evidência · anatomia · conteúdo · variantes · dimensões · estados · comportamento · responsividade · a11y · uso/antiuso · tokens · gap AS-IS · classificação · dependências · destino Etapa 9) |
+| **1–2 telas** | **Compacto** (propósito, evidência, variantes, tokens, gap AS-IS, classificação) |
+
+Todo item exige classificação. Justificativa do limiar: alinha-se à frequência real do MCK (fundação 8/8 vs drawer/FX one-shot) e evita inflar átomos a partir de EXCEPTION.
+
+### 27.1 Fundação — templates completos (≥3)
+
+#### AppShell
+
+- **Propósito:** chrome global sticky com sidebar + main.
+- **Evidência:** 001–007 + AUX (8).
+- **Anatomia:** Sidebar | MainContentLayout; sem busca global Horizon A.
+- **Conteúdo:** brand, nav, FX strip, user/sair, outlet.
+- **Variantes:** sidebar expandida (default mock).
+- **Dimensões:** sidebar 220; content inset x=244.
+- **Estados:** — / permission-hidden em itens.
+- **Comportamento:** sidebar sticky; main scroll.
+- **Responsividade:** §26.8.
+- **A11y:** skip to main (TARGET); landmark nav.
+- **Uso / antiuso:** não embutir hub SCR-028.
+- **Tokens:** navy, sidebar text, canvas.
+- **Gap AS-IS:** shell dark; sidebar 220 CSS fallback.
+- **Classificação:** DERIVED.
+- **Etapa 9:** teclado/landmarks.
+
+#### Sidebar / SidebarNavGroup / SidebarNavItem / FxMarketStrip
+
+- **Propósito:** navegação Compras|Financeiro + strip EUR/BRL.
+- **Evidência:** 8/8.
+- **Anatomia:** brand · groups · items (active `#243447` 196×28) · FX 188×52 · Admin/Sair.
+- **Variantes:** item active/inactive; FX fresh/stale/missing.
+- **Dimensões:** item vh 28; strip h 52.
+- **Estados:** active, hidden (sem permissão).
+- **Comportamento:** navega; refresh FX se permissão.
+- **A11y:** nome do item; stale não só cor.
+- **Antiuso:** subtítulo produto não é decisão DS (E6-008).
+- **Tokens:** sidebar*, accentWash, warning stale.
+- **Gap AS-IS:** labels/grupos diferentes; tema dark.
+- **Classificação:** DERIVED (layout); stale = NORMALIZED.
+
+#### PageHeader + Breadcrumb + MainContentLayout
+
+- **Propósito:** orientação + título + ações; largura por arquétipo.
+- **Evidência:** 8/8.
+- **Anatomia:** breadcrumb 12 muted · H1 22 · meta 12 · actions slot.
+- **Variantes:** com/sem primary action.
+- **Estados:** —
+- **Responsividade:** §26.8.
+- **Tokens:** text, muted, accent.
+- **Gap AS-IS:** PageHeader/ContextBreadcrumb existem; visual dark.
+- **Classificação:** DERIVED.
+
+### 27.2 Navegação e ações
+
+#### Button (completo)
+
+- **Propósito:** ação explícita.
+- **Evidência:** ≥7 pranchas + AUX.
+- **Anatomia:** label; opcional ícone (não sozinho em ação financeira).
+- **Variantes de ênfase:** primary (accent fill) · ghost (stroke interactive) · danger (semântica).
+- **Variantes de tamanho (nomeadas):** `size.md` (ghost/secondary/default) · `size.lg` (primary de página). Sem variante `xl`/`compact` inventada.
+- **Dimensões:** `button.size.md.visualHeight` = **32**; `button.size.lg.visualHeight` = **36** (ocorrências MCK em 40 dobradas em lg); hitAreaMin ≥32.
+- **Estados:** default hover focus-visible active disabled loading (hover/pressed = TARGET doc; runtime Etapa 9).
+- **Conteúdo:** verbo + objeto; PT.
+- **A11y:** foco visível; disabled≠ocultar permissão.
+- **Antiuso:** não usar primary para navegação secundária.
+- **Tokens:** action.primary, border.interactive, surface; `button.size.md` / `button.size.lg`.
+- **Gap AS-IS:** `.btn` densificado; accent azul diferente.
+- **Classificação:** NORMALIZED.
+- **Dependências / Etapa 9:** hover/pressed reais; loading; teclado.
+
+#### Link contextual (completo)
+
+- **Propósito:** navegação in-page / retorno / ação de linha.
+- **Evidência:** 002, 004, 007 (+ linhas de tabela).
+- **Variantes:** back (`‹ …`) · row action.
+- **Tokens:** accent text.
+- **Classificação:** DERIVED.
+- **Antiuso:** não substituir Button primary.
+
+#### FilterChip (compacto — 2 telas)
+
+- **Propósito:** filtro rápido on/off.
+- **Evidência:** 001 (vh 28), 004 (vh 24).
+- **Variantes:** on/off.
+- **Tokens:** `chip.visualHeight` 28 · `chip.hitAreaMin` ≥32 · `radius.chip` 14 · border.interactive · accentWash when on.
+- **Gap AS-IS:** filter-bar denso.
+- **Classificação:** TARGET (visualHeight/hitAreaMin — E6-015).
+
+### 27.3 Dados e tabelas
+
+#### StatusBadge (completo) — semântica apenas
+
+- **Propósito:** status visual sem embutir enum de domínio.
+- **Evidência:** ≥5.
+- **Semântica:** success · warning · danger · information · neutral.
+- **Dimensões:** vh 20.
+- **Classificação:** DERIVED (visual); mapeamento domínio = matriz separada.
+- **Antiuso:** não criar `badge-INITIAL` no DS.
+
+**Matriz domínio → label → semântica (parcial 7A):**
+
+| Domínio | Label | Semântica |
+|---|---|---|
+| CONFIRMED | Confirmado | success |
+| DRAFT | Rascunho | neutral |
+| OVERDUE / Vencido | Vencido | danger |
+| OPEN / Aberto | Aberto | information |
+| PARTIALLY_PAID | Parcialmente pago | warning |
+| TODAY / Hoje | Hoje | warning |
+| FX stale | desatualizado | warning |
+| INITIAL (kind) | INITIAL | neutral + explicação contextual (E6-007) |
+
+#### MoneyDisplay / RateDisplay (completo)
+
+- **Propósito:** valor com moeda; taxa com fonte/idade.
+- **Evidência:** 8/8 money; rate em strip + 007.
+- **Regras:** moeda visível; `—` se ausência; tabular-nums; mono se legibilidade.
+- **Classificação:** DERIVED (regras); mono seletivo = NORMALIZED.
+
+#### KpiStrip / KpiCard (completo — 3)
+
+- **Evidência:** 002, 004, 006.
+- **Anatomia:** label caption · valor · meta.
+- **Classificação:** DERIVED.
+- **Antiuso:** KPI theater sem ação.
+
+#### OperationalTable (completo — 3)
+
+- **Evidência:** 001, 004, 006.
+- **Anatomia header:** fundo `#F8FAFC`; labels `type.size.label` **11** (ocorrências MCK 10.5 dobradas); sticky TARGET.
+- **Anatomia linha:** entidade; zebra `#FAFBFC`; focus `#E8F1F8` + barra accent 3px.
+- **Alinhamento:** texto esq.; money/direita tabular; status centro/esq. badge.
+- **Estados:** hover ≠ selected ≠ focus; loading; empty; no-results; error; partial.
+- **Sticky:** 1ª coluna quando fila larga (TARGET).
+- **Scroll H** permitido; sem cardificar.
+- **Paginação / contexto:** preservar filtros (TARGET §21).
+- **Densidade (I2 — fechada):** dois arquétipos nomeados; **não** adiar à Etapa 9.
+
+| Token | `rowHeight` | Evidência MCK | Quando usar |
+|---|---:|---|---|
+| **`table.density.standard`** | **40** | MCK-001 Pedidos · MCK-006 Alocação | Filas/listagens operacionais gerais; tabelas de workspace com densidade padrão |
+| **`table.density.finance`** | **44** | MCK-004 Contas a pagar | Fila financeira com muitas colunas (saldo, câmbio/BRL, status, ações) e badges — altura maior favorece escaneabilidade |
+
+**Nota de nomenclatura:** não usar o rótulo “compact” para a fila AP: no MCK, **44 > 40**. “Compact” sugeriria linha mais baixa e induziria erro. Virtualização/perf de volume alto permanece Etapa 9 (E6-017).
+
+- **Volume:** regras visuais 50/100; 500+ virtualização = Etapa 9 (E6-017).
+- **Lote:** proibido.
+- **Classificação:** NORMALIZED (densidades standard/finance); DERIVED (padrões visuais).
+- **Gap AS-IS:** `.data-table.dense` dark.
+
+#### EmptyState / ErrorState / Notice (completo)
+
+- **Evidência:** AUX + banners 002/005/006/007.
+- **Variantes:** ok/warn/err/info boxes.
+- **Classificação:** DERIVED.
+- **E6-009:** SCR/FLW só consultivo — não na UI produto.
+
+### 27.4 Formulários
+
+#### Input / Select (completo — ≥3 com edit)
+
+- **Evidência:** 003 edit, 005 inputs, 006 edit amount.
+- **Dimensões:** form vh 32; inline edit 28.
+- **Estados:** default · focus(edit stroke accent) · error · readonly · disabled.
+- **A11y:** label + helper + mensagem associada.
+- **Classificação:** NORMALIZED.
+- **Gap AS-IS:** inputs dark.
+
+#### MoneyInput / DateInput / File field (compacto)
+
+- **Evidência:** Money/Date ≈005/006; File ≈003.
+- **Classificação:** DERIVED (padrão money); File EXCEPTION de tela documento.
+- **Gap AS-IS:** parcial.
+
+### 27.5 Feedback e estados
+
+Toast / skeleton / loading: especificar comportamento mínimo; visual MCK limitado → TARGET + DEFERRED_RUNTIME.
+
+### 27.6 Drawers e modais (compacto)
+
+#### DetailDrawer
+
+- **Evidência:** 004 apenas.
+- **Variantes:** preview obrigação.
+- **Dimensões:** `detailDrawer.width` = **460**; close hit 32. Valor **não** generaliza a modal, painel lateral futuro ou overlay genérico.
+- **A11y:** Escape + trap = DEFERRED_RUNTIME.
+- **Classificação:** DERIVED (visual); a11y runtime deferred.
+- **Gap AS-IS:** DetailDrawer existe (tema dark).
+
+#### ConfirmationModal
+
+- **Evidência:** AUX (emit/allocate).
+- **Classificação:** DERIVED (padrão visual); composição de copy = EXCEPTION por fluxo.
+- **Nota:** sem token de largura herdado de `detailDrawer.width`.
+
+### 27.7 Padrões compostos e blocos documentais
+
+#### AuditDocumentsBlock (completo — ≥3)
+
+- **Propósito:** seção titulada de documentos / trilha de auditoria ligada ao contexto (pedido, fatura, obrigação, câmbio).
+- **Evidência:** MCK-002 (cockpit) · MCK-003 (fatura) · MCK-004 (rodapé do DetailDrawer) · MCK-007 (câmbio) — **mesmo padrão** (bloco com título + linhas arquivo/evento), não quatro componentes distintos.
+- **Anatomia:** título de seção · lista de linhas (nome/arquivo ou evento + meta temporal/ator) · eventual ação secundária (abrir/anexar) se presente na prancha.
+- **Conteúdo:** labels PT; ausência de arquivo = estado explícito (não inventar zeros); sem IDs técnicos crus como título.
+- **Variantes:** embutido em página (002/003/007) · embutido em DetailDrawer (004, densidade maior no rodapé). Variante = **contexto de superfície**, não átomo separado.
+- **Dimensões:** tipografia body/caption §26.4; padding de seção alinhado a gutters; sem largura própria (preenche o slot pai).
+- **Estados:** com itens · vazio · erro de carga (TARGET doc; runtime Etapa 9).
+- **Comportamento:** leitura + navegação para documento quando ação existir; não é fila operacional.
+- **Responsividade:** herda do arquétipo pai (§26.8); no drawer permanece dentro de `detailDrawer.width`.
+- **A11y:** heading de seção; lista semântica; ações com nome acessível.
+- **Uso / antiuso:** usar para evidência documental/auditável; **não** substituir OperationalTable nem misturar com KPI strip.
+- **Tokens:** text/muted, border.hair, surface; links = accent.
+- **Gap AS-IS:** blocos de documento/audit parciais no frontend; tema dark.
+- **Classificação:** DERIVED (padrão visual MCK); estados runtime = DEFERRED_RUNTIME onde aplicável.
+- **Dependências:** Documents/Audit read models na Etapa 9; sem inventar CRUD no DS.
+- **Destino Etapa 9:** wiring real de anexos/timeline; empty/error; a11y de lista.
+
+### 27.8 Padrões financeiros (composições — não átomos)
+
+| Padrão | MCK | Class. |
+|---|---|---|
+| Cockpit do pedido | 002 | EXCEPTION / composition |
+| Layout edição Fatura | 003 | composition |
+| Prévia Allocation | 006 | composition |
+| Três visões cambiais | 007 | EXCEPTION |
+| Temporalidade T0–T3 | cenário | composition rule |
+| Galeria AUX | AUX | consultivo only |
+
+### 27.9 Matriz componente × MCK
+
+| Componente | 001 | 002 | 003 | 004 | 005 | 006 | 007 | AUX | Template |
+|---|---|---|---|---|---|---|---|---|---|
+| AppShell/Sidebar/Nav/FX | ● | ● | ● | ● | ● | ● | ● | ● | completo |
+| PageHeader/Breadcrumb | ● | ● | ● | ● | ● | ● | ● | ● | completo |
+| Button | ● | · | ● | ● | ● | ● | ● | ● | completo |
+| FilterChip | ● | · | · | ● | · | · | · | · | compacto |
+| StatusBadge | ● | ● | ● | ● | · | · | ● | ● | completo |
+| Money/Rate | ● | ● | ● | ● | ● | ● | ● | · | completo |
+| KpiStrip | · | ● | · | ● | · | ● | · | · | completo |
+| OperationalTable | ● | · | · | ● | · | ● | · | · | completo |
+| Input/Edit | ● | · | ● | · | ● | ● | · | · | completo |
+| DetailDrawer | · | · | · | ● | · | · | · | · | compacto |
+| Confirm pattern | · | · | · | · | · | · | · | ● | compacto |
+| Notice/Empty/Error | · | ● | ● | · | ● | ● | ● | ● | completo |
+| AuditDocumentsBlock | · | ● | ● | ● | · | · | ● | · | completo |
+
+### 27.10 Matriz AS-IS × TARGET × Gap
+
+| Componente | AS-IS | TARGET DS | Gap | Etapa |
+|---|---|---|---|---|
+| Shell | dark sidebar | light navy MCK | tema + IA labels | 9 |
+| PageHeader | sim | §27.1 | visual | 9 |
+| Button | `.btn` | size.md 32 / size.lg 36 + ênfase | cor/altura | 9 |
+| FilterChip | parcial | vh 28 + hitAreaMin≥32 | E6-015 | 9 |
+| StatusBadge | tone ok/bad/warn | 5 semânticas + matriz domínio | mapeamento | 9 |
+| MoneyDisplay | sim | + regras `—` | alinhar | 9 |
+| KpiStrip | sim | §27.3 | visual | 9 |
+| OperationalTable | dense dark | §27.3 | sticky/a11y/volume | 9 |
+| DetailDrawer | sim | `detailDrawer.width` 460 + a11y | trap focus | 9 |
+| AuditDocumentsBlock | parcial | §27.7 | wiring docs/audit | 9 |
+| Tokens CSS | 6 vars dark | §26 | tema light + bordas | 9 |
+
+### 27.11 Achados E6 no DS (resumo)
+
+| ID | Tratamento 7A |
+|---|---|
+| E6-007 | Explicação contextual; tooltip não obrigatório |
+| E6-008 | Branding produto; fora do DS |
+| E6-009 | Só consultivo |
+| E6-010 | Encerrado |
+| E6-013 | Conteúdo/a11y §26.9 |
+| E6-015 | visualHeight + hitAreaMin §26.5 |
+| E6-016 | §26.8 por arquétipo |
+| E6-017 | Regras visuais tabela; perf Etapa 9 |
+
+---
+
+**Fim Etapa 7 (DONE).**  
+Governança: **E7-A = APROVADO COM AJUSTES** (ajustes concluídos) · **E7-B = APROVADO**.  
+Handoff operacional: [`HANDOFF_UI_UX_EPIC_V2.md`](HANDOFF_UI_UX_EPIC_V2.md) **v1.0** (Etapa 8 **DONE**; E8-B APROVADO; DoR fechado).  
+Próxima etapa lógica: **Etapa 9** — investigação/planejamento técnico (**não** iniciada).  
+MCK v1.1 preservado. Blueprint Sistema 0.2.8 preservado. Inc-6 = TODO. Sem código.

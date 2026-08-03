@@ -427,3 +427,37 @@ def test_cancel_draft_only(admin_client):
     )
     assert r.status_code == 200
     assert r.json()["status"] == "CANCELLED"
+
+
+def test_get_payable_by_id(admin_client):
+    """D0.5 — GET /api/payables/{id} sem scan list(limit=100)."""
+    c = admin_client
+    order, _ = _confirmed_order(c, code="INV-PAY-BY-ID", qty="10", price="100")
+    inv = c.post(
+        f"/api/orders/{order['id']}/invoices",
+        json={"invoice_number": "F-PAY-ID"},
+    ).json()
+    inv = _set_discount_percent(c, inv, "0")
+    inv = _set_terms_percent(c, inv)
+    _attach_doc(c, inv["id"])
+    inv = c.get(f"/api/invoices/{inv['id']}").json()
+    r = c.post(
+        f"/api/invoices/{inv['id']}/issue",
+        json={"expected_version": inv["version"]},
+    )
+    assert r.status_code == 200, r.text
+    pays = r.json()["payables"]
+    assert len(pays) >= 1
+    pid = pays[0]["id"]
+
+    got = c.get(f"/api/payables/{pid}")
+    assert got.status_code == 200, got.text
+    body = got.json()
+    assert body["id"] == pid
+    assert body["invoice_id"] == inv["id"]
+    assert body["currency"] == "EUR"
+    assert "balance" in body
+    assert "sequence" in body
+
+    missing = c.get("/api/payables/999999001")
+    assert missing.status_code == 404

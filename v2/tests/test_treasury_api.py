@@ -530,3 +530,19 @@ def test_batch_all_or_nothing_partial_billing_fail(admin_client, monkeypatch):
     pay2 = c.get(f"/api/payments/{pay['id']}").json()
     assert pay2["allocations"] == []
     assert float(pay2["amount_unallocated"]) == 1000.0
+
+
+def test_payment_supplier_name_enrichment(admin_client):
+    """Contrato aditivo: list+detail expõem supplier_name via catalog_public bulk."""
+    c = admin_client
+    name = "Heroes Metalúrgica LTDA"
+    s = c.post("/api/suppliers", json={"name": name, "country_code": "IT"}).json()
+    pay = _register_payment(c, s["id"], amount="400.00")
+    detail = c.get(f"/api/payments/{pay['id']}").json()
+    assert detail["supplier_id"] == s["id"]
+    assert detail["supplier_name"] == name
+    listed = c.get("/api/payments", params={"supplier_id": s["id"]}).json()
+    assert len(listed) >= 1
+    row = next(x for x in listed if x["id"] == pay["id"])
+    assert row["supplier_name"] == name
+    assert "supplier_id" in row

@@ -1,0 +1,4 @@
+# DR-UX — fechamento operacional UI Document Readiness
+# Usado por: npm run e2e:dr-ux
+
+e2e/dr-ux-logistics-closure.spec.ts

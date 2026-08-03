@@ -5,19 +5,19 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.8 |
+| **Versão** | 0.2.15 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
-| **Data** | 2026-07-24 |
+| **Data** | 2026-08-03 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
 
 ### 1.1 Documentos relacionados
 
 | Documento | Papel |
 |---|---|
-| [`ROADMAP_V2_EPIC.md`](../../ROADMAP_V2_EPIC.md) | Execução, fases, gates, ADRs, evidências, bloqueios |
-| [`docs/README.md`](../README.md) | Índice e autoridade por assunto |
-| [`.cursor/rules/epic-project-router.mdc`](../../.cursor/rules/epic-project-router.mdc) | Roteamento global V1 vs V2 |
-| [`.cursor/rules/epic-v2-architecture.mdc`](../../.cursor/rules/epic-v2-architecture.mdc) | Método em `v2/**` + docs V2 |
+| [`ROADMAP_V2_EPIC.md`](../../ROADMAP_V2_EPIC.md) | Estado, sequência, gates, ADRs, bloqueios, resumo e links de evidência |
+| [`docs/v2/etapa-*`](./) | Comandos, logs, testes, screenshots, relatórios e evidências reproduzíveis |
+| [`docs/README.md`](../README.md) | Índice e ciclo de vida documental |
+| [`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc) | Método operacional V2 + política Git + guarda do legado V1 |
 | Documentação V1 (`docs/v1/`) | Referência legada — ver [`docs/v1/README.md`](../v1/README.md); canônicos históricos: `BLUEPRINT_SISTEMA_EPIC_V1.md`, `DOCUMENTACAO_TECNICA_EPIC_V1.md`, `CHECKLIST_MVP_IMPORTACAO_EPIC_V1.md` |
 
 ### 1.2 Autoridade documental por assunto
@@ -27,16 +27,18 @@ Não há precedência linear única. O canônico depende do assunto:
 | Assunto | Documento canônico |
 |---|---|
 | Comportamento, produto, arquitetura-alvo, telas, fluxos, critérios de aceite | **Este Blueprint** |
-| Fases, status, gates, ADRs vigentes, evidências, bloqueios abertos | **Roadmap V2** |
-| Método de investigação e implementação no código/docs V2 | **`.cursor/rules` V2** (+ router global) |
+| Fases, status, gates, ADRs vigentes, bloqueios abertos, resumo e links de evidência | **Roadmap V2** |
+| Evidências detalhadas e reproduzíveis de execução | **`docs/v2/etapa-*`** |
+| Índice e ciclo de vida documental | **[`docs/README.md`](../README.md)** |
+| Método de investigação e implementação no código/docs V2 | **[`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc)** |
 | Histórico V1, checklist de evidências passadas, as-built | **Documentação V1** |
-| Verdade em runtime durante execução | **Código real** (inspecionado) |
+| Estado implementado durante investigação | **Código real** (inspecionado) |
 
 Em conflito **no mesmo assunto**: registrar a divergência no Roadmap e atualizar o documento canônico correspondente. Em conflito estrutural V1↔V2, prevalece este Blueprint + ADRs do Roadmap.
 
 **Checklist V1 nunca é DoD da V2.**
 
-**Não pertence a este Blueprint:** resultados de comandos, status de testes, evidências de execução, checkpoint Git, plano de move, changelog operacional detalhado (ficam no Roadmap).
+**Não pertence a este Blueprint:** resultados de comandos, status de testes, evidências de execução detalhadas, plano de move e changelog operacional detalhado → `docs/v2/etapa-*`; estado, resumo e links → Roadmap; checkpoint Git somente quando explicitamente autorizado e documentado no artefato apropriado.
 
 ### 1.3 Escopo deste documento
 
@@ -323,16 +325,18 @@ Hipótese de pastas internas (`domain` / `application` / `infrastructure` / `api
 | Objetivo | Pedido comercial e itens |
 | Owner | Comprador |
 | Entidades | Order, OrderItem, termos comerciais |
-| Funcionalidades | Criar/confirmar/cancelar/fechar ordem; itens |
+| Funcionalidades | Criar/confirmar/cancelar/fechar ordem; itens; `order_date`/`notes`; upload Documents (`entity_type=order`) |
 | Comandos | create_order, confirm_order, add_item, close_order |
 | Consultas | order_summary (comercial); fila |
 | **Deps permitidas** | Catalog, Documents, Audit |
 | **Proibido depender de** | Billing, Treasury, Logistics, Customs, Costing, Identity (ator via API/app) |
-| Proibições | Persistir PARTIALLY_SHIPPED/SHIPPED na Order |
+| Proibições | Persistir PARTIALLY_SHIPPED/SHIPPED na Order; campos fiscais italianos genéricos (N3.1/ART 8) em Orders |
 | Alertas | Ordem sem itens; confirmada sem documento |
-| UI | Fila; nova ordem; cockpit (resumo comercial) |
+| UI | Fila; nova ordem; cockpit (resumo comercial); comercial com data/notes/docs |
 | Persistência | orders, order_items |
 | Transação | Use cases de Orders |
+
+**Snapshots documentais (Document Readiness A2):** `OrderItem.unit` (String≤16, opcional, normalizado UPPER — ex. PZ/SET/CTNS/UN) é snapshot da UM do documento, **não** módulo UoM de Catalog. `Order.order_date` (date, sem timezone) e `Order.notes` (texto; vazio→null) expostos na API/UI. Documentos oficiais do pedido via Documents + `DocumentLink` (`entity_type=order`). Dados fiscais do Ordine permanecem no PDF / domínio fiscal futuro — fronteira J#5/J#3 preservada.
 
 ### 5.7 Billing
 
@@ -342,16 +346,18 @@ Hipótese de pastas internas (`domain` / `application` / `infrastructure` / `api
 | Owner | Financeiro |
 | Entidades | Invoice, InvoiceItem, PaymentTerms, Payable |
 | Tipos documentais de Invoice | **Implementados (Inc-2):** `PROFORMA` \| `FINAL`. **Alvo de produto:** `PROFORMA` \| `ACCONTO` \| `FINAL` — ver **DEC-ACCONTO-INVOICE** (pendente) |
-| Funcionalidades | Emitir invoice; gerar N payables; cancelar DRAFT |
+| Funcionalidades | Emitir invoice; gerar N payables; cancelar DRAFT; `invoice_date`; unit snapshot por linha |
 | Comandos | create_invoice, update_*, set_terms, issue_invoice, cancel_draft |
 | Consultas | invoice_balance (= Σ payable balances); payables_queue |
 | **Deps permitidas** | Orders, Catalog, Documents, Audit |
 | **Proibido** | Treasury, Logistics, Customs |
-| Proibições | Liquidar sem Payable; criar Payment a partir da emissão da Invoice; cancelar ISSUED no Inc-2 (SC-08); misturar terms %/valor |
+| Proibições | Liquidar sem Payable; criar Payment a partir da emissão da Invoice; cancelar ISSUED no Inc-2 (SC-08); misturar terms %/valor; inventar domínio fiscal N3.1/ART 8 em Billing |
 | UI | Invoices; Payables; formulário scadenze |
 | Persistência | invoices, invoice_items, payment_terms, payables |
 | Inc-2 | ISSUED imutável; doc obrigatório na emissão (ou override auditado); supplier/moeda da Order; tipos persistidos só `FINAL`\|`PROFORMA` |
 | Inc-3 saldo | `Payable.amount` original imutável; `balance` só via `billing.public.apply_payable_allocations`; `allocated=amount−balance` derivado; status `OPEN\|PARTIALLY_PAID\|PAID\|CANCELLED`; Invoice balance = Σ balances |
+
+**Snapshots documentais (Document Readiness A2):** `InvoiceItem.unit` opcional — na criação da Invoice copia `OrderItem.unit`; em `replace_items`, ausência da chave herda do OrderItem; presença = override explícito (incl. null). Após ISSUED o snapshot permanece imutável. Upload oficial da Invoice inalterado. Fatos fiscais da Fattura (IVA/ART 8) ficam no PDF / futuro domínio próprio — não em campos genéricos “temporários”.
 
 **Invoice ACCONTO vs Payment antecipado `[DECISÃO / princípio]`:**
 
@@ -405,53 +411,62 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | **Deps permitidas** | Documents, Audit, Catalog, Orders, Billing, Logistics, Customs (APIs públicas) |
 | Proibido | Escrever direto em tabelas oficiais sem commit; **qualquer** import V1 |
 | UI | Ingestão e revisão |
-| Nota | Parser Heroes = lógica portada/reimplementada em V2; golden de caracterização sem import V1 |
+| Nota | Parser Heroes = lógica portada/reimplementada em V2; golden de caracterização sem import V1. **Ordem de execução:** módulos owner (Orders/Billing/Logistics/Customs) com API pública estável **antes** da automação completa de `commit_batch` (Roadmap: J#4 → J#5 → J#3). |
 
 ### 5.10 Logistics
 
 | Campo | Conteúdo |
 |---|---|
-| Objetivo | Embarques e itens embarcados |
+| Objetivo | Embarques comerciais e estrutura física (packages); refs documentais tipadas; prestadores logísticos mestres |
 | Owner | Logística |
-| Entidades | Shipment, ShipmentItem |
-| Funcionalidades | Planejar/booking/trânsito/chegada; parcial; multi-embarque |
-| Comandos | create_shipment, add_shipment_item, advance_shipment_status |
-| Consultas | shipped_qty_by_order_item; allocation_bases (peso/volume/qty) |
+| Entidades | Shipment, ShipmentItem, ShipmentPackage, ShipmentPackageContent, ShipmentReference, ShipmentDocumentSummary, LogisticsProvider |
+| Funcionalidades | Planejar/booking/trânsito/chegada; parcial; multi-embarque; packages homogêneos (`package_count`); intervalo/batch de packages; embalagem sem item comercial (ex. NCM 4819); snapshots documentais de linha PL em PackageContent (NCM produto, units/package, pesos unitários/linha); totais derivados × declarados por documento com `declared_provenance`; modal controlado; prestador via FK; upload Documents no Shipment |
+| Comandos | create/update/advance/annul/delete shipment; add/update/remove item/package/reference; add_shipment_packages_batch; update_shipment_packages_batch; set_package_contents; upsert_document_summary; create/update logistics_provider |
+| Consultas | shipped_qty_by_order_item; residuals_for_order; physical_totals_derived; declared_totals_by_document; physical_divergences; allocation_bases (fatos); order_item_candidates; get_shipment_by_code; list_logistics_providers |
 | **Deps permitidas** | Orders, Documents, Audit |
-| **Proibido** | Billing, Treasury, Costing; `order_id` no Shipment |
-| Proibições | Persistir CLEARED no Shipment |
-| UI | Embarques; cockpit logística |
+| **Proibido** | Billing, Treasury, Costing; `order_id` no Shipment; invoices como propriedade Logistics |
+| Proibições | Persistir CLEARED no Shipment; matching SKU isolado; Product/OrderItem artificial para embalagem; transportador como texto livre no write |
+| UI | `/shipments` lista + create + detalhe; `/logistics-providers` cadastro mestre |
+| DECs | DEC-SHIP-CODE; DEC-SHIP-PACK-LINE; DEC-DDT-KEY; DEC-SHIP-DECLARED-TOTALS; DEC-SHIP-MULTI-ORDER; DEC-SHIP-PROVIDER; DEC-SHIP-CANCEL (**aberta** para BOOKED+) |
+
+**Modelo:** Shipment 1:N Item/Package/Reference/DocumentSummary; Package N:M Item via Content; Document via DocumentLink. `Shipment.code` = código interno EPIC (não BL/AWB/PL). Pesos/dims em Package são **por unidade**; totais derivados = unit × `package_count`. Tolerância de divergência física: provisória L-001 em `logistics/divergence.py` (não política final de Reconciliation).
+
+**Snapshots documentais (J4-UX2 / Document Readiness A1):** `ShipmentPackageContent` pode armazenar `source_ncm` (NCM **produto**), `source_description`, `units_per_package`, `unit_net_weight_kg` / `unit_gross_weight_kg`, `source_total_*` — distintos de `ShipmentPackage.packaging_ncm` (NCM embalagem) e dos pesos físicos do package. `ShipmentDocumentSummary.declared_provenance` ∈ {PACKING_LIST, FATTURA_DOGANALE, MANUAL, OTHER}. Valores com provenance `FATTURA_DOGANALE` são **snapshot declarado por documento**, não verdade canônica de Logistics nem substituto de Customs/J#5. PDFs do corpus (Ordine/Fattura/PL/Doganale/Numerário/PrintDeclaration) são requisitos de modelagem e massa de teste; ingestão automática = J#3 após J#5.
+
+**DEC-SHIP-PROVIDER (J4-UX1):** `Shipment.modal` ∈ {SEA,AIR,ROAD,COURIER,MULTIMODAL,OTHER} ou null (só PLANNED). Prestador = `LogisticsProvider` (legal_name, trade_name, provider_type, active). SoT = `logistics_provider_id`; `carrier_name_snapshot` derivado no servidor. Tipos elegíveis no embarque: TRANSPORTADOR, ARMADOR, FREIGHT_FORWARDER, OPERADOR_LOGISTICO (DESPACHANTE fora do formulário de Shipment). BOOKED exige modal + prestador (+ ≥1 item). Sem seed hardcoded de prestador.
 
 ### 5.11 Customs
 
 | Campo | Conteúdo |
 |---|---|
-| Objetivo | ImportProcess/DUIMP, taxes, nacionalização |
+| Objetivo | ImportProcess/DUIMP, Doganale canônica, Numerário, taxes, nacionalização, provenance para J#3 |
 | Owner | Aduana / despachante |
-| Entidades | ImportProcess, CustomsDocument, Tax, Nationalization |
-| Funcionalidades | 1 DUIMP → N invoices; nacionalização parcial |
-| Comandos | create_import_process, link_invoice, register_tax, nationalize |
-| Consultas | process_by_invoice |
+| Entidades | ImportProcess; ImportProcessInvoice / InvoiceItem / Shipment / ShipmentItem (joins); CustomsDoganale + Version + Line; CustomsFundingRequest (Numerário); CustomsPayee; CustomsValueBasis; CustomsTaxLine; CustomsExpenseLine; FundingPayableLink; Nationalization (+ Item); CustomsDivergence; CustomsProvenance |
+| Funcionalidades | 1 DUIMP → N invoices; 1 DUIMP → N shipments; alocação por item; Doganale versionada; Numerário com cabeçalho; Payee ≠ Supplier; nacionalização parcial; handoff de fatos a Billing (Payable) e a J#6 (Costing) |
+| Comandos | create_import_process; link/unlink invoice/shipment; allocate invoice_item/shipment_item; upsert_doganale_version; upsert_funding_request + bases/tax/expense; confirm_funding → payables (via Billing public); nationalize; register_divergence; attach_provenance |
+| Consultas | process_by_id/list; clearance_residuals; divergences; funding_by_process |
 | **Deps permitidas** | Billing, Logistics, Documents, Audit |
-| **Proibido** | Treasury |
-| Pendências | DEC-DUIMP-MULTI-SHIP; L-007 DI vs DUIMP |
-| UI | Processo aduaneiro / DUIMP |
+| **Proibido** | Treasury (Customs ↛ Treasury); criar Payment/Allocation; rateio landed cost (J#6); staging de ingestão (J#3) |
+| Pendências | L-007 DI vs DUIMP (aberta); implementação I5-1…I5-6 |
+| UI | SCR-019 / SCR-022 (abas) |
+| **DEC-DUIMP-MULTI-SHIP** | **Fechada (I5-0):** ImportProcess **1:N** Shipment; `shipment_id` UNIQUE no join; alocação por ShipmentItem + residual. N:M shipment↔process fora de escopo. |
+| Justificativa | Agregado aduaneiro distinto de Order/Shipment (ADR-03); fixture Numerário prova multi-invoice; Bechtrans≠Heroes exige Payee |
 
 ### 5.12 Inventory
 
 | Campo | Conteúdo |
 |---|---|
-| Objetivo | Movimentos e entreposto; saldo derivado |
+| Objetivo | Movimentos por localização/regime; entreposto bonded; saldo derivado; posição por SKU |
 | Owner | Estoque / operação |
-| Entidades | InventoryMovement, EntrepostoMovement; StockBalance (read model) |
-| Funcionalidades | Entrada; consumo; consulta saldo |
-| Comandos | record_movement |
-| Consultas | stock_balance |
-| **Deps permitidas** | Customs, Catalog, Documents, Audit |
-| **Proibido** | Billing, Treasury, Orders (qty operacional vem de Customs/Catalog, não do pedido) |
-| Proibições | Saldo “editável” |
-| UI | Estoque / entreposto |
-| Justificativa | Catalog identifica SKU; Customs dispara nacionalização; Orders não é fonte de estoque |
+| Entidades | StockLocation (`BONDED`\|`DOMESTIC`\|`QUARANTINE`); InventoryMovement; GoodsReceipt (+ Line); StockBalance (read model derivado); SkuPosition (read model composto) |
+| Funcionalidades | Receipt bonded (pode preceder nacionalização); receipt/reclass domestic após liberação; ajuste/quarantine; consulta saldo; posição por SKU (buckets ≠ StockBalance) |
+| Comandos | record_receipt; record_adjustment; record_transfer_reclass |
+| Consultas | stock_balance / stock_balance_bulk; list_movements; get_sku_position |
+| **Deps permitidas** | Customs, Catalog, Logistics, Documents, Audit |
+| **Proibido** | Billing, Treasury, Orders (projeção `future_order_qty` em SkuPosition via Reporting ou parâmetro injetado — Inventory **não** depende de Orders) |
+| Proibições | Editar StockBalance; misturar projeção futura em `stock_balances`; exigir nacionalização prévia para **toda** entrada física (bonded permitido pré-nac) |
+| UI | SCR-024 / SCR-025 |
+| Justificativa | Catalog identifica SKU; Customs libera qty; Logistics informa shipped/in_transit; entreposto V1 alinhado (RECEIPT antes de nac); ADR-07 |
 
 ### 5.13 Costing
 
@@ -539,6 +554,7 @@ flowchart LR
   Customs --> Audit
   Inventory --> Customs
   Inventory --> Catalog
+  Inventory --> Logistics
   Inventory --> Documents
   Inventory --> Audit
   Costing --> Orders
@@ -583,12 +599,20 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 | Payment / PaymentAllocation | Dinheiro e liquidação de Payable | Treasury |
 | FxPlanRate / FxMarketQuote / FxExecution / FxExecutionAllocation / FxAllocationValuation | Câmbio projetado, online e realizado | Treasury |
 | Credit / Discount | Crédito e desconto documentados | Treasury |
-| Shipment / ShipmentItem | Embarque físico ligado a OrderItem | Logistics |
+| Shipment / ShipmentItem / ShipmentPackage / ShipmentPackageContent / ShipmentReference / ShipmentDocumentSummary | Embarque: alocação comercial, volumes físicos, refs tipadas, totais declarados por doc | Logistics |
 | ImportProcess | Processo aduaneiro (DUIMP etc.) | Customs |
-| Tax / Nationalization | Tributos e nacionalização | Customs |
+| CustomsDoganale (+ Version/Line) | Fattura Doganale canônica versionada | Customs |
+| CustomsFundingRequest | Numerário (cabeçalho da solicitação financeira aduaneira) | Customs |
+| CustomsPayee | Favorecido de liquidação Customs (≠ Supplier obrigatório) | Customs |
+| CustomsValueBasis / TaxLine / ExpenseLine | Fatos de valor/tributo/despesa aduaneira | Customs |
+| FundingPayableLink | Elo FundingRequest → Payable (Billing) | Customs (link) + Billing (Payable) |
+| Nationalization (+ Item) | Liberação aduaneira de qty | Customs |
+| CustomsProvenance | Origem documental/adapter para handoff J#3 | Customs |
 | Expense / LandedCostVersion | Custo e rateio | Costing |
-| InventoryMovement | Movimento de estoque | Inventory |
-| StockBalance | Saldo **derivado** | Inventory (read) |
+| StockLocation | Local com regime BONDED / DOMESTIC / QUARANTINE | Inventory |
+| InventoryMovement / GoodsReceipt | Movimento / recebimento físico | Inventory |
+| StockBalance | Saldo **derivado** por (product, location) | Inventory (read) |
+| SkuPosition | Posição composta (disponível, bonded, clearance, trânsito, futuro) | Inventory (read; fontes multi-módulo via public) |
 | Document / DocumentLink | Evidência imutável | Documents |
 
 ### 6.2 Cardinalidades canônicas
@@ -597,12 +621,21 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 - Invoice **1:N** Payable (scadenze / payment terms)  
 - Payment **N:M** Payable via PaymentAllocation  
 - OrderItem **N:M** Shipment via ShipmentItem (**Shipment sem `order_id`**)  
-- ImportProcess **1:N** Invoice (`invoice_id` UNIQUE no join)  
+- ShipmentPackage **N:M** ShipmentItem via ShipmentPackageContent  
+- Shipment **1:N** ShipmentReference / ShipmentDocumentSummary  
+- ImportProcess **1:N** Invoice (`invoice_id` UNIQUE no join) + alocação opcional/complementar por **InvoiceItem** (`UNIQUE(process_id, invoice_item_id)`)  
+- ImportProcess **1:N** Shipment (`shipment_id` UNIQUE no join; **DEC-DUIMP-MULTI-SHIP**) + alocação por **ShipmentItem** (`UNIQUE(process_id, shipment_item_id)`; Σ ≤ qty embarcada)  
+- ImportProcess **1:1** CustomsDoganale lógico → **1:N** CustomsDoganaleVersion (`is_current`; retificação = supersede)  
+- ImportProcess **1:N** CustomsFundingRequest → **1:N** ValueBasis / TaxLine / ExpenseLine  
+- CustomsFundingRequest **N:M** Payable via FundingPayableLink (agrupamento default por payee/due_date/currency + `sequence`)  
+- CustomsPayee **1:N** CustomsFundingRequest  
+- Nationalization **1:N** NationalizationItem; GoodsReceiptLine pode referenciar NationalizationItem  
 - Document **N:M** entidades via DocumentLink  
 
 ### 6.3 Unidade de liquidação
 
-**Payable.** `PaymentAllocation` liquida somente Payable. Saldo da Invoice = Σ saldos dos Payables. Antecipo **não alocado** não reduz saldo.
+**Payable.** `PaymentAllocation` liquida somente Payable. Saldo da Invoice = Σ saldos dos Payables. Antecipo **não alocado** não reduz saldo.  
+Payables de origem Customs nascem de `CustomsFundingRequest` confirmado (via Billing public + `FundingPayableLink`), **não** de linhas órfãs de imposto/despesa. Uniqueness de origem customs: `UNIQUE(source_type, source_id, sequence)` — **não** `UNIQUE(source_type, source_id)` sozinho. Payables comerciais de scadenze permanecem `UNIQUE(invoice_id, sequence)`.
 
 ### 6.4 Estados persistidos vs derivados
 
@@ -610,15 +643,20 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 |---|---|---|
 | Order | DRAFT → CONFIRMED → CLOSED / CANCELLED | PARTIALLY_SHIPPED, SHIPPED, PAID… |
 | Shipment | PLANNED → BOOKED → IN_TRANSIT → ARRIVED | CLEARED |
-| ImportProcess | … → CLEARED | — |
+| ImportProcess | DRAFT → SUBMITTED → IN_CLEARANCE → PARTIALLY_CLEARED → CLEARED → CLOSED; CANCELLED | progresso fino de liberação/recebimento se residual derivado for suficiente |
+| CustomsFundingRequest | DRAFT → ISSUED → CONFIRMED → PARTIALLY_SETTLED → SETTLED; CANCELLED | — |
+| CustomsDoganaleVersion | DRAFT / ACTIVE / SUPERSEDED / CANCELLED (`is_current`) | — |
 | Invoice / Payable / Payment | conforme máquina do domínio | “status global da importação” |
 | Reconciliation / Closure | estados próprios | — |
+
+**Dimensões separadas (não colapsar num único status):** lifecycle do ImportProcess; situação documental (Documents + DoganaleVersion); residuals de liberação; residuals de recebimento (bonded/domestic); status financeiro do FundingRequest / Payables.
 
 ### 6.5 Documentos, valores, versionamento, rastreabilidade
 
 - Documentos imutáveis; substituição = nova versão + supersede + histórico.  
-- Valores oficiais têm origem documental.  
-- Landed cost versionado (planejado / revisado / realizado).  
+- Valores oficiais têm origem documental (`CustomsProvenance` + `document_id` onde aplicável).  
+- Doganale canônica versionada em Customs (Logistics `FATTURA_DOGANALE` = snapshot não-SoT).  
+- Landed cost versionado (planejado / revisado / realizado) — Costing / J#6.  
 - FX (Inc-4): projeções (`FxPlanRate`) versionadas; cotações online (`FxMarketQuote`) append-only com `source` e timestamps; valuations realizadas (`FxAllocationValuation`) preservam snapshots históricos; **reforecast não altera** resultado realizado congelado. Taxa contratada/hedge/spread = capacidades futuras.  
 - AuditLog + reason codes em exceções, cancelamentos, reaberturas, overrides.
 
@@ -628,8 +666,9 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 |---|---|
 | L-001 | Tolerâncias de conciliação |
 | L-003 | Conta corrente BR / impacto fiscal |
-| DEC-DUIMP-MULTI-SHIP | Relação DUIMP × múltiplos shipments |
 | DEC-ENDERECO | Modelo de endereços |
+
+**DEC-DUIMP-MULTI-SHIP `[DECISÃO]` (fechada I5-0 / 2026-08-03):** ImportProcess **1:N** Shipment com `shipment_id` UNIQUE no join; alocação quantitativa por ShipmentItem + residual. Um shipment não participa de dois processos no V2. Reabrir N:M só com evidência operacional + nova DEC.
 
 **DEC-SCONTO-ITEM `[DECISÃO]` (fechada 2026-07-22):** Sconto comercial de linha ∈ **InvoiceItem** (não OrderItem). Representação: `discount_type` ∈ {`NONE`,`UNIT_AMOUNT`,`PERCENT`} com xor de `discount_unit_amount` / `discount_percent`. Fattura_202 tem coluna `% Sc` (vazia neste exemplar); Heroes/V1 usam valor unitário — modelo dual evita perda na ingestão. Payable e Costing futuro usam **líquido**. Desconto global/documental (Treasury) fora do slice Order-to-Pay Billing; proibida dupla aplicação. Arredondamento comercial: `ROUND_HALF_UP` **2 casas**; residual de scadenze % na última parcela.
 
@@ -699,24 +738,24 @@ Cada fluxo: pré-condições → passos → regras → exceções → resultado.
 
 ### 7.9 DUIMP com múltiplas invoices
 
-- **Pré:** Numerário / docs; N invoices.  
-- **Passos:** ImportProcess linka N invoices (1:N).  
-- **Regras:** não subordinar DUIMP a uma única Order como contêiner.  
+- **Pré:** Numerário / docs; N invoices (fixture: INV 181/202/203/244/245/246).  
+- **Passos:** ImportProcess linka N invoices (1:N, `invoice_id` UNIQUE); aloca InvoiceItems quando parcialidade exigir.  
+- **Regras:** não subordinar DUIMP a uma única Order como contêiner; uma invoice ∈ ≤1 processo.  
 - **Resultado:** processo aduaneiro coerente com fixture Numerário.
 
 ### 7.10 Nacionalização parcial
 
-- **Pré:** ImportProcess; qty embarcada/disponível.  
+- **Pré:** ImportProcess; qty alocada (Doganale / shipment / invoice item) com residual.  
 - **Passos:** nationalize qty parcial.  
-- **Regras:** residual explícito; movimentos de inventário.  
-- **Resultado:** qty nacionalizada &lt; total.
+- **Regras:** residual explícito; **não** cria StockBalance sozinho; GoodsReceipt domestic consome residual nacionalizado.  
+- **Resultado:** qty nacionalizada &lt; total; status PARTIALLY_CLEARED ou CLEARED.
 
 ### 7.11 Entrada e consumo em entreposto
 
-- **Pré:** política de entreposto aplicável.  
-- **Passos:** movimento entrada → consumo; saldo derivado.  
-- **Regras:** não editar StockBalance.  
-- **Resultado:** saldo = Σ movimentos.
+- **Pré:** política de entreposto aplicável; qty embarcada residual.  
+- **Passos:** receipt em location BONDED (pode preceder nacionalização) → consumo/reclass após liberação → DOMESTIC / QUARANTINE conforme caso.  
+- **Regras:** não editar StockBalance; SkuPosition expõe buckets (disponível, bonded, cleared_not_received, in_clearance, in_transit, future_order).  
+- **Resultado:** saldo = Σ movimentos por (product, location).
 
 ### 7.12 Landed cost por SKU
 
@@ -1159,7 +1198,7 @@ Critérios de rateio documentados por versão; componentes rastreáveis.
 | Solicitação de Numerário | DUIMP 1:N invoices | Customs (+ Costing) | Sim | Sim | Numerário |
 | Heroes XLSX | Ordens/Billing via adapter | Ingestion → Orders/Billing | Sim | Sim | ordine*.xlsx |
 
-**Campos:** identificadores do documento; hash; versionamento; conflitos → staging/fila; resultado esperado documentado junto à fixture (Roadmap G). PDFs atuais = fixtures, não produção (ADR-10).
+**Campos:** identificadores do documento; hash; versionamento; conflitos → staging/fila; resultado esperado documentado junto à fixture ou evidência da fase (`docs/v2/etapa-*`); gate e status resumidos no Roadmap. PDFs atuais = fixtures, não produção (ADR-10).
 
 **Regra Fattura → dinheiro:** a ingestão/emissão de Fattura (incl. menção a acconto já pago ou *BONIFICO ANTICIPATO*) **não** cria Payment automaticamente. Eventual pagamento antecipado é registrado **separadamente** em Treasury, somente com evidência financeira. Se o PDF apenas mencionar acconto já pago, registrar referência documental para revisão/conciliação — sem assumir que o Payment existe no sistema.
 
@@ -1225,7 +1264,7 @@ Logs técnicos; audit de negócio; OpenAPI + **client TS gerado** (não editar m
 6. **Caracterização:** processo/ambiente V1 separado → input determinístico → **golden output versionado**; V2 executa sua implementação e compara com o golden — sem importar V1.  
 7. **Backend:** package-by-domain; routers finos; repos no owner; contratos públicos; sem dumps globais multi-domínio.  
 8. **Frontend:** por feature; páginas coordenadas; OpenAPI client gerado; domínio não vive só no UI.  
-9. **Gatilhos de revisão** (§3.3): relatório obrigatório na Fundação; exceções justificadas no Roadmap.
+9. **Gatilhos de revisão** (§3.3): relatório obrigatório na Fundação; relatório detalhado em `docs/v2/etapa-*`; resumo/link no Roadmap se houver exceção ou pendência material.
 
 ### 13.5 Teste automático vs revisão arquitetural
 
@@ -1241,16 +1280,9 @@ O AST/pytest **deve falhar** se detectar:
 
 #### Relatório / revisão obrigatória (não automatizada por AST “cego”)
 
-Na Fundação e em PRs relevantes, registrar no Roadmap:
+Na Fundação e em PRs relevantes, registrar o relatório detalhado em `docs/v2/etapa-*` (tamanho, routers, componentes, god services, ownership, exceções justificadas: gerado, migrations, fixtures, schemas extensos). No Roadmap: apenas resumo e link quando houver resultado material, exceção ou pendência.
 
-- arquivos acima dos gatilhos §3.3;
-- routers com responsabilidades excessivas;
-- componentes React grandes;
-- god services;
-- arquivos genéricos sem ownership;
-- exceções justificadas (gerado, migrations, fixtures, schemas extensos).
-
-AST sozinho **não** prova coesão ou responsabilidade única sem heurística confiável — por isso a revisão manual é gate explícito (N.8).
+AST sozinho **não** prova coesão ou responsabilidade única sem heurística confiável — por isso a revisão manual é gate explícito.
 
 ---
 
@@ -1260,7 +1292,7 @@ AST sozinho **não** prova coesão ou responsabilidade única sem heurística co
 |---|---|
 | **Fundação** | Layout repo; Identity/Audit/Documents; OpenAPI; arch tests; regra Cursor V2; `epic_v2` vazio |
 | **MVP operacional** | Order-to-Pay (Order→Invoice→Payable→Payment→FX→Docs→Audit→fila→cockpit) |
-| **V2 completa** | Ingestão; Logistics; Customs+Inventory; Costing+Reconciliation; Dashboard; aceite + arquivar V1 |
+| **V2 completa** | Ordem de execução: Logistics (J#4) → Customs+Inventory (J#5) → Ingestão (J#3) → Costing+Reconciliation → Dashboard → aceite + arquivar V1 (IDs J# preservados) |
 | **Pós-V2** | Integrações fiscais/WMS/BI; refinamentos L-* |
 | **Fora** | ERP completo; cloud; Docker nesta fase; migração de linhas V1 |
 
@@ -1268,7 +1300,7 @@ AST sozinho **não** prova coesão ou responsabilidade única sem heurística co
 
 ## 15. Cenários canônicos e critérios de aceite
 
-Mapeamento dos cenários do Roadmap M.3 + fluxos §7. **Sem status de execução.**
+Mapeamento dos cenários canônicos deste Blueprint e dos fluxos da §7. **Sem status de execução.**
 
 | ID | Cenário | Aceite principal |
 |---|---|---|
@@ -1306,11 +1338,16 @@ Mapeamento dos cenários do Roadmap M.3 + fluxos §7. **Sem status de execução
 | **Packing List** | Lista de embarque |
 | **BL / AWB** | Bill of Lading / Air Waybill |
 | **DUIMP** | Declaração Única de Importação (BR) |
-| **Numerário** | Solicitação de numerário ao despachante |
+| **Numerário** | Solicitação de numerário ao despachante — agregado `CustomsFundingRequest` |
+| **CustomsPayee** | Favorecido de liquidação Customs (snapshot + refs opcionais; não forçar Supplier) |
+| **Fattura Doganale** | Declaração canônica em Customs (versionada); ≠ snapshot Logistics |
 | **Landed cost** | Custo landed versionado por SKU |
-| **Entreposto** | Regime/estoque intermediário |
+| **Entreposto** | Regime/estoque intermediário (location BONDED) |
+| **SkuPosition** | Read model de posição por SKU (não é StockBalance) |
+| **CustomsProvenance** | Rastreio de origem de valores/linhas para J#3 |
 | **Payable** | Unidade de liquidação |
 | **PaymentAllocation** | Elo Payment→Payable |
+| **FundingPayableLink** | Elo Numerário → Payable |
 | **FxPlanRate** | Taxa FX projetada por Payable (INITIAL / REFORECAST / CORRECTION); uma current |
 | **FxMarketQuote** | Cotação online do par (append-only); fresh/stale/missing |
 | **FxExecution** | Taxa/BRL realizados vinculados a um Payment |
@@ -1327,26 +1364,28 @@ Mapeamento dos cenários do Roadmap M.3 + fluxos §7. **Sem status de execução
 
 Formato: `REQ-V2-{MOD}-{nnn}`. Sem coluna de status de execução.
 
-| ID | Módulo | § Blueprint | Fase Roadmap | Critério de aceite (resumo) |
-|---|---|---|---|---|
-| REQ-V2-FND-001 | Foundation | 5.1, 13 | 1 | App sobe; health; OpenAPI; sem drift client |
-| REQ-V2-ID-001 | Identity | 5.2, 8.1, 11 | 1 | Login/RBAC |
-| REQ-V2-AUD-001 | Audit | 5.3, 8.22 | 1 | Evento crítico registrado |
-| REQ-V2-DOC-001 | Documents | 5.4, 10, 8.20 | 1 | Upload+link+supersede |
-| REQ-V2-CAT-001 | Catalog | 5.5, 8.6–8.7 | 2+ | CRUD SKU/supplier |
-| REQ-V2-ORD-001 | Orders | 5.6, 7.1, 8.3–8.5 | 2 | Order-to-Pay slice |
-| REQ-V2-BIL-001 | Billing | 5.7, 7.3, 8.10 | 2 | Invoice+N Payables |
-| REQ-V2-TRE-001 | Treasury | 5.8, 7.4–7.6, 8.11–8.13 | 2 | Allocation só Payable |
-| REQ-V2-ING-001 | Ingestion | 5.9, 7.2, 8.14, 10 | 3 | Commit idempotente + golden |
-| REQ-V2-LOG-001 | Logistics | 5.10, 7.7–7.8, 8.15 | 4 | ShipmentItem; sem order_id |
-| REQ-V2-CUS-001 | Customs | 5.11, 7.9–7.10, 8.16 | 5 | DUIMP 1:N invoices |
-| REQ-V2-INV-001 | Inventory | 5.12, 7.11, 8.17 | 5 | Saldo derivado |
-| REQ-V2-CST-001 | Costing | 5.13, 7.12, 8.18 | 6 | LC por SKU + Expense |
-| REQ-V2-REC-001 | Reconciliation | 5.14, 7.15, 8.19 | 6 | Casos; L-001 isolado |
-| REQ-V2-REP-001 | Reporting | 5.15, 8.0, 8.4, 8.9 | 2 | Reporting operacional — AP queue + order cockpit (read-only) |
-| REQ-V2-REP-002 | Reporting | 5.15, 8.2, 12 | 7 | Dashboard executivo read-only |
-| REQ-V2-MOD-001 | Transversal | 3.2–3.3, 5.16, 13.4–13.5 | 1 | Arch test + revisão manual; sem ciclos; V2↛V1; regra Cursor |
-| REQ-V2-ACC-001 | Aceite | 15 | 8 | SC-01…SC-17 + equivalência cálculos |
+A coluna **ID fase** preserva o identificador histórico (J# / fase). A **ordem de execução** vigente no Roadmap é **J#4 → J#5 → J#3 → J#6…** (domain-first). O grafo §5.16 permanece acíclico.
+
+| ID | Módulo | § Blueprint | ID fase | Ordem exec. | Critério de aceite (resumo) |
+|---|---|---|---|---|---|
+| REQ-V2-FND-001 | Foundation | 5.1, 13 | 1 | 1 | App sobe; health; OpenAPI; sem drift client |
+| REQ-V2-ID-001 | Identity | 5.2, 8.1, 11 | 1 | 1 | Login/RBAC |
+| REQ-V2-AUD-001 | Audit | 5.3, 8.22 | 1 | 1 | Evento crítico registrado |
+| REQ-V2-DOC-001 | Documents | 5.4, 10, 8.20 | 1 | 1 | Upload+link+supersede |
+| REQ-V2-CAT-001 | Catalog | 5.5, 8.6–8.7 | 2+ | 2 | CRUD SKU/supplier |
+| REQ-V2-ORD-001 | Orders | 5.6, 7.1, 8.3–8.5 | 2 | 2 | Order-to-Pay slice |
+| REQ-V2-BIL-001 | Billing | 5.7, 7.3, 8.10 | 2 | 2 | Invoice+N Payables |
+| REQ-V2-TRE-001 | Treasury | 5.8, 7.4–7.6, 8.11–8.13 | 2 | 2 | Allocation só Payable |
+| REQ-V2-LOG-001 | Logistics | 5.10, 7.7–7.8, 8.15 | 4 (J#4) | **3** | ShipmentItem; sem order_id |
+| REQ-V2-CUS-001 | Customs | 5.11, 7.9–7.10, 8.16 | 5 (J#5) | **4** | DUIMP 1:N invoices |
+| REQ-V2-INV-001 | Inventory | 5.12, 7.11, 8.17 | 5 (J#5) | **4** | Saldo derivado |
+| REQ-V2-ING-001 | Ingestion | 5.9, 7.2, 8.14, 10 | 3 (J#3) | **5** | Commit idempotente + golden |
+| REQ-V2-CST-001 | Costing | 5.13, 7.12, 8.18 | 6 | 6 | LC por SKU + Expense |
+| REQ-V2-REC-001 | Reconciliation | 5.14, 7.15, 8.19 | 6 | 6 | Casos; L-001 isolado |
+| REQ-V2-REP-001 | Reporting | 5.15, 8.0, 8.4, 8.9 | 2 | 2 | Reporting operacional — AP queue + order cockpit (read-only) |
+| REQ-V2-REP-002 | Reporting | 5.15, 8.2, 12 | 7 | 7 | Dashboard executivo read-only |
+| REQ-V2-MOD-001 | Transversal | 3.2–3.3, 5.16, 13.4–13.5 | 1 | 1 | Arch test + revisão manual; sem ciclos; V2↛V1; regra Cursor |
+| REQ-V2-ACC-001 | Aceite | 15 | 8 | 8 | SC-01…SC-17 + equivalência cálculos |
 
 ---
 
@@ -1393,6 +1432,13 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 
 | Versão | Data | Notas |
 |---|---|---|
+| 0.2.15 | 2026-08-03 | J#5 I5-0: Customs/Inventory decisões (ImportProcess, DEC-DUIMP-MULTI-SHIP, item alloc, Doganale versionada, FundingRequest/Payee/FundingPayableLink, bonded/domestic/quarantine, SkuPosition, Provenance, lifecycle multi-dim); §5.11–5.12 / §6.* |
+| 0.2.14 | 2026-08-02 | Document Readiness A2: OrderItem/InvoiceItem.unit; order_date/notes/invoice_date UI; DocumentLink order; herança unit Order→Invoice; fronteira fiscal/J#5/J#3 |
+| 0.2.13 | 2026-08-02 | J4-UX2 Document Readiness A1: PackageContent snapshots; batch packages; declared_provenance; UI volumes/docs; Doganale=snapshot não SoT |
+| 0.2.12 | 2026-07-31 | J4-UX1: LogisticsProvider; modal controlado; DEC-SHIP-PROVIDER; BOOKED exige modal+prestador; carrier_name_snapshot |
+| 0.2.11 | 2026-07-31 | J#4 Logistics: §5.10 expandido (packages/refs/summaries/DECs); §6.1–6.2 cardinalidades; DEC-SHIP-* consolidadas; DEC-SHIP-CANCEL aberta; L-001 provisória em divergence.py |
+| 0.2.10 | 2026-07-31 | reordenação de execução domain-first J#4→J#5→J#3 (IDs preservados); §5.9/§14/§17; sem mudança de regras de produto ou grafo §5.16 |
+| 0.2.9 | 2026-07-31 | alinhamento à governança documental 0.5.46; evidências detalhadas em etapa-*; remoção de referências antigas Roadmap G/M.3; sem mudança de produto ou arquitetura. |
 | 0.2.8 | 2026-07-24 | Fechamento Inc-5: Heroes-only operacional (multi-supplier no modelo); Supplier bulk; AP UX sem eixo fornecedor; REQ-V2-REP-001/002; reporting:read admin→L-005 |
 | 0.2.7 | 2026-07-23 | Inc-5 / UX-0: §8.0 shell+IA; Reporting AP queue + order cockpit; arestas Catalog/Documents/Audit; §8.4/§8.9 alinhados; `paid`=allocations |
 | 0.2.6 | 2026-07-23 | Remediação auditoria Inc-4: Frankfurter URL canônica; unique current plan; locks FX; cleanup órfão alinhado Inc-3 |

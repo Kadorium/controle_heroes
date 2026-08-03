@@ -29,7 +29,7 @@ Entregas, guias de tela, relatórios, mocks, resumo executivo inicial e prompt-m
 | [`archive/GUIA_COMPLETO_MVP_REPASSE.md`](archive/GUIA_COMPLETO_MVP_REPASSE.md) | Guia de repasse MVP |
 | `archive/ENTREGA-*.md`, `GUIA-TELA-*.md`, `RELATORIO_*.md`, mocks, QA | Entregas e evidências de UI |
 
-**Cursor (trilha V1):** `.cursor/rules/importacao-epic-indice.mdc` (`v1/**`, `docs/v1/**`). Checklist desta pasta **nunca** é DoD da V2.
+**Cursor (guarda V1):** [`.cursor/rules/epic-v2.mdc`](../../.cursor/rules/epic-v2.mdc) §4 — legado congelado (ADR-16); só manutenção/goldens/segurança. Checklist desta pasta **nunca** é DoD da V2.
 
 ---
 

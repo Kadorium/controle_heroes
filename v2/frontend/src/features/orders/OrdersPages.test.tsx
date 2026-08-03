@@ -5,13 +5,24 @@ import { OrdersListPage } from "./OrdersListPage";
 import { OrderCreatePage } from "./OrderCreatePage";
 import { OrderDetailPage } from "./OrderDetailPage";
 
+vi.mock("../reporting/reportingApi", () => ({
+  fetchOrdersList: vi.fn(),
+}));
+
 vi.mock("./ordersApi", () => ({
   listOrders: vi.fn(),
   getOrder: vi.fn(),
   createOrder: vi.fn(),
+  updateOrder: vi.fn(),
+  updateOrderItem: vi.fn(),
+  uploadOrderDocument: vi.fn(),
   addOrderItem: vi.fn(),
   confirmOrder: vi.fn(),
   cancelOrder: vi.fn(),
+}));
+
+vi.mock("../billing/InvoiceDetailPage", () => ({
+  OrderInvoicesPanel: () => null,
 }));
 
 vi.mock("../catalog/catalogApi", () => ({
@@ -21,6 +32,7 @@ vi.mock("../catalog/catalogApi", () => ({
   createProduct: vi.fn(),
 }));
 
+import * as reportingApi from "../reporting/reportingApi";
 import * as ordersApi from "./ordersApi";
 import * as catalogApi from "../catalog/catalogApi";
 
@@ -46,18 +58,18 @@ describe("OrdersListPage RTL", () => {
   });
 
   it("shows loading then empty state", async () => {
-    vi.mocked(ordersApi.listOrders).mockResolvedValue([]);
+    vi.mocked(reportingApi.fetchOrdersList).mockResolvedValue([]);
     render(
       <MemoryRouter>
         <OrdersListPage user={writer} />
       </MemoryRouter>,
     );
-    expect(screen.getByText(/carregando ordens/i)).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByTestId("orders-empty")).toBeInTheDocument());
+    expect(screen.getByText(/carregando pedidos/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("empty-state")).toBeInTheDocument());
   });
 
   it("shows error state", async () => {
-    vi.mocked(ordersApi.listOrders).mockRejectedValue(new Error("falha lista"));
+    vi.mocked(reportingApi.fetchOrdersList).mockRejectedValue(new Error("falha lista"));
     render(
       <MemoryRouter>
         <OrdersListPage user={writer} />
@@ -92,17 +104,23 @@ describe("OrderCreatePage RTL", () => {
       </MemoryRouter>,
     );
     await waitFor(() => expect(screen.getByTestId("order-code")).toBeInTheDocument());
+    expect(screen.getByTestId("order-date")).toBeInTheDocument();
+    expect(screen.getByTestId("order-notes")).toBeInTheDocument();
+    expect(screen.getByTestId("line-unit")).toBeInTheDocument();
     const sku = screen.getByTestId("line-sku");
     const qty = screen.getByTestId("line-qty");
     const price = screen.getByTestId("line-price");
+    const unit = screen.getByTestId("line-unit");
     // fireEvent via user-like change
     const { fireEvent } = await import("@testing-library/react");
     fireEvent.change(sku, { target: { value: "SKU-1" } });
     fireEvent.change(qty, { target: { value: "2" } });
+    fireEvent.change(unit, { target: { value: "CTNS" } });
     fireEvent.change(price, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: /adicionar linha/i }));
     expect(screen.getByTestId("commercial-total")).toHaveTextContent(/—/);
     expect(screen.getByTestId("commercial-total").textContent).toMatch(/incompleto|sem preço/i);
+    expect(screen.getByText("CTNS")).toBeInTheDocument();
   });
 });
 
@@ -127,6 +145,7 @@ describe("OrderDetailPage RTL", () => {
           sku_snapshot: "S",
           description_snapshot: "d",
           quantity: "1",
+          unit: "PZ",
           unit_price: "10",
           line_total: "10.0000",
           position: 1,
@@ -144,5 +163,7 @@ describe("OrderDetailPage RTL", () => {
     );
     await waitFor(() => expect(screen.getByTestId("readonly-banner")).toBeInTheDocument());
     expect(screen.queryByTestId("confirm-order")).not.toBeInTheDocument();
+    expect(screen.getByTestId("order-item-unit-1")).toHaveTextContent("PZ");
+    expect(screen.getAllByText(/22\/07\/2026/).length).toBeGreaterThan(0);
   });
 });

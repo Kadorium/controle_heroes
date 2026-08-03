@@ -6,6 +6,18 @@ QTY_QUANT = Decimal("0.0001")
 COMMERCIAL_QUANT = Decimal("0.01")
 
 
+def normalize_unit(value: str | None) -> str | None:
+    """Optional documentary unit snapshot (PZ, SET, CTNS, UN, …). Mirrors orders.money."""
+    if value is None:
+        return None
+    s = str(value).strip()
+    if not s:
+        return None
+    if len(s) > 16:
+        raise InvoiceValidationError("unit máximo 16 caracteres")
+    return s.upper()
+
+
 def parse_decimal(value: str | Decimal | None) -> Decimal | None:
     if value is None:
         return None
