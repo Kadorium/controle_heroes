@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.catalog import repository as repo
@@ -22,10 +23,22 @@ def create_supplier(
         raise CatalogValidationError("country_code deve ter 2 letras ISO")
     if code_norm and repo.get_supplier_by_code(db, code_norm):
         raise SupplierCodeDuplicate(code_norm)
-    return repo.add_supplier(
-        db,
-        Supplier(name=name, code=code_norm, country_code=country, is_active=is_active),
-    )
+
+    try:
+        return repo.add_supplier(
+            db,
+            Supplier(
+                name=name,
+                code=code_norm,
+                country_code=country,
+                is_active=is_active,
+            ),
+        )
+    except IntegrityError as exc:
+        db.rollback()
+        if code_norm:
+            raise SupplierCodeDuplicate(code_norm) from exc
+        raise
 
 
 def create_product(
@@ -36,11 +49,15 @@ def create_product(
     is_active: bool = True,
 ) -> Product:
     sku_norm = (sku or "").strip()
-    desc = (description or "").strip()
     if not sku_norm:
         raise CatalogValidationError("SKU é obrigatório")
+    desc = (description or "").strip()
     if not desc:
         raise CatalogValidationError("Descrição é obrigatória")
     if repo.get_product_by_sku(db, sku_norm):
         raise SkuDuplicate(sku_norm)
-    return repo.add_product(db, Product(sku=sku_norm, description=desc, is_active=is_active))
+    try:
+        return repo.add_product(db, Product(sku=sku_norm, description=desc, is_active=is_active))
+    except IntegrityError as exc:
+        db.rollback()
+        raise SkuDuplicate(sku_norm) from exc

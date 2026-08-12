@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.15 |
+| **Versão** | 0.2.18 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
 | **Data** | 2026-08-03 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
@@ -404,14 +404,14 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 |---|---|
 | Objetivo | Pipeline bruto → adapter → staging → revisão → commit idempotente |
 | Owner | Comprador / operação |
-| Entidades | IngestionBatch, StagingRow, AdapterResult |
-| Funcionalidades | Identificar tipo; hash; staging; triage; commit |
-| Comandos | ingest_file, approve_staging, commit_batch |
-| Consultas | staging_queue |
-| **Deps permitidas** | Documents, Audit, Catalog, Orders, Billing, Logistics, Customs (APIs públicas) |
-| Proibido | Escrever direto em tabelas oficiais sem commit; **qualquer** import V1 |
-| UI | Ingestão e revisão |
-| Nota | Parser Heroes = lógica portada/reimplementada em V2; golden de caracterização sem import V1. **Ordem de execução:** módulos owner (Orders/Billing/Logistics/Customs) com API pública estável **antes** da automação completa de `commit_batch` (Roadmap: J#4 → J#5 → J#3). |
+| Entidades | **Fundação (I0):** `IngestionBatch`, `IngestionBlob`, `IngestionOccurrence`. **Staging IR (I1):** `IngestionDocument`, `IngestionSection`, `IngestionField`, `IngestionRow`, `IngestionIssue`, `IngestionReviewChange`, relação `IngestionDocumentSet` (+ members). Posteriores: AdapterResult real; CommitAttempt/ledger (I3+) |
+| Funcionalidades | Upload em quarantine; hash SHA-256; deduplicação física / reidratação; validação segura PDF/XLSX; abandon; purge de bytes; **staging IR versionado**; revisão por campo/linha/seção; issues; lock/optimistic concurrency; agrupamento mínimo; depois: adapters reais; triage UI; commit |
+| Comandos | I0: create_batch, upload_files, abandon_occurrence, purge_quarantine. **I1:** seed_document_from_occurrence, correct_field/row, restore_field, review_section, lock/unlock, issues, document_set. Posteriores: adapters reais, approve_staging, commit_batch |
+| Consultas | I0: get batch/occurrence. **I1:** get_document_detail, staging_queue, list_review_changes, get_document_set |
+| **Deps permitidas** | Audit (I0/I1); Documents + Catalog + Orders + Billing + Logistics + Customs nas etapas de promote/commit (APIs públicas). **I0/I1 não dependem de Documents** até existir promote |
+| Proibido | Escrever Document/DocumentLink no upload; escrever direto em tabelas oficiais sem commit; **qualquer** import V1; path físico baseado em filename do usuário |
+| UI | Ingestão e revisão (SCR-037…039 — I2+) |
+| Nota | Quarantine ≠ Document oficial; occurrence ≠ hash ≠ Document. Parser Heroes = lógica portada/reimplementada em V2; golden sem import V1. **Ordem:** owners com API estável **antes** da automação completa de `commit_batch` (J#4 → J#5 → J#3). Plano canônico da fase: `docs/v2/etapa-j3/J3_EXECUTION_PLAN.md`. |
 
 ### 5.10 Logistics
 
@@ -637,6 +637,8 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 **Payable.** `PaymentAllocation` liquida somente Payable. Saldo da Invoice = Σ saldos dos Payables. Antecipo **não alocado** não reduz saldo.  
 Payables de origem Customs nascem de `CustomsFundingRequest` confirmado (via Billing public + `FundingPayableLink`), **não** de linhas órfãs de imposto/despesa. Uniqueness de origem customs: `UNIQUE(source_type, source_id, sequence)` — **não** `UNIQUE(source_type, source_id)` sozinho. Payables comerciais de scadenze permanecem `UNIQUE(invoice_id, sequence)`.
 
+**Payable `CUSTOMS_FUNDING` (DEC-J5-CLOSE-ALT-B):** obrigação **registrada** a partir do Numerário. **Não** é liquidável pelo módulo Treasury atual (`Payment`/`Allocation` exigem Invoice/Supplier; `list_eligible_payables` exclui origem Customs). Liquidação Customs é backlog explícito **`Treasury settlement for CUSTOMS_FUNDING`**. Navegação AP→Numerário resolve via `source_id` + GET público Customs (`/api/customs/funding-requests/{id}`) — Billing/Reporting **não** importam Customs.
+
 ### 6.4 Estados persistidos vs derivados
 
 | Agregado | Persistidos | Não persistir (derivado / outro agregado) |
@@ -753,9 +755,9 @@ Cada fluxo: pré-condições → passos → regras → exceções → resultado.
 ### 7.11 Entrada e consumo em entreposto
 
 - **Pré:** política de entreposto aplicável; qty embarcada residual.  
-- **Passos:** receipt em location BONDED (pode preceder nacionalização) → consumo/reclass após liberação → DOMESTIC / QUARANTINE conforme caso.  
-- **Regras:** não editar StockBalance; SkuPosition expõe buckets (disponível, bonded, cleared_not_received, in_clearance, in_transit, future_order).  
-- **Resultado:** saldo = Σ movimentos por (product, location).
+- **Passos:** receipt em location BONDED (pode preceder nacionalização) → após liberação, `RECLASS` pareado (`RECLASS_OUT` em BONDED + `RECLASS_IN` em DOMESTIC) → QUARANTINE conforme caso. `DOMESTIC_IN` puro permanece para entrada doméstica **sem** estoque bonded prévio.  
+- **Regras:** não editar StockBalance; conservação física só na dimensão física (`available + bonded + quarantine` = Σ StockBalance); SkuPosition separa dimensões (física / aduaneira / logística) e **não** soma entre dimensões; stubs (`in_clearance`, `in_transit`, `future_order`) não se apresentam como medição zero.  
+- **Resultado:** saldo = Σ movimentos por (product, location); reclass não infla o total físico.
 
 ### 7.12 Landed cost por SKU
 
@@ -1432,6 +1434,9 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 
 | Versão | Data | Notas |
 |---|---|---|
+| 0.2.18 | 2026-08-04 | J3-I1: §5.9 staging IR (Document/Section/Field/Row/Issue/Set); review APIs; deps ainda Audit-only |
+| 0.2.17 | 2026-08-04 | J3-I0: §5.9 fundação Batch/Blob/Occurrence + quarantine; deps I0=Audit; promote Documents só no commit |
+| 0.2.16 | 2026-08-04 | J#5 patch fechamento: Payable CUSTOMS_FUNDING = obrigação registrada (Alt. B; não liquidável pelo Treasury atual); RECLASS pareado §7.11; SkuPosition dimensional; KPIs AP por moeda (sem soma cross-currency) |
 | 0.2.15 | 2026-08-03 | J#5 I5-0: Customs/Inventory decisões (ImportProcess, DEC-DUIMP-MULTI-SHIP, item alloc, Doganale versionada, FundingRequest/Payee/FundingPayableLink, bonded/domestic/quarantine, SkuPosition, Provenance, lifecycle multi-dim); §5.11–5.12 / §6.* |
 | 0.2.14 | 2026-08-02 | Document Readiness A2: OrderItem/InvoiceItem.unit; order_date/notes/invoice_date UI; DocumentLink order; herança unit Order→Invoice; fronteira fiscal/J#5/J#3 |
 | 0.2.13 | 2026-08-02 | J4-UX2 Document Readiness A1: PackageContent snapshots; batch packages; declared_provenance; UI volumes/docs; Doganale=snapshot não SoT |

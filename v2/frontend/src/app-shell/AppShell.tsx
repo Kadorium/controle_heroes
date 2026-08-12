@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import type { User } from "../features/auth/types";
 import { FxQuoteStrip } from "../features/treasury/FxPanels";
 import { Button, roleLabel } from "../ui";
+import { RuntimeBadge } from "./RuntimeBadge";
 
 type Props = {
   user: User;
@@ -90,6 +91,17 @@ function IconInventory() {
   );
 }
 
+function IconIngestion() {
+  return (
+    <svg className="shell-nav-icon" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M4 3h8l4 4v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm8 1.5V8h3.5L12 4.5zM6 11h8v1.5H6V11zm0 3h6v1.5H6V14z"
+      />
+    </svg>
+  );
+}
+
 export function AppShell({ user, onLogout }: Props) {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
@@ -103,7 +115,8 @@ export function AppShell({ user, onLogout }: Props) {
   const canLogistics = can(user, "logistics:read");
   const canCustoms = can(user, "customs:read");
   const canInventory = can(user, "inventory:read");
-  const showCompras = canOrders || canBilling;
+  const canIngestion = can(user, "ingestion:read");
+  const showCompras = canOrders || canBilling || canIngestion;
   const showFinanceiro = canReporting || canBilling || canTreasury;
   const showLogistica = canLogistics;
   const showAduana = canCustoms || canInventory;
@@ -142,6 +155,12 @@ export function AppShell({ user, onLogout }: Props) {
                     <span className="shell-nav-label">Faturas</span>
                   </NavLink>
                 ) : null}
+                {canIngestion ? (
+                  <NavLink to="/ingestion" title="Ingestão" aria-label="Ingestão" data-testid="nav-ingestion">
+                    <IconIngestion />
+                    <span className="shell-nav-label">Ingestão</span>
+                  </NavLink>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -158,9 +177,13 @@ export function AppShell({ user, onLogout }: Props) {
                   </NavLink>
                 ) : null}
                 {canTreasury ? (
-                  <NavLink to="/payments" title="Pagamentos" aria-label="Pagamentos">
+                  <NavLink
+                    to="/payments"
+                    title="Pagamentos realizados"
+                    aria-label="Pagamentos realizados"
+                  >
                     <IconPayments />
-                    <span className="shell-nav-label">Pagamentos</span>
+                    <span className="shell-nav-label">Pagamentos realizados</span>
                   </NavLink>
                 ) : null}
               </div>
@@ -202,6 +225,7 @@ export function AppShell({ user, onLogout }: Props) {
           ) : null}
         </nav>
         <div className="shell-side-footer">
+          <RuntimeBadge />
           <div className="shell-fx-slot">
             <FxQuoteStrip user={user} />
           </div>

@@ -5,6 +5,7 @@ import {
   RowAction,
   StatusBadge,
   formatDateOnly,
+  paymentAllocationStateLabel,
   type OperationalColumnDef,
 } from "../../ui";
 
@@ -42,8 +43,20 @@ export const PAYMENTS_QUEUE_COLUMNS: OperationalColumnDef<Payment>[] = [
     ),
   },
   {
+    id: "allocation_state",
+    header: "Estado",
+    visibility: "always",
+    priority: 0,
+    minWidth: "9.5rem",
+    cell: (row) => (
+      <span data-testid={`payment-alloc-state-${row.id}`}>
+        {paymentAllocationStateLabel(row)}
+      </span>
+    ),
+  },
+  {
     id: "residual",
-    header: "Residual",
+    header: "Aberto",
     visibility: "always",
     priority: 0,
     minWidth: "9rem",
@@ -53,7 +66,7 @@ export const PAYMENTS_QUEUE_COLUMNS: OperationalColumnDef<Payment>[] = [
   },
   {
     id: "status",
-    header: "Status",
+    header: "Registro",
     visibility: "always",
     priority: 0,
     minWidth: "6rem",

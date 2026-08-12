@@ -1,0 +1,33 @@
+=== PAGE 1/1 ===
+Shipper/Exporter:
+Heroe’s Srl
+Via Bazzanese 32/7
+40033 Casalecchio di Reno BO
+E-Mail: info@heroesbranditalia.com
+PI / CF: 02610500395 - 02610500395
+Nr REA: BO-553272
+Banca: INTESA SAN PAOLO IT44Z0306937133100000007249
+Consignee/Bill to: Packing List
+EPIC SPORTS LTDA - CNPJ:65.751.802/0001-89
+Number: Date:
+Address: Avenida Santo Amaro,1775, 04505-003 Vila Nova Conceição
+00000 Vila Nova Conceição São Paulo/SP 202 16/04/2026
+Currency Incoterms By Payment terms
+BONIFICO ANTICIPATO 50%, SALDO 90
+EUR EX WORKS Nave
+GG DFFM
+Units per CTNS NCM Items description Amount Unit weight Unit gross weight (Kg) Total net weight Total gross weight (Kg)
+600 4202 2210 00 GRAVITY ARION 23.688,00 0,90 1,00 690,00 747,00
+1000 4202 221000 WASH BAG ARION 6.500,00 0,16 0,17 160,00 169,00
+50 4819 1000 00 Imballaggio 56x47x34 0 1,00 1,00 50,00 50,00
+30 4819100000 Box thunder 26 64x60x46 0 0,10 0,10 3,00 3,00
+20 4819 1000 00 imballo 60x30x49 wash bag 0 1,55 1,55 31,00 31,00
+Manufacturer: Heroe’s Srl
+Heroe’s Srl
+Via Bazzanese 32/7 40033 Casalecchio di Reno BO IT
+E-Mail: info@heroesbranditalia.com
+PI/CF: 02610500395 - 02610500395 Nr REA: BO-553272
+Bank: INTESA SAN PAOLO IT44Z0306937133100000007249
+Country of origin/acquisition: Italy
+Delivery terms: EXW (Ex Works) - Our warehouse in 135 BONHAM STRAND, SHEUNG WAN, HONG KONG
+For and on behalf of Heroe’s Srl

@@ -18,6 +18,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.foundation.database import Base
 
 ORDER_STATUSES = ("DRAFT", "CONFIRMED", "CANCELLED", "CLOSED")
+ORDER_ITEM_LINE_KINDS = ("PRODUCT", "COMMITMENT")
+LINE_KIND_PRODUCT = "PRODUCT"
+LINE_KIND_COMMITMENT = "COMMITMENT"
 
 
 class Order(Base):
@@ -54,11 +57,28 @@ class Order(Base):
 
 class OrderItem(Base):
     __tablename__ = "order_items"
-    __table_args__ = (UniqueConstraint("order_id", "position", name="uq_order_item_position"),)
+    __table_args__ = (
+        UniqueConstraint("order_id", "position", name="uq_order_item_position"),
+        CheckConstraint(
+            "line_kind IN ('PRODUCT', 'COMMITMENT')",
+            name="ck_order_items_line_kind",
+        ),
+        CheckConstraint(
+            "(line_kind = 'PRODUCT' AND product_id IS NOT NULL) OR "
+            "(line_kind = 'COMMITMENT' AND product_id IS NULL)",
+            name="ck_order_items_line_kind_product_id",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False, index=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), nullable=False, index=True)
+    product_id: Mapped[int | None] = mapped_column(
+        ForeignKey("products.id"), nullable=True, index=True
+    )
+    line_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=LINE_KIND_PRODUCT, server_default=LINE_KIND_PRODUCT
+    )
+    external_code: Mapped[str | None] = mapped_column(String(128), nullable=True)
     sku_snapshot: Mapped[str] = mapped_column(String(64), nullable=False)
     description_snapshot: Mapped[str] = mapped_column(String(512), nullable=False)
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)

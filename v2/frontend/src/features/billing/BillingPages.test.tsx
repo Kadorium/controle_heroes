@@ -15,7 +15,7 @@ vi.mock("./billingApi", () => ({
     currency: "EUR",
     terms_mode: null,
     created_by_actor_id: "1",
-    notes: null,
+    notes: "Divergência de preço (Fattura ≠ pedido; a fatura segue o documento):\nSKU X pedido 50.00 · Fattura 55.00",
     version: 1,
     incomplete_line_count: 1,
     blockers: ["Há linhas com preço ou desconto incompletos", "Defina scadenze (PERCENT ou AMOUNT)"],
@@ -72,6 +72,7 @@ describe("InvoiceDetailPage", () => {
     );
     expect(await screen.findByTestId("invoice-detail")).toBeInTheDocument();
     expect(screen.getByTestId("invoice-blockers")).toBeInTheDocument();
+    expect(screen.getByTestId("invoice-price-divergence")).toBeInTheDocument();
     expect(screen.getByTestId("issue-invoice")).toBeDisabled();
     expect(screen.getByTestId("issue-blocked-reason")).toHaveTextContent(/bloqueado/i);
   });

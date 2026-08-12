@@ -108,20 +108,35 @@ def ap_queue(
         )
 
     unallocated_candidates = _unallocated_candidates(db, enriched)
+    by_cur: dict[str, dict[str, Any]] = {}
+    for c in unallocated_candidates:
+        cur = str(c.get("currency") or "")
+        bucket = by_cur.setdefault(
+            cur,
+            {
+                "currency": cur,
+                "unallocated_candidates_count": 0,
+                "unallocated_candidates_total": Decimal("0"),
+            },
+        )
+        bucket["unallocated_candidates_count"] += 1
+        bucket["unallocated_candidates_total"] += Decimal(str(c["amount_unallocated"]))
+    unallocated_by_currency = [
+        {
+            "currency": b["currency"],
+            "unallocated_candidates_count": b["unallocated_candidates_count"],
+            "unallocated_candidates_total": _money2(b["unallocated_candidates_total"]),
+        }
+        for b in sorted(by_cur.values(), key=lambda x: x["currency"])
+    ]
+    core_kpis = dict(core["kpis"])
+    core_kpis["unallocated_by_currency"] = unallocated_by_currency
     return {
         "items": enriched,
         "total": core["total"],
         "limit": core["limit"],
         "offset": core["offset"],
-        "kpis": {
-            **core["kpis"],
-            "unallocated_candidates_count": len(unallocated_candidates),
-            "unallocated_candidates_total": _money2(
-                sum((Decimal(c["amount_unallocated"]) for c in unallocated_candidates), Decimal("0"))
-            )
-            if unallocated_candidates
-            else "0.00",
-        },
+        "kpis": core_kpis,
         "market_quote": market,
         "unallocated_candidates": unallocated_candidates,
         "sort": "overdue_first,due_date_asc,id_asc",
@@ -223,28 +238,49 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
         if view.get("realized_result_vs_reference") is not None:
             fx_realized_total += Decimal(str(view["realized_result_vs_reference"]))
 
-    payments = treasury_public.list_payments(
-        db, supplier_id=order.supplier_id, currency=order.currency, limit=COCKPIT_LIST_LIMIT, offset=0
+    # Lista principal = só deste pedido (FIN-1C-FIX-1 F1). Candidatos = fornecedor+moeda.
+    order_payments = treasury_public.list_payments(
+        db, order_id=order_id, limit=COCKPIT_LIST_LIMIT, offset=0
     )
     payment_summaries = []
-    unallocated_candidates = []
-    for pay in payments:
+    advanced_credit = Decimal("0")
+    for pay in order_payments:
         residual = treasury_public.amount_unallocated(db, pay)
+        cancelled = pay.status == "CANCELLED"
         payment_summaries.append(
             {
                 "id": pay.id,
                 "amount": str(pay.amount),
                 "currency": pay.currency,
                 "status": pay.status,
-                "amount_unallocated": f"{residual:.2f}",
+                "amount_allocated": None
+                if cancelled
+                else f"{(pay.amount - residual):.2f}",
+                # CANCELLED: residual operacional nulo (UI mostra —); não mentir crédito ativo
+                "amount_unallocated": None if cancelled else f"{residual:.2f}",
             }
         )
+        if pay.status == "REGISTERED" and residual > 0:
+            advanced_credit += residual
+
+    supplier_payments = treasury_public.list_payments(
+        db,
+        supplier_id=order.supplier_id,
+        currency=order.currency,
+        limit=COCKPIT_LIST_LIMIT,
+        offset=0,
+    )
+    unallocated_candidates = []
+    for pay in supplier_payments:
+        residual = treasury_public.amount_unallocated(db, pay)
         if residual > 0 and pay.status == "REGISTERED":
             unallocated_candidates.append(
                 {
                     "payment_id": pay.id,
                     "amount_unallocated": f"{residual:.2f}",
-                    "relation": False,
+                    "currency": pay.currency,
+                    "order_id": pay.order_id,
+                    "relation": pay.order_id == order_id,
                     "role": "candidate_by_supplier_currency",
                 }
             )
@@ -281,7 +317,10 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
         alerts.append(
             {
                 "code": "UNALLOCATED_CANDIDATE",
-                "message": "Pagamentos com residual (candidatos a alocação — não são vínculos com o pedido)",
+                "message": (
+                    "Candidatos a alocação do mesmo fornecedor/moeda "
+                    "(podem ser de outros pedidos — não são a lista deste pedido)"
+                ),
                 "href": "/payments",
             }
         )
@@ -317,9 +356,14 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
         },
         "treasury": {
             "paid_via_allocations": f"{paid_via_alloc:.2f}",
+            "advanced_credit": f"{advanced_credit:.2f}",
             "payments": payment_summaries,
             "unallocated_candidates": unallocated_candidates,
-            "note": "paid_via_allocations = Σ(amount−balance) from Payables (allocations). Candidates ≠ relations.",
+            "note": (
+                "paid_via_allocations = Σ(amount−balance) Payables; "
+                "advanced_credit = residual REGISTERED com order_id; "
+                "payments = order-scoped; candidates = supplier+currency."
+            ),
         },
         "fx": {
             "open_foreign_exposure": f"{fx_exposure_open:.2f}",
@@ -332,6 +376,7 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
             "ordered": commercial_totals.get("commercial_total"),
             "invoiced": f"{invoiced:.2f}",
             "paid": f"{paid_via_alloc:.2f}",
+            "advanced_credit": f"{advanced_credit:.2f}",
             "balance": f"{open_balance:.2f}",
             "next_due": next_due.isoformat() if next_due else None,
             "fx_exposure": f"{fx_exposure_open:.2f}",

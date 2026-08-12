@@ -5,6 +5,7 @@ type Props = {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  id?: string;
   "data-testid"?: string;
 };
 
@@ -14,10 +15,15 @@ export function SectionCard({
   actions,
   children,
   className,
+  id,
   "data-testid": testId = "section-card",
 }: Props) {
   return (
-    <section className={["section-card", className].filter(Boolean).join(" ")} data-testid={testId}>
+    <section
+      id={id ?? (testId !== "section-card" ? testId : undefined)}
+      className={["section-card", className].filter(Boolean).join(" ")}
+      data-testid={testId}
+    >
       {title || actions ? (
         <header className="section-card-header">
           {title ? <h2 className="section-card-title">{title}</h2> : <span />}

@@ -64,6 +64,11 @@ class Invoice(Base):
     issue_without_document: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    destination_iban: Mapped[str | None] = mapped_column(String(34), nullable=True)
+    destination_bank: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    terms_from_document: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -174,6 +179,8 @@ class Payable(Base):
     source_type: Mapped[str] = mapped_column(String(32), nullable=False, default="INVOICE", index=True)
     source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     payee_display_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    destination_iban: Mapped[str | None] = mapped_column(String(34), nullable=True)
+    destination_bank: Mapped[str | None] = mapped_column(String(128), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

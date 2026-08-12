@@ -199,8 +199,16 @@ def test_customs_payable_not_in_eligible_list(admin_client, db):
     assert pid in ids
     row = next(x for x in queue["items"] if int(x["id"]) == pid)
     assert row["source_type"] == "CUSTOMS_FUNDING"
+    assert row["source_id"] == fr["id"]
     assert row["payee_display_name"] == payee["name"]
     assert row["invoice_number"] is None
+
+    # Opção B: GET público por funding_id (sem process_id no path)
+    g = client.get(f"/api/customs/funding-requests/{fr['id']}")
+    assert g.status_code == 200, g.text
+    body = g.json()
+    assert body["id"] == fr["id"]
+    assert body["process_id"] == process["id"]
 
 
 def test_commercial_payable_unique_invoice_sequence(admin_client, db):

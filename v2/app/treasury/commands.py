@@ -104,6 +104,7 @@ def register_payment(
     external_reference: str | None = None,
     idempotency_key: str | None = None,
     allow_without_document: bool = False,
+    order_id: int | None = None,
 ) -> Payment:
     if idempotency_key:
         key = idempotency_key.strip()
@@ -125,6 +126,7 @@ def register_payment(
     docs = []  # checked by caller after flush with known id — register creates first
     payment = Payment(
         supplier_id=supplier_id,
+        order_id=order_id,
         amount=amt,
         currency=cur,
         payment_date=payment_date,
@@ -222,6 +224,11 @@ def allocate_payment(
             raise PaymentValidationError(
                 f"Payable #{pid} está em moeda diferente ({payable.currency})"
             )
+        if payment.order_id is not None and inv.order_id != payment.order_id:
+            raise PaymentValidationError(
+                f"Payable #{pid} pertence a outro pedido "
+                f"(crédito do pedido {payment.order_id}, obrigação do pedido {inv.order_id})"
+            )
 
 
     applications = [
@@ -297,6 +304,7 @@ def list_payments(
     db: Session,
     *,
     supplier_id: int | None = None,
+    order_id: int | None = None,
     status: str | None = None,
     currency: str | None = None,
     unallocated_only: bool = False,
@@ -306,6 +314,8 @@ def list_payments(
     q = db.query(Payment).options(joinedload(Payment.allocations))
     if supplier_id is not None:
         q = q.filter(Payment.supplier_id == supplier_id)
+    if order_id is not None:
+        q = q.filter(Payment.order_id == order_id)
     if status:
         q = q.filter(Payment.status == status)
     if currency:

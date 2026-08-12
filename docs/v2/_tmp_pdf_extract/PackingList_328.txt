@@ -1,0 +1,46 @@
+=== PAGE 1/1 ===
+Shipper/Exporter:
+Heroe’s Srl
+Via Bazzanese 32/7
+40033 Casalecchio di Reno BO
+E-Mail: info@heroesbranditalia.com
+PI / CF: 02610500395 - 02610500395
+Nr REA: BO-553272
+Banca: INTESA SAN PAOLO IT44Z0306937133100000007249
+Consignee/Bill to: Packing List
+EPIC SPORTS LTDA - CNPJ:65.751.802/0001-89
+Number: Date:
+Address: Rua do Rocio 199 - 7 andar, 04552-000 Vila Olímpia - São
+Paulo - SP 00000 Vila Nova Conceição São Paulo/SP 328 18/05/2026
+Currency Incoterms By Payment terms
+Bonifico anticipato 50%, SALDO 60 GG
+EUR EX WORKS Nave
+DFFM
+N° Units per Unit Unit gross Total net Total gross
+CTNS NCM Items description Pallet measures
+Cartons CTNS weight weight (Kg) weight weight (Kg)
+9506 99RACCHETTA BT 2026 STARLIGHT
+1 1 10 61,00x65,00x36,00 0,32 2,40 3,20 24,00
+00 ( with box )
+9506 99RACCHETTA BT 2026 STARLIGHT
+1 2 10 61,00x65,00x36,00 0,32 2,40 3,20 24,00
+00 ( with box )
+9506 99RACCHETTA BT 2026 STARLIGHT
+1 3 10 61,00x65,00x36,00 0,32 2,40 3,20 24,00
+00 ( with box )
+9506 99RACCHETTA BT 2026 STARLIGHT
+1 4 10 61,00x65,00x36,00 0,32 2,40 3,20 24,00
+00 ( with box )
+9506 99RACCHETTA BT 2026 STARLIGHT
+1 5 10 61,00x65,00x36,00 0,32 2,40 3,20 24,00
+00 ( with box )
+Totale 16,00 120,00
+Manufacturer: Heroe’s Srl N° pallet Measures cm Tot. Net Weight Tot. Gros Weight
+Heroe’s Srl 1 61,00x65,00x36,00 24,00 25,50
+Via Bazzanese 32/7 40033 Casalecchio di Reno BO IT 2 61,00x65,00x36,00 24,00 25,50
+E-Mail: info@heroesbranditalia.com 3 61,00x65,00x36,00 24,00 25,50
+PI/CF: 02610500395 - 02610500395 Nr REA: BO-553272 4 61,00x65,00x36,00 24,00 25,50
+Bank: INTESA SAN PAOLO IT44Z0306937133100000007249 5 61,00x65,00x36,00 24,00 25,50
+Country of origin/acquisition: Italy 5 120,00 127,50
+Delivery terms: EXW (Ex Works) - Our warehouse in Ravenna, italia
+For and on behalf of Heroe’s Srl

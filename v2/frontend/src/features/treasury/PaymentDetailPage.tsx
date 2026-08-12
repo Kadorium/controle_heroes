@@ -19,6 +19,7 @@ import {
   SummaryGrid,
   formatDateOnly,
   formatMoney,
+  paymentAllocationStateLabel,
 } from "../../ui";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
@@ -194,7 +195,7 @@ export function PaymentDetailPage({ user }: Props) {
       <ContextBreadcrumb
         items={[
           { label: "Financeiro", to: paymentsReturn },
-          { label: "Pagamentos", to: paymentsReturn },
+          { label: "Pagamentos realizados", to: paymentsReturn },
           { label: titleRef },
         ]}
       />
@@ -236,12 +237,20 @@ export function PaymentDetailPage({ user }: Props) {
               value: <MoneyDisplay amount={pay.amount_allocated} currency={pay.currency} />,
             },
             {
-              label: "Residual",
+              label: "Aberto",
               value: <MoneyDisplay amount={pay.amount_unallocated} currency={pay.currency} />,
+            },
+            {
+              label: "Estado",
+              value: (
+                <span data-testid="payment-allocation-state">
+                  {paymentAllocationStateLabel(pay)}
+                </span>
+              ),
             },
             { label: "Data", value: formatDateOnly(pay.payment_date) },
             {
-              label: "Status",
+              label: "Registro",
               value: <StatusBadge status={pay.status} entity="payment" />,
             },
           ]}
@@ -308,7 +317,12 @@ export function PaymentDetailPage({ user }: Props) {
           <Notice tone="info">
             A prévia abaixo ainda não foi confirmada. O saldo da obrigação só muda após alocar.
           </Notice>
-          {elig.length === 0 ? <EmptyState message="Nenhuma obrigação elegível" /> : null}
+          {elig.length === 0 ? (
+            <EmptyState
+              message="Sem Fattura emitida, não há Conta a pagar (obrigação) para alocar este crédito."
+              orientation="A alocação existe no sistema; falta a fatura gerar a obrigação."
+            />
+          ) : null}
           <OperationalTable density="finance" data-testid="eligible-table">
             <thead>
               <tr>

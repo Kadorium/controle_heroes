@@ -303,9 +303,17 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   await expect(page.getByTestId("ap-queue-page")).toBeVisible();
   await expect(page.getByTestId("ap-table")).toContainText(payeeName);
   await expect(page.getByTestId("ap-origin-customs").first()).toBeVisible();
+  // multi-currency KPIs must not show a single EUR total mixing BRL
+  const openKpis = page.locator('[data-testid^="kpi-open-balance-"]');
+  await expect(openKpis.first()).toBeVisible();
+  const kpiTexts = await openKpis.allTextContents();
+  expect(kpiTexts.join(" ")).not.toMatch(/EUR\s*1[.,]900/);
   const customsRow = page.locator('[data-testid^="ap-row-"]').filter({ hasText: payeeName }).first();
   await customsRow.click();
   await expect(page.getByText(/Numerário \(Customs\)/i)).toBeVisible();
+  await expect(page.getByTestId("ap-customs-settlement-notice")).toBeVisible();
+  await expect(page.getByTestId("ap-g02-new-payment")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Abrir fatura" })).toHaveCount(0);
   await shot(page, "j5-10-customs-payable-ap.png");
 
   // --- 11) Bonded receipt ---
@@ -342,11 +350,46 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   await expect(page.getByTestId("nationalization-list")).toContainText("Confirmada");
   await shot(page, "j5-12-partial-nationalization.png");
 
-  // --- 13) SKU position buckets ---
+  // --- 12b) RECLASS bonded → domestic (SC-10 conservação) ---
+  const natMeta = await page.evaluate(async (pid) => {
+    const res = await fetch(`/api/import-processes/${pid}/nationalizations`, {
+      credentials: "include",
+    });
+    const list = await res.json();
+    const confirmed = list.find((n: { status: string }) => n.status === "CONFIRMED");
+    return {
+      natId: confirmed?.id ?? null,
+      itemId: confirmed?.items?.[0]?.id ?? null,
+    };
+  }, processId);
+  expect(natMeta.natId).toBeTruthy();
+  expect(natMeta.itemId).toBeTruthy();
+
+  await page.getByTestId("customs-receipt-panel").scrollIntoViewIfNeeded();
+  await page.getByTestId("receipt-type").fill("RECLASS");
+  await page.getByTestId("receipt-location").fill("DOMESTIC-MAIN");
+  await page.getByTestId("receipt-nat-id").fill(String(natMeta.natId));
+  await page.getByTestId("receipt-create").click();
+  await expect(page.getByTestId("receipt-list")).toContainText(/Reclass|Rascunho|DOMESTIC/i);
+
+  await page.getByTestId("receipt-product-id").fill(String(product.id));
+  await page.getByTestId("receipt-qty").fill("2");
+  await page.getByTestId("receipt-nat-item-id").fill(String(natMeta.itemId));
+  await page.getByTestId("receipt-add-lines").click();
+  const reclassConfirm = page.locator('[data-testid^="receipt-confirm-"]').first();
+  await expect(reclassConfirm).toBeVisible();
+  await reclassConfirm.click();
+  await expect(page.getByTestId("receipt-list")).toContainText("Confirmado");
+
+  // --- 13) SKU position after conservation ---
   await page.goto(`/inventory/sku/${product.id}`);
   await expect(page.getByTestId("sku-position-page")).toBeVisible();
   await expect(page.getByTestId("sku-buckets")).toBeVisible();
-  await expect(page.getByTestId("sku-bucket-bonded_qty")).toContainText("5");
+  await expect(page.getByTestId("sku-bucket-bonded_qty")).toContainText("3");
+  await expect(page.getByTestId("sku-bucket-available_qty")).toContainText("2");
+  await expect(page.getByTestId("sku-bucket-cleared_not_received_qty")).toContainText("0");
+  await expect(page.getByTestId("sku-bucket-in_clearance_qty")).toContainText("Não disponível");
+  await expect(page.getByTestId("sku-dimension-note")).toBeVisible();
   await shot(page, "j5-13-sku-position.png");
 
   // --- 14) Inventory movements ---
@@ -354,7 +397,9 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   await expect(page.getByTestId("inventory-movements-page")).toBeVisible();
   await expect(page.getByTestId("movements-product-filter")).toHaveValue(String(product.id));
   await expect(page.getByTestId("movements-list")).toBeVisible();
-  await expect(page.getByTestId("movements-list")).toContainText(`SKU #${product.id}`);
+  await expect(page.getByTestId("movements-list")).toContainText(/Entrada entreposto|Reclassificação/);
+  await expect(page.getByTestId("movements-list")).toContainText(/BONDED-MAIN|Entreposto/i);
+  await expect(page.getByTestId("movements-list")).toContainText(/DOMESTIC-MAIN|Doméstic/i);
   await shot(page, "j5-14-inventory-movements.png");
 
   // --- 15) Documents + audit ---

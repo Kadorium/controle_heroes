@@ -23,11 +23,20 @@ INTERNAL_SUFFIXES = (
     ".fx_provider",
     ".fx_provider_http",
     ".fx_valuation",
+    ".advance_commands",
     ".parse_it",
     ".divergence",
     ".doganale_commands",
     ".funding_commands",
     ".nationalization_commands",
+    ".dossier_commands",
+    ".reconciler",
+    ".annotations",
+    ".numerario_commit_commands",
+    ".fattura_commit_commands",
+    ".xlsx_commit_commands",
+    ".metrics_commands",
+    ".metrics_models",
 )
 
 MODULE_PACKAGES = frozenset(
@@ -54,11 +63,14 @@ ALLOWED_DEPS: dict[str, frozenset[str]] = {
     "catalog": frozenset({"audit"}),
     "orders": frozenset({"catalog", "documents", "audit"}),
     "billing": frozenset({"orders", "catalog", "documents", "audit"}),
-    "treasury": frozenset({"billing", "catalog", "documents", "audit"}),
+    # J4-FIN FIN-1: orders (Payment.order_id / adiantamento ACCONTO)
+    "treasury": frozenset({"billing", "catalog", "documents", "audit", "orders"}),
     # Reporting: arestas validadas pelo uso real em queries.py (públicas apenas)
     "reporting": frozenset({"orders", "billing", "treasury", "catalog", "documents", "audit"}),
-    # Inc-6 foothold: parse_it only — sem arestas J#3 (Catalog/Orders/Billing)
-    "ingestion": frozenset(),
+    # J3-I3: documents (promote), orders (DRAFT), catalog (matching)
+    # J3-I4: billing (Invoice DRAFT via create_invoice, set_terms)
+    # J3-I5: logistics (Shipment PLANNED via PL commit), customs (ImportProcess DRAFT via Doganale commit)
+    "ingestion": frozenset({"audit", "documents", "orders", "catalog", "billing", "logistics", "customs"}),
     "logistics": frozenset({"orders", "documents", "audit"}),
     # J#5: Customs ↛ Treasury; Product opcional via catalog; Inventory ↛ Orders
     "customs": frozenset({"billing", "logistics", "documents", "audit", "catalog"}),
@@ -73,5 +85,7 @@ FOUNDATION_ALLOWED_FILENAMES = frozenset(
         "doganale_routes.py",
         "funding_routes.py",
         "nationalization_routes.py",
+        # RUX-2R-b: trilha de falha fora da UoW precisa de SessionLocal
+        "commit_failure.py",
     }
 )

@@ -10,6 +10,7 @@ import app.audit.models  # noqa: F401
 import app.documents.models  # noqa: F401
 import app.catalog.models  # noqa: F401
 import app.orders.models  # noqa: F401
+import app.ingestion.models  # noqa: F401
 
 config = context.config
 settings = get_settings()

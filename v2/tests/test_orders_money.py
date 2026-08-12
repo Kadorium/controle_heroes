@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from app.orders.money import line_amount, parse_decimal, require_positive_qty
 from app.orders.queries import OrderTotals, compute_totals
-from app.orders.models import OrderItem
+from app.orders.models import LINE_KIND_PRODUCT, OrderItem
 
 
 def test_empty_price_is_null_not_zero():
@@ -34,6 +34,7 @@ def test_commercial_total_null_when_unpriced():
             id=1,
             order_id=1,
             product_id=1,
+            line_kind=LINE_KIND_PRODUCT,
             sku_snapshot="A",
             description_snapshot="a",
             quantity=Decimal("2"),
@@ -44,6 +45,7 @@ def test_commercial_total_null_when_unpriced():
             id=2,
             order_id=1,
             product_id=2,
+            line_kind=LINE_KIND_PRODUCT,
             sku_snapshot="B",
             description_snapshot="b",
             quantity=Decimal("1"),
@@ -63,6 +65,7 @@ def test_commercial_total_complete():
             id=1,
             order_id=1,
             product_id=1,
+            line_kind=LINE_KIND_PRODUCT,
             sku_snapshot="A",
             description_snapshot="a",
             quantity=Decimal("2"),

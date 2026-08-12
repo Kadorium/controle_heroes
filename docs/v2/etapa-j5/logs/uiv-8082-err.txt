@@ -1,0 +1,1103 @@
+INFO:     Started server process [449156]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8082 (Press CTRL+C to quit)
+{"ts": "2026-08-04T14:45:50.963432+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:46:52.246634+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:47:09.355919+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:48:21.043359+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:49:12.189720+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:49:22.493699+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:49:42.588394+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:49:51.222650+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:50:14.299258+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:50:23.807645+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:50:26.369636+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:50:34.646485+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:50:55.576957+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:22.094166+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:22.864706+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:23.731147+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:23.904964+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:24.630802+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:24.672064+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:26.495107+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:28.066553+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:28.739195+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:28.923568+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:29.033425+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:32.561811+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:32.759361+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:34.428093+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:34.548786+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:34.673010+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:40.927811+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:41.948793+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:42.148575+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:42.165714+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:47.833026+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:49.493164+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:50.121629+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:50.152473+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:50.307426+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:51.036043+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:51.095464+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:51.705454+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T14:52:51.747570+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 474, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\dependencies\utils.py", line 680, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\deps.py", line 35, in get_current_user
+    user = identity_public.get_user_by_session_token(db, token or "")
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 137, in get_user_by_session_token
+    db.query(UserSession)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+[SQL: SELECT user_sessions.id AS user_sessions_id, user_sessions.user_id AS user_sessions_user_id, user_sessions.token_hash AS user_sessions_token_hash, user_sessions.expires_at AS user_sessions_expires_at, user_sessions.revoked_at AS user_sessions_revoked_at, user_sessions.ip_address AS user_sessions_ip_address, user_sessions.user_agent AS user_sessions_user_agent, user_sessions.created_at AS user_sessions_created_at 
+FROM user_sessions 
+WHERE user_sessions.token_hash = %(token_hash_1)s AND user_sessions.revoked_at IS NULL AND user_sessions.expires_at > %(expires_at_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'token_hash_1': 'c58c7aa6fdcb068f6f231da305dd3e2112deb4fb38da57ed054251d419319450', 'expires_at_1': datetime.datetime(2026, 8, 4, 18, 35, 14, 425959, tzinfo=datetime.timezone.utc), 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 474, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\dependencies\utils.py", line 680, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\deps.py", line 35, in get_current_user
+    user = identity_public.get_user_by_session_token(db, token or "")
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 137, in get_user_by_session_token
+    db.query(UserSession)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+[SQL: SELECT user_sessions.id AS user_sessions_id, user_sessions.user_id AS user_sessions_user_id, user_sessions.token_hash AS user_sessions_token_hash, user_sessions.expires_at AS user_sessions_expires_at, user_sessions.revoked_at AS user_sessions_revoked_at, user_sessions.ip_address AS user_sessions_ip_address, user_sessions.user_agent AS user_sessions_user_agent, user_sessions.created_at AS user_sessions_created_at 
+FROM user_sessions 
+WHERE user_sessions.token_hash = %(token_hash_1)s AND user_sessions.revoked_at IS NULL AND user_sessions.expires_at > %(expires_at_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'token_hash_1': 'c58c7aa6fdcb068f6f231da305dd3e2112deb4fb38da57ed054251d419319450', 'expires_at_1': datetime.datetime(2026, 8, 4, 19, 0, 10, 519072, tzinfo=datetime.timezone.utc), 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 474, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\dependencies\utils.py", line 680, in solve_dependencies
+    solved = await run_in_threadpool(call, **solved_result.values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\deps.py", line 35, in get_current_user
+    user = identity_public.get_user_by_session_token(db, token or "")
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 137, in get_user_by_session_token
+    db.query(UserSession)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "user_sessions" não existe
+LINE 2: FROM user_sessions 
+             ^
+
+[SQL: SELECT user_sessions.id AS user_sessions_id, user_sessions.user_id AS user_sessions_user_id, user_sessions.token_hash AS user_sessions_token_hash, user_sessions.expires_at AS user_sessions_expires_at, user_sessions.revoked_at AS user_sessions_revoked_at, user_sessions.ip_address AS user_sessions_ip_address, user_sessions.user_agent AS user_sessions_user_agent, user_sessions.created_at AS user_sessions_created_at 
+FROM user_sessions 
+WHERE user_sessions.token_hash = %(token_hash_1)s AND user_sessions.revoked_at IS NULL AND user_sessions.expires_at > %(expires_at_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'token_hash_1': 'c58c7aa6fdcb068f6f231da305dd3e2112deb4fb38da57ed054251d419319450', 'expires_at_1': datetime.datetime(2026, 8, 4, 21, 24, 59, 644348, tzinfo=datetime.timezone.utc), 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2685, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1766, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 2740, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1786, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 1265, in handle
+    await app(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 151, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 137, in app
+    response = await f(request)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 691, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\fastapi\routing.py", line 347, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\foundation\auth_routes.py", line 30, in login
+    user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\app\identity\public.py", line 97, in authenticate_user
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2766, in first
+    return self.limit(1)._iter().first()  # type: ignore
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\ricar\Desktop\projetos\EPIC\Controle\v2\.venv\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) ERRO:  relação "users" não existe
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.name AS users_name, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at 
+FROM users 
+WHERE users.email = %(email_1)s AND users.is_active IS true 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'admin@epic.com.br', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+{"ts": "2026-08-04T21:37:35.457389+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T21:37:35.582437+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T21:38:30.059430+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-04T21:38:30.152348+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}

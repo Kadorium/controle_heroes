@@ -1,0 +1,44 @@
+﻿[
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\Fattura_244.pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_244\\Fattura_244.pdf",
+        "sha256":  "AFCF86329C5CBF7E905AB3BCD53A5648BB570E652DC8ECEDADFF16DB1A7D4FA7",
+        "bytes":  60962,
+        "match":  true
+    },
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\FatturaDoganale_244.pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_244\\FatturaDoganale_244.pdf",
+        "sha256":  "4DA810FDAA14897730A43CE5C1065D12D6B3934625630920902F2EEB339DEA22",
+        "bytes":  162166,
+        "match":  true
+    },
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\Fattura_245.pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_245\\Fattura_245.pdf",
+        "sha256":  "039D214DA259320F0B7803E2C12319C60FD08B11C5A28FE3EF1BCE98B44B1077",
+        "bytes":  61156,
+        "match":  true
+    },
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\FatturaDoganale_245.pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_245\\FatturaDoganale_245.pdf",
+        "sha256":  "468A2537111419BBF9A9EAEE3B4C5EE9B88BB478177A27129EDD71FFEF514DA4",
+        "bytes":  162368,
+        "match":  true
+    },
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\Fattura_332.pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_332\\Fattura_332.pdf",
+        "sha256":  "364DD7877185C5A614DA53E1C3F83C6B2E21FE52BAD3558B59DDEEF6D6E91CB5",
+        "bytes":  59929,
+        "match":  true
+    },
+    {
+        "source":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v1\\tests\\Fwd_ A_C Ricardo\\FatturaDoganale_332 .pdf",
+        "dest":  "c:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\tests\\fixtures\\ingestion\\corpus_332\\FatturaDoganale_332.pdf",
+        "sha256":  "13585F4676390458D8825CD4208497DA4C37EC8C33FF15CF572BA7DC8C1377E6",
+        "bytes":  182966,
+        "match":  true
+    }
+]

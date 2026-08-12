@@ -6,6 +6,8 @@ os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
 os.environ["APP_ENV"] = "test"
 _tmp = tempfile.mkdtemp(prefix="epic_v2_att_")
 os.environ["ATTACHMENTS_PATH"] = _tmp
+_qtmp = tempfile.mkdtemp(prefix="epic_v2_q_")
+os.environ["QUARANTINE_PATH"] = _qtmp
 
 from collections.abc import Generator
 
@@ -29,6 +31,10 @@ import app.treasury.fx_models  # noqa: F401
 import app.logistics.models  # noqa: F401
 import app.customs.models  # noqa: F401
 import app.inventory.models  # noqa: F401
+import app.ingestion.models  # noqa: F401
+import app.ingestion.ir_models  # noqa: F401
+import app.ingestion.commit_models  # noqa: F401
+import app.ingestion.metrics_models  # noqa: F401
 
 get_settings.cache_clear()
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]

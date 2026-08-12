@@ -97,7 +97,11 @@ def absolute_path(attachments_path: Path, doc: Document) -> Path:
 
 
 def resolve_content_path(attachments_path: Path, doc: Document) -> Path | None:
-    """Resolve arquivo no storage autorizado. None se path inválido ou arquivo ausente."""
+    """Resolve arquivo no storage autorizado. None se path inválido ou arquivo ausente.
+
+    Se só existir o arquivo pendente (crash entre commit de banco e promote),
+    promove aqui — o Document existe, logo o arquivo é legítimo.
+    """
     root = attachments_path.resolve()
     rel = (doc.storage_path or "").replace("\\", "/").lstrip("/")
     if not rel or ".." in rel.split("/"):
@@ -107,6 +111,8 @@ def resolve_content_path(attachments_path: Path, doc: Document) -> Path | None:
         candidate.relative_to(root)
     except ValueError:
         return None
+    if not candidate.is_file():
+        _promote_pending(candidate)
     if not candidate.is_file():
         return None
     return candidate
@@ -161,3 +167,93 @@ def store_document_tracked(
     if pending_files is not None:
         pending_files.append(absolute_path(attachments_path, doc))
     return doc
+
+
+# ---------------------------------------------------------------------------
+# Escrita em duas fases (RUX-2R-b): TEMP → commit de banco → promote
+# ---------------------------------------------------------------------------
+
+PENDING_SUFFIX = ".pending"
+
+
+def _pending_path(final_path: Path) -> Path:
+    return final_path.with_name(final_path.name + PENDING_SUFFIX)
+
+
+def _promote_pending(final_path: Path) -> bool:
+    """Renomeia <final>.pending → <final>. True se o arquivo final existe ao sair."""
+    pending = _pending_path(final_path)
+    if final_path.is_file():
+        if pending.is_file():
+            try:
+                pending.unlink()
+            except OSError:
+                pass
+        return True
+    if not pending.is_file():
+        return False
+    final_path.parent.mkdir(parents=True, exist_ok=True)
+    pending.replace(final_path)
+    return True
+
+
+def store_document_pending(
+    db: Session,
+    *,
+    attachments_path: Path,
+    actor_id: str | None,
+    filename: str,
+    content: bytes,
+    mime_type: str | None = None,
+    pending_files: list[Path],
+) -> Document:
+    """Persiste metadados e grava os bytes em ``<destino>.pending``.
+
+    O arquivo definitivo só passa a existir em ``promote_pending_files``, chamada
+    depois do commit de banco. Rollback deixa apenas o pendente, removido por
+    ``discard_pending_files``.
+    """
+    attachments_path.mkdir(parents=True, exist_ok=True)
+    file_hash = _sha256(content)
+    document_key = uuid.uuid4().hex
+    rel = f"{document_key[:2]}/{document_key}_{secrets.token_hex(4)}"
+    dest = attachments_path / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    _pending_path(dest).write_bytes(content)
+    pending_files.append(dest)
+    doc = Document(
+        document_key=document_key,
+        version=1,
+        is_current_version=True,
+        file_hash=file_hash,
+        storage_path=str(dest.relative_to(attachments_path)).replace("\\", "/"),
+        original_filename=filename,
+        mime_type=mime_type,
+        size_bytes=len(content),
+    )
+    db.add(doc)
+    db.flush()
+    return doc
+
+
+def promote_pending_files(pending_files: list[Path]) -> list[Path]:
+    """Promove os pendentes após commit bem-sucedido. Retorna os que não promoveram."""
+    failures: list[Path] = []
+    for final_path in pending_files:
+        try:
+            if not _promote_pending(final_path):
+                failures.append(final_path)
+        except OSError:
+            failures.append(final_path)
+    return failures
+
+
+def discard_pending_files(pending_files: list[Path]) -> None:
+    """Remove os arquivos temporários após rollback."""
+    for final_path in pending_files:
+        try:
+            pending = _pending_path(final_path)
+            if pending.is_file():
+                pending.unlink()
+        except OSError:
+            pass

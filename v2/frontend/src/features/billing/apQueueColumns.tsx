@@ -156,15 +156,35 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     cell: (row) => formatPendencies(row.pendencies),
   },
   {
+    id: "iban",
+    header: "Banco / IBAN",
+    visibility: "wide",
+    priority: 2,
+    minWidth: "12rem",
+    truncate: true,
+    cell: (row) => {
+      const bank = typeof row.destination_bank === "string" ? row.destination_bank.trim() : "";
+      const iban = typeof row.destination_iban === "string" ? row.destination_iban.trim() : "";
+      if (!bank && !iban) return "—";
+      return (
+        <span className="stack-tight" data-testid="ap-destination-iban">
+          {bank || "—"}
+          {iban ? <span className="muted">{iban}</span> : null}
+        </span>
+      );
+    },
+  },
+  {
     id: "fxAction",
     header: "",
     visibility: "always",
     priority: 3,
     minWidth: "4.5rem",
-    cell: (row) => (
-      <RowAction to={`/payables/${row.id}/fx`} onClick={(e) => e.stopPropagation()}>
-        Câmbio
-      </RowAction>
-    ),
+    cell: (row) =>
+      row.source_type === "CUSTOMS_FUNDING" || row.currency === "BRL" ? null : (
+        <RowAction to={`/payables/${row.id}/fx`} onClick={(e) => e.stopPropagation()}>
+          Câmbio
+        </RowAction>
+      ),
   },
 ];

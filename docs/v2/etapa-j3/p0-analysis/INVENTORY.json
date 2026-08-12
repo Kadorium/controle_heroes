@@ -1,0 +1,1471 @@
+{
+  "tooling": {
+    "python": "v2/.venv",
+    "pypdf": true,
+    "pdfplumber": false,
+    "pdftotext": "C:\\Users\\ricar\\poppler\\Release-25.12.0-0\\poppler-25.12.0\\Library\\bin\\pdftotext.exe",
+    "note": "pdfplumber not in production venv; not added to requirements"
+  },
+  "inventory": [
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_181/Fattura_181-con_acconti.pdf",
+      "sha256": "88ca8c6401e47c7dc009acca328d65a80f28ff618af458c14507dafb5416659d",
+      "bytes": 325419,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                195.4641,
+                588.6929,
+                381.9335,
+                603.6415
+              ],
+              "name": "Jessica",
+              "contents": "ORDINE 758 acconto 50€/racchetta",
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                199.2299,
+                501.4072,
+                342.0801,
+                516.3557
+              ],
+              "name": "Jessica",
+              "contents": "ORDINE 907 acconto 25€/racchetta",
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                182.1495,
+                160.9262,
+                252.0838,
+                175.8748
+              ],
+              "name": "Jessica",
+              "contents": "74.000€ + 8500€",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1977,
+            "non_ws": 1410,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            195.4641,
+            588.6929,
+            381.9335,
+            603.6415
+          ],
+          "name": "Jessica",
+          "contents": "ORDINE 758 acconto 50€/racchetta",
+          "ft": null
+        },
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            199.2299,
+            501.4072,
+            342.0801,
+            516.3557
+          ],
+          "name": "Jessica",
+          "contents": "ORDINE 907 acconto 25€/racchetta",
+          "ft": null
+        },
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            182.1495,
+            160.9262,
+            252.0838,
+            175.8748
+          ],
+          "name": "Jessica",
+          "contents": "74.000€ + 8500€",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_181/FatturaDoganale_181.pdf",
+      "sha256": "69b8c0ef75d63f0e2cd57920fdaa2569811963388019936feca122af13a6cfc2",
+      "bytes": 163145,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                149.031,
+                398.2351,
+                285.2916,
+                410.2623
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                181.9692,
+                395.5803,
+                213.7134,
+                412.616
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 371.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 371.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1560,
+            "non_ws": 1297,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " Quantity (SET) NCM Description Indiv. Price Amount (EUR)",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            181.9692,
+            395.5803,
+            213.7134,
+            412.616
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:         chinaItaly"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_181/PackingList_181.pdf",
+      "sha256": "28279f7f6673a480246714058d70055516de34e69844d1c4c71c7574e48e2a93",
+      "bytes": 205135,
+      "mime": "application/pdf",
+      "pdf_pages": 13,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2638,
+            "non_ws": 2161,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " CTNS Units per",
+              " NCM Items description Pallet measures Unit"
+            ]
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 2,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2656,
+            "non_ws": 2177,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 3,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2926,
+            "non_ws": 2393,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 4,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2926,
+            "non_ws": 2393,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 5,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2846,
+            "non_ws": 2333,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 6,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2548,
+            "non_ws": 2107,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 7,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2716,
+            "non_ws": 2245,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 8,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2720,
+            "non_ws": 2245,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 9,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2001,
+            "non_ws": 1727,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 10,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2101,
+            "non_ws": 1829,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 11,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                149.6973,
+                495.9201,
+                285.9579,
+                507.9473
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                189.8278,
+                493.2653,
+                221.572,
+                510.3011
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 9880.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 9880.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 2335,
+            "non_ws": 2029,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 12,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2111,
+            "non_ws": 1843,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 13,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1011,
+            "non_ws": 872,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 11,
+          "subtype": "/FreeText",
+          "rect": [
+            189.8278,
+            493.2653,
+            221.572,
+            510.3011
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:           chinaItaly"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_181/PackingListGrouped_181.pdf",
+      "sha256": "a6cb2021640559909911b5856394cfd7dc0bf090e35e1e4858e6b01a0f2d2223",
+      "bytes": 163124,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                149.6973,
+                388.2405,
+                285.9579,
+                400.2677
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                183.3018,
+                385.5857,
+                215.046,
+                402.6215
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 387.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 387.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1494,
+            "non_ws": 1260,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              "Units per",
+              " NCM Items description  Amount Unit",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            183.3018,
+            385.5857,
+            215.046,
+            402.6215
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:          chinaItaly"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_181/PrintDeclaration_181.pdf",
+      "sha256": "af71cfa567d49768aee960adbab444dfacbb7f2a5352f23f5beea5b79da23567",
+      "bytes": 107945,
+      "mime": "application/pdf",
+      "pdf_pages": 2,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3965,
+            "non_ws": 3360,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 2,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3390,
+            "non_ws": 2876,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/Fattura_202.pdf",
+      "sha256": "c0b047adc4e6d0c96d76652536f2b80388198d527441c6fd46ef852a3e67b023",
+      "bytes": 61120,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1774,
+            "non_ws": 1247,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/FatturaDoganale_202.pdf",
+      "sha256": "4169260097026ca68454c40197a462628fc08268d52472ca7262d6fe7f3a3e44",
+      "bytes": 170147,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                147.92,
+                398.1983,
+                284.1806,
+                410.3264
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                190.1739,
+                395.5803,
+                221.918,
+                412.616
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 371.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 371.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1441,
+            "non_ws": 1204,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " Quantity (SET) NCM Description Indiv. Price Amount (EUR)",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            190.1739,
+            395.5803,
+            221.918,
+            412.616
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:           chinaItaly"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/PackingList_202.pdf",
+      "sha256": "6fb13dc628ccb32d4ad28c5b806fe4d16027a6643a3f5fce0b1f1081bccda65e",
+      "bytes": 168349,
+      "mime": "application/pdf",
+      "pdf_pages": 7,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2374,
+            "non_ws": 1963,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " CTNS Units per",
+              " NCM Items description Pallet measures Unit"
+            ]
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 2,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2305,
+            "non_ws": 1910,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 3,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2359,
+            "non_ws": 1964,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 4,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2355,
+            "non_ws": 1960,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 5,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2101,
+            "non_ws": 1781,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 6,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                149.838,
+                228.1603,
+                286.0986,
+                240.2883
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                195.0684,
+                225.9034,
+                226.8126,
+                242.9391
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 5508.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 5508.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 2316,
+            "non_ws": 2006,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 7,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1739,
+            "non_ws": 1508,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 6,
+          "subtype": "/FreeText",
+          "rect": [
+            195.0684,
+            225.9034,
+            226.8126,
+            242.9391
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:             china",
+        "                                              Italy                          54 60,00x46,00x64,00                    14,90     15,00"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/PackingListGrouped_202.pdf",
+      "sha256": "63893c3852c78da579af067e63408e51d16fcc38777ed4b13d36b5e0a850ac2c",
+      "bytes": 170146,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [
+            {
+              "subtype": "/Square",
+              "rect": [
+                153.9167,
+                436.1776,
+                290.1774,
+                448.3056
+              ],
+              "name": "Jessica",
+              "contents": null,
+              "ft": null
+            },
+            {
+              "subtype": "/FreeText",
+              "rect": [
+                186.1891,
+                433.4357,
+                217.9333,
+                450.4715
+              ],
+              "name": "Jessica",
+              "contents": "china",
+              "ft": null
+            }
+          ],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 305.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 305.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1357,
+            "non_ws": 1144,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              "Units per CTNS NCM Items description  Amount Unit weight Unit gross weight (Kg) Total net weight Total gross weight (Kg)",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            186.1891,
+            433.4357,
+            217.9333,
+            450.4715
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:           chinaItaly"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/PrintDeclaration_202.pdf",
+      "sha256": "1f815ececf9318d8bb8e29f059f4210423b7db34cb462b26cbe7216565bc52c4",
+      "bytes": 107691,
+      "mime": "application/pdf",
+      "pdf_pages": 2,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3965,
+            "non_ws": 3360,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 2,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3390,
+            "non_ws": 2876,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_202/Solicitacao_Numerario.pdf",
+      "sha256": "7cbaaa1774b4509082582910e1572f0b5912808402211ce4266b65a4c1e9999f",
+      "bytes": 30386,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 2019,
+            "non_ws": 1676,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_328/Fattura_328.pdf",
+      "sha256": "e774a394170f62fe693ee071d969f88f5d53b652a42049af3b2525b0f374487c",
+      "bytes": 60778,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1519,
+            "non_ws": 954,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_328/FatturaDoganale_328.pdf",
+      "sha256": "ae603709e4a20c4c6441d4130fc23fd1960a970fde02a2d463fd369e5186d2ee",
+      "bytes": 116888,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 239.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 239.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1160,
+            "non_ws": 969,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " Quantity (SET) NCM Description Indiv. Price Amount (EUR)",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_328/PackingList_328.pdf",
+      "sha256": "6de02b15b29533716e493252cc78f203165ca2ca899fcf5c17736a5c227cb251",
+      "bytes": 67434,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 451.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 451.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1798,
+            "non_ws": 1499,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              " CTNS Units per",
+              " NCM Items description Pallet measures Unit",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy                               5                                      120,00            127,50"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_328/PackingListGrouped_328.pdf",
+      "sha256": "1ae28f480f02845f865c28baf9614f6312ef4509759578af8de5c3b68f924ad3",
+      "bytes": 116905,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 279.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 279.0,
+              "size": 19.0
+            }
+          ],
+          "text_stats": {
+            "chars": 1194,
+            "non_ws": 1003,
+            "has_italy": true,
+            "has_china_in_content_extract": false,
+            "sample_lines": [
+              "Units per",
+              " NCM Items description  Amount Unit",
+              "Country of origin/acquisition:",
+              "Italy"
+            ]
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy"
+      ]
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_328/PrintDeclaration_328.pdf",
+      "sha256": "f0bfb5c6a00d390fd436e7d063a0c1803c79d8df0a75c0b9c496bb388808f05f",
+      "bytes": 107994,
+      "mime": "application/pdf",
+      "pdf_pages": 2,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3965,
+            "non_ws": 3360,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        },
+        {
+          "page": 2,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 3390,
+            "non_ws": 2876,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    },
+    {
+      "path": "v2/tests/fixtures/ingestion/corpus_589/Ordine_589.pdf",
+      "sha256": "85edc96cc2565c9b3bb0f47dec7d9058b9daa16435d5a04d9e4afa4ba44d4c0e",
+      "bytes": 60144,
+      "mime": "application/pdf",
+      "pdf_pages": 1,
+      "acroform_fields": [],
+      "pages": [
+        {
+          "page": 1,
+          "annots": [],
+          "content_origin_hits": [],
+          "text_stats": {
+            "chars": 1416,
+            "non_ws": 891,
+            "has_italy": false,
+            "has_china_in_content_extract": false,
+            "sample_lines": []
+          },
+          "acroform_on_reader": false
+        }
+      ],
+      "freetext_annotations": [],
+      "pdftotext_origin_lines": []
+    }
+  ],
+  "origin_focus": [
+    {
+      "file": "FatturaDoganale_202.pdf",
+      "freetext": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            190.1739,
+            395.5803,
+            221.918,
+            412.616
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 371.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 371.0,
+              "size": 19.0
+            }
+          ]
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:           chinaItaly"
+      ],
+      "digital_chars_page1": 1441
+    },
+    {
+      "file": "PackingList_202.pdf",
+      "freetext": [
+        {
+          "page": 6,
+          "subtype": "/FreeText",
+          "rect": [
+            195.0684,
+            225.9034,
+            226.8126,
+            242.9391
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": []
+        },
+        {
+          "page": 2,
+          "hits": []
+        },
+        {
+          "page": 3,
+          "hits": []
+        },
+        {
+          "page": 4,
+          "hits": []
+        },
+        {
+          "page": 5,
+          "hits": []
+        },
+        {
+          "page": 6,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 5508.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 5508.0,
+              "size": 19.0
+            }
+          ]
+        },
+        {
+          "page": 7,
+          "hits": []
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:             china",
+        "                                              Italy                          54 60,00x46,00x64,00                    14,90     15,00"
+      ],
+      "digital_chars_page1": 2374
+    },
+    {
+      "file": "PackingListGrouped_202.pdf",
+      "freetext": [
+        {
+          "page": 1,
+          "subtype": "/FreeText",
+          "rect": [
+            186.1891,
+            433.4357,
+            217.9333,
+            450.4715
+          ],
+          "name": "Jessica",
+          "contents": "china",
+          "ft": null
+        }
+      ],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 305.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 305.0,
+              "size": 19.0
+            }
+          ]
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:           chinaItaly"
+      ],
+      "digital_chars_page1": 1357
+    },
+    {
+      "file": "FatturaDoganale_328.pdf",
+      "freetext": [],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 239.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 239.0,
+              "size": 19.0
+            }
+          ]
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy"
+      ],
+      "digital_chars_page1": 1160
+    },
+    {
+      "file": "PackingList_328.pdf",
+      "freetext": [],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 451.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 451.0,
+              "size": 19.0
+            }
+          ]
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy                               5                                      120,00            127,50"
+      ],
+      "digital_chars_page1": 1798
+    },
+    {
+      "file": "PackingListGrouped_328.pdf",
+      "freetext": [],
+      "content_hits_by_page": [
+        {
+          "page": 1,
+          "hits": [
+            {
+              "text": "Country of origin/acquisition:",
+              "x": 12.0,
+              "y": 279.0,
+              "size": 19.0
+            },
+            {
+              "text": "Italy",
+              "x": 318.0,
+              "y": 279.0,
+              "size": 19.0
+            }
+          ]
+        }
+      ],
+      "pdftotext_origin_lines": [
+        "Country of origin/acquisition:                Italy"
+      ],
+      "digital_chars_page1": 1194
+    }
+  ],
+  "pl_grouped_heuristic": {
+    "PackingListGrouped_202.pdf": {
+      "layout_rows_candidate": [
+        "       600     4202 2210 00    GRAVITY ARION          23.688,00 0,90               1,00              690,00               747,00",
+        "      1000     4202 221000 WASH BAG ARION 6.500,00 0,16                            0,17              160,00               169,00",
+        "        50     4819 1000 00 Imballaggio 56x47x34          0      1,00              1,00               50,00                50,00",
+        "        30      4819100000 Box thunder 26 64x60x46        0      0,10              0,10                3,00                 3,00",
+        "        20     4819 1000 00 imballo 60x30x49 wash bag     0      1,55              1,55               31,00                31,00"
+      ]
+    },
+    "PackingListGrouped_328.pdf": {
+      "layout_rows_candidate": [
+        "                         RACCHETTA BT 2026 STARLIGHT ( with",
+        "     50         9506 99 00                                         5.333,00 0,32                       2,40             16,00          120,00",
+        "     5         4819100000 Imballaggio Racchette Starlight 61x65x36     0    1,50                       1,50             7,50            7,50"
+      ]
+    },
+    "PackingListGrouped_181.pdf": {
+      "layout_rows_candidate": [
+        "  1130        9506 99 00    RACCHETTA BT 2026 THE BULL                 99.621,90 0,32             0,45            378,70         1.351,20",
+        "                          RACCHETTA BT 2026 STARLIGHT ( with",
+        "    690        9506 99 00                                         73.595,40         0,32          2,40            220,80         1.656,00",
+        "               4819 1000",
+        "    56                               imballo 54x21x42                 0             1,10          1,10            61,60            61,60",
+        "    69        4819100000 Imballaggio Racchette Starlight 61x65x36     0             1,60          1,60            110,40          110,40",
+        "    20        4819100000      Imballaggio Racchette 61x65x36          0             3,20          3,20             64,00           64,00",
+        "    37        4819100000      Imballaggio Racchette 61x65x36          0             3,70          3,70            136,90          136,90"
+      ]
+    }
+  },
+  "f181": {
+    "sha256": "88ca8c6401e47c7dc009acca328d65a80f28ff618af458c14507dafb5416659d",
+    "bytes": 325419,
+    "pages": 1,
+    "acconto_mentions": [
+      "BONIFICO ANTICIPATO 50%, SALDO 90 GG DFFM ",
+      "Scadenze:",
+      "Scadenze:"
+    ],
+    "sample_head": "Codice Articolo UM Qta. Prezzo % Sc Imponibile Iva\n \nDDT 371 - 25/03/2026\n \n \n \n \n \n \n8057628953623\nRACCHETTA BT 2026 THE BULL\nPZ\n200\n€ 87,12\n€ 17.424,00\nN3.1\n8057628953593\nRACCHETTA BT 2026 STARLIGHT ( with box )\nPZ\n550\n€ 106,66\n€ 58.663,00\nN3.1\n8057628953586\nRACCHETTA BT 2026 SHOW (with box)\nPZ\n370\n€ 99,83\n€ 36.937,10\nN3.1\n8057628953647\nRACCHETTA BT 2026 AURA\nPZ\n160\n€ 52,53\n€ 8.404,80\nN3.1\n8057628953616\nRACCHETTA BT 2026 FIERCE\nPZ\n200\n€ 97,16\n€ 19.432,00\nN3.1\n \nDDT 372 - 25/03/2026\n \n \n \n \n \n \n8057628953593\nRACCHETTA BT 2026 STARLIGHT ( with box )\nPZ\n140\n€ 106,66\n€ 14.932,40\nN3.1\n8057628953623\nRACCHETTA BT 2026 THE BULL\nPZ\n200\n€ 87,12\n€ 17.424,00\nN3.1\n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \nTotale imponibile:\n € 0,00\nTotale esenti iva:\n € 173.217,30\nPagamento:\nBONIFICO ANTICIPATO 50%, SALDO 90 GG DFFM \nUNICREDIT - CASALECCHIO DI RENO \n-BO- IT20E0200836671000106148889\nScadenze:\n25/03/2026 \n82.500,00 €\nScadenze:\n30/06/2026 \n90.717,30 €\nDescrizione Cod. IVA\nImponibile\nIVA\nN3.1 - ART 8 DPR 633/72 -ESPORTAZIONE-\n173.217,30\n0,00\nFirma Emittente\nFirma per accettazione\nIMPOSTE:\n€ 0,00\nSCONTI:\n€ 0,00\nTOTALE DOCUMENTO:\n€ 173.217,30\nTOTALE DA PAGARE:\n€ 173.217,30\nI suoi dati sono conservati in archivi elettronici protetti secondo d.lgs. 196/2003 e Regolamen"
+  }
+}

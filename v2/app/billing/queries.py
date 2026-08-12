@@ -167,19 +167,16 @@ def payables_queue(
     from sqlalchemy.orm import joinedload
 
     day7 = today + timedelta(days=7)
-    q = q.options(joinedload(Payable.invoice))
-    kpi_row = (
+    openish = Payable.status.in_(("OPEN", "PARTIALLY_PAID"))
+    kpi_rows = (
         q.with_entities(
+            Payable.currency,
             func.count(Payable.id),
             func.coalesce(func.sum(Payable.balance), 0),
             func.coalesce(
                 func.sum(
                     case(
-                        (
-                            (Payable.due_date < today)
-                            & (Payable.status.in_(("OPEN", "PARTIALLY_PAID"))),
-                            Payable.balance,
-                        ),
+                        ((Payable.due_date < today) & openish, Payable.balance),
                         else_=0,
                     )
                 ),
@@ -188,11 +185,7 @@ def payables_queue(
             func.coalesce(
                 func.sum(
                     case(
-                        (
-                            (Payable.due_date < today)
-                            & (Payable.status.in_(("OPEN", "PARTIALLY_PAID"))),
-                            1,
-                        ),
+                        ((Payable.due_date < today) & openish, 1),
                         else_=0,
                     )
                 ),
@@ -201,11 +194,7 @@ def payables_queue(
             func.coalesce(
                 func.sum(
                     case(
-                        (
-                            (Payable.due_date == today)
-                            & (Payable.status.in_(("OPEN", "PARTIALLY_PAID"))),
-                            Payable.balance,
-                        ),
+                        ((Payable.due_date == today) & openish, Payable.balance),
                         else_=0,
                     )
                 ),
@@ -217,7 +206,7 @@ def payables_queue(
                         (
                             (Payable.due_date > today)
                             & (Payable.due_date <= day7)
-                            & (Payable.status.in_(("OPEN", "PARTIALLY_PAID"))),
+                            & openish,
                             Payable.balance,
                         ),
                         else_=0,
@@ -225,25 +214,35 @@ def payables_queue(
                 ),
                 0,
             ),
-        ).one()
+        )
+        .group_by(Payable.currency)
+        .all()
     )
-    total = int(kpi_row[0] or 0)
+    kpis_by_currency = []
+    total = 0
+    overdue_count_global = 0
+    for row in sorted(kpi_rows, key=lambda r: str(r[0] or "")):
+        cur = str(row[0] or "")
+        cnt = int(row[1] or 0)
+        od_cnt = int(row[4] or 0)
+        total += cnt
+        overdue_count_global += od_cnt
+        kpis_by_currency.append(
+            {
+                "currency": cur,
+                "total_count": cnt,
+                "open_balance": f"{money2(Decimal(str(row[2]))):.2f}",
+                "overdue_balance": f"{money2(Decimal(str(row[3]))):.2f}",
+                "overdue_count": od_cnt,
+                "due_today_balance": f"{money2(Decimal(str(row[5]))):.2f}",
+                "next_7d_balance": f"{money2(Decimal(str(row[6]))):.2f}",
+            }
+        )
     kpis = {
+        "mixed_currency": len(kpis_by_currency) > 1,
         "total_count": total,
-        "open_balance": money2(Decimal(str(kpi_row[1]))),
-        "overdue_balance": money2(Decimal(str(kpi_row[2]))),
-        "overdue_count": int(kpi_row[3] or 0),
-        "due_today_balance": money2(Decimal(str(kpi_row[4]))),
-        "next_7d_balance": money2(Decimal(str(kpi_row[5]))),
-    }
-    # stringify money
-    kpis = {
-        "total_count": kpis["total_count"],
-        "open_balance": f"{kpis['open_balance']:.2f}",
-        "overdue_balance": f"{kpis['overdue_balance']:.2f}",
-        "overdue_count": kpis["overdue_count"],
-        "due_today_balance": f"{kpis['due_today_balance']:.2f}",
-        "next_7d_balance": f"{kpis['next_7d_balance']:.2f}",
+        "overdue_count": overdue_count_global,
+        "kpis_by_currency": kpis_by_currency,
     }
 
     overdue_rank = case(
@@ -254,7 +253,8 @@ def payables_queue(
         else_=1,
     )
     rows = (
-        q.order_by(overdue_rank.asc(), Payable.due_date.asc(), Payable.id.asc())
+        q.options(joinedload(Payable.invoice))
+        .order_by(overdue_rank.asc(), Payable.due_date.asc(), Payable.id.asc())
         .offset(offset)
         .limit(limit)
         .all()
@@ -281,7 +281,10 @@ def payables_queue(
                 "invoice_number": inv.invoice_number if inv else None,
                 "invoice_type": inv.invoice_type if inv else None,
                 "source_type": p.source_type,
+                "source_id": p.source_id,
                 "payee_display_name": p.payee_display_name,
+                "destination_iban": getattr(p, "destination_iban", None),
+                "destination_bank": getattr(p, "destination_bank", None),
                 "days_overdue": (today - p.due_date).days
                 if p.due_date < today and p.status in ("OPEN", "PARTIALLY_PAID")
                 else 0,
@@ -384,24 +387,29 @@ def order_invoiced_quantities(db: Session, order_id: int) -> dict[int, str]:
     return {k: decimal_str(v) or "0" for k, v in raw.items()}
 
 
-def order_qty_availability(db: Session, order_id: int) -> list[dict[str, str | int]]:
-    """Pedida / emitida (ISSUED) / disponível por OrderItem."""
+def order_qty_availability(db: Session, order_id: int) -> list[dict[str, str | int | bool | None]]:
+    """Pedida / emitida (ISSUED) / disponível por OrderItem (+ kind/descrição/billable)."""
     try:
         order = orders_public.get_order(db, order_id)
     except orders_public.OrdersError as e:
         code = getattr(e, "code", "validation_error")
         raise BillingError(getattr(e, "message", str(e)), code=code) from e
     issued = repo.issued_qty_by_order_item(db, order_id)
-    rows: list[dict[str, str | int]] = []
+    rows: list[dict[str, str | int | bool | None]] = []
     for oi in order.items:
         iss = issued.get(oi.id, Decimal("0"))
         avail = oi.quantity - iss
+        billable = oi.product_id is not None
         rows.append(
             {
                 "order_item_id": oi.id,
                 "ordered_qty": decimal_str(oi.quantity) or "0",
                 "issued_qty": decimal_str(iss) or "0",
-                "available_qty": decimal_str(avail) or "0",
+                # Disponível faturável: 0 se COMMITMENT (product_id NULL)
+                "available_qty": (decimal_str(avail) or "0") if billable else "0",
+                "line_kind": getattr(oi, "line_kind", None) or ("PRODUCT" if billable else "COMMITMENT"),
+                "description": oi.description_snapshot or None,
+                "billable": billable,
             }
         )
     return rows

@@ -10,21 +10,17 @@ import {
   ErrorState,
   formatQuantity,
   LoadingState,
+  Notice,
   PageHeader,
   SectionCard,
 } from "../../ui";
 
 type Props = { user: User };
 
-const BUCKET_KEYS = [
-  "available_qty",
-  "bonded_qty",
-  "quarantine_qty",
-  "cleared_not_received_qty",
-  "in_clearance_qty",
-  "in_transit_qty",
-  "future_order_qty",
-] as const;
+const PHYSICAL_KEYS = ["available_qty", "bonded_qty", "quarantine_qty"] as const;
+const CUSTOMS_KEYS = ["cleared_not_received_qty", "in_clearance_qty"] as const;
+const LOGISTICS_KEYS = ["in_transit_qty", "future_order_qty"] as const;
+const STUB_KEYS = new Set(["in_clearance_qty", "in_transit_qty", "future_order_qty"]);
 
 export function SkuPositionPage({ user }: Props) {
   const { productId } = useParams();
@@ -32,6 +28,7 @@ export function SkuPositionPage({ user }: Props) {
   const [pos, setPos] = useState<SkuPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [productLabel, setProductLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canReadInventory(user)) return;
@@ -42,6 +39,19 @@ export function SkuPositionPage({ user }: Props) {
       try {
         const p = await getSkuPosition(id);
         if (!cancelled) setPos(p);
+        try {
+          const res = await fetch(`/api/products/${id}`, { credentials: "include" });
+          if (res.ok) {
+            const prod = (await res.json()) as { sku?: string; description?: string };
+            if (!cancelled) {
+              setProductLabel(
+                [prod.sku, prod.description].filter(Boolean).join(" — ") || null,
+              );
+            }
+          }
+        } catch {
+          /* optional enrich */
+        }
       } catch (e) {
         if (!cancelled) {
           const err = e as Error & { status?: number };
@@ -59,14 +69,39 @@ export function SkuPositionPage({ user }: Props) {
     return <ErrorState message="Sem permissão para estoque." />;
   }
   if (error) return <ErrorState message={error} onRetry={() => setReloadKey((k) => k + 1)} />;
-  if (!pos) return <LoadingState message="Carregando posição SKU…" />;
+  if (!pos) return <LoadingState message="Carregando posição de estoque…" />;
 
-  const allZero = BUCKET_KEYS.every((k) => {
-    const v = pos[k];
-    if (v == null) return true;
-    const n = Number(v);
+  const allPhysicalZero = PHYSICAL_KEYS.every((k) => {
+    const n = Number(pos[k]);
     return !Number.isFinite(n) || n === 0;
   });
+
+  function renderRows(keys: readonly string[], data: SkuPosition) {
+    return (
+      <table className="mini-table">
+        <thead>
+          <tr>
+            <th>Indicador</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {keys.map((key) => (
+            <tr key={key} data-testid={`sku-bucket-${key}`}>
+              <td>{skuBucketLabel(key)}</td>
+              <td>
+                {STUB_KEYS.has(key)
+                  ? "Não disponível"
+                  : key === "future_order_qty" && data.future_order_qty == null
+                    ? "Não disponível"
+                    : formatQuantity(data[key as keyof SkuPosition] as string | null)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
 
   return (
     <div data-testid="sku-position-page">
@@ -74,45 +109,32 @@ export function SkuPositionPage({ user }: Props) {
         items={[
           { label: "Aduana" },
           { label: "Estoque", to: "/inventory/movements" },
-          { label: `SKU #${id}` },
+          { label: productLabel ?? `Produto ${id}` },
         ]}
       />
       <PageHeader
-        title={`Posição SKU #${id}`}
-        subtitle="Saldos por bucket · origem aduaneira / inventário"
+        title={productLabel ? `Posição de estoque — ${productLabel}` : "Posição de estoque"}
+        subtitle="Saldos físicos, situação aduaneira e logística"
       />
-      <SectionCard title="Buckets">
-        {allZero ? (
-          <EmptyState
-            title="Sem saldo"
-            message="Nenhuma quantidade registrada para este SKU nos buckets conhecidos."
-          />
+      <Notice tone="info" data-testid="sku-dimension-note">
+        Os grupos abaixo são dimensões diferentes e não devem ser somados entre si. A
+        conservação física vale apenas para Disponível + Entreposto + Quarentena.
+      </Notice>
+      <SectionCard title="Posição física">
+        {allPhysicalZero ? (
+          <EmptyState title="Sem saldo físico" message="Nenhuma quantidade nos locais físicos." />
         ) : (
-          <table className="mini-table" data-testid="sku-buckets">
-            <thead>
-              <tr>
-                <th>Bucket</th>
-                <th>Quantidade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BUCKET_KEYS.map((key) => (
-                <tr key={key} data-testid={`sku-bucket-${key}`}>
-                  <td>
-                    {skuBucketLabel(key)}
-                    {key === "future_order_qty" && pos.future_order_qty_note ? (
-                      <div className="muted">{pos.future_order_qty_note}</div>
-                    ) : null}
-                  </td>
-                  <td>{key === "future_order_qty" && pos.future_order_qty == null ? "—" : formatQuantity(pos[key])}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div data-testid="sku-buckets">{renderRows(PHYSICAL_KEYS, pos)}</div>
         )}
       </SectionCard>
+      <SectionCard title="Situação aduaneira" data-testid="sku-customs-dim">
+        {renderRows(CUSTOMS_KEYS, pos)}
+      </SectionCard>
+      <SectionCard title="Situação logística" data-testid="sku-logistics-dim">
+        {renderRows(LOGISTICS_KEYS, pos)}
+      </SectionCard>
       <p>
-        <Link to="/inventory/movements">Ver movimentos</Link>
+        <Link to="/inventory/movements">Ver movimentações</Link>
       </p>
     </div>
   );

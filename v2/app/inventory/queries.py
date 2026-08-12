@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.catalog import public as catalog_public
 from app.customs import public as customs_public
 from app.inventory import repository as repo
 from app.inventory.errors import InventoryValidationError, LocationNotFound
@@ -62,21 +63,43 @@ def list_movements(
     movs = repo.list_movements(
         db, product_id=product_id, location_id=location_id, limit=limit, offset=offset
     )
-    return [
-        {
-            "id": m.id,
-            "location_id": m.location_id,
-            "product_id": m.product_id,
-            "quantity_delta": str(m.quantity_delta),
-            "movement_type": m.movement_type,
-            "receipt_line_id": m.receipt_line_id,
-            "nationalization_item_id": m.nationalization_item_id,
-            "reversal_of_id": m.reversal_of_id,
-            "reason": m.reason,
-            "created_at": m.created_at,
-        }
-        for m in movs
-    ]
+    loc_ids = {m.location_id for m in movs}
+    locs = {
+        loc.id: loc
+        for loc in (repo.get_location(db, lid) for lid in loc_ids)
+        if loc is not None
+    }
+    product_ids = {m.product_id for m in movs}
+    products: dict[int, Any] = {}
+    for pid in product_ids:
+        try:
+            products[pid] = catalog_public.get_product(db, pid)
+        except Exception:
+            products[pid] = None
+    out = []
+    for m in movs:
+        loc = locs.get(m.location_id)
+        prod = products.get(m.product_id)
+        out.append(
+            {
+                "id": m.id,
+                "location_id": m.location_id,
+                "location_code": loc.code if loc else None,
+                "location_type": loc.location_type if loc else None,
+                "location_name": loc.name if loc else None,
+                "product_id": m.product_id,
+                "product_sku": getattr(prod, "sku", None) if prod else None,
+                "product_description": getattr(prod, "description", None) if prod else None,
+                "quantity_delta": str(m.quantity_delta),
+                "movement_type": m.movement_type,
+                "receipt_line_id": m.receipt_line_id,
+                "nationalization_item_id": m.nationalization_item_id,
+                "reversal_of_id": m.reversal_of_id,
+                "reason": m.reason,
+                "created_at": m.created_at,
+            }
+        )
+    return out
 
 
 def get_sku_position(db: Session, product_id: int) -> dict[str, Any]:
@@ -165,7 +188,7 @@ def get_sku_position(db: Session, product_id: int) -> dict[str, Any]:
         "in_clearance_qty": str(in_clearance),
         "in_transit_qty": str(in_transit),
         "future_order_qty": None,
-        "future_order_qty_note": "deferred — Inventory ↛ Orders; Reporting later",
+        "future_order_qty_note": None,
         "etas": etas,
         "balances": [
             {

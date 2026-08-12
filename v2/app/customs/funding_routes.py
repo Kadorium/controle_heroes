@@ -326,6 +326,24 @@ def api_update_payee(
         raise _map_error(exc) from exc
 
 
+@router.get(
+    "/customs/funding-requests/{funding_id}",
+    response_model=FundingOut,
+)
+def api_get_funding_by_id(
+    funding_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Lookup público por id — resolve process_id sem exigir path do processo (J5-C1 Opção B)."""
+    enforce_permission(user, "customs:read")
+    try:
+        fr = customs_public.get_funding_request(db, funding_id)
+        return _funding_out(fr)
+    except CustomsError as exc:
+        raise _map_error(exc) from exc
+
+
 # —— Funding requests ——
 
 

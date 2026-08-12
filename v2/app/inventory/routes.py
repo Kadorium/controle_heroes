@@ -76,6 +76,7 @@ class ReceiptLineOut(BaseModel):
 class ReceiptCreate(BaseModel):
     location_id: int | None = None
     location_code: str | None = None
+    from_location_code: str | None = None
     process_id: int | None = None
     nationalization_id: int | None = None
     receipt_type: str
@@ -113,7 +114,12 @@ class ReceiptOut(BaseModel):
 class MovementOut(BaseModel):
     id: int
     location_id: int
+    location_code: str | None = None
+    location_type: str | None = None
+    location_name: str | None = None
     product_id: int
+    product_sku: str | None = None
+    product_description: str | None = None
     quantity_delta: str
     movement_type: str
     receipt_line_id: int | None
@@ -211,6 +217,7 @@ def api_create_receipt(
                 uow.session,
                 location_id=body.location_id,
                 location_code=body.location_code,
+                from_location_code=body.from_location_code,
                 process_id=body.process_id,
                 nationalization_id=body.nationalization_id,
                 receipt_type=body.receipt_type,

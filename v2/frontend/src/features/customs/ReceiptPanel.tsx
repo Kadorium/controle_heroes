@@ -144,7 +144,7 @@ export function ReceiptPanel({ user, processId }: Props) {
       {writable ? (
         <SectionCard title="Novo recebimento">
           <div className="form-actions">
-            <FormField label="Tipo (BONDED_IN / DOMESTIC_IN)" htmlFor="receipt-type">
+            <FormField label="Tipo (BONDED_IN / DOMESTIC_IN / RECLASS)" htmlFor="receipt-type">
               <TextInput
                 id="receipt-type"
                 value={receiptType}
@@ -152,12 +152,12 @@ export function ReceiptPanel({ user, processId }: Props) {
                   const t = e.target.value;
                   setReceiptType(t);
                   if (t === "BONDED_IN") setLocationCode("BONDED-MAIN");
-                  if (t === "DOMESTIC_IN") setLocationCode("DOMESTIC-MAIN");
+                  if (t === "DOMESTIC_IN" || t === "RECLASS") setLocationCode("DOMESTIC-MAIN");
                 }}
                 data-testid="receipt-type"
               />
             </FormField>
-            <FormField label="Código da localização" htmlFor="receipt-location">
+            <FormField label="Código da localização (destino)" htmlFor="receipt-location">
               <TextInput
                 id="receipt-location"
                 value={locationCode}
@@ -165,7 +165,7 @@ export function ReceiptPanel({ user, processId }: Props) {
                 data-testid="receipt-location"
               />
             </FormField>
-            <FormField label="ID da liberação (doméstico)" htmlFor="receipt-nat-id">
+            <FormField label="ID da liberação (doméstico/reclass)" htmlFor="receipt-nat-id">
               <TextInput
                 id="receipt-nat-id"
                 value={natId}
@@ -181,6 +181,8 @@ export function ReceiptPanel({ user, processId }: Props) {
                 void run(async () => {
                   await createReceipt({
                     location_code: locationCode,
+                    from_location_code:
+                      receiptType === "RECLASS" ? "BONDED-MAIN" : undefined,
                     process_id: processId,
                     nationalization_id: natId ? Number(natId) : undefined,
                     receipt_type: receiptType,

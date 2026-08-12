@@ -1,0 +1,70 @@
+﻿{
+    "document_id":  11,
+    "fingerprint":  "443a66dae6ad380911c272aead989395a722861705cefb3858ba82bb94106a2e",
+    "operations":  [
+                       {
+                           "op_key":  "store_document",
+                           "description":  "Promover bytes da quarantine para Documents",
+                           "entity_type":  "document",
+                           "params":  {
+                                          "occurrence_id":  13
+                                      }
+                       },
+                       {
+                           "op_key":  "create_order",
+                           "description":  "Criar Order DRAFT code=589 supplier_id=21",
+                           "entity_type":  "order",
+                           "params":  {
+                                          "code":  "589",
+                                          "supplier_id":  21,
+                                          "currency":  "EUR",
+                                          "order_date":  "2026-06-04",
+                                          "pending_create_supplier":  false
+                                      }
+                       },
+                       {
+                           "op_key":  "add_item_0",
+                           "description":  "Adicionar item COMMITMENT code=I.V. 2 qty=14600 unit=PZ",
+                           "entity_type":  "order_item",
+                           "params":  {
+                                          "line_kind":  "COMMITMENT",
+                                          "product_id":  null,
+                                          "external_code":  "I.V. 2",
+                                          "description":  "racchette 2027 GRAFICATE",
+                                          "quantity":  "14600",
+                                          "unit_price":  "50.00",
+                                          "unit":  "PZ"
+                                      }
+                       },
+                       {
+                           "op_key":  "add_item_1",
+                           "description":  "Adicionar item COMMITMENT code=I.V. 1 qty=2000 unit=PZ",
+                           "entity_type":  "order_item",
+                           "params":  {
+                                          "line_kind":  "COMMITMENT",
+                                          "product_id":  null,
+                                          "external_code":  "I.V. 1",
+                                          "description":  "racchette 2027 NON GRAFICATE",
+                                          "quantity":  "2000",
+                                          "unit_price":  "50.00",
+                                          "unit":  "PZ"
+                                      }
+                       },
+                       {
+                           "op_key":  "link_document",
+                           "description":  "Vincular Document Ã  Order",
+                           "entity_type":  "document_link",
+                           "params":  {
+                                          "entity_type":  "order"
+                                      }
+                       }
+                   ],
+    "open_error_count":  0,
+    "can_commit":  true,
+    "can_create_order":  true,
+    "blocking_reasons":  [
+
+                         ],
+    "human_summary":  "Pronto para criar pedido rascunho 589.",
+    "readiness_derived":  true
+}

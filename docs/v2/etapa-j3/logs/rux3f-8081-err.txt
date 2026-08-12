@@ -1,0 +1,7 @@
+INFO:     Started server process [466060]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8081 (Press CTRL+C to quit)
+{"ts": "2026-08-10T17:56:36.594520+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-10T17:59:48.632608+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}
+{"ts": "2026-08-10T18:00:03.858500+00:00", "level": "INFO", "logger": "httpx", "message": "HTTP Request: GET https://api.frankfurter.dev/v1/latest?from=EUR&to=BRL \"HTTP/1.1 200 OK\""}

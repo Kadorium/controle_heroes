@@ -1,0 +1,40 @@
+Shipper/Exporter:
+Heroe’s Srl
+Via Bazzanese 32/7
+40033 Casalecchio di Reno BO
+E-Mail: info@heroesbranditalia.com
+PI / CF: 02610500395 - 02610500395
+Nr REA: BO-553272
+Banca: INTESA SAN PAOLO IT44Z0306937133100000007249
+Consignee/Bill to:
+EPIC SPORTS LTDA - CNPJ:65.751.802/0001-89
+                                                                                                                               Invoice
+Address: Avenida Santo Amaro,1775, 04505-003 Vila Nova Conceição                                                   Number: Date:
+00000 Vila Nova Conceição São Paulo/SP                                                                               202 16/04/2026
+        Currency                          Incoterms                               By                         Payment terms
+          EUR                            EX WORKS                                Nave              BONIFICO ANTICIPATO 50%, SALDO 90
+                                                                                                               GG DFFM
+    Quantity (SET)           NCM                           Description                           Indiv. Price              Amount (EUR)
+        150               4202 221000                  WASH BAG REBEL                                6,50                    975,00 €
+        150               4202 221000                  WASH BAG FIERCE                               6,50                    975,00 €
+        200               4202 221000                  WASH BAG SHOW                                 6,50                   1.300,00 €
+        200               4202 221000                 WASH BAG STARLIGHT                             6,50                   1.300,00 €
+        300               4202 2210 00                  THUNDER ARION                               43,03                   12.909,00 €
+        300               4202 2210 00                  GRAVITY ARION                               35,93                   10.779,00 €
+        300               4202 221000                  WASH BAG ARION                                6,50                   1.950,00 €
+                                                                                                Subtotal (EUR)              30.188,00 €
+
+Manufacturer: Heroe’s Srl
+Heroe’s Srl                                                           Total (EUR)                                30.188,00 €
+Via Bazzanese 32/7 40033 Casalecchio di Reno BO IT                    Total Net Weight (Kg)                        850,00
+E-Mail: info@heroesbranditalia.com                                    Total Gross Weight (Kg)                     1.000,00
+PI/CF: 02610500395 - 02610500395 Nr REA: BO-553272
+Bank: INTESA SAN PAOLO IT44Z0306937133100000007249                    Pallets                                        100
+Country of origin/acquisition:           chinaItaly
+
+
+
+
+                        Delivery terms: EXW (Ex Works) - Our warehouse in 135 BONHAM STRAND, SHEUNG WAN, HONG KONG
+                                                   For and on behalf of Heroe’s Srl
+

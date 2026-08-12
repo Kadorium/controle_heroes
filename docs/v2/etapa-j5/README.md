@@ -3,14 +3,15 @@
 | Campo | Valor |
 |---|---|
 | Fase | Aduana + Inventory (J#5) |
-| Status | **DONE** (I5-0…I5-6) |
+| Status | **DONE** (I5-0…I5-6 + patch fechamento C0…C5) |
 | Início | 2026-08-03 |
-| Fechamento | 2026-08-03 (I5-6) |
-| Blueprint | 0.2.15 |
-| Roadmap | 0.5.62 |
+| Fechamento | 2026-08-04 (patch C5) |
+| Blueprint | **0.2.16** |
+| Roadmap | **0.5.63** |
 | Alembic | **`015_nationalization_inventory`** (head) |
-| Aceite UI | **ACCEPTED_WITH_MINOR_BACKLOG** — [`UI_ACCEPTANCE_J5.md`](UI_ACCEPTANCE_J5.md) |
+| Aceite UI | **ACCEPTED_WITH_BACKLOG** — [`UI_ACCEPTANCE_J5.md`](UI_ACCEPTANCE_J5.md) |
 | Relatório | [`J5_EXECUTION_REPORT.md`](J5_EXECUTION_REPORT.md) |
+| Patch | [`patch-close/`](patch-close/) |
 
 ## Sequência de migrations J#5
 

@@ -3,13 +3,24 @@
 | Campo | Valor |
 |---|---|
 | Fase | Aduana + Inventory (J#5) |
-| Status | **DONE** |
-| Último checkpoint | **I5-6 DONE** (2026-08-03) |
-| Blueprint | 0.2.15 |
-| Roadmap | 0.5.62 |
+| Status | **DONE** (core + patch fechamento) |
+| Último checkpoint | **Patch C0…C5 DONE** (2026-08-04) |
+| Blueprint | **0.2.16** |
+| Roadmap | **0.5.63** |
 | Alembic head | `015_nationalization_inventory` |
-| Aceite UI | **ACCEPTED_WITH_MINOR_BACKLOG** — [`UI_ACCEPTANCE_J5.md`](UI_ACCEPTANCE_J5.md) |
+| Aceite UI | **ACCEPTED_WITH_BACKLOG** — [`UI_ACCEPTANCE_J5.md`](UI_ACCEPTANCE_J5.md) |
 | Relatório | [`J5_EXECUTION_REPORT.md`](J5_EXECUTION_REPORT.md) |
+| DEC Alt. B | [`patch-close/DEC_ALT_B_CUSTOMS_PAYMENT.md`](patch-close/DEC_ALT_B_CUSTOMS_PAYMENT.md) |
+
+## Patch fechamento (2026-08-04)
+
+| Item | Evidência |
+|---|---|
+| KPIs multi-moeda + drawer Customs | `j5-10-customs-payable-ap.png`; pytest `test_ap_queue_kpis_never_mix_currencies` |
+| SC-10 conservação (RECLASS) | `j5-13-sku-position.png`; `j5-14-inventory-movements.png`; e2e asserts bonded=3 / available=2 / cleared=0 |
+| Isolamento Treasury | notice `ap-customs-settlement-notice`; elegíveis excluem CUSTOMS_FUNDING |
+| Boundaries | `test_billing_reporting_do_not_depend_on_customs`; GET `/api/customs/funding-requests/{id}` |
+| Logs | `logs/patch-close-pytest.txt`, `logs/patch-close-pytest-full.txt`, `logs/patch-close-e2e-j5.txt` |
 
 ## Sequência de migrations (fechada em I5-1)
 

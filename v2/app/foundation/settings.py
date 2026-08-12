@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     port: int = 8081
     database_url: str = "postgresql://postgres@localhost:5433/epic_v2"
     attachments_path: Path = ROOT_DIR / "data" / "attachments"
+    quarantine_path: Path = ROOT_DIR / "data" / "quarantine"
     logs_path: Path = ROOT_DIR / "logs"
     frontend_dist_path: Path = ROOT_DIR / "frontend" / "dist"
     session_cookie_name: str = "epic_v2_session"
@@ -27,6 +28,15 @@ class Settings(BaseSettings):
     seed_admin_email: str = "admin@epic.com.br"
     seed_admin_password: str = "admin123"
     seed_admin_name: str = "Administrador"
+    # J3-I0 ingestion limits
+    ingestion_max_upload_bytes: int = 25_000_000
+    ingestion_max_batch_bytes: int = 50_000_000
+    ingestion_max_files_per_request: int = 20
+    ingestion_max_pdf_pages: int = 200
+    ingestion_quarantine_ttl_days: int = 30
+    ingestion_zip_max_entries: int = 500
+    ingestion_zip_max_uncompressed_bytes: int = 80_000_000
+    ingestion_zip_max_compression_ratio: float = 100.0
 
 
 @lru_cache
@@ -36,5 +46,5 @@ def get_settings() -> Settings:
 
 def ensure_runtime_dirs(settings: Settings | None = None) -> None:
     s = settings or get_settings()
-    for path in (s.attachments_path, s.logs_path):
+    for path in (s.attachments_path, s.quarantine_path, s.logs_path):
         path.mkdir(parents=True, exist_ok=True)

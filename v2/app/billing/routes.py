@@ -114,6 +114,10 @@ class PayableResponse(BaseModel):
     status: str
     source_type: str = "INVOICE"
     payee_display_name: str | None = None
+    destination_iban: str | None = None
+    destination_bank: str | None = None
+    order_id: int | None = None
+    supplier_id: int | None = None
     version: int = 1
 
 
@@ -148,6 +152,9 @@ class InvoiceResponse(BaseModel):
     cancelled_at: datetime | None = None
     cancel_reason_code: str | None = None
     issue_without_document: bool = False
+    destination_iban: str | None = None
+    destination_bank: str | None = None
+    terms_from_document: bool = False
     net_amount: str | None = None
     incomplete_line_count: int = 0
     balance: str | None = None
@@ -182,6 +189,9 @@ class OrderQtyRow(BaseModel):
     ordered_qty: str
     issued_qty: str
     available_qty: str
+    line_kind: str | None = None
+    description: str | None = None
+    billable: bool = False
 
 
 def _map_error(exc: BillingError) -> AppError:
@@ -239,6 +249,12 @@ def _invoice_response(db: Session, inv: Invoice) -> InvoiceResponse:
             balance=decimal_str(p.balance) or "0",
             currency=p.currency,
             status=p.status,
+            source_type=getattr(p, "source_type", None) or "INVOICE",
+            payee_display_name=getattr(p, "payee_display_name", None),
+            destination_iban=getattr(p, "destination_iban", None),
+            destination_bank=getattr(p, "destination_bank", None),
+            order_id=inv.order_id,
+            supplier_id=inv.supplier_id,
             version=getattr(p, "version", 1),
         )
         for p in inv.payables
@@ -282,6 +298,9 @@ def _invoice_response(db: Session, inv: Invoice) -> InvoiceResponse:
         cancelled_at=inv.cancelled_at,
         cancel_reason_code=inv.cancel_reason_code,
         issue_without_document=bool(inv.issue_without_document),
+        destination_iban=getattr(inv, "destination_iban", None),
+        destination_bank=getattr(inv, "destination_bank", None),
+        terms_from_document=bool(getattr(inv, "terms_from_document", False)),
         net_amount=totals["net_amount"],  # type: ignore[arg-type]
         incomplete_line_count=int(totals["incomplete_line_count"] or 0),
         balance=totals["balance"],  # type: ignore[arg-type]
@@ -600,6 +619,7 @@ def cancel_invoice(
 
 
 def _payable_response(p) -> PayableResponse:
+    inv = getattr(p, "invoice", None)
     return PayableResponse(
         id=p.id,
         invoice_id=p.invoice_id,
@@ -612,6 +632,10 @@ def _payable_response(p) -> PayableResponse:
         status=p.status,
         source_type=getattr(p, "source_type", None) or "INVOICE",
         payee_display_name=getattr(p, "payee_display_name", None),
+        destination_iban=getattr(p, "destination_iban", None),
+        destination_bank=getattr(p, "destination_bank", None),
+        order_id=inv.order_id if inv is not None else None,
+        supplier_id=inv.supplier_id if inv is not None else None,
         version=getattr(p, "version", 1),
     )
 

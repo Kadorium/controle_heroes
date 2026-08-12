@@ -34,6 +34,6 @@ test("I5-5 customs list/detail + inventory nav smoke", async ({ page }) => {
 
   await nav.getByRole("link", { name: /^estoque$/i }).click();
   await expect(page.getByTestId("inventory-movements-page")).toBeVisible();
-  await expect(page.getByLabel(/id do produto/i)).toBeVisible();
+  await expect(page.getByLabel(/produto/i)).toBeVisible();
   await expect(page.getByRole("button", { name: /filtrar/i })).toBeVisible();
 });

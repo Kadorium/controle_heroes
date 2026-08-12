@@ -7,6 +7,8 @@ from app.foundation.database import Base
 
 
 class Supplier(Base):
+    """Catalog supplier — schema alembic 019 (sem tax_id / RUX-3A)."""
+
     __tablename__ = "suppliers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

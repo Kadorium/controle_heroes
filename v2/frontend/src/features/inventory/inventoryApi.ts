@@ -75,7 +75,12 @@ export type StockLocation = {
 export type InventoryMovement = {
   id: number;
   location_id: number;
+  location_code?: string | null;
+  location_type?: string | null;
+  location_name?: string | null;
   product_id: number;
+  product_sku?: string | null;
+  product_description?: string | null;
   quantity_delta: string;
   movement_type: string;
   receipt_line_id: number | null;
@@ -201,6 +206,7 @@ export async function listReceipts(processId?: number): Promise<GoodsReceipt[]> 
 export async function createReceipt(body: {
   location_code?: string;
   location_id?: number;
+  from_location_code?: string;
   process_id?: number;
   nationalization_id?: number;
   receipt_type: string;

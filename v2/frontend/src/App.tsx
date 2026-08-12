@@ -25,6 +25,9 @@ import { CustomsCreatePage } from "./features/customs/CustomsCreatePage";
 import { CustomsDetailPage } from "./features/customs/CustomsDetailPage";
 import { SkuPositionPage } from "./features/inventory/SkuPositionPage";
 import { MovementsPage } from "./features/inventory/MovementsPage";
+import { FundingRedirectPage } from "./features/customs/FundingRedirectPage";
+import { IngestionQueuePage } from "./features/ingestion/IngestionQueuePage";
+import { IngestionWorkspacePage } from "./features/ingestion/IngestionWorkspacePage";
 import type { User } from "./features/auth/types";
 
 function LoginRoute({ user, onSuccess }: { user: User | null; onSuccess: () => Promise<void> | void }) {
@@ -87,9 +90,12 @@ export function App() {
         <Route path="logistics-providers" element={<LogisticsProvidersPage user={user!} />} />
         <Route path="customs" element={<CustomsListPage user={user!} />} />
         <Route path="customs/new" element={<CustomsCreatePage user={user!} />} />
+        <Route path="customs/funding/:fundingRequestId" element={<FundingRedirectPage />} />
         <Route path="customs/:processId" element={<CustomsDetailPage user={user!} />} />
         <Route path="inventory/movements" element={<MovementsPage user={user!} />} />
         <Route path="inventory/sku/:productId" element={<SkuPositionPage user={user!} />} />
+        <Route path="ingestion" element={<IngestionQueuePage user={user!} />} />
+        <Route path="ingestion/:documentId" element={<IngestionWorkspacePage user={user!} />} />
       </Route>
     </Routes>
   );

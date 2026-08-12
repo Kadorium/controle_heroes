@@ -142,6 +142,7 @@ describe("OrderDetailPage RTL", () => {
         {
           id: 1,
           product_id: 1,
+          line_kind: "PRODUCT",
           sku_snapshot: "S",
           description_snapshot: "d",
           quantity: "1",

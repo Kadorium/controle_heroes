@@ -12,6 +12,8 @@ export function ConfirmationModal({
   busy = false,
   onConfirm,
   onCancel,
+  /** Se definido, foca este seletor dentro do dialog (ex.: campo Motivo). Senão: 1º focusable. */
+  initialFocusSelector,
 }: {
   open: boolean;
   title: string;
@@ -21,8 +23,9 @@ export function ConfirmationModal({
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  initialFocusSelector?: string;
 }) {
-  const trapRef = useFocusTrap(open, onCancel);
+  const trapRef = useFocusTrap(open, onCancel, initialFocusSelector);
   if (!open) return null;
   return (
     <div className="drawer-backdrop" role="presentation" data-testid="confirmation-modal">

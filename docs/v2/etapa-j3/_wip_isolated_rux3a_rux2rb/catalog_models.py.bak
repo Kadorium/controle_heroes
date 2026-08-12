@@ -1,0 +1,115 @@
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Sequence,
+    String,
+    Text,
+    func,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.foundation.database import Base
+
+product_sku_seq = Sequence("product_sku_seq", metadata=Base.metadata)
+
+CODE_KIND_EAN = "EAN"
+CODE_KIND_SUPPLIER_CLASS = "SUPPLIER_CLASS"
+MATCH_MODE_AUTO = "AUTO"
+MATCH_MODE_SUGGEST = "SUGGEST"
+
+
+class Supplier(Base):
+    __tablename__ = "suppliers"
+    __table_args__ = (
+        Index(
+            "uq_suppliers_country_tax_id",
+            "country_code",
+            "tax_id",
+            unique=True,
+            postgresql_where=text("tax_id IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    country_code: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    tax_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sku: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    description: Mapped[str] = mapped_column(String(512), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class SupplierProductRef(Base):
+    __tablename__ = "supplier_product_refs"
+    __table_args__ = (
+        CheckConstraint(
+            "code_kind IN ('EAN', 'SUPPLIER_CLASS')",
+            name="ck_supplier_product_refs_code_kind",
+        ),
+        CheckConstraint(
+            "match_mode IN ('AUTO', 'SUGGEST')",
+            name="ck_supplier_product_refs_match_mode",
+        ),
+        Index(
+            "uq_supplier_product_refs_ean",
+            "supplier_id",
+            "code_kind",
+            "normalized_external_code",
+            unique=True,
+            postgresql_where=text("is_active IS TRUE AND code_kind = 'EAN'"),
+        ),
+        Index(
+            "uq_supplier_product_refs_class",
+            "supplier_id",
+            "code_kind",
+            "normalized_external_code",
+            "description_fingerprint",
+            unique=True,
+            postgresql_where=text(
+                "is_active IS TRUE AND code_kind = 'SUPPLIER_CLASS' "
+                "AND description_fingerprint IS NOT NULL"
+            ),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    supplier_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    product_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    code_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    match_mode: Mapped[str] = mapped_column(String(16), nullable=False)
+    external_code: Mapped[str] = mapped_column(String(128), nullable=False)
+    normalized_external_code: Mapped[str] = mapped_column(String(128), nullable=False)
+    external_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

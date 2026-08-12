@@ -42,7 +42,7 @@ export function PaymentsListPage({ user }: Props) {
     ? [
         {
           id: "residual",
-          label: "Somente com residual",
+          label: "Somente crédito em aberto",
           onRemove: () => setUnallocated(false),
         },
       ]
@@ -54,8 +54,8 @@ export function PaymentsListPage({ user }: Props) {
   return (
     <section className="panel dense" data-testid="payments-list">
       <PageHeader
-        title="Pagamentos"
-        subtitle="Movimentos financeiros e residual"
+        title="Pagamentos realizados"
+        subtitle="Dinheiro que saiu do caixa — residual ainda não aplicado a Contas a pagar"
         actions={
           canWriteTreasury(user) ? (
             <Link className="ui-button" to="/payments/new" data-testid="new-payment">
@@ -71,7 +71,7 @@ export function PaymentsListPage({ user }: Props) {
               className="filter-chip-group"
               data-testid="payments-unallocated-filter"
               role="group"
-              aria-label="Residual"
+              aria-label="Crédito em aberto"
             >
               <FilterChip pressed={!unallocatedOnly} onClick={() => setUnallocated(false)}>
                 Todos
@@ -81,7 +81,7 @@ export function PaymentsListPage({ user }: Props) {
                 data-testid="payments-residual-only"
                 onClick={() => setUnallocated(true)}
               >
-                Somente com residual
+                Somente crédito em aberto
               </FilterChip>
             </div>
           }

@@ -47,6 +47,14 @@ O código evidencia o estado implementado na investigação. Divergências corri
 | J#5 I5-0 | Decisões Customs/Inventory + scaffold | Roadmap 0.5.55 | [`etapa-j5/`](v2/etapa-j5/) |
 | J#5 I5-1 | ImportProcess + joins + UI `/customs` | Roadmap 0.5.56 | [`etapa-j5/`](v2/etapa-j5/) |
 | J#5 DONE (I5-0…I5-6) | Aduana + Inventory; SC-07/09/10; e2e:j5 | Roadmap 0.5.62 | [`etapa-j5/`](v2/etapa-j5/) |
+| J#5 patch fechamento | KPIs multi-moeda; Alt. B Customs; RECLASS; ACCEPTED_WITH_BACKLOG | Roadmap 0.5.63 · Blueprint 0.2.16 | [`etapa-j5/`](v2/etapa-j5/) · [`patch-close/`](v2/etapa-j5/patch-close/) |
+| J#3 P0 | Forense corpus + matrizes + decisões; I0 não iniciado | Roadmap 0.5.65 | [`etapa-j3/`](v2/etapa-j3/) |
+| J#3 P0 handoff | Pacote advisor ≤2 MD; decisões ratificadas; protocolo handoff | Roadmap 0.5.66 | [`etapa-j3/J3_P0_ADVISOR_HANDOFF.md`](v2/etapa-j3/J3_P0_ADVISOR_HANDOFF.md) |
+| J#3 I0 | Fundação quarantine Batch/Blob/Occurrence; migration 016 | Roadmap 0.5.67 | [`etapa-j3/J3_I0_ADVISOR_HANDOFF.md`](v2/etapa-j3/J3_I0_ADVISOR_HANDOFF.md) |
+| J4-FIN FIN-0…FIX-2 | Adiantamento Order; UX; G6 dryrun; FIX-2 vocab | Roadmap **0.5.102** | [`etapa-j4-fin/`](v2/etapa-j4-fin/) |
+| J4-FIN FIN-3 + FIN-2 | Fattura AMOUNT+IBAN; Policy A order_id; crédito order-scoped | Roadmap **0.5.103** | [`J4_FIN23_ADVISOR_HANDOFF.md`](v2/etapa-j4-fin/J4_FIN23_ADVISOR_HANDOFF.md) |
+| J4-FIN FIN-3B | Fattura qty+preço do PDF; rastro divergência; 492 pytest | Roadmap **0.5.104** | [`J4_FIN3B_ADVISOR_HANDOFF.md`](v2/etapa-j4-fin/J4_FIN3B_ADVISOR_HANDOFF.md) |
+| ROADMAP-VIS | §0 visão de progresso (cadeia / costuras); sem código de produto | Roadmap **0.5.105** | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) §0 |
 
 Estado e sequência atuais: consultar o Roadmap. Evidências concluídas ficam em `docs/v2/etapa-*`.
 
@@ -69,6 +77,6 @@ DOC_DELTA
 - **Evidence** — paths em `docs/v2/etapa-*` / `docs/evidence/` quando houver execução material; senão `NONE`.
 - **Roadmap status** — `UNCHANGED` se o Roadmap não mudou; caso contrário descrever a mudança e a versão.
 - **Next TODO** — próxima ação confirmada **no Roadmap** (não inventar aqui).
-- **Return to advisor** — paths que o advisor deve reler, ou `NONE`.
+- **Return to advisor** — paths que o advisor deve reler, ou `NONE`. Preferencialmente no máximo **dois** Markdown: `*_ADVISOR_HANDOFF.md` e, se necessário, `*_TECHNICAL_APPENDIX.md`. Evidência bruta permanece em `Evidence` / pasta `etapa-*` e **não** deve ser listada item a item (JSON, logs, fixtures, screenshots, scripts), salvo pedido explícito. Ver também [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) §6.1.
 
 Não criar pasta `etapa-*` só por edição documental de índice/regra/README.

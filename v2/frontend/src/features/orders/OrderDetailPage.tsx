@@ -12,9 +12,11 @@ import {
 } from "./ordersApi";
 import { canCancelOrders, canWriteOrders } from "./orderTotals";
 import { OrderInvoicesPanel } from "../billing/InvoiceDetailPage";
+import { OrderAdvancesPanel } from "../treasury/OrderAdvancesPanel";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
   Button,
+  ConfirmationModal,
   ContextBreadcrumb,
   DateInput,
   DocumentActions,
@@ -47,6 +49,7 @@ export function OrderDetailPage({ user }: Props) {
   const [uploadBusy, setUploadBusy] = useState(false);
   const [orderDate, setOrderDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const ordersReturn = buildReturnTo("/orders");
   const cockpitHref = `/orders/${id}`;
 
@@ -76,6 +79,14 @@ export function OrderDetailPage({ user }: Props) {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (!order) return;
+    if (window.location.hash === "#order-advances") {
+      const el = document.getElementById("order-advances");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [order]);
+
   if (error && !order) return <ErrorState message={error} />;
   if (!order) return <LoadingState message="Carregando pedido…" />;
 
@@ -84,6 +95,10 @@ export function OrderDetailPage({ user }: Props) {
     (order.status === "DRAFT" && canWriteOrders(user)) ||
     (order.status === "CONFIRMED" && canCancelOrders(user));
   const canUploadDocs = canWriteOrders(user) && order.status !== "CANCELLED";
+  const commitmentCount = (order.items ?? []).filter(
+    (i) => String(i.line_kind ?? "").toUpperCase() === "COMMITMENT",
+  ).length;
+  const hasCommitmentLines = commitmentCount > 0;
 
   async function onConfirm() {
     if (busy) return;
@@ -91,6 +106,7 @@ export function OrderDetailPage({ user }: Props) {
     setError(null);
     try {
       setOrder(await confirmOrder(order!.id, order!.version));
+      setConfirmOpen(false);
     } catch (e) {
       const status = (e as Error & { status?: number }).status;
       if (status === 409) {
@@ -208,14 +224,22 @@ export function OrderDetailPage({ user }: Props) {
           .join(" · ")}
         actions={
           <div className="stack-row page-header-actions">
-            <Link className="ui-button ui-button--secondary" to={cockpitHref}>
+            <Link
+              className="ui-button ui-button--secondary"
+              to={cockpitHref}
+              data-testid="commercial-cockpit-link"
+            >
               Cockpit
             </Link>
             <Link className="ui-button ui-button--secondary" to={ordersReturn}>
               Voltar à fila
             </Link>
             {editable ? (
-              <Button busy={busy} data-testid="confirm-order" onClick={() => void onConfirm()}>
+              <Button
+                busy={busy}
+                data-testid="confirm-order"
+                onClick={() => setConfirmOpen(true)}
+              >
                 Confirmar
               </Button>
             ) : null}
@@ -320,7 +344,8 @@ export function OrderDetailPage({ user }: Props) {
           <OperationalTable density="finance">
             <thead>
               <tr>
-                <th>SKU</th>
+                <th>Tipo</th>
+                <th>SKU / código</th>
                 <th>Descrição</th>
                 <th className="num">Qtd</th>
                 <th>UM</th>
@@ -330,8 +355,13 @@ export function OrderDetailPage({ user }: Props) {
             </thead>
             <tbody>
               {order.items?.map((i) => (
-                <tr key={i.id}>
-                  <td>{i.sku_snapshot}</td>
+                <tr key={i.id} data-testid={`order-item-row-${i.id}`}>
+                  <td data-testid={`order-item-kind-${i.id}`}>
+                    {String(i.line_kind ?? "").toUpperCase() === "COMMITMENT"
+                      ? "Compromisso"
+                      : "Produto"}
+                  </td>
+                  <td>{i.external_code || i.sku_snapshot}</td>
                   <td>{i.description_snapshot}</td>
                   <td className="num">{formatQuantity(i.quantity)}</td>
                   <td data-testid={`order-item-unit-${i.id}`}>
@@ -396,6 +426,15 @@ export function OrderDetailPage({ user }: Props) {
         ) : null}
       </p>
 
+      {/* Adiantamentos antes de Documentos: upload de câmbio fica no formulário,
+          longe do anexo do pedido — evita confundir os dois file inputs (FIN-1C-FIX-1B). */}
+      <OrderAdvancesPanel
+        user={user}
+        orderId={order.id}
+        orderCurrency={order.currency}
+        orderStatus={order.status}
+      />
+
       <SectionCard title="Documentos" data-testid="order-documents">
         {(order.documents?.length ?? 0) === 0 ? (
           <EmptyState message="Nenhum documento vinculado" />
@@ -414,14 +453,21 @@ export function OrderDetailPage({ user }: Props) {
           </ul>
         )}
         {canUploadDocs ? (
-          <FileUpload
-            data-testid="order-doc-upload"
-            label="Anexar documento do pedido"
-            disabled={uploadBusy}
-            onFileChange={(file) => {
-              if (file) void onUpload(file);
-            }}
-          />
+          <>
+            <p className="muted" data-testid="order-doc-upload-hint">
+              Ordine e anexos do pedido. PDF de câmbio do adiantamento fica no painel
+              Adiantamentos acima — não anexar aqui.
+            </p>
+            <FileUpload
+              data-testid="order-doc-upload"
+              name="order-document"
+              label="Anexar documento do pedido (Ordine e afins)"
+              disabled={uploadBusy}
+              onFileChange={(file) => {
+                if (file) void onUpload(file);
+              }}
+            />
+          </>
         ) : null}
       </SectionCard>
 
@@ -430,6 +476,25 @@ export function OrderDetailPage({ user }: Props) {
       <Button variant="secondary" onClick={() => void reload()}>
         Atualizar
       </Button>
+
+      <ConfirmationModal
+        open={confirmOpen}
+        title="Confirmar pedido"
+        confirmLabel="Confirmar pedido"
+        busy={busy}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => void onConfirm()}
+      >
+        {hasCommitmentLines ? (
+          <Notice tone="info" data-testid="confirm-commitment-warning">
+            Este pedido tem {commitmentCount}{" "}
+            {commitmentCount === 1 ? "linha de compromisso" : "linhas de compromisso"}. Os produtos
+            reais ainda não estão definidos e virão pela fatura.
+          </Notice>
+        ) : (
+          <p>Confirmar este pedido? Depois da confirmação, ele deixa de ser editável como rascunho.</p>
+        )}
+      </ConfirmationModal>
     </section>
   );
 }

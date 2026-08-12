@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import { listMovements, type InventoryMovement } from "./inventoryApi";
 import { canReadInventory } from "./inventoryPermissions";
-import { movementTypeLabel } from "./inventoryLabels";
+import { locationTypeLabel, movementTypeLabel } from "./inventoryLabels";
 import {
   Button,
   ContextBreadcrumb,
@@ -25,14 +25,14 @@ const PAGE_LIMIT = 100;
 
 export function MovementsPage({ user }: Props) {
   const [params, setParams] = useSearchParams();
-  const productFilter = params.get("product_id") ?? "";
-  const [productId, setProductId] = useState(productFilter);
+  const productFilter = params.get("product_id") ?? params.get("q") ?? "";
+  const [query, setQuery] = useState(productFilter);
   const [rows, setRows] = useState<InventoryMovement[] | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    setProductId(productFilter);
+    setQuery(productFilter);
   }, [productFilter]);
 
   useEffect(() => {
@@ -42,11 +42,32 @@ export function MovementsPage({ user }: Props) {
       setError(null);
       setRows(undefined);
       try {
-        const pid = productFilter ? Number(productFilter) : undefined;
+        let productId: number | undefined;
+        const raw = productFilter.trim();
+        if (raw) {
+          const asNum = Number(raw);
+          if (Number.isFinite(asNum) && /^\d+$/.test(raw)) {
+            productId = asNum;
+          } else {
+            const res = await fetch(
+              `/api/products?q=${encodeURIComponent(raw)}&limit=1`,
+              { credentials: "include" },
+            );
+            if (res.ok) {
+              const list = (await res.json()) as Array<{ id: number }>;
+              if (list[0]) productId = list[0].id;
+              else {
+                if (!cancelled) {
+                  setRows([]);
+                  setError("Nenhum produto encontrado para a busca.");
+                }
+                return;
+              }
+            }
+          }
+        }
         const data = await listMovements(
-          pid != null && Number.isFinite(pid)
-            ? { product_id: pid, limit: PAGE_LIMIT }
-            : { limit: PAGE_LIMIT },
+          productId != null ? { product_id: productId, limit: PAGE_LIMIT } : { limit: PAGE_LIMIT },
         );
         if (!cancelled) setRows(data);
       } catch (e) {
@@ -64,8 +85,13 @@ export function MovementsPage({ user }: Props) {
 
   function applyFilter() {
     const next = new URLSearchParams(params);
-    if (productId.trim()) next.set("product_id", productId.trim());
-    else next.delete("product_id");
+    const q = query.trim();
+    next.delete("q");
+    next.delete("product_id");
+    if (q) {
+      if (/^\d+$/.test(q)) next.set("product_id", q);
+      else next.set("q", q);
+    }
     setParams(next);
   }
 
@@ -75,24 +101,25 @@ export function MovementsPage({ user }: Props) {
   if (error && rows === undefined) {
     return <ErrorState message={error} onRetry={() => setReloadKey((k) => k + 1)} />;
   }
-  if (rows === undefined) return <LoadingState message="Carregando movimentos…" />;
+  if (rows === undefined) return <LoadingState message="Carregando movimentações…" />;
 
   return (
     <div data-testid="inventory-movements-page">
       <ContextBreadcrumb items={[{ label: "Aduana" }, { label: "Estoque" }]} />
       <PageHeader
-        title="Movimentos de estoque"
-        subtitle="Ledger append-only · origem aduaneira / inventário"
+        title="Movimentações"
+        subtitle="Histórico de entradas, reclassificações e ajustes"
       />
       <SectionCard title="Filtros">
         <div className="form-actions">
-          <FormField label="ID do produto" htmlFor="movements-product-filter">
+          <FormField label="Produto (SKU, descrição ou código)" htmlFor="movements-product-filter">
             <TextInput
               id="movements-product-filter"
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               data-testid="movements-product-filter"
-              aria-label="ID do produto"
+              aria-label="Produto"
+              placeholder="SKU ou descrição"
             />
           </FormField>
           <Button type="button" data-testid="movements-filter-apply" onClick={applyFilter}>
@@ -104,9 +131,10 @@ export function MovementsPage({ user }: Props) {
               variant="ghost"
               data-testid="movements-filter-clear"
               onClick={() => {
-                setProductId("");
+                setQuery("");
                 const next = new URLSearchParams(params);
                 next.delete("product_id");
+                next.delete("q");
                 setParams(next);
               }}
             >
@@ -115,39 +143,45 @@ export function MovementsPage({ user }: Props) {
           ) : null}
         </div>
       </SectionCard>
-      <SectionCard title="Ledger">
+      <SectionCard title="Movimentações">
         {error ? <p className="muted" role="alert">{error}</p> : null}
         {rows.length === 0 ? (
           <EmptyState
-            title="Nenhum movimento"
-            message="Confirme recebimentos ou ajustes para gerar lançamentos no ledger."
+            title="Nenhuma movimentação"
+            message="Confirme recebimentos ou reclassificações para gerar lançamentos."
           />
         ) : (
           <>
             <table className="operational-table" data-testid="movements-list">
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>Quando</th>
                   <th>Produto</th>
                   <th>Local</th>
+                  <th>Regime</th>
                   <th>Tipo</th>
                   <th>Δ Qtd</th>
-                  <th>Quando</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((m) => (
-                  <tr key={m.id} data-testid={`movement-${m.id}`}>
-                    <td>#{m.id}</td>
-                    <td>
-                      <Link to={`/inventory/sku/${m.product_id}`}>SKU #{m.product_id}</Link>
-                    </td>
-                    <td>#{m.location_id}</td>
-                    <td>{movementTypeLabel(m.movement_type)}</td>
-                    <td>{formatQuantity(m.quantity_delta)}</td>
-                    <td>{formatDateTime(m.created_at)}</td>
-                  </tr>
-                ))}
+                {rows.map((m) => {
+                  const productLabel =
+                    [m.product_sku, m.product_description].filter(Boolean).join(" — ") ||
+                    `Produto ${m.product_id}`;
+                  const locLabel = m.location_code || m.location_name || `Local ${m.location_id}`;
+                  return (
+                    <tr key={m.id} data-testid={`movement-${m.id}`}>
+                      <td>{formatDateTime(m.created_at)}</td>
+                      <td>
+                        <Link to={`/inventory/sku/${m.product_id}`}>{productLabel}</Link>
+                      </td>
+                      <td>{locLabel}</td>
+                      <td>{locationTypeLabel(m.location_type)}</td>
+                      <td>{movementTypeLabel(m.movement_type)}</td>
+                      <td>{formatQuantity(m.quantity_delta)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <PaginationSummary offset={0} limit={PAGE_LIMIT} loadedCount={rows.length} />

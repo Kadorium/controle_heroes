@@ -16,13 +16,13 @@ describe("V0 ui foundation", () => {
   it("MoneyDisplay formata e StatusBadge usa label PT", () => {
     render(
       <MemoryRouter>
-        <PageHeader title="Pagamentos" />
+        <PageHeader title="Pagamentos realizados" />
         <StatusBadge status="REGISTERED" entity="payment" />
         <MoneyDisplay amount="400.0000" currency="EUR" />
         <MoneyDisplay amount={null} />
       </MemoryRouter>,
     );
-    expect(screen.getByTestId("page-header")).toHaveTextContent("Pagamentos");
+    expect(screen.getByTestId("page-header")).toHaveTextContent("Pagamentos realizados");
     expect(screen.getByTestId("status-badge")).toHaveTextContent("Registrado");
     expect(screen.getByTestId("status-badge")).not.toHaveTextContent("REGISTERED");
     expect(screen.getAllByTestId("money")[0]).toHaveTextContent("EUR 400,00");

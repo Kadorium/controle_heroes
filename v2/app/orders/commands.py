@@ -13,7 +13,12 @@ from app.orders.errors import (
     OrderNotFound,
     OrderValidationError,
 )
-from app.orders.models import Order, OrderItem
+from app.orders.models import (
+    LINE_KIND_COMMITMENT,
+    LINE_KIND_PRODUCT,
+    Order,
+    OrderItem,
+)
 from app.orders.money import normalize_unit, parse_decimal, require_positive_qty
 
 
@@ -25,6 +30,7 @@ def _require_draft(order: Order) -> None:
 def _lock(db: Session, order: Order, expected_version: int) -> Order:
     if not repo.bump_version_if_match(db, order.id, expected_version):
         raise OrderConflict()
+    db.expire(order)  # invalidate identity-map cache (items relationship included)
     refreshed = repo.get_order(db, order.id)
     assert refreshed is not None
     return refreshed
@@ -110,20 +116,70 @@ def add_item(
     quantity: str | Decimal,
     unit_price: str | Decimal | None = None,
     unit: str | None = None,
+    line_kind: str | None = None,
+    external_code: str | None = None,
+    description: str | None = None,
 ) -> Order:
+    """Adiciona item PRODUCT (catálogo) ou COMMITMENT (sem product_id).
+
+    line_kind explícito (V2-a): COMMITMENT não resolve Product; PRODUCT exige product_id/sku.
+    """
     order = repo.get_order(db, order_id)
     if not order:
         raise OrderNotFound(order_id)
     _require_draft(order)
-    product = catalog_public.resolve_product(db, product_id=product_id, sku=sku)
+
+    kind = (line_kind or LINE_KIND_PRODUCT).strip().upper()
+    if kind not in (LINE_KIND_PRODUCT, LINE_KIND_COMMITMENT):
+        raise OrderValidationError(
+            f"line_kind inválido: {line_kind!r} (use PRODUCT ou COMMITMENT)"
+        )
+
     qty = require_positive_qty(quantity)
     price = parse_decimal(unit_price)
     pos = repo.next_item_position(db, order_id)
+
+    if kind == LINE_KIND_COMMITMENT:
+        if product_id is not None:
+            raise OrderValidationError(
+                "Linha COMMITMENT não aceita product_id — use line_kind=PRODUCT"
+            )
+        code = (external_code or sku or "").strip()
+        desc = (description or "").strip()
+        if not code and not desc:
+            raise OrderValidationError(
+                "Linha COMMITMENT exige external_code (ou sku) e description"
+            )
+        if not desc:
+            raise OrderValidationError("Linha COMMITMENT exige description")
+        if not code:
+            raise OrderValidationError("Linha COMMITMENT exige external_code (ou sku)")
+        repo.add_item(
+            db,
+            OrderItem(
+                order_id=order_id,
+                product_id=None,
+                line_kind=LINE_KIND_COMMITMENT,
+                external_code=code[:128],
+                sku_snapshot=code[:64],
+                description_snapshot=desc[:512],
+                quantity=qty,
+                unit=normalize_unit(unit),
+                unit_price=price,
+                position=pos,
+            ),
+        )
+        return _lock(db, order, expected_version)
+
+    # PRODUCT — resolve no catálogo; nunca inventa Product
+    product = catalog_public.resolve_product(db, product_id=product_id, sku=sku)
     repo.add_item(
         db,
         OrderItem(
             order_id=order_id,
             product_id=product.id,
+            line_kind=LINE_KIND_PRODUCT,
+            external_code=(external_code.strip()[:128] if external_code and external_code.strip() else None),
             sku_snapshot=product.sku,
             description_snapshot=product.description,
             quantity=qty,
@@ -133,6 +189,20 @@ def add_item(
         ),
     )
     return _lock(db, order, expected_version)
+
+
+def commitment_line_summary(order: Order) -> dict:
+    """Contagens para Audit no confirm (V2-b backend)."""
+    items = list(order.items or [])
+    commitment_ids = [i.id for i in items if i.line_kind == LINE_KIND_COMMITMENT]
+    product_ids = [i.id for i in items if i.line_kind == LINE_KIND_PRODUCT]
+    return {
+        "total_items": len(items),
+        "commitment_count": len(commitment_ids),
+        "product_count": len(product_ids),
+        "commitment_item_ids": commitment_ids,
+        "has_commitment_lines": bool(commitment_ids),
+    }
 
 
 def update_item(

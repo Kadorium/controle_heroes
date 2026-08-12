@@ -1,0 +1,2 @@
+# J3-UIV — aceite operacional ingestão pela UI
+e2e/j3-uiv-acceptance.spec.ts

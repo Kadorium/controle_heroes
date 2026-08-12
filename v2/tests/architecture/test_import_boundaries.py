@@ -142,3 +142,27 @@ def test_no_cycles_in_allowed_graph():
 
     for n in ALLOWED_DEPS:
         dfs(n)
+
+
+def test_billing_reporting_do_not_depend_on_customs():
+    """J5-C1 Opção B: AP não resolve process via join Customs (H-CLOSE-2)."""
+    assert "customs" not in ALLOWED_DEPS.get("billing", frozenset())
+    assert "customs" not in ALLOWED_DEPS.get("reporting", frozenset())
+    violations = []
+    for mod in ("billing", "reporting"):
+        root = APP_ROOT / mod
+        for path in _iter_py_files(root):
+            for name in _imports(path):
+                if name == "app.customs" or name.startswith("app.customs."):
+                    violations.append(f"{path}: {name}")
+    assert not violations, "\n".join(violations)
+
+
+def test_customs_public_funding_lookup_route_exists():
+    """GET /api/customs/funding-requests/{id} must stay owner Customs."""
+    text = (APP_ROOT / "customs" / "funding_routes.py").read_text(encoding="utf-8")
+    assert '/customs/funding-requests/{funding_id}' in text
+    assert "get_funding_request" in text
+    bill = (APP_ROOT / "billing" / "queries.py").read_text(encoding="utf-8")
+    assert "import_process_id" not in bill
+    assert "source_id" in bill

@@ -41,8 +41,9 @@ function canReadReporting(user: User) {
   return (user.permissions ?? []).includes("reporting:read");
 }
 
-function kpiMoney(value: string | number | null | undefined, currency = "EUR") {
+function kpiMoney(value: string | number | null | undefined, currency: string) {
   if (value === null || value === undefined || value === "" || value === "—") return "—";
+  if (!currency) return "—";
   return formatMoney(value, currency);
 }
 
@@ -251,6 +252,8 @@ export function ApQueuePage({ user }: Props) {
   }
 
   const kpis = data?.kpis ?? {};
+  const byCurrency = kpis.kpis_by_currency ?? [];
+  const unallocByCurrency = kpis.unallocated_by_currency ?? [];
   const singleSupplierContext = uniqueSuppliers.length === 1 ? uniqueSuppliers[0] : null;
 
   const invoiceLabel = (number: unknown) => {
@@ -293,42 +296,77 @@ export function ApQueuePage({ user }: Props) {
         }
       />
       {error ? <ErrorState message={error} onRetry={load} /> : null}
-      <KpiStrip
-        items={[
-          {
-            label: "Vencido",
-            value: kpiMoney(kpis.overdue_balance),
-            hint: `${kpis.overdue_count ?? 0} títulos`,
-            "data-testid": "kpi-overdue",
-            onClick: () => setDuePreset("overdue"),
-          },
-          {
-            label: "Hoje",
-            value: kpiMoney(kpis.due_today_balance),
-            "data-testid": "kpi-today",
-            onClick: () => setDuePreset("today"),
-          },
-          {
-            label: "Próx. 7d",
-            value: kpiMoney(kpis.next_7d_balance),
-            "data-testid": "kpi-next7",
-            onClick: () => setDuePreset("next7"),
-          },
-          {
-            label: "Saldo aberto",
-            value: kpiMoney(kpis.open_balance),
-            "data-testid": "kpi-open-balance",
-            onClick: () => setSaldo("OPEN_BALANCE"),
-          },
-          {
-            label: "Pagamentos com residual",
-            value: kpiMoney(kpis.unallocated_candidates_total),
-            hint: "Abre Pagamentos com residual",
-            "data-testid": "kpi-unallocated",
-            onClick: () => navigate("/payments?unallocated_only=1"),
-          },
-        ]}
-      />
+      {byCurrency.length === 0 ? (
+        <KpiStrip
+          items={[
+            {
+              label: "Títulos",
+              value: String(kpis.total_count ?? 0),
+              "data-testid": "kpi-total-count",
+            },
+          ]}
+        />
+      ) : (
+        byCurrency.map((entry) => (
+          <KpiStrip
+            key={entry.currency}
+            items={[
+              {
+                label: `Vencido (${entry.currency})`,
+                value: kpiMoney(entry.overdue_balance, entry.currency),
+                hint: `${entry.overdue_count ?? 0} títulos`,
+                "data-testid": `kpi-overdue-${entry.currency}`,
+                onClick: () => {
+                  setFilter("currency", entry.currency);
+                  setDuePreset("overdue");
+                },
+              },
+              {
+                label: `Hoje (${entry.currency})`,
+                value: kpiMoney(entry.due_today_balance, entry.currency),
+                "data-testid": `kpi-today-${entry.currency}`,
+                onClick: () => {
+                  setFilter("currency", entry.currency);
+                  setDuePreset("today");
+                },
+              },
+              {
+                label: `Próx. 7d (${entry.currency})`,
+                value: kpiMoney(entry.next_7d_balance, entry.currency),
+                "data-testid": `kpi-next7-${entry.currency}`,
+                onClick: () => {
+                  setFilter("currency", entry.currency);
+                  setDuePreset("next7");
+                },
+              },
+              {
+                label: `Saldo aberto (${entry.currency})`,
+                value: kpiMoney(entry.open_balance, entry.currency),
+                "data-testid": `kpi-open-balance-${entry.currency}`,
+                onClick: () => {
+                  setFilter("currency", entry.currency);
+                  setSaldo("OPEN_BALANCE");
+                },
+              },
+              ...(unallocByCurrency
+                .filter((u) => u.currency === entry.currency)
+                .map((u) => ({
+                  label: `Crédito em aberto (${u.currency})`,
+                  value: kpiMoney(u.unallocated_candidates_total, u.currency),
+                  hint: "Abre Pagamentos realizados com crédito em aberto",
+                  "data-testid": `kpi-unallocated-${u.currency}`,
+                  onClick: () => navigate("/payments?unallocated_only=1"),
+                })) as Array<{
+                  label: string;
+                  value: string;
+                  hint?: string;
+                  "data-testid"?: string;
+                  onClick?: () => void;
+                }>),
+            ]}
+          />
+        ))
+      )}
       <div className="queue-shell">
         <FilterBar
           primary={
@@ -545,21 +583,50 @@ export function ApQueuePage({ user }: Props) {
             />
             <SectionCard title="Ações">
               <div className="stack-row stack-row--wrap">
-                <RowLink to={`/invoices/${selected.invoice_id}`}>Abrir fatura</RowLink>
-                <RowLink to={`/orders/${selected.order_id}`}>Cockpit do pedido</RowLink>
-                <RowLink to={`/payables/${selected.id}/fx`}>Câmbio da obrigação</RowLink>
-                <RowLink
-                  to={`/payments/new?${new URLSearchParams({
-                    supplier_id: String(selected.supplier_id ?? ""),
-                    payable_id: String(selected.id ?? ""),
-                    amount: String(selected.balance ?? ""),
-                    currency: String(selected.currency ?? ""),
-                    ...(selected.order_id != null ? { order_id: String(selected.order_id) } : {}),
-                  }).toString()}`}
-                  data-testid="ap-g02-new-payment"
-                >
-                  Novo pagamento
-                </RowLink>
+                {selected.source_type === "CUSTOMS_FUNDING" ? (
+                  <>
+                    {selected.source_id != null ? (
+                      <RowLink
+                        to={`/customs/funding/${selected.source_id}`}
+                        data-testid="ap-open-numerario"
+                      >
+                        Abrir Numerário / processo
+                      </RowLink>
+                    ) : null}
+                    <p className="muted" data-testid="ap-customs-settlement-notice">
+                      Obrigação registrada (Numerário) — liquidação via Payment não suportada
+                      nesta versão.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    {selected.invoice_id != null ? (
+                      <RowLink to={`/invoices/${selected.invoice_id}`}>Abrir fatura</RowLink>
+                    ) : null}
+                    {selected.order_id != null ? (
+                      <RowLink to={`/orders/${selected.order_id}`}>Cockpit do pedido</RowLink>
+                    ) : null}
+                    {selected.currency && selected.currency !== "BRL" ? (
+                      <RowLink to={`/payables/${selected.id}/fx`}>Câmbio da obrigação</RowLink>
+                    ) : null}
+                    {selected.supplier_id != null ? (
+                      <RowLink
+                        to={`/payments/new?${new URLSearchParams({
+                          supplier_id: String(selected.supplier_id ?? ""),
+                          payable_id: String(selected.id ?? ""),
+                          amount: String(selected.balance ?? ""),
+                          currency: String(selected.currency ?? ""),
+                          ...(selected.order_id != null
+                            ? { order_id: String(selected.order_id) }
+                            : {}),
+                        }).toString()}`}
+                        data-testid="ap-g02-new-payment"
+                      >
+                        Novo pagamento
+                      </RowLink>
+                    ) : null}
+                  </>
+                )}
               </div>
             </SectionCard>
           </div>

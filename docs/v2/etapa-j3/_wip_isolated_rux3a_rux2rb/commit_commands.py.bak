@@ -1,0 +1,1052 @@
+"""Ingestion commit commands — J3-I3.
+
+Preview: computa digest das operações que SERIAM executadas (sem escrever owners).
+Commit: promove Document + cria Order DRAFT via APIs públicas + ledger idempotente.
+
+Dual-auth: ingestion:commit + orders:write (checado na route antes de chamar aqui).
+
+Modelo B (DEF-RUX-TX-01): cada op owner em savepoint; ledger fora; route faz uow.commit().
+
+Regras de idempotência:
+- Mesmo operation_key + mesmo fingerprint + SUCCEEDED/FAILED → retorna attempt existente.
+- Mesmo operation_key + mesmo fingerprint + PARTIAL/UNKNOWN → resume FAILED/UNKNOWN.
+- Mesmo operation_key + fingerprint diferente → CommitConflictFingerprint (409).
+- PARTIAL honesto: SUCCEEDED persistido + FAILED → PARTIAL (nunca FAILED com sucesso prévio).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from dataclasses import dataclass, field
+from datetime import date
+from decimal import Decimal
+from pathlib import Path
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.audit import public as audit_public
+from app.catalog import public as catalog_public
+from app.documents import public as documents_public
+from app.ingestion.commit_models import IngestionCommitAttempt, IngestionCommitOperation
+from app.ingestion.errors import IngestionError
+from app.ingestion.ir_models import IngestionDocument, IngestionField, IngestionRow
+from app.ingestion.staging_queries import get_document_detail
+from app.orders import public as orders_public
+from app.ingestion import storage as quarantine_storage
+
+
+# ---------------------------------------------------------------------------
+# Errors
+# ---------------------------------------------------------------------------
+
+class CommitConflictFingerprint(IngestionError):
+    def __init__(self, operation_key: str) -> None:
+        super().__init__(
+            f"operation_key '{operation_key}' já existe com fingerprint diferente — 409",
+            code="commit_conflict_fingerprint",
+        )
+
+
+class CommitBlockedByIssues(IngestionError):
+    def __init__(self, count: int) -> None:
+        super().__init__(
+            f"{count} issue(s) OPEN com severity ERROR bloqueiam o commit",
+            code="commit_blocked_by_issues",
+        )
+
+
+class CommitAttemptNotFound(IngestionError):
+    def __init__(self, attempt_id: int) -> None:
+        super().__init__(
+            f"CommitAttempt {attempt_id} não encontrado",
+            code="commit_attempt_not_found",
+        )
+
+
+class CommitDocumentNotReady(IngestionError):
+    def __init__(self, doc_id: int) -> None:
+        super().__init__(
+            f"Documento {doc_id} não está em status READY para commit",
+            code="commit_document_not_ready",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Fingerprint
+# ---------------------------------------------------------------------------
+
+def _compute_fingerprint(db: Session, document_id: int) -> str:
+    """SHA-256 dos campos/rows efetivos do documento IR."""
+    doc = get_document_detail(db, document_id)
+    canonical: dict = {
+        "doc_type": doc.doc_type,
+        "adapter_id": doc.adapter_id,
+        "adapter_version": doc.adapter_version,
+        "fields": sorted(
+            [
+                {
+                    "key": f.field_key,
+                    "effective": (
+                        f.corrected_value
+                        if f.review_status == "CORRECTED"
+                        else (f.normalized_value or f.raw_value)
+                    ),
+                }
+                for f in (doc.fields or [])
+            ],
+            key=lambda x: x["key"],
+        ),
+        "rows": sorted(
+            [
+                {"index": r.row_index, "key": r.row_key, "cells": r.cells_json}
+                for r in (doc.rows or [])
+            ],
+            key=lambda x: x["index"],
+        ),
+    }
+    payload = json.dumps(canonical, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Helpers to read IR fields
+# ---------------------------------------------------------------------------
+
+def _field_value(doc: IngestionDocument, key: str) -> str | None:
+    for f in doc.fields or []:
+        if f.field_key == key:
+            if f.review_status == "CORRECTED":
+                return f.corrected_value
+            return f.normalized_value or f.raw_value
+    return None
+
+
+def _row_cells(row: IngestionRow) -> dict:
+    try:
+        return json.loads(row.cells_json or "{}")
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
+def _cell_value(cells: dict, col: str) -> str | None:
+    cell = cells.get(col)
+    if cell is None:
+        return None
+    if isinstance(cell, dict):
+        if cell.get("corrected") is not None:
+            return cell["corrected"]
+        return cell.get("normalized") or cell.get("raw")
+    return str(cell)
+
+
+# ---------------------------------------------------------------------------
+# Preview
+# ---------------------------------------------------------------------------
+
+@dataclass
+class PreviewOperation:
+    op_key: str
+    description: str
+    entity_type: str | None = None
+    params: dict = field(default_factory=dict)
+
+
+@dataclass
+class PreviewResult:
+    document_id: int
+    fingerprint: str
+    operations: list[PreviewOperation]
+    open_error_count: int
+    can_commit: bool
+    can_create_order: bool = False
+    blocking_reasons: list[str] = field(default_factory=list)
+    human_summary: str = ""
+    readiness_derived: bool = False
+
+
+def _pending_create_supplier(doc) -> dict | None:
+    raw = _field_value(doc, "pending_create_supplier")
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if isinstance(data, dict) and data.get("name"):
+        return data
+    return None
+
+
+def _pending_create_product(cells: dict) -> dict | None:
+    raw = _cell_value(cells, "pending_create_product")
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if isinstance(data, dict) and data.get("sku") and data.get("description"):
+        return data
+    return None
+
+
+def preview_commit(db: Session, document_id: int) -> PreviewResult:
+    """Calcula digest e lista de operações sem escrever nada nos owners."""
+    doc = get_document_detail(db, document_id)
+
+    fingerprint = _compute_fingerprint(db, document_id)
+
+    open_errors = sum(
+        1 for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"
+    )
+
+    ops: list[PreviewOperation] = []
+    blocking: list[str] = []
+
+    supplier_id_str = _field_value(doc, "supplier_id_catalog")
+    supplier_id = int(supplier_id_str) if supplier_id_str and supplier_id_str.isdigit() else None
+    pending_supplier = _pending_create_supplier(doc)
+
+    order_number = _field_value(doc, "order_number")
+    order_date_str = _field_value(doc, "order_date")
+    currency = _field_value(doc, "currency") or "EUR"
+
+    ops.append(
+        PreviewOperation(
+            op_key="store_document",
+            description="Promover bytes da quarantine para Documents",
+            entity_type="document",
+            params={"occurrence_id": doc.occurrence_id},
+        )
+    )
+
+    if pending_supplier and not supplier_id:
+        ops.append(
+            PreviewOperation(
+                op_key="create_supplier",
+                description=f"Criar fornecedor '{pending_supplier.get('name')}' no catálogo",
+                entity_type="supplier",
+                params=pending_supplier,
+            )
+        )
+
+    effective_supplier = supplier_id or (True if pending_supplier else None)
+
+    for row in sorted(doc.rows or [], key=lambda r: r.row_index):
+        cells = _row_cells(row)
+        product_id_str = _cell_value(cells, "product_id_catalog")
+        product_id = int(product_id_str) if product_id_str and product_id_str.isdigit() else None
+        pending_prod = _pending_create_product(cells)
+        if pending_prod and not product_id:
+            ops.append(
+                PreviewOperation(
+                    op_key=f"create_product_{row.row_index}",
+                    description=(
+                        f"Criar produto SKU={pending_prod.get('sku')} "
+                        f"para linha {row.row_index}"
+                    ),
+                    entity_type="product",
+                    params={**pending_prod, "row_index": row.row_index},
+                )
+            )
+
+    if effective_supplier and order_number:
+        ops.append(
+            PreviewOperation(
+                op_key="create_order",
+                description=(
+                    f"Criar Order DRAFT code={order_number} "
+                    f"supplier_id={supplier_id or '(após create_supplier)'}"
+                ),
+                entity_type="order",
+                params={
+                    "code": order_number,
+                    "supplier_id": supplier_id,
+                    "currency": currency,
+                    "order_date": order_date_str,
+                    "pending_create_supplier": bool(pending_supplier and not supplier_id),
+                },
+            )
+        )
+        ops.append(
+            PreviewOperation(
+                op_key="link_document",
+                description="Vincular Document à Order",
+                entity_type="document_link",
+                params={"entity_type": "order"},
+            )
+        )
+        for row in sorted(doc.rows or [], key=lambda r: r.row_index):
+            cells = _row_cells(row)
+            sku = _cell_value(cells, "sku")
+            product_id_str = _cell_value(cells, "product_id_catalog")
+            product_id = int(product_id_str) if product_id_str and product_id_str.isdigit() else None
+            pending_prod = _pending_create_product(cells)
+            qty = _cell_value(cells, "quantity")
+            price = _cell_value(cells, "unit_price")
+            unit = _cell_value(cells, "unit")
+            if (product_id or pending_prod) and qty:
+                ops.append(
+                    PreviewOperation(
+                        op_key=f"add_item_{row.row_index}",
+                        description=f"Adicionar item SKU={sku} qty={qty}",
+                        entity_type="order_item",
+                        params={
+                            "product_id": product_id,
+                            "quantity": qty,
+                            "unit_price": price,
+                            "unit": unit,
+                            "pending_create_product": bool(pending_prod and not product_id),
+                        },
+                    )
+                )
+            else:
+                ops.append(
+                    PreviewOperation(
+                        op_key=f"skip_item_{row.row_index}",
+                        description=f"Linha {row.row_index} (SKU={sku}) ignorada: produto não resolvido",
+                        entity_type=None,
+                        params={"sku": sku},
+                    )
+                )
+                blocking.append(f"Produto não resolvido na linha {row.row_index} (SKU={sku})")
+    else:
+        reasons = []
+        if not effective_supplier:
+            reasons.append("supplier_id ausente (vincular ou confirmar criar fornecedor)")
+            blocking.append("Fornecedor não vinculado nem marcado para criar")
+        if not order_number:
+            reasons.append("order_number ausente no IR")
+            blocking.append("Número do pedido ausente")
+        if reasons:
+            if len(reasons) == 1 and not effective_supplier:
+                skip_desc = "Order não criada: fornecedor ausente"
+            elif len(reasons) == 1 and not order_number:
+                skip_desc = "Order não criada: número do pedido ausente"
+            else:
+                skip_desc = "Order não criada: " + "; ".join(reasons)
+            ops.append(
+                PreviewOperation(
+                    op_key="skip_order",
+                    description=skip_desc,
+                    entity_type=None,
+                    params={
+                        "supplier_id": supplier_id,
+                        "order_number": order_number,
+                        "pending_create_supplier": bool(pending_supplier),
+                        "missing_supplier": not bool(effective_supplier),
+                        "missing_order_number": not bool(order_number),
+                    },
+                )
+            )
+
+    has_skip_order = any(o.op_key == "skip_order" for o in ops)
+    has_skip_item = any(o.op_key.startswith("skip_item_") for o in ops)
+    can_create_order = (not has_skip_order) and open_errors == 0 and not has_skip_item
+    readiness_derived = can_create_order
+    can_commit = readiness_derived and open_errors == 0
+
+    if open_errors:
+        blocking.append(f"{open_errors} erro(s) matemáticos/estruturais abertos")
+
+    if can_create_order:
+        human_summary = f"Pronto para criar pedido rascunho {order_number}."
+    elif has_skip_order:
+        missing_supplier = not bool(effective_supplier)
+        missing_number = not bool(order_number)
+        if missing_supplier and missing_number:
+            human_summary = "Pedido não será criado até resolver fornecedor e número."
+        elif missing_supplier:
+            human_summary = "Pedido não será criado até resolver o fornecedor."
+        else:
+            human_summary = "Pedido não será criado até informar o número do pedido."
+    else:
+        human_summary = "Há linhas sem produto — vincule ou confirme criar produto."
+
+    return PreviewResult(
+        document_id=document_id,
+        fingerprint=fingerprint,
+        operations=ops,
+        open_error_count=open_errors,
+        can_commit=can_commit,
+        can_create_order=can_create_order,
+        blocking_reasons=blocking,
+        human_summary=human_summary,
+        readiness_derived=readiness_derived,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Commit
+# ---------------------------------------------------------------------------
+
+def _ledger_by_key(
+    db: Session, attempt: IngestionCommitAttempt
+) -> dict[str, IngestionCommitOperation]:
+    ops = (
+        db.query(IngestionCommitOperation)
+        .filter(IngestionCommitOperation.attempt_id == attempt.id)
+        .all()
+    )
+    return {op.op_key: op for op in ops}
+
+
+def _should_run_op(ledger: dict[str, IngestionCommitOperation], op_key: str) -> bool:
+    op = ledger.get(op_key)
+    if op is None:
+        return True
+    return op.status in ("FAILED", "UNKNOWN")
+
+
+def _entity_id_from_ledger(
+    ledger: dict[str, IngestionCommitOperation], op_key: str
+) -> int | None:
+    op = ledger.get(op_key)
+    if op and op.status == "SUCCEEDED" and op.entity_id:
+        try:
+            return int(op.entity_id)
+        except ValueError:
+            return None
+    return None
+
+
+def _compute_attempt_status(
+    *, succeeded: list[str], failed: list[str], unknown: list[str]
+) -> str:
+    if unknown:
+        return "UNKNOWN"
+    if failed and succeeded:
+        return "PARTIAL"
+    if failed:
+        return "FAILED"
+    return "SUCCEEDED"
+
+
+def _record_op(
+    db: Session,
+    attempt: IngestionCommitAttempt,
+    op_key: str,
+    *,
+    status: str,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
+    error_message: str | None = None,
+    details_json: str | None = None,
+) -> IngestionCommitOperation:
+    existing = (
+        db.query(IngestionCommitOperation)
+        .filter(
+            IngestionCommitOperation.attempt_id == attempt.id,
+            IngestionCommitOperation.op_key == op_key,
+        )
+        .first()
+    )
+    if existing is not None:
+        existing.status = status
+        existing.entity_type = entity_type
+        existing.entity_id = entity_id
+        existing.error_message = error_message
+        existing.details_json = details_json
+        db.flush()
+        return existing
+    op = IngestionCommitOperation(
+        attempt_id=attempt.id,
+        op_key=op_key,
+        status=status,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        error_message=error_message,
+        details_json=details_json,
+    )
+    db.add(op)
+    db.flush()
+    return op
+
+
+def _track_op_result(
+    op_key: str,
+    status: str,
+    *,
+    succeeded_ops: list[str],
+    failed_ops: list[str],
+    unknown_ops: list[str],
+) -> None:
+    for bucket, key in (
+        (succeeded_ops, "SUCCEEDED"),
+        (failed_ops, "FAILED"),
+        (unknown_ops, "UNKNOWN"),
+    ):
+        if key == status:
+            if op_key not in bucket:
+                bucket.append(op_key)
+        elif op_key in bucket:
+            bucket.remove(op_key)
+
+
+def execute_commit(
+    db: Session,
+    *,
+    document_id: int,
+    operation_key: str,
+    actor_id: str,
+    attachments_path: Path,
+    quarantine_path: Path,
+) -> IngestionCommitAttempt:
+    """Executa commit idempotente: promote document + create Order DRAFT.
+
+    Modelo B: cada operação owner roda em savepoint (``db.begin_nested()``).
+    Ledger fora do savepoint; ``uow.commit()`` na route persiste o lote.
+
+    - Mesma operation_key + mesmo fingerprint + SUCCEEDED/FAILED → attempt existente.
+    - Mesma operation_key + mesmo fingerprint + PARTIAL/UNKNOWN → resume FAILED/UNKNOWN.
+    - Mesma operation_key + fingerprint diferente → CommitConflictFingerprint.
+    - PARTIAL honesto: qualquer SUCCEEDED persistido + qualquer FAILED → PARTIAL.
+    """
+    from app.ingestion.models import IngestionOccurrence
+
+    doc = get_document_detail(db, document_id)
+
+    open_errors = [i for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"]
+    if open_errors:
+        raise CommitBlockedByIssues(len(open_errors))
+
+    preview = preview_commit(db, document_id)
+    if not preview.readiness_derived or not preview.can_commit:
+        raise CommitDocumentNotReady(document_id)
+
+    fingerprint = _compute_fingerprint(db, document_id)
+
+    existing = (
+        db.query(IngestionCommitAttempt)
+        .filter(IngestionCommitAttempt.operation_key == operation_key)
+        .first()
+    )
+    if existing is not None:
+        if existing.payload_fingerprint != fingerprint:
+            raise CommitConflictFingerprint(operation_key)
+        if existing.status in ("SUCCEEDED", "FAILED"):
+            return existing
+        attempt = existing
+    else:
+        attempt = IngestionCommitAttempt(
+            document_id=document_id,
+            operation_key=operation_key,
+            payload_fingerprint=fingerprint,
+            status="UNKNOWN",
+            actor_id=actor_id,
+        )
+        try:
+            db.add(attempt)
+            db.flush()
+        except IntegrityError:
+            db.rollback()
+            existing = (
+                db.query(IngestionCommitAttempt)
+                .filter(IngestionCommitAttempt.operation_key == operation_key)
+                .first()
+            )
+            if existing is None:
+                raise CommitConflictFingerprint(operation_key)
+            if existing.payload_fingerprint != fingerprint:
+                raise CommitConflictFingerprint(operation_key)
+            if existing.status in ("SUCCEEDED", "FAILED"):
+                return existing
+            attempt = existing
+
+    ledger = _ledger_by_key(db, attempt)
+    succeeded_ops = [op.op_key for op in ledger.values() if op.status == "SUCCEEDED"]
+    failed_ops = [op.op_key for op in ledger.values() if op.status == "FAILED"]
+    unknown_ops = [op.op_key for op in ledger.values() if op.status == "UNKNOWN"]
+
+    promoted_doc_id: int | None = _entity_id_from_ledger(ledger, "store_document")
+    order_id: int | None = _entity_id_from_ledger(ledger, "create_order")
+    order_version: int = 1
+    if order_id is not None:
+        create_order_op = ledger.get("create_order")
+        if create_order_op and create_order_op.details_json:
+            try:
+                order_version = int(
+                    json.loads(create_order_op.details_json).get("version", 1)
+                )
+            except (json.JSONDecodeError, TypeError, ValueError):
+                order_version = 1
+
+    row_product_ids: dict[int, int] = {}
+    for op_key, op in ledger.items():
+        if op.status == "SUCCEEDED" and op_key.startswith("create_product_"):
+            try:
+                row_index = int(op_key.rsplit("_", 1)[-1])
+                if op.entity_id:
+                    row_product_ids[row_index] = int(op.entity_id)
+            except ValueError:
+                pass
+
+    # --- Op 1: store_document ---
+    if _should_run_op(ledger, "store_document"):
+        promoted_staging = None
+        try:
+            occ = db.get(IngestionOccurrence, doc.occurrence_id)
+            if occ is None or occ.blob is None or occ.blob.physical_status != "PRESENT":
+                raise ValueError("Blob não disponível")
+            blob_path = quarantine_storage.resolve_quarantine_path(
+                quarantine_path, occ.blob.storage_path
+            )
+            if blob_path is None or not blob_path.is_file():
+                raise ValueError("Arquivo de quarantine não encontrado")
+            pdf_bytes = blob_path.read_bytes()
+            with db.begin_nested():
+                promoted_staging = documents_public.store_document(
+                    db,
+                    attachments_path=attachments_path,
+                    actor_id=actor_id,
+                    filename=occ.original_filename or f"ordine_{document_id}.pdf",
+                    content=pdf_bytes,
+                    mime_type=occ.detected_mime or "application/pdf",
+                )
+                promoted_doc_id = promoted_staging.id
+            _record_op(
+                db,
+                attempt,
+                "store_document",
+                status="SUCCEEDED",
+                entity_type="document",
+                entity_id=str(promoted_doc_id),
+            )
+            _track_op_result(
+                "store_document", "SUCCEEDED",
+                succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+            )
+        except Exception as exc:
+            # Filesystem pode ter escrito antes do rollback do savepoint — reconciliar órfão.
+            if promoted_staging is not None:
+                documents_public.delete_stored_file(attachments_path, promoted_staging)
+            _record_op(
+                db,
+                attempt,
+                "store_document",
+                status="FAILED",
+                error_message=str(exc)[:512],
+            )
+            _track_op_result(
+                "store_document", "FAILED",
+                succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+            )
+            attempt.status = _compute_attempt_status(
+                succeeded=succeeded_ops, failed=failed_ops, unknown=unknown_ops
+            )
+            db.flush()
+            audit_public.record_event(
+                db,
+                actor_id=actor_id,
+                entity_type="ingestion_commit_attempt",
+                entity_id=str(attempt.id),
+                action="commit_failed",
+                reason_code="INGEST_COMMIT_FAILED",
+                details=json.dumps({"document_id": document_id, "failed_op": "store_document"}),
+            )
+            return attempt
+
+    supplier_id_str = _field_value(doc, "supplier_id_catalog")
+    supplier_id = (
+        int(supplier_id_str) if supplier_id_str and supplier_id_str.isdigit() else None
+    )
+    pending_supplier = _pending_create_supplier(doc)
+
+    if supplier_id is None:
+        supplier_id = _entity_id_from_ledger(ledger, "create_supplier")
+
+    # --- Op 2: optional create_supplier ---
+    if supplier_id is None and pending_supplier:
+        if _should_run_op(ledger, "create_supplier"):
+            try:
+                with db.begin_nested():
+                    created = catalog_public.create_supplier(
+                        db,
+                        name=str(pending_supplier["name"]),
+                        code=pending_supplier.get("code"),
+                        country_code=pending_supplier.get("country_code") or "IT",
+                        tax_id=pending_supplier.get("tax_id"),
+                    )
+                    supplier_id = created.id
+                _record_op(
+                    db,
+                    attempt,
+                    "create_supplier",
+                    status="SUCCEEDED",
+                    entity_type="supplier",
+                    entity_id=str(supplier_id),
+                    details_json=json.dumps(pending_supplier, ensure_ascii=False),
+                )
+                _track_op_result(
+                    "create_supplier", "SUCCEEDED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+            except Exception as exc:
+                _record_op(
+                    db,
+                    attempt,
+                    "create_supplier",
+                    status="FAILED",
+                    error_message=str(exc)[:512],
+                )
+                _track_op_result(
+                    "create_supplier", "FAILED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+                attempt.status = _compute_attempt_status(
+                    succeeded=succeeded_ops, failed=failed_ops, unknown=unknown_ops
+                )
+                db.flush()
+                audit_public.record_event(
+                    db,
+                    actor_id=actor_id,
+                    entity_type="ingestion_commit_attempt",
+                    entity_id=str(attempt.id),
+                    action="commit_partial" if succeeded_ops else "commit_failed",
+                    reason_code=(
+                        "INGEST_COMMIT_PARTIAL" if succeeded_ops else "INGEST_COMMIT_FAILED"
+                    ),
+                    details=json.dumps(
+                        {"document_id": document_id, "failed_op": "create_supplier"}
+                    ),
+                )
+                return attempt
+
+    # --- Op 3: create_product per row ---
+    for row in sorted(doc.rows or [], key=lambda r: r.row_index):
+        cells = _row_cells(row)
+        product_id_str = _cell_value(cells, "product_id_catalog")
+        product_id = (
+            int(product_id_str) if product_id_str and product_id_str.isdigit() else None
+        )
+        pending_prod = _pending_create_product(cells)
+        if product_id is not None:
+            row_product_ids[row.row_index] = product_id
+        elif pending_prod:
+            op_key = f"create_product_{row.row_index}"
+            if not _should_run_op(ledger, op_key):
+                existing_pid = _entity_id_from_ledger(ledger, op_key)
+                if existing_pid is not None:
+                    row_product_ids[row.row_index] = existing_pid
+                continue
+            try:
+                with db.begin_nested():
+                    sku_raw = str(pending_prod.get("sku") or "").strip()
+                    # Heroes class codes must not become Product.sku
+                    use_as_sku = sku_raw and not (
+                        sku_raw.upper().startswith("I.V")
+                        or sku_raw.upper().startswith("IV.")
+                        or sku_raw.upper().startswith("IV ")
+                    )
+                    created_p = catalog_public.create_product(
+                        db,
+                        sku=sku_raw if use_as_sku else None,
+                        description=str(pending_prod["description"]),
+                    )
+                    row_product_ids[row.row_index] = created_p.id
+                    # Persist hybrid external ref when supplier known
+                    if supplier_id is not None and sku_raw:
+                        catalog_public.upsert_supplier_product_ref(
+                            db,
+                            supplier_id=supplier_id,
+                            product_id=created_p.id,
+                            code_kind="SUPPLIER_CLASS",
+                            match_mode="SUGGEST",
+                            external_code=sku_raw,
+                            external_description=str(pending_prod.get("description") or ""),
+                        )
+                _record_op(
+                    db,
+                    attempt,
+                    op_key,
+                    status="SUCCEEDED",
+                    entity_type="product",
+                    entity_id=str(created_p.id),
+                    details_json=json.dumps(
+                        {**pending_prod, "allocated_sku": created_p.sku},
+                        ensure_ascii=False,
+                    ),
+                )
+                _track_op_result(
+                    op_key, "SUCCEEDED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+            except Exception as exc:
+                _record_op(
+                    db,
+                    attempt,
+                    op_key,
+                    status="FAILED",
+                    error_message=str(exc)[:512],
+                )
+                _track_op_result(
+                    op_key, "FAILED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+                attempt.status = _compute_attempt_status(
+                    succeeded=succeeded_ops, failed=failed_ops, unknown=unknown_ops
+                )
+                db.flush()
+                audit_public.record_event(
+                    db,
+                    actor_id=actor_id,
+                    entity_type="ingestion_commit_attempt",
+                    entity_id=str(attempt.id),
+                    action="commit_partial" if succeeded_ops else "commit_failed",
+                    reason_code=(
+                        "INGEST_COMMIT_PARTIAL" if succeeded_ops else "INGEST_COMMIT_FAILED"
+                    ),
+                    details=json.dumps({"document_id": document_id, "failed_op": op_key}),
+                )
+                return attempt
+
+    order_number = _field_value(doc, "order_number")
+    currency = _field_value(doc, "currency") or "EUR"
+    order_date_str = _field_value(doc, "order_date")
+    order_date = None
+    if order_date_str:
+        try:
+            order_date = date.fromisoformat(order_date_str)
+        except ValueError:
+            order_date = None
+
+    # --- Op 4: create_order ---
+    if order_id is None:
+        if supplier_id is None or not order_number:
+                reasons = []
+                if supplier_id is None:
+                    reasons.append("supplier_id ausente")
+                if not order_number:
+                    reasons.append("order_number ausente")
+                if supplier_id is None and not order_number:
+                    skip_reason = "fornecedor e número ausentes"
+                elif supplier_id is None:
+                    skip_reason = "fornecedor ausente"
+                else:
+                    skip_reason = "número do pedido ausente"
+                if not _should_run_op(ledger, "create_order"):
+                    pass
+                else:
+                    _record_op(
+                        db,
+                        attempt,
+                        "create_order",
+                        status="SKIPPED",
+                        details_json=json.dumps(
+                            {
+                                "reason": skip_reason,
+                                "supplier_id": supplier_id,
+                                "order_number": order_number,
+                                "detail_codes": reasons,
+                            }
+                        ),
+                    )
+        elif _should_run_op(ledger, "create_order"):
+            try:
+                with db.begin_nested():
+                    order = orders_public.create_order(
+                        db,
+                        code=f"ING-{order_number}",
+                        supplier_id=supplier_id,
+                        created_by_actor_id=actor_id,
+                        currency=currency,
+                        order_date=order_date,
+                        source_system="INGESTION",
+                        notes=f"Criada via ingestão — documento IR {document_id}",
+                        external_ref=order_number,
+                    )
+                    order_id = order.id
+                    order_version = order.version
+                _record_op(
+                    db,
+                    attempt,
+                    "create_order",
+                    status="SUCCEEDED",
+                    entity_type="order",
+                    entity_id=str(order_id),
+                    details_json=json.dumps({"code": order.code, "version": order_version}),
+                )
+                _track_op_result(
+                    "create_order", "SUCCEEDED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+            except Exception as exc:
+                _record_op(
+                    db,
+                    attempt,
+                    "create_order",
+                    status="FAILED",
+                    error_message=str(exc)[:512],
+                )
+                _track_op_result(
+                    "create_order", "FAILED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+                attempt.status = _compute_attempt_status(
+                    succeeded=succeeded_ops, failed=failed_ops, unknown=unknown_ops
+                )
+                db.flush()
+                audit_public.record_event(
+                    db,
+                    actor_id=actor_id,
+                    entity_type="ingestion_commit_attempt",
+                    entity_id=str(attempt.id),
+                    action="commit_partial" if succeeded_ops else "commit_failed",
+                    reason_code=(
+                        "INGEST_COMMIT_PARTIAL" if succeeded_ops else "INGEST_COMMIT_FAILED"
+                    ),
+                    details=json.dumps({"document_id": document_id, "failed_op": "create_order"}),
+                )
+                return attempt
+
+    # --- Op 5: link_document ---
+    if promoted_doc_id is not None and order_id is not None and _should_run_op(ledger, "link_document"):
+        try:
+            with db.begin_nested():
+                documents_public.link_document(
+                    db,
+                    document_id=promoted_doc_id,
+                    entity_type="order",
+                    entity_id=str(order_id),
+                    role="source",
+                )
+            _record_op(
+                db,
+                attempt,
+                "link_document",
+                status="SUCCEEDED",
+                entity_type="document_link",
+                entity_id=f"{promoted_doc_id}→order:{order_id}",
+            )
+            _track_op_result(
+                "link_document", "SUCCEEDED",
+                succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+            )
+        except Exception as exc:
+            _record_op(
+                db,
+                attempt,
+                "link_document",
+                status="FAILED",
+                error_message=str(exc)[:512],
+            )
+            _track_op_result(
+                "link_document", "FAILED",
+                succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+            )
+
+    # --- Op 6+: add_items (best-effort) ---
+    if order_id is not None:
+        refreshed = orders_public.get_order(db, order_id)
+        if refreshed:
+            order_version = refreshed.version
+        for row in sorted(doc.rows or [], key=lambda r: r.row_index):
+            cells = _row_cells(row)
+            sku = _cell_value(cells, "sku") or f"row_{row.row_index}"
+            product_id = row_product_ids.get(row.row_index)
+            if product_id is None:
+                product_id_str = _cell_value(cells, "product_id_catalog")
+                product_id = (
+                    int(product_id_str) if product_id_str and product_id_str.isdigit() else None
+                )
+            qty_str = _cell_value(cells, "quantity")
+            price_str = _cell_value(cells, "unit_price")
+            unit = _cell_value(cells, "unit")
+            op_key = f"add_item_{row.row_index}"
+
+            if product_id is None or not qty_str:
+                if _should_run_op(ledger, op_key):
+                    _record_op(
+                        db,
+                        attempt,
+                        op_key,
+                        status="SKIPPED",
+                        details_json=json.dumps(
+                            {"reason": "product_id não resolvido ou qty ausente", "sku": sku}
+                        ),
+                    )
+                continue
+
+            if not _should_run_op(ledger, op_key):
+                continue
+
+            try:
+                with db.begin_nested():
+                    orders_public.add_item(
+                        db,
+                        order_id,
+                        expected_version=order_version,
+                        product_id=product_id,
+                        quantity=qty_str,
+                        unit_price=price_str,
+                        unit=unit,
+                    )
+                    refreshed = orders_public.get_order(db, order_id)
+                    if refreshed:
+                        order_version = refreshed.version
+                _record_op(
+                    db,
+                    attempt,
+                    op_key,
+                    status="SUCCEEDED",
+                    entity_type="order_item",
+                    details_json=json.dumps({"sku": sku, "product_id": product_id}),
+                )
+                _track_op_result(
+                    op_key, "SUCCEEDED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+            except Exception as exc:
+                _record_op(
+                    db,
+                    attempt,
+                    op_key,
+                    status="FAILED",
+                    error_message=str(exc)[:512],
+                    details_json=json.dumps({"sku": sku}),
+                )
+                _track_op_result(
+                    op_key, "FAILED",
+                    succeeded_ops=succeeded_ops, failed_ops=failed_ops, unknown_ops=unknown_ops,
+                )
+
+    # --- best-effort: link ingestion IR to promoted document ---
+    if promoted_doc_id is not None:
+        try:
+            with db.begin_nested():
+                documents_public.link_document(
+                    db,
+                    document_id=promoted_doc_id,
+                    entity_type="ingestion_document",
+                    entity_id=str(document_id),
+                    role="ingestion_ir",
+                )
+        except Exception:
+            pass
+
+    attempt.status = _compute_attempt_status(
+        succeeded=succeeded_ops, failed=failed_ops, unknown=unknown_ops
+    )
+    db.flush()
+
+    audit_public.record_event(
+        db,
+        actor_id=actor_id,
+        entity_type="ingestion_commit_attempt",
+        entity_id=str(attempt.id),
+        action="commit_completed",
+        reason_code="INGEST_COMMIT_DONE",
+        details=json.dumps(
+            {
+                "document_id": document_id,
+                "status": attempt.status,
+                "succeeded_ops": succeeded_ops,
+                "failed_ops": failed_ops,
+                "order_id": order_id,
+                "promoted_doc_id": promoted_doc_id,
+            }
+        ),
+    )
+    return attempt

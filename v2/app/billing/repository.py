@@ -65,7 +65,9 @@ def list_payables(
     offset: int = 0,
 ) -> list[Payable]:
     # outerjoin: payables Customs (invoice_id NULL) aparecem na listagem geral
-    q = db.query(Payable).outerjoin(Invoice, Invoice.id == Payable.invoice_id)
+    q = db.query(Payable).options(joinedload(Payable.invoice)).outerjoin(
+        Invoice, Invoice.id == Payable.invoice_id
+    )
     if order_id is not None:
         q = q.filter(Invoice.order_id == order_id)
     if invoice_id is not None:
@@ -110,7 +112,12 @@ def get_payable_for_update(db: Session, payable_id: int) -> Payable | None:
 
 
 def get_payable(db: Session, payable_id: int) -> Payable | None:
-    return db.query(Payable).filter(Payable.id == payable_id).first()
+    return (
+        db.query(Payable)
+        .options(joinedload(Payable.invoice))
+        .filter(Payable.id == payable_id)
+        .first()
+    )
 
 
 

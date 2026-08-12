@@ -14,6 +14,7 @@ import {
 } from "../../ui";
 import { buildReturnTo } from "../../navigation/returnState";
 import { PayableFxPanel } from "./FxPanels";
+import { PayableOrderCreditPanel } from "./PayableOrderCreditPanel";
 import { canReadFx } from "./fxApi";
 
 type Props = { user: User };
@@ -85,9 +86,30 @@ export function PayableFxPage({ user }: Props) {
                 label: "Status",
                 value: <StatusBadge status={row.status} entity="payable" />,
               },
+              {
+                label: "Banco",
+                value: row.destination_bank || "—",
+              },
+              {
+                label: "IBAN",
+                value: (
+                  <span data-testid="payable-destination-iban">
+                    {row.destination_iban || "—"}
+                  </span>
+                ),
+              },
             ]}
           />
         </div>
+      ) : null}
+      {row ? (
+        <PayableOrderCreditPanel
+          user={user}
+          payable={row}
+          onApplied={() => {
+            void getPayable(id).then(setRow);
+          }}
+        />
       ) : null}
       <div className="fx-shell">
         <PayableFxPanel user={user} payableId={id} />

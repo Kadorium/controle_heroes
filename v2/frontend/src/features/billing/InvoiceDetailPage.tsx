@@ -92,11 +92,22 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
     }
   }
 
+  const hasBillable = qtys.some((q) => Boolean(q.billable));
+  const onlyCommitment = qtys.length > 0 && !hasBillable;
+
   return (
     <SectionCard title="Faturas" data-testid="order-invoices">
       {error ? (
         <Notice tone="danger" data-testid="order-invoices-error">
           {error}
+        </Notice>
+      ) : null}
+
+      {onlyCommitment ? (
+        <Notice tone="info" data-testid="order-invoices-commitment-notice">
+          Este pedido só tem linhas de compromisso (artigos ainda sem SKU final). As
+          faturas destes itens entram pela importação da Fattura do fornecedor — os
+          produtos reais chegam por ali. Não é possível criar fatura manual aqui.
         </Notice>
       ) : null}
 
@@ -111,14 +122,25 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
             </tr>
           </thead>
           <tbody>
-            {qtys.map((q) => (
-              <tr key={q.order_item_id}>
-                <td>#{q.order_item_id}</td>
-                <td className="num">{formatQuantity(q.ordered_qty)}</td>
-                <td className="num">{formatQuantity(q.issued_qty)}</td>
-                <td className="num">{formatQuantity(q.available_qty)}</td>
-              </tr>
-            ))}
+            {qtys.map((q) => {
+              const billable = Boolean(q.billable);
+              const label = (q.description || "").trim() || `Item #${q.order_item_id}`;
+              return (
+                <tr key={q.order_item_id}>
+                  <td>
+                    {label}
+                    {!billable ? (
+                      <span className="muted"> · compromisso</span>
+                    ) : null}
+                  </td>
+                  <td className="num">{formatQuantity(q.ordered_qty)}</td>
+                  <td className="num">{formatQuantity(q.issued_qty)}</td>
+                  <td className="num" data-testid={`qty-available-${q.order_item_id}`}>
+                    {billable ? formatQuantity(q.available_qty) : "—"}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </OperationalTable>
       ) : null}
@@ -152,7 +174,7 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
         </OperationalTable>
       )}
 
-      {orderStatus === "CONFIRMED" && canWrite ? (
+      {orderStatus === "CONFIRMED" && canWrite && hasBillable ? (
         <div className="stack-row form-inline">
           <TextInput
             data-testid="new-invoice-number"
@@ -192,11 +214,11 @@ export function InvoiceDetailPage({ user }: Props) {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [issueWithoutDoc, setIssueWithoutDoc] = useState(false);
   const [withoutDocReason, setWithoutDocReason] = useState("DOC_OVERRIDE_UI");
-  const [termMode, setTermMode] = useState<"PERCENT" | "AMOUNT">("PERCENT");
+  const [termMode, setTermMode] = useState<"PERCENT" | "AMOUNT">("AMOUNT");
   const [headerDate, setHeaderDate] = useState("");
   const [terms, setTermsLocal] = useState<{ due_date: string; percent: string; amount: string }[]>([
-    { due_date: "", percent: "30", amount: "" },
-    { due_date: "", percent: "70", amount: "" },
+    { due_date: "", percent: "", amount: "" },
+    { due_date: "", percent: "", amount: "" },
   ]);
   const invoicesReturn = buildReturnTo("/invoices");
   async function reload() {
@@ -526,6 +548,16 @@ export function InvoiceDetailPage({ user }: Props) {
         </Notice>
       ) : null}
 
+      {inv.notes?.includes("Divergência de preço") ? (
+        <Notice tone="warning" title="Divergência de preço" data-testid="invoice-price-divergence">
+          <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{inv.notes}</p>
+        </Notice>
+      ) : inv.notes ? (
+        <p className="muted" data-testid="invoice-notes">
+          {inv.notes}
+        </p>
+      ) : null}
+
       <SectionCard
         title="Itens"
         actions={
@@ -741,11 +773,16 @@ export function InvoiceDetailPage({ user }: Props) {
               <SelectField
                 data-testid="terms-mode"
                 value={termMode}
+                disabled={Boolean(inv.terms_from_document)}
                 onChange={(e) => setTermMode(e.target.value as "PERCENT" | "AMOUNT")}
-                options={[
-                  { value: "PERCENT", label: "Percentual" },
-                  { value: "AMOUNT", label: "Valor" },
-                ]}
+                options={
+                  inv.terms_from_document
+                    ? [{ value: "AMOUNT", label: "Valor" }]
+                    : [
+                        { value: "AMOUNT", label: "Valor" },
+                        { value: "PERCENT", label: "Percentual" },
+                      ]
+                }
               />
             </label>
           </div>
@@ -759,6 +796,12 @@ export function InvoiceDetailPage({ user }: Props) {
                 : inv.terms_mode}
           </p>
         )}
+        {inv.terms_from_document ? (
+          <Notice tone="info" data-testid="terms-from-document">
+            Scadenze literais do documento (valores impressos). Percentual recalcularia e ignora
+            esses valores — bloqueado nesta fatura.
+          </Notice>
+        ) : null}
 
         <OperationalTable density="standard">
           <thead>

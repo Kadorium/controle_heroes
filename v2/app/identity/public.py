@@ -45,6 +45,10 @@ ADMIN_PERMISSIONS = [
     "inventory:read",
     "inventory:write",
     "inventory:adjust",
+    "ingestion:read",
+    "ingestion:write",
+    "ingestion:commit",
+    "ingestion:purge",
 ]
 
 COMPRADOR_PERMISSIONS = [
@@ -67,6 +71,8 @@ COMPRADOR_PERMISSIONS = [
     "logistics:read",
     "customs:read",
     "inventory:read",
+    "ingestion:read",
+    "ingestion:write",
 ]
 
 # Papel operacional Aduana (I5-5) — sem usuário seed em epic_v2.

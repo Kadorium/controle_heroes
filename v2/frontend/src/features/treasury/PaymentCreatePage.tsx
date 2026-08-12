@@ -91,6 +91,7 @@ export function PaymentCreatePage({ user }: Props) {
           external_reference: ref || undefined,
           register_without_document: true,
           reason_code: withoutDocReason.trim(),
+          order_id: g02.order_id ? Number(g02.order_id) : undefined,
         });
         nav(`/payments/${pay.id}`);
         return;
@@ -102,6 +103,7 @@ export function PaymentCreatePage({ user }: Props) {
       form.append("currency", currency || "EUR");
       form.append("payment_date", date);
       if (ref) form.append("external_reference", ref);
+      if (g02.order_id) form.append("order_id", g02.order_id);
       form.append("file", file);
       const pay = await registerPaymentWithFile(form);
       nav(`/payments/${pay.id}`);
@@ -128,7 +130,7 @@ export function PaymentCreatePage({ user }: Props) {
       <ContextBreadcrumb
         items={[
           { label: "Financeiro", to: paymentsReturn },
-          { label: "Pagamentos", to: paymentsReturn },
+          { label: "Pagamentos realizados", to: paymentsReturn },
           { label: "Novo pagamento" },
         ]}
       />

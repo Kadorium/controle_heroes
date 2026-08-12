@@ -249,6 +249,37 @@ def test_stale_quote_still_calculates(admin_client, db):
     assert Decimal(view["online_result_vs_current"]) == Decimal("-250.00")  # 1000*(6-6.25)
 
 
+def test_quote_for_date_exact_day_or_missing(admin_client, db):
+    """FIN-1C-FIX-2 V3 — cotação do dia; sem vizinho inventado."""
+    from datetime import date, datetime, timezone
+
+    from app.treasury import fx_commands as fx
+
+    fx.persist_market_quote(
+        db,
+        foreign_currency="EUR",
+        rate="5.770000",
+        source="TEST_FIX2",
+        observed_at=datetime(2026, 8, 5, 12, 0, tzinfo=timezone.utc),
+    )
+    db.commit()
+
+    c = admin_client
+    hit = c.get("/api/fx/quotes/for-date", params={"as_of": "2026-08-05", "foreign": "EUR"})
+    assert hit.status_code == 200, hit.text
+    body = hit.json()
+    assert body["status"] != "missing"
+    assert body["rate"] is not None
+    assert body["as_of"] == "2026-08-05"
+
+    miss = c.get("/api/fx/quotes/for-date", params={"as_of": "2026-01-01", "foreign": "EUR"})
+    assert miss.status_code == 200, miss.text
+    empty = miss.json()
+    assert empty["status"] == "missing"
+    assert empty["rate"] is None
+    assert "Sem cotação" in (empty.get("message") or "")
+
+
 def test_refresh_with_fixture_provider(admin_client):
     c = admin_client
     set_quote_provider(FixtureFxQuoteProvider(rate="6.33"))

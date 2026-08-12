@@ -227,12 +227,15 @@ def register_execution(
     fa = money2(parse_decimal(foreign_amount) or Decimal("0"))
     if fa <= 0:
         raise PaymentValidationError("foreign_amount deve ser > 0")
-    if rate is not None:
-        rd = rate6(parse_decimal(rate) or Decimal("0"))
-        ba = money2(fa * rd) if brl_amount is None else money2(parse_decimal(brl_amount) or Decimal("0"))
-    elif brl_amount is not None:
+    # FIN-1: se o operador informa EUR + BRL, ambos são fonte da verdade;
+    # a taxa é sempre derivada (nunca recalcular BRL a partir da taxa).
+    # Se informa EUR + taxa (sem BRL), o BRL é derivado.
+    if brl_amount is not None:
         ba = money2(parse_decimal(brl_amount) or Decimal("0"))
         rd = rate6(ba / fa)
+    elif rate is not None:
+        rd = rate6(parse_decimal(rate) or Decimal("0"))
+        ba = money2(fa * rd)
     else:
         raise PaymentValidationError("Informe rate ou brl_amount")
     if ba <= 0 or rd <= 0:
@@ -453,6 +456,27 @@ def get_latest_quote(db: Session, foreign: str, base: str = "BRL") -> FxMarketQu
         .filter(
             FxMarketQuote.foreign_currency == foreign,
             FxMarketQuote.base_currency == base,
+        )
+        .order_by(FxMarketQuote.retrieved_at.desc(), FxMarketQuote.id.desc())
+        .first()
+    )
+
+
+def get_quote_for_date(
+    db: Session,
+    *,
+    as_of: date,
+    foreign: str = "EUR",
+    base: str = "BRL",
+) -> FxMarketQuote | None:
+    """Cotação cuja observed_at cai no dia `as_of`. Não inventa vizinho."""
+    foreign, base = _validate_pair(foreign, base)
+    return (
+        db.query(FxMarketQuote)
+        .filter(
+            FxMarketQuote.foreign_currency == foreign,
+            FxMarketQuote.base_currency == base,
+            func.date(FxMarketQuote.observed_at) == as_of,
         )
         .order_by(FxMarketQuote.retrieved_at.desc(), FxMarketQuote.id.desc())
         .first()

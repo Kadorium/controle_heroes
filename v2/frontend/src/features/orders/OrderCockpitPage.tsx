@@ -19,6 +19,7 @@ import {
   formatDateOnly,
   formatDateTime,
   formatMoney,
+  paymentAllocationStateLabel,
 } from "../../ui";
 import { fetchOrderSummary, type OrderCockpit } from "../reporting/reportingApi";
 import { buildReturnTo } from "../../navigation/returnState";
@@ -119,11 +120,24 @@ export function OrderCockpitPage({ user }: Props) {
           .filter(Boolean)
           .join(" · ")}
         actions={
-          canWriteOrders(user) ? (
-            <Link className="ui-button" to={`/orders/${id}/commercial`} data-testid="cockpit-commercial-link">
-              Abrir comercial
+          <div className="stack-row page-header-actions">
+            <Link
+              className="ui-button ui-button--secondary"
+              to={`/orders/${id}/commercial#order-advances`}
+              data-testid="cockpit-advances-link"
+            >
+              Adiantamentos
             </Link>
-          ) : null
+            {canWriteOrders(user) ? (
+              <Link
+                className="ui-button"
+                to={`/orders/${id}/commercial`}
+                data-testid="cockpit-commercial-link"
+              >
+                Abrir comercial
+              </Link>
+            ) : null}
+          </div>
         }
       />
       {loading ? <LoadingState message="Carregando cockpit…" /> : null}
@@ -138,8 +152,17 @@ export function OrderCockpitPage({ user }: Props) {
             items={[
               { label: "Pedido", value: kpiValue(kpis.ordered, currency) },
               { label: "Faturado", value: kpiValue(kpis.invoiced, currency) },
-              { label: "Pago", value: kpiValue(kpis.paid, currency), hint: "Via alocações" },
-              { label: "Saldo", value: kpiValue(kpis.balance, currency) },
+              {
+                label: "Pago (alocado)",
+                value: kpiValue(kpis.paid, currency),
+                hint: "Via alocações em obrigações",
+              },
+              {
+                label: "Adiantado (crédito)",
+                value: kpiValue(kpis.advanced_credit, currency),
+                hint: "Saiu do caixa; ainda não quitou obrigação",
+              },
+              { label: "Saldo", value: kpiValue(kpis.balance, currency), hint: "Saldo aberto em obrigações" },
               { label: "Próx. venc.", value: kpiValue(kpis.next_due, undefined, { date: true }) },
               { label: "Exposição FX", value: kpiValue(kpis.fx_exposure, "BRL") },
               { label: "FX realizado", value: kpiValue(kpis.fx_realized, "BRL") },
@@ -232,40 +255,74 @@ export function OrderCockpitPage({ user }: Props) {
                       />
                     ),
                   },
+                  {
+                    label: "Adiantado (crédito)",
+                    value: (
+                      <MoneyDisplay
+                        amount={String(
+                          (data.treasury as Record<string, unknown>).advanced_credit ?? "0.00",
+                        )}
+                        currency={currency}
+                      />
+                    ),
+                  },
                 ]}
               />
-              <h3 className="section-subtitle">Pagamentos</h3>
+              <h3 className="section-subtitle">Pagamentos realizados deste pedido</h3>
               {payments.length === 0 ? (
-                <p className="muted">Nenhum pagamento</p>
+                <p className="muted">Nenhum pagamento realizado</p>
               ) : (
                 <OperationalTable density="standard" data-testid="cockpit-payments">
                   <thead>
                     <tr>
                       <th className="num">Valor</th>
-                      <th className="num">Residual</th>
+                      <th>Registro</th>
+                      <th>Estado</th>
+                      <th className="num">Aberto</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.map((p) => (
-                      <tr key={String(p.id)}>
-                        <td className="num">
-                          <RowLink to={`/payments/${p.id}`}>
-                            <MoneyDisplay amount={String(p.amount)} currency={String(p.currency)} />
-                          </RowLink>
-                        </td>
-                        <td className="num">
-                          <MoneyDisplay
-                            amount={String(p.amount_unallocated)}
-                            currency={String(p.currency)}
-                          />
-                        </td>
-                      </tr>
-                    ))}
+                    {payments.map((p) => {
+                      const cancelled = String(p.status) === "CANCELLED";
+                      const residual = p.amount_unallocated;
+                      const state = paymentAllocationStateLabel({
+                        status: String(p.status),
+                        amount_allocated: p.amount_allocated as string | undefined,
+                        amount_unallocated: residual as string | undefined,
+                      });
+                      return (
+                        <tr key={String(p.id)} data-payment-status={String(p.status)}>
+                          <td className="num">
+                            <RowLink to={`/payments/${p.id}`}>
+                              <MoneyDisplay amount={String(p.amount)} currency={String(p.currency)} />
+                            </RowLink>
+                          </td>
+                          <td>
+                            <StatusBadge status={String(p.status)} entity="payment" />
+                          </td>
+                          <td>
+                            <span data-testid={`cockpit-payment-state-${p.id}`}>{state}</span>
+                          </td>
+                          <td className="num">
+                            {cancelled || residual == null || residual === "" ? (
+                              <span className="muted" data-testid="cockpit-payment-residual-na">
+                                —
+                              </span>
+                            ) : (
+                              <MoneyDisplay amount={String(residual)} currency={String(p.currency)} />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </OperationalTable>
               )}
-              <h3 className="section-subtitle">Pagamentos com residual</h3>
-              <Notice tone="info">Candidatos a alocação — não são vínculos com o pedido.</Notice>
+              <h3 className="section-subtitle">Candidatos a alocação (fornecedor)</h3>
+              <Notice tone="info" data-testid="cockpit-candidates-notice">
+                Mesmo fornecedor e moeda — podem ser de outros pedidos. Não substituem a lista
+                de pagamentos deste pedido.
+              </Notice>
               {candidates.length === 0 ? (
                 <p className="muted">Nenhum candidato</p>
               ) : (

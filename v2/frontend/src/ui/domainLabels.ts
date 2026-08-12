@@ -11,6 +11,25 @@ export function invoiceTypeLabel(type: string | null | undefined): string {
   }
 }
 
+/**
+ * Estado do crédito/saída de caixa vs alocação a Contas a pagar.
+ * Nunca use "Contas pagas" / "Liquidados" para adiantamento.
+ */
+export function paymentAllocationStateLabel(input: {
+  status: string | null | undefined;
+  amount_allocated: string | number | null | undefined;
+  amount_unallocated: string | number | null | undefined;
+}): string {
+  const status = (input.status || "").toUpperCase();
+  if (status === "CANCELLED") return "Cancelado";
+  const allocated = Number(input.amount_allocated ?? 0);
+  const unallocated = Number(input.amount_unallocated ?? 0);
+  if (!Number.isFinite(allocated) || !Number.isFinite(unallocated)) return "—";
+  if (allocated <= 0) return "crédito em aberto";
+  if (unallocated > 0) return "parcialmente alocado";
+  return "totalmente alocado";
+}
+
 export function pendencyLabel(code: string): string {
   switch (code) {
     case "OVERDUE":
@@ -60,7 +79,10 @@ export function cockpitAlertLabel(code: string, fallback?: string | null): strin
     case "MISSING_FX":
       return "Obrigação sem taxa projetada";
     case "UNALLOCATED_CANDIDATE":
-      return "Pagamentos com residual (candidatos a alocação — não são vínculos com o pedido)";
+      return (
+        "Candidatos a alocação do mesmo fornecedor/moeda " +
+        "(podem ser de outros pedidos — não são a lista deste pedido)"
+      );
     default:
       return fallback?.trim() || code;
   }
@@ -109,6 +131,8 @@ export function auditActionLabel(action: string | null | undefined): string {
       return "Alocação";
     case "register":
       return "Registro";
+    case "invoice_price_divergence":
+      return "Preço da Fattura diferente do pedido";
     default:
       return action?.trim() || "—";
   }

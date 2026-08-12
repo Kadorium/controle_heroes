@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:test": "vite --mode test",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -19,12 +20,15 @@
     "e2e:j5-i5-2": "node scripts/e2e-suite.mjs j5-i5-2",
     "e2e:j5-i5-5": "node scripts/e2e-suite.mjs j5-i5-5",
     "e2e:j5": "node scripts/e2e-suite.mjs j5",
+    "e2e:j3-uiv": "node scripts/e2e-suite.mjs j3-uiv",
+    "e2e:rux-3b-2b": "node scripts/e2e-suite.mjs rux-3b-2b",
     "e2e:a2": "node scripts/e2e-suite.mjs doc-readiness-a2",
     "e2e:dr-ux": "node scripts/e2e-suite.mjs dr-ux",
     "test:e2e-guard": "node --test scripts/e2e-stale-guard.test.mjs"
   },
   "dependencies": {
     "openapi-fetch": "^0.13.5",
+    "pdfjs-dist": "^6.2.108",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.4"

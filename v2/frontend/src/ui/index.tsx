@@ -63,4 +63,5 @@ export {
   cockpitAlertLabel,
   auditActionLabel,
   roleLabel,
+  paymentAllocationStateLabel,
 } from "./domainLabels";

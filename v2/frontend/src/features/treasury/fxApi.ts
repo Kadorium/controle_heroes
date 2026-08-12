@@ -83,6 +83,19 @@ export async function getLatestQuote(foreign = "EUR"): Promise<FxMarketQuote> {
   return (await res.json()) as FxMarketQuote;
 }
 
+export type QuoteForDate = FxMarketQuote & {
+  as_of?: string;
+  message?: string | null;
+};
+
+/** Cotação no dia `as_of` (YYYY-MM-DD). Sem vizinho — status missing se não houver. */
+export async function getQuoteForDate(asOf: string, foreign = "EUR"): Promise<QuoteForDate> {
+  const q = new URLSearchParams({ as_of: asOf, foreign, base: "BRL" });
+  const res = await fetch(`/api/fx/quotes/for-date?${q}`, { credentials: "include" });
+  if (!res.ok) throw await err(res, "Erro ao ler cotação do dia");
+  return (await res.json()) as QuoteForDate;
+}
+
 export async function refreshQuote(foreign = "EUR"): Promise<FxMarketQuote> {
   const res = await fetch(`/api/fx/quotes/refresh?foreign=${foreign}&base=BRL`, {
     method: "POST",

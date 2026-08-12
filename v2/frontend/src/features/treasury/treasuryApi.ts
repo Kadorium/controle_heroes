@@ -8,6 +8,7 @@ export type Payment = {
   id: number;
   supplier_id: number;
   supplier_name?: string | null;
+  order_id?: number | null;
   amount: string;
   currency: string;
   payment_date: string;
@@ -57,6 +58,7 @@ export async function registerPaymentJson(body: {
   external_reference?: string;
   register_without_document?: boolean;
   reason_code?: string;
+  order_id?: number | null;
 }) {
   const res = await fetch("/api/payments", {
     method: "POST",

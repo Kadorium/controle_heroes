@@ -1,0 +1,2 @@
+# RUX-3B-2b — jornada Ordine catálogo vazio
+e2e/rux-3b-2b-ordine-journey.spec.ts

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
@@ -168,7 +168,7 @@ def list_products(
     rows = catalog_public.list_products(
         db, q=q, active_only=active_only, limit=limit, offset=offset
     )
-    return [_product_out(r) for r in rows]
+    return [_product_out(p) for p in rows]
 
 
 @router.get("/products/{product_id}", response_model=ProductResponse)

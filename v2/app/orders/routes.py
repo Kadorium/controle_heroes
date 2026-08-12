@@ -45,6 +45,9 @@ class ItemCreate(BaseModel):
     quantity: str
     unit_price: str | None = None
     unit: str | None = None
+    line_kind: str | None = None  # PRODUCT (default) | COMMITMENT
+    external_code: str | None = None
+    description: str | None = None
 
 
 class ItemUpdate(BaseModel):
@@ -65,7 +68,9 @@ class CancelBody(BaseModel):
 
 class OrderItemResponse(BaseModel):
     id: int
-    product_id: int
+    product_id: int | None
+    line_kind: str
+    external_code: str | None = None
     sku_snapshot: str
     description_snapshot: str
     quantity: str
@@ -140,6 +145,8 @@ def _order_response(db: Session, order: Order, *, include_docs: bool = True) -> 
         OrderItemResponse(
             id=i.id,
             product_id=i.product_id,
+            line_kind=i.line_kind,
+            external_code=i.external_code,
             sku_snapshot=i.sku_snapshot,
             description_snapshot=i.description_snapshot,
             quantity=decimal_str(i.quantity) or "0",
@@ -332,6 +339,9 @@ def add_item(
                 quantity=payload.quantity,
                 unit_price=payload.unit_price,
                 unit=payload.unit,
+                line_kind=payload.line_kind,
+                external_code=payload.external_code,
+                description=payload.description,
             )
             audit_public.record_event(
                 uow.session,
@@ -427,13 +437,34 @@ def confirm_order(
             order = orders_public.confirm_order(
                 uow.session, order_id, expected_version=payload.expected_version
             )
+            summary = orders_public.commitment_line_summary(order)
+            audit_details = None
+            reason = "ORDER_CONFIRM"
+            if summary["has_commitment_lines"]:
+                reason = "ORDER_CONFIRM_WITH_COMMITMENT"
+                import json as _json
+
+                audit_details = _json.dumps(
+                    {
+                        "commitment_count": summary["commitment_count"],
+                        "product_count": summary["product_count"],
+                        "total_items": summary["total_items"],
+                        "commitment_item_ids": summary["commitment_item_ids"],
+                        "note": (
+                            "Confirmação consciente: ordem inclui linhas COMMITMENT "
+                            "sem Product resolvido (RUX-3B / V2-b)"
+                        ),
+                    },
+                    ensure_ascii=False,
+                )
             audit_public.record_event(
                 uow.session,
                 actor_id=str(user.id),
                 entity_type="order",
                 entity_id=str(order.id),
                 action="confirm",
-                reason_code="ORDER_CONFIRM",
+                reason_code=reason,
+                details=audit_details,
             )
             uow.commit()
             order = orders_public.get_order(uow.session, order.id)

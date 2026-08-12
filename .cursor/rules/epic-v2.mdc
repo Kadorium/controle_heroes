@@ -26,6 +26,8 @@ O código evidencia o estado implementado. Divergências devem ser reportadas e 
 
 **Ao fechar:** confirmar gates; atualizar o Roadmap **somente** se houver mudança operacional material; confirmar a próxima ação no Roadmap; retornar status, arquivos, evidências, pendências e DOC_DELTA (ver `docs/README.md`).
 
+**Planos mestres de fase:** quando já existir um plano mestre ativo para uma fase, o agente deve atualizá-lo em vez de criar um novo `.plan`. Planos adicionais só podem ser criados para campanha excepcional que não caiba no mestre, com justificativa explícita e marcação de apêndice temporário. O espelho versionado em `docs/v2/etapa-*` deve ser sincronizado na mesma rodada. O status global permanece no Roadmap.
+
 ## 3. Restrições técnicas
 
 - Cross-módulo somente por contrato público; sem ciclos; sem import de internals.
@@ -51,7 +53,7 @@ V1 (`v1/**`, `docs/v1/**`) está **congelada** (ADR-16). Permitida só para base
 
 ## 6. Fechamento
 
-Retornar: ETAPA · STATUS (`DONE`/`PARTIAL`/`BLOCKED`) · estado encontrado · hipóteses · evidências/gates · arquivos alterados · pendências · próxima etapa lógica · DOC_DELTA:
+Retornar: ETAPA · STATUS (`DONE`/`PARTIAL`/`BLOCKED`) · estado encontrado · hipóteses · evidências/gates · arquivos alterados · pendências · próxima etapa lógica · DOC_DELTA. Pacote advisor conforme §6.1.
 
 ```text
 DOC_DELTA
@@ -61,3 +63,14 @@ DOC_DELTA
 - Next TODO: <ação confirmada no Roadmap>
 - Return to advisor: NONE | <paths>
 ```
+
+### 6.1 Pacote de retorno ao advisor
+
+- Evidências técnicas podem ser decompostas livremente em `docs/v2/etapa-*` (JSON, CSV, logs, scripts, fixtures, goldens, screenshots, layouts).
+- O pacote destinado à revisão do advisor contém por padrão no máximo **dois** arquivos Markdown:
+  1. `*_ADVISOR_HANDOFF.md` — obrigatório, autocontido para decisão;
+  2. `*_TECHNICAL_APPENDIX.md` — opcional, só se a análise aprofundada não couber no handoff sem prejudicar a leitura.
+- O handoff deve incluir, conforme aplicável: etapa, status, estado anterior/atual, hipóteses, gates, entregas, decisões (e ratificações), riscos, divergências, pendências, próxima etapa, DOC_DELTA, lista curta de evidências internas (dirs/paths âncora), arquivos relevantes alterados, recomendação.
+- Artefatos brutos **não** entram individualmente em `DOC_DELTA / Return to advisor`, salvo pedido explícito do advisor/usuário.
+- Exceção ao limite de dois Markdown: justificativa no próprio handoff ou solicitação explícita do usuário.
+- Detalhe do formulário DOC_DELTA: `docs/README.md` §3.

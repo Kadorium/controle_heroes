@@ -28,6 +28,9 @@ class Payment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"), nullable=False, index=True)
+    order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("orders.id"), nullable=True, index=True
+    )
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
     payment_date: Mapped[date] = mapped_column(Date, nullable=False)

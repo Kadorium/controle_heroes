@@ -123,7 +123,12 @@ def create_invoice(
     if not items_src:
         raise InvoiceValidationError("Selecione ao menos um item da ordem")
 
-    for pos, oi in enumerate(items_src, start=1):
+    # RUX-3B: só linhas com Product resolvido; nunca inventar Product
+    billable = [oi for oi in items_src if oi.product_id is not None]
+    if not billable:
+        raise InvoiceValidationError("nenhuma linha faturável")
+
+    for pos, oi in enumerate(billable, start=1):
         db.add(
             InvoiceItem(
                 invoice_id=inv.id,
@@ -151,6 +156,9 @@ def update_invoice_header(
     invoice_type: str | None = None,
     invoice_date: date | None = None,
     notes: str | None = ...,  # type: ignore[assignment]
+    destination_iban: str | None = ...,  # type: ignore[assignment]
+    destination_bank: str | None = ...,  # type: ignore[assignment]
+    terms_from_document: bool | None = None,
 ) -> Invoice:
     inv = repo.get_invoice(db, invoice_id)
     if not inv:
@@ -173,6 +181,18 @@ def update_invoice_header(
         inv.invoice_date = invoice_date
     if notes is not ...:
         inv.notes = notes.strip() if notes and notes.strip() else None
+    if destination_iban is not ...:
+        val = (destination_iban or "").strip().upper() or None
+        if val and len(val) > 34:
+            raise InvoiceValidationError("IBAN excede 34 caracteres")
+        inv.destination_iban = val
+    if destination_bank is not ...:
+        bank = (destination_bank or "").strip() or None
+        if bank and len(bank) > 128:
+            bank = bank[:128]
+        inv.destination_bank = bank
+    if terms_from_document is not None:
+        inv.terms_from_document = bool(terms_from_document)
     return _lock(db, inv, expected_version)
 
 
@@ -198,6 +218,10 @@ def replace_items(
         oi = order_items.get(oid)
         if not oi:
             raise InvoiceValidationError(f"order_item_id {oid} não pertence à ordem")
+        if oi.product_id is None:
+            raise InvoiceValidationError(
+                f"order_item_id {oid} não é faturável (linha COMMITMENT sem Product)"
+            )
         qty = require_positive_qty(raw["quantity"])
         price = parse_decimal(raw.get("unit_price_gross"))
         # Explicit unit in payload overrides; otherwise inherit OrderItem.unit (no silent dual SoT).
@@ -253,6 +277,11 @@ def set_terms(
     mode_u = (mode or "").strip().upper()
     if mode_u not in ("PERCENT", "AMOUNT"):
         raise InvoiceValidationError("Modo de scadenze: PERCENT ou AMOUNT")
+    if getattr(inv, "terms_from_document", False) and mode_u == "PERCENT":
+        raise InvoiceValidationError(
+            "Esta fatura tem scadenze literais do documento. "
+            "Não é possível recalcular por percentual."
+        )
     if not terms:
         raise InvoiceValidationError("Informe ao menos uma scadenza")
 
@@ -387,6 +416,8 @@ def _generate_payables(db: Session, inv: Invoice, net: Decimal) -> None:
                 source_type="INVOICE",
                 source_id=inv.id,
                 payee_display_name=None,
+                destination_iban=getattr(inv, "destination_iban", None),
+                destination_bank=getattr(inv, "destination_bank", None),
             )
         )
     db.flush()

@@ -1,0 +1,12 @@
+{
+  "status": "ok",
+  "app": "Epic Controle V2",
+  "database": "ok",
+  "timestamp": "2026-08-07T20:26:16.274507Z",
+  "app_env": "development",
+  "runtime_lane": "Operação",
+  "logical_database": "epic_v2",
+  "alembic_head": "021",
+  "alembic_expected": "021",
+  "schema_ok": true
+}

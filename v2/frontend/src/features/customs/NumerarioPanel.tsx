@@ -328,10 +328,10 @@ export function NumerarioPanel({ user, processId }: Props) {
               {selected.payable_links.map((lnk, idx) => (
                 <span key={lnk.id}>
                   {idx > 0 ? ", " : null}
-                  <Link to="/ap">#{lnk.payable_id}</Link>
+                  <Link to="/payables">#{lnk.payable_id}</Link>
                 </span>
               ))}{" "}
-              · <Link to="/ap">Abrir AP</Link>
+              · <Link to="/payables">Abrir AP</Link>
             </p>
           ) : null}
           <ul>

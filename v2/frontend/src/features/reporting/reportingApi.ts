@@ -1,11 +1,31 @@
 /** API Reporting — fila AP e cockpit. */
 
+export type ApQueueCurrencyKpis = {
+  currency: string;
+  open_balance: string;
+  overdue_balance: string;
+  due_today_balance: string;
+  next_7d_balance: string;
+  overdue_count: number;
+  total_count: number;
+};
+
 export type ApQueueResponse = {
   items: Array<Record<string, unknown>>;
   total: number;
   limit: number;
   offset: number;
-  kpis: Record<string, string | number>;
+  kpis: {
+    mixed_currency?: boolean;
+    total_count?: number;
+    overdue_count?: number;
+    kpis_by_currency?: ApQueueCurrencyKpis[];
+    unallocated_by_currency?: Array<{
+      currency: string;
+      unallocated_candidates_count: number;
+      unallocated_candidates_total: string;
+    }>;
+  };
   market_quote?: Record<string, unknown> | null;
   unallocated_candidates?: Array<Record<string, unknown>>;
   sort?: string;

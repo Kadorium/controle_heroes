@@ -80,6 +80,7 @@ def list_eligible_payables(
     *,
     supplier_id: int,
     currency: str,
+    order_id: int | None = None,
     limit: int = 100,
     offset: int = 0,
 ) -> list[Payable]:
@@ -87,6 +88,7 @@ def list_eligible_payables(
 
     I5-3B: INNER JOIN Invoice — payables CUSTOMS_FUNDING (invoice_id NULL)
     ficam visíveis na AP mas NÃO elegíveis para alocação Payment (gap intencional).
+    Se order_id informado (crédito do pedido), restringe à Invoice desse Order.
     """
     cur = (currency or "").strip().upper()
     q = (
@@ -98,8 +100,8 @@ def list_eligible_payables(
             Payable.status.in_(("OPEN", "PARTIALLY_PAID")),
             Payable.balance > 0,
         )
-        .order_by(Payable.due_date.asc(), Payable.id.asc())
-        .offset(offset)
-        .limit(limit)
     )
+    if order_id is not None:
+        q = q.filter(Invoice.order_id == order_id)
+    q = q.order_by(Payable.due_date.asc(), Payable.id.asc()).offset(offset).limit(limit)
     return list(q.all())

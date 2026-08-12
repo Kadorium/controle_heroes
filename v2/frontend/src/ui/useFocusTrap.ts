@@ -4,7 +4,11 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Focus trap + Escape + restore focus on unmount (I9-9). */
-export function useFocusTrap(active: boolean, onEscape?: () => void) {
+export function useFocusTrap(
+  active: boolean,
+  onEscape?: () => void,
+  initialFocusSelector?: string | null,
+) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
 
@@ -19,8 +23,13 @@ export function useFocusTrap(active: boolean, onEscape?: () => void) {
         (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1,
       );
 
-    const first = focusables()[0];
-    first?.focus();
+    const preferred =
+      initialFocusSelector != null && initialFocusSelector !== ""
+        ? root.querySelector<HTMLElement>(initialFocusSelector)
+        : null;
+    const target =
+      preferred && focusables().includes(preferred) ? preferred : focusables()[0];
+    target?.focus();
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -47,7 +56,7 @@ export function useFocusTrap(active: boolean, onEscape?: () => void) {
       document.removeEventListener("keydown", onKeyDown);
       previousFocus.current?.focus?.();
     };
-  }, [active, onEscape]);
+  }, [active, onEscape, initialFocusSelector]);
 
   return containerRef;
 }

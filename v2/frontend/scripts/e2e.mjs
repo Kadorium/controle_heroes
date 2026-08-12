@@ -102,8 +102,16 @@ async function runE2E() {
   const logPath = path.join(logDir, `e2e-server-${E2E_PORT}.log`);
   const logStream = createWriteStream(logPath, { flags: "w" });
 
+  const dataRoot = path.join(logDir, `e2e-data-${E2E_PORT}`);
+  const attachmentsPath = path.join(dataRoot, "attachments");
+  const quarantinePath = path.join(dataRoot, "quarantine");
+  await mkdir(attachmentsPath, { recursive: true });
+  await mkdir(quarantinePath, { recursive: true });
+
   const startedAt = new Date().toISOString();
   console.log(`[e2e] start_server port=${E2E_PORT} db=epic_v2_test at=${startedAt}`);
+  console.log(`[e2e] attachments=${attachmentsPath}`);
+  console.log(`[e2e] quarantine=${quarantinePath}`);
 
   const server = spawn(
     py,
@@ -114,6 +122,8 @@ async function runE2E() {
         ...process.env,
         DATABASE_URL: E2E_DB_URL,
         APP_ENV: "test",
+        ATTACHMENTS_PATH: attachmentsPath,
+        QUARANTINE_PATH: quarantinePath,
       },
       stdio: ["ignore", "pipe", "pipe"],
       shell: false,
@@ -123,6 +133,12 @@ async function runE2E() {
   server.stdout.pipe(logStream);
   server.stderr.pipe(logStream);
   console.log(`[e2e] server_pid=${server.pid} log=${logPath}`);
+
+  let bootError = "";
+  server.stderr.on("data", (buf) => {
+    const t = buf.toString();
+    if (/address already in use|10048|EADDRINUSE/i.test(t)) bootError = t;
+  });
 
   const cleanup = () => {
     if (server.exitCode === null && !server.killed) {
@@ -141,7 +157,21 @@ async function runE2E() {
 
   try {
     await waitHealth(BASE_URL);
-    console.log(`[e2e] health ok ${BASE_URL}`);
+    if (bootError) {
+      throw new Error(
+        `Porta ${E2E_PORT} já em uso — mate o processo stale antes do E2E.\n${bootError}`,
+      );
+    }
+    // Prove ingestion router is live (stale servers often 404 spa_fallback).
+    const q = await fetch(`${BASE_URL}/api/ingestion/staging/queue`, {
+      headers: { Accept: "application/json" },
+    });
+    if (q.status === 404) {
+      throw new Error(
+        `GET /api/ingestion/staging/queue → 404 (servidor em :${E2E_PORT} parece stale/sem ingestion). Mate o PID na porta e rode de novo.`,
+      );
+    }
+    console.log(`[e2e] health ok ${BASE_URL} (ingestion probe status=${q.status})`);
 
     const specs = process.env.E2E_SPECS
       ? process.env.E2E_SPECS.split(",")

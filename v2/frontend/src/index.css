@@ -239,6 +239,37 @@ a {
   font-size: 0.85rem;
 }
 
+.shell-runtime-badge {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--color-border-decorative);
+  border-radius: var(--radius-control, 4px);
+  font-size: 0.7rem;
+  line-height: 1.25;
+  color: var(--color-sidebar-muted);
+}
+
+.runtime-lane {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.runtime-lane--test {
+  color: #b45309;
+}
+
+.runtime-lane--ops {
+  color: #047857;
+}
+
+.runtime-meta {
+  word-break: break-word;
+  opacity: 0.9;
+}
+
 .panel {
   display: grid;
   gap: 1rem;
@@ -1425,6 +1456,21 @@ input[type="radio"] {
   min-width: 7rem;
 }
 
+.order-advance-fx-attach {
+  grid-column: 1 / -1;
+  border: 1px solid var(--color-border-decorative);
+  border-radius: var(--radius-panel);
+  padding: 0.75rem 1rem;
+  margin-top: 0.25rem;
+  background: var(--color-surface);
+}
+
+.order-advance-fx-attach-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  font-size: var(--font-size-secondary);
+}
+
 .file-upload {
   display: flex;
   flex-wrap: wrap;
@@ -1620,5 +1666,342 @@ input[type="radio"] {
 
 .invoice-items-table .money-input-wrap .ds-input {
   max-width: 100%;
+}
+
+/* J3-I2 — Ingestion workspace / PDF viewer (SCR-037/038) */
+.ingestion-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: 1rem;
+  align-items: start;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .ingestion-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ingestion-pdf-viewer {
+  border: 1px solid var(--border-subtle, #d0d5dd);
+  border-radius: 0.5rem;
+  background: var(--surface-1, #fff);
+  overflow: hidden;
+  min-height: 28rem;
+}
+
+.ingestion-pdf-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-subtle, #d0d5dd);
+}
+
+.ingestion-pdf-frame-wrap {
+  position: relative;
+  width: 100%;
+  height: 32rem;
+  overflow: auto;
+}
+
+.ingestion-pdf-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #525659;
+}
+
+.ingestion-pdf-highlight {
+  position: absolute;
+  border: 2px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.25);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.ingestion-workspace-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ingestion-issue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingestion-issue-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ingestion-issue-list button.is-active {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.ingestion-conflict-nav {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.ingestion-workspace .dense-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.ingestion-workspace .linkish {
+  background: none;
+  border: 0;
+  color: var(--color-link, #2563eb);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.ingestion-workspace .code-block {
+  white-space: pre-wrap;
+  font-size: 0.75rem;
+  max-height: 8rem;
+  overflow: auto;
+}
+
+/* J3-UIV — intake, matching, dossier, pdf canvas */
+.ingestion-intake-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.ingestion-dropzone {
+  border: 2px dashed var(--border-subtle, #c5cad3);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--surface-2, #f8fafc);
+  margin-bottom: 0.75rem;
+}
+
+.ingestion-dropzone.is-dragover {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.06);
+}
+
+.ingestion-dropzone-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ingestion-intake-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.ingestion-intake-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.ingestion-secondary-id {
+  font-size: 0.8rem;
+  color: var(--text-muted, #667085);
+}
+
+.ingestion-reuse-badge {
+  margin-left: 0.35rem;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.ingestion-classify-hint {
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0;
+}
+
+.ingestion-matching-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.ingestion-matching-issues button {
+  text-align: left;
+  border: 1px solid var(--border-subtle, #d0d5dd);
+  border-radius: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ingestion-matching-issues button.is-active {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.ingestion-matching-results {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.ingestion-matching-results li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border-subtle, #eaecf0);
+}
+
+.ingestion-dossier-actions,
+.ingestion-workspace-toolbar,
+.ingestion-commit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ingestion-subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.ingestion-summary-dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.ingestion-summary-dl dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #667085);
+}
+
+.ingestion-summary-dl dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.ordine-summary-lines {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ordine-summary-lines li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-subtle, #eaecf0);
+}
+
+.ordine-summary-line-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted, #667085);
+}
+
+.ordine-math-notice {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.ordine-math-notice > summary {
+  cursor: pointer;
+  color: var(--text-muted, #667085);
+}
+
+
+.ingestion-tech-details {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border-subtle, #eaecf0);
+  border-radius: 0.35rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.ingestion-tech-details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ingestion-pdf-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.ingestion-pdf-fallback-warn {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.ingestion-row-editor {
+  width: 100%;
+  min-height: 4rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  margin: 0.35rem 0;
+}
+
+.ingestion-issue-reason {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.ingestion-issue-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.status-ok { color: #15803d; }
+.status-error { color: #b91c1c; }
+.status-warn { color: #b45309; }
+.status-muted { color: #6b7280; }
+
+.fattura-structured-lines .dense-table {
+  width: 100%;
+  font-size: 0.8rem;
 }
 

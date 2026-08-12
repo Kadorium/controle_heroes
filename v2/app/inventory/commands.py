@@ -91,11 +91,31 @@ def _movement_type_for_receipt(receipt_type: str, location_type: str) -> str:
     return "ADJUSTMENT"
 
 
+_FROM_LOC_MARKER = "from_location_code="
+
+
+def _encode_from_location(notes: str | None, from_code: str) -> str:
+    base = (notes or "").strip()
+    marker = f"{_FROM_LOC_MARKER}{from_code}"
+    return f"{marker}\n{base}" if base else marker
+
+
+def _decode_from_location(notes: str | None) -> tuple[str | None, str | None]:
+    if not notes:
+        return None, None
+    if notes.startswith(_FROM_LOC_MARKER):
+        first, _, rest = notes.partition("\n")
+        code = first[len(_FROM_LOC_MARKER) :].strip() or None
+        return code, (rest.strip() or None)
+    return None, notes
+
+
 def create_receipt(
     db: Session,
     *,
     location_id: int | None = None,
     location_code: str | None = None,
+    from_location_code: str | None = None,
     process_id: int | None = None,
     nationalization_id: int | None = None,
     receipt_type: str,
@@ -124,9 +144,21 @@ def create_receipt(
         raise InventoryValidationError(
             "DOMESTIC_IN exige location DOMESTIC", code="location_type_mismatch"
         )
-    if receipt_type in ("DOMESTIC_IN", "RECLASS") and nationalization_id is None:
-        # nationalization_id optional at create; enforced at confirm via lines
-        pass
+    if receipt_type == "RECLASS" and loc.location_type != "DOMESTIC":
+        raise InventoryValidationError(
+            "RECLASS exige location destino DOMESTIC", code="location_type_mismatch"
+        )
+
+    stored_notes = _opt_str(notes)
+    if receipt_type == "RECLASS":
+        src_code = (from_location_code or "BONDED-MAIN").strip()
+        src = repo.get_location_by_code(db, src_code)
+        if not src or src.location_type != "BONDED":
+            raise InventoryValidationError(
+                f"RECLASS exige origem BONDED ({src_code})",
+                code="location_type_mismatch",
+            )
+        stored_notes = _encode_from_location(stored_notes, src.code)
 
     if process_id is not None:
         try:
@@ -149,7 +181,7 @@ def create_receipt(
         status="DRAFT",
         version=1,
         document_id=document_id,
-        notes=_opt_str(notes),
+        notes=stored_notes,
     )
     db.add(receipt)
     db.flush()
@@ -263,25 +295,79 @@ def confirm_receipt(
     if receipt.receipt_type in ("DOMESTIC_IN", "RECLASS"):
         _assert_domestic_coverage(db, loaded)
 
-    mov_type = _movement_type_for_receipt(receipt.receipt_type, loc.location_type)
-    for line in loaded.lines:
-        delta = Decimal(str(line.quantity))
-        mov = InventoryMovement(
-            location_id=receipt.location_id,
-            product_id=line.product_id,
-            quantity_delta=delta,
-            movement_type=mov_type,
-            receipt_line_id=line.id,
-            nationalization_item_id=line.nationalization_item_id,
-            reason=f"receipt:{receipt.id}",
-        )
-        db.add(mov)
-        repo.apply_balance_delta(
-            db,
-            location_id=receipt.location_id,
-            product_id=line.product_id,
-            delta=delta,
-        )
+    if receipt.receipt_type == "RECLASS":
+        from_code, _ = _decode_from_location(receipt.notes)
+        from_code = from_code or "BONDED-MAIN"
+        from_loc = repo.get_location_by_code(db, from_code)
+        if not from_loc or from_loc.location_type != "BONDED":
+            raise InventoryValidationError(
+                f"RECLASS origem BONDED inválida: {from_code}",
+                code="location_type_mismatch",
+            )
+        for line in loaded.lines:
+            delta = Decimal(str(line.quantity))
+            bal = repo.get_balance(
+                db, location_id=from_loc.id, product_id=line.product_id
+            )
+            have = Decimal(str(bal.qty)) if bal else Decimal("0")
+            if have < delta:
+                raise InventoryValidationError(
+                    f"Saldo BONDED insuficiente para produto {line.product_id}: "
+                    f"tem {have}, precisa {delta}",
+                    code="insufficient_bonded",
+                )
+            mov_out = InventoryMovement(
+                location_id=from_loc.id,
+                product_id=line.product_id,
+                quantity_delta=-delta,
+                movement_type="RECLASS_OUT",
+                receipt_line_id=line.id,
+                nationalization_item_id=line.nationalization_item_id,
+                reason=f"receipt:{receipt.id}:reclass_out",
+            )
+            db.add(mov_out)
+            repo.apply_balance_delta(
+                db,
+                location_id=from_loc.id,
+                product_id=line.product_id,
+                delta=-delta,
+            )
+            mov_in = InventoryMovement(
+                location_id=receipt.location_id,
+                product_id=line.product_id,
+                quantity_delta=delta,
+                movement_type="RECLASS_IN",
+                receipt_line_id=line.id,
+                nationalization_item_id=line.nationalization_item_id,
+                reason=f"receipt:{receipt.id}:reclass_in",
+            )
+            db.add(mov_in)
+            repo.apply_balance_delta(
+                db,
+                location_id=receipt.location_id,
+                product_id=line.product_id,
+                delta=delta,
+            )
+    else:
+        mov_type = _movement_type_for_receipt(receipt.receipt_type, loc.location_type)
+        for line in loaded.lines:
+            delta = Decimal(str(line.quantity))
+            mov = InventoryMovement(
+                location_id=receipt.location_id,
+                product_id=line.product_id,
+                quantity_delta=delta,
+                movement_type=mov_type,
+                receipt_line_id=line.id,
+                nationalization_item_id=line.nationalization_item_id,
+                reason=f"receipt:{receipt.id}",
+            )
+            db.add(mov)
+            repo.apply_balance_delta(
+                db,
+                location_id=receipt.location_id,
+                product_id=line.product_id,
+                delta=delta,
+            )
 
     receipt.status = "CONFIRMED"
     receipt.received_at = _now()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, timedelta
+from decimal import Decimal
 from io import BytesIO
 
 import pytest
@@ -87,12 +88,73 @@ def test_ap_queue_sort_overdue_first_and_kpis(admin_client):
     body = r.json()
     assert body["total"] >= 2
     assert body["kpis"]["overdue_count"] >= 1
+    assert "kpis_by_currency" in body["kpis"]
+    assert isinstance(body["kpis"]["kpis_by_currency"], list)
+    assert "open_balance" not in body["kpis"]
     dates = [row["due_date"] for row in body["items"]]
     assert dates == sorted(dates) or body["items"][0]["days_overdue"] >= body["items"][-1]["days_overdue"]
     # overdue first
     assert body["items"][0]["days_overdue"] > 0
     assert "unallocated_candidates" in body
     assert body["note"]
+
+
+def test_ap_queue_kpis_never_mix_currencies(admin_client, db):
+    """EUR + BRL must not produce a single EUR total (H-J5C-1 / H-CLOSE-3)."""
+    from app.billing.models import Payable
+
+    c = admin_client
+    _, _order, _inv = _issued_two_payables(c)
+
+    brl_before = c.get("/api/reporting/ap-queue", params={"currency": "BRL", "limit": 200}).json()
+    brl_before_open = Decimal("0")
+    if brl_before["kpis"]["kpis_by_currency"]:
+        brl_before_open = Decimal(brl_before["kpis"]["kpis_by_currency"][0]["open_balance"])
+
+    # inject BRL customs-like payable without Invoice
+    p = Payable(
+        invoice_id=None,
+        payment_term_id=None,
+        sequence=1,
+        due_date=date.today(),
+        amount=Decimal("1500.00"),
+        balance=Decimal("1500.00"),
+        currency="BRL",
+        status="OPEN",
+        source_type="CUSTOMS_FUNDING",
+        source_id=999001,
+        payee_display_name="Bechtrans KPI",
+        version=1,
+    )
+    db.add(p)
+    db.commit()
+
+    all_q = c.get("/api/reporting/ap-queue", params={"pending": "OPEN_BALANCE", "limit": 200})
+    assert all_q.status_code == 200, all_q.text
+    kpis = all_q.json()["kpis"]
+    assert "open_balance" not in kpis
+    by_cur = {e["currency"]: e for e in kpis["kpis_by_currency"]}
+    assert "EUR" in by_cur and "BRL" in by_cur
+    assert kpis["mixed_currency"] is True
+    assert Decimal(by_cur["BRL"]["open_balance"]) == brl_before_open + Decimal("1500.00")
+    # never EUR 1900-style mix of ~400 EUR + 1500 BRL into one EUR figure
+    assert by_cur["EUR"]["open_balance"] != "1900.00"
+    assert Decimal(by_cur["EUR"]["open_balance"]) != Decimal(by_cur["EUR"]["open_balance"]) + Decimal(
+        "1500.00"
+    )
+
+    only_eur = c.get("/api/reporting/ap-queue", params={"currency": "EUR", "limit": 200}).json()
+    assert all(row["currency"] == "EUR" for row in only_eur["items"])
+    assert only_eur["kpis"]["mixed_currency"] is False
+    assert len(only_eur["kpis"]["kpis_by_currency"]) == 1
+    assert only_eur["kpis"]["kpis_by_currency"][0]["currency"] == "EUR"
+
+    only_brl = c.get("/api/reporting/ap-queue", params={"currency": "BRL", "limit": 200}).json()
+    assert all(row["currency"] == "BRL" for row in only_brl["items"])
+    assert Decimal(only_brl["kpis"]["kpis_by_currency"][0]["open_balance"]) == brl_before_open + Decimal(
+        "1500.00"
+    )
+    assert "EUR" not in {e["currency"] for e in only_brl["kpis"]["kpis_by_currency"]}
 
 
 def test_ap_queue_rbac_requires_reporting_read(client, db, admin_client):
@@ -239,12 +301,20 @@ def test_ap_queue_missing_supplier_explicit_null(db, monkeypatch):
         "limit": 50,
         "offset": 0,
         "kpis": {
+            "mixed_currency": False,
             "total_count": 1,
             "overdue_count": 0,
-            "overdue_balance": "0.00",
-            "due_today_balance": "0.00",
-            "next_7d_balance": "0.00",
-            "open_balance": "10.00",
+            "kpis_by_currency": [
+                {
+                    "currency": "EUR",
+                    "total_count": 1,
+                    "open_balance": "10.00",
+                    "overdue_balance": "0.00",
+                    "overdue_count": 0,
+                    "due_today_balance": "10.00",
+                    "next_7d_balance": "0.00",
+                }
+            ],
         },
     }
 
@@ -395,3 +465,149 @@ def test_invoice_list_and_ap_queue_order_code(admin_client):
     ap = c.get("/api/reporting/ap-queue", params={"order_id": o["id"]}).json()
     assert ap["items"]
     assert ap["items"][0]["order_code"] == "OC-ORDER-1"
+
+
+# --- FIN-1C-FIX-1 ---
+
+
+def _confirmed_order_eur(client, *, supplier_id: int | None = None):
+    if supplier_id is None:
+        s = client.post(
+            "/api/suppliers", json={"name": f"Fix1-{_uid()}", "country_code": "IT"}
+        ).json()
+        supplier_id = s["id"]
+    else:
+        s = {"id": supplier_id}
+    p = client.post(
+        "/api/products", json={"sku": f"FIX1-{_uid()}", "description": "Item"}
+    ).json()
+    o = client.post(
+        "/api/orders",
+        json={
+            "code": f"ORD-FIX1-{_uid()}",
+            "supplier_id": supplier_id,
+            "currency": "EUR",
+        },
+    ).json()
+    o = client.post(
+        f"/api/orders/{o['id']}/items",
+        json={
+            "expected_version": o["version"],
+            "product_id": p["id"],
+            "quantity": "10",
+            "unit_price": "100",
+        },
+    ).json()
+    o = client.post(
+        f"/api/orders/{o['id']}/confirm", json={"expected_version": o["version"]}
+    ).json()
+    return s, o
+
+
+def test_fin1c_f1_cockpit_payments_order_scoped(admin_client):
+    """F1: lista principal do cockpit só com order_id; candidatos podem ser do outro pedido."""
+    c = admin_client
+    s, order_a = _confirmed_order_eur(c)
+    _, order_b = _confirmed_order_eur(c, supplier_id=s["id"])
+
+    adv_a = c.post(
+        f"/api/orders/{order_a['id']}/advances",
+        json={
+            "amount": "100.00",
+            "payment_date": date.today().isoformat(),
+            "execution_date": date.today().isoformat(),
+            "rate": "5.50",
+            "register_without_fx_document": True,
+            "reason_code": "TEST",
+        },
+    )
+    assert adv_a.status_code == 200, adv_a.text
+    pay_a = adv_a.json()["payment_id"]
+
+    adv_b = c.post(
+        f"/api/orders/{order_b['id']}/advances",
+        json={
+            "amount": "999.00",
+            "payment_date": date.today().isoformat(),
+            "execution_date": date.today().isoformat(),
+            "rate": "5.50",
+            "register_without_fx_document": True,
+            "reason_code": "TEST",
+        },
+    )
+    assert adv_b.status_code == 200, adv_b.text
+    pay_b = adv_b.json()["payment_id"]
+
+    summary = c.get(f"/api/orders/{order_a['id']}/summary").json()
+    main_ids = {p["id"] for p in summary["treasury"]["payments"]}
+    assert pay_a in main_ids
+    assert pay_b not in main_ids
+
+    cand_ids = {x["payment_id"] for x in summary["treasury"]["unallocated_candidates"]}
+    assert pay_a in cand_ids
+    assert pay_b in cand_ids
+    assert any(
+        x["payment_id"] == pay_b and x.get("relation") is False
+        for x in summary["treasury"]["unallocated_candidates"]
+    )
+
+
+def test_fin1c_f2_cancelled_residual_null(admin_client):
+    """F2: CANCELLED na lista do pedido com status e amount_unallocated null."""
+    c = admin_client
+    _s, order = _confirmed_order_eur(c)
+    adv = c.post(
+        f"/api/orders/{order['id']}/advances",
+        json={
+            "amount": "200.00",
+            "payment_date": date.today().isoformat(),
+            "execution_date": date.today().isoformat(),
+            "rate": "6.00",
+            "register_without_fx_document": True,
+            "reason_code": "TEST",
+        },
+    ).json()
+    payment_id = adv["payment_id"]
+    listing = c.get(f"/api/orders/{order['id']}/advances").json()
+    version = listing["advances"][0]["version"]
+    cancel = c.post(
+        f"/api/orders/{order['id']}/advances/{payment_id}/cancel",
+        json={"expected_version": version, "reason": "teste F2"},
+    )
+    assert cancel.status_code == 200, cancel.text
+
+    summary = c.get(f"/api/orders/{order['id']}/summary").json()
+    row = next(p for p in summary["treasury"]["payments"] if p["id"] == payment_id)
+    assert row["status"] == "CANCELLED"
+    assert row["amount_unallocated"] is None
+    assert Decimal(summary["kpis"]["advanced_credit"]) == Decimal("0.00")
+
+
+def test_fin1c_f3_advanced_credit_kpi(admin_client):
+    """F3: Pago (alocado) vs Adiantado (crédito) honestos."""
+    c = admin_client
+    _s, order = _confirmed_order_eur(c)
+    before = c.get(f"/api/orders/{order['id']}/summary").json()
+    assert before["kpis"]["paid"] == "0.00"
+    assert before["kpis"]["advanced_credit"] == "0.00"
+
+    adv = c.post(
+        f"/api/orders/{order['id']}/advances",
+        json={
+            "amount": "25000.00",
+            "payment_date": date.today().isoformat(),
+            "execution_date": date.today().isoformat(),
+            "rate": "5.91",
+            "register_without_fx_document": True,
+            "reason_code": "TEST",
+        },
+    )
+    assert adv.status_code == 200, adv.text
+
+    after = c.get(f"/api/orders/{order['id']}/summary").json()
+    assert after["kpis"]["paid"] == "0.00"
+    assert after["kpis"]["advanced_credit"] == "25000.00"
+    assert after["treasury"]["advanced_credit"] == "25000.00"
+    # Sem Fattura: Faturado/Saldo continuam 0 (honestos para obrigações)
+    assert after["kpis"]["invoiced"] == "0.00"
+    assert after["kpis"]["balance"] == "0.00"

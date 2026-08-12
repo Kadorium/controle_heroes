@@ -548,14 +548,15 @@ def test_sku_position_buckets(admin_client):
         qty="4",
         shipment_item_id=ctx["shipment_item_id"],
     )
-    # domestic 2 of 4 cleared
+    # domestic 2 of 4 cleared via RECLASS (conservação física)
     r = c.post(
         "/api/inventory/receipts",
         json={
             "location_code": "DOMESTIC-MAIN",
+            "from_location_code": "BONDED-MAIN",
             "process_id": ctx["process"]["id"],
             "nationalization_id": nat["id"],
-            "receipt_type": "DOMESTIC_IN",
+            "receipt_type": "RECLASS",
         },
     ).json()
     r = c.post(
@@ -577,11 +578,11 @@ def test_sku_position_buckets(admin_client):
     )
 
     pos = c.get(f"/api/inventory/sku/{product_id}/position").json()
-    assert Decimal(pos["bonded_qty"]) == Decimal("3")
+    assert Decimal(pos["bonded_qty"]) == Decimal("1")
     assert Decimal(pos["available_qty"]) == Decimal("2")
     assert Decimal(pos["cleared_not_received_qty"]) == Decimal("2")
+    assert Decimal(pos["bonded_qty"]) + Decimal(pos["available_qty"]) == Decimal("3")
     assert pos["future_order_qty"] is None
-    assert "deferred" in (pos.get("future_order_qty_note") or "")
 
 
 def test_default_locations_seeded(admin_client):

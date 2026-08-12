@@ -463,6 +463,43 @@ def get_latest_quote(
     }
 
 
+@router.get("/fx/quotes/for-date")
+def get_quote_for_date(
+    as_of: date,
+    foreign: str = "EUR",
+    base: str = "BRL",
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Cotação de mercado no dia `as_of` (observed_at). Sem vizinho — missing se não houver."""
+    enforce_permission(user, "treasury:fx_read")
+    try:
+        row = fx.get_quote_for_date(db, as_of=as_of, foreign=foreign, base=base)
+    except TreasuryError as e:
+        raise _map_error(e) from e
+    if not row:
+        return {
+            "rate": None,
+            "status": "missing",
+            "stale": False,
+            "source": None,
+            "as_of": as_of.isoformat(),
+            "message": f"Sem cotação de mercado para {as_of.isoformat()}",
+        }
+    status = fx.quote_status(row)
+    return {
+        "id": row.id,
+        "rate": decimal_str(row.rate),
+        "status": status,
+        "stale": status == "stale",
+        "source": row.source,
+        "as_of": as_of.isoformat(),
+        "observed_at": row.observed_at.isoformat(),
+        "retrieved_at": row.retrieved_at.isoformat(),
+        "message": None,
+    }
+
+
 @router.post("/fx/quotes/refresh")
 def post_refresh_quote(
     foreign: str = "EUR",

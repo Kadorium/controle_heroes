@@ -23,6 +23,14 @@ def list_suppliers(
     return repo.list_suppliers(db, q=q, active_only=active_only, limit=limit, offset=offset)
 
 
+def get_supplier_by_code(db: Session, code: str) -> Supplier | None:
+    """Lookup exato por código (sem raise). Usado pelo commit de ingestão."""
+    code_norm = (code or "").strip()
+    if not code_norm:
+        return None
+    return repo.get_supplier_by_code(db, code_norm)
+
+
 def get_product(db: Session, product_id: int) -> Product:
     row = repo.get_product(db, product_id)
     if not row:
