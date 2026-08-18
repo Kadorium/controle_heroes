@@ -272,6 +272,9 @@ export function OrderAdvancesPanel({ user, orderId, orderCurrency, orderStatus }
             <div data-testid="adv-weighted-rate">
               {cons.weighted_avg_rate ? formatRate(cons.weighted_avg_rate, 6) : "—"}
             </div>
+            <p className="muted" style={{ fontSize: "0.85rem" }}>
+              Ponderado = BRL ÷ EUR. O custo real é a soma em BRL, não média × total.
+            </p>
           </div>
         </div>
       ) : (
@@ -318,6 +321,24 @@ export function OrderAdvancesPanel({ user, orderId, orderCurrency, orderStatus }
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {(data?.settlements?.length ?? 0) > 0 ? (
+        <div data-testid="order-settlements">
+          <h3 className="section-subtitle">Pagamentos de saldo deste pedido</h3>
+          <p className="muted">
+            Quitação de obrigação. Não entra no total adiantado.
+          </p>
+          <ul className="plain-list" data-testid="order-settlements-list">
+            {data!.settlements!.map((s) => (
+              <li key={s.payment_id} data-testid={`order-settlement-${s.payment_id}`}>
+                {formatDateOnly(s.payment_date)} · {formatMoney(s.amount, s.currency)}
+                {s.brl_amount ? ` → ${formatMoney(s.brl_amount, "BRL")}` : ""}
+                {s.rate ? ` · taxa ${formatRate(s.rate, 6)}` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       {!readonly ? (

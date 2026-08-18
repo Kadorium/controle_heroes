@@ -30,6 +30,7 @@ export function LogisticsProvidersPage({ user }: Props) {
   const canWrite = canWriteLogistics(user);
   const [rows, setRows] = useState<LogisticsProvider[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [q, setQ] = useState("");
   const [legalName, setLegalName] = useState("");
   const [tradeName, setTradeName] = useState("");
   const [providerType, setProviderType] = useState("TRANSPORTADOR");
@@ -37,7 +38,7 @@ export function LogisticsProvidersPage({ user }: Props) {
   const [formError, setFormError] = useState<string | null>(null);
 
   async function reload() {
-    const data = await listLogisticsProviders({ limit: 200 });
+    const data = await listLogisticsProviders({ limit: 200, q: q.trim() || undefined });
     setRows(data);
   }
 
@@ -45,7 +46,7 @@ export function LogisticsProvidersPage({ user }: Props) {
     let cancelled = false;
     void (async () => {
       try {
-        const data = await listLogisticsProviders({ limit: 200 });
+        const data = await listLogisticsProviders({ limit: 200, q: q.trim() || undefined });
         if (!cancelled) setRows(data);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Erro");
@@ -99,6 +100,25 @@ export function LogisticsProvidersPage({ user }: Props) {
         }
       />
 
+      <form
+        className="stack-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void reload().catch((err) => setError(err instanceof Error ? err.message : "Erro"));
+        }}
+      >
+        <TextInput
+          data-testid="providers-search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Buscar razão social ou fantasia"
+          aria-label="Buscar prestadores"
+        />
+        <Button type="submit" variant="secondary">
+          Buscar
+        </Button>
+      </form>
+
       {canWrite ? (
         <SectionCard title="Novo prestador">
           {formError ? (
@@ -149,8 +169,12 @@ export function LogisticsProvidersPage({ user }: Props) {
 
       {rows.length === 0 ? (
         <EmptyState
-          title="Nenhum prestador"
-          message="Cadastre o primeiro prestador para usá-lo nos embarques."
+          title={q.trim() ? "Nenhum resultado" : "Nenhum prestador"}
+          message={
+            q.trim()
+              ? "Nenhum prestador neste filtro"
+              : "Cadastre o primeiro prestador para usá-lo nos embarques."
+          }
         />
       ) : (
         <SectionCard title="Cadastrados">

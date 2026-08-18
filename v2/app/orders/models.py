@@ -53,6 +53,11 @@ class Order(Base):
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", order_by="OrderItem.position"
     )
+    schedule_lines: Mapped[list["OrderPaymentScheduleLine"]] = relationship(
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="OrderPaymentScheduleLine.sequence",
+    )
 
 
 class OrderItem(Base):
@@ -91,3 +96,41 @@ class OrderItem(Base):
     )
 
     order: Mapped["Order"] = relationship(back_populates="items")
+
+
+class OrderPaymentScheduleLine(Base):
+    """Planejamento comercial do pedido — não é Payable nem Payment."""
+
+    __tablename__ = "order_payment_schedule_lines"
+    __table_args__ = (
+        UniqueConstraint("order_id", "sequence", name="uq_order_schedule_sequence"),
+        CheckConstraint(
+            "(percent IS NOT NULL AND amount IS NULL) OR "
+            "(amount IS NOT NULL AND percent IS NULL)",
+            name="ck_order_schedule_percent_xor_amount",
+        ),
+        CheckConstraint(
+            "percent IS NULL OR percent > 0",
+            name="ck_order_schedule_percent_positive",
+        ),
+        CheckConstraint(
+            "amount IS NULL OR amount > 0",
+            name="ck_order_schedule_amount_positive",
+        ),
+        CheckConstraint(
+            "due_date IS NOT NULL OR "
+            "(condition_text IS NOT NULL AND btrim(condition_text) <> '')",
+            name="ck_order_schedule_when",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False, index=True)
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    condition_text: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    percent: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    order: Mapped["Order"] = relationship(back_populates="schedule_lines")

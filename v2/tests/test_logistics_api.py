@@ -49,6 +49,11 @@ def test_shipment_create_item_advance_annul(admin_client):
     assert sh["logistics_provider_id"] == provider["id"]
     assert sh["carrier_name_snapshot"] == "Carrier A1"
 
+    audit = c.get("/api/audit", params={"entity_type": "shipment", "entity_id": str(sh["id"])})
+    assert audit.status_code == 200, audit.text
+    creates = [row for row in audit.json() if row["action"] == "shipment.create"]
+    assert len(creates) == 1
+
     r = c.post(
         f"/api/shipments/{sh['id']}/items",
         json={"expected_version": sh["version"], "order_item_id": item_id, "quantity": "4"},
@@ -279,6 +284,17 @@ def test_logistics_providers_rbac(client, db, admin_client):
         == 403
     )
     assert admin_client.get("/api/shipments").status_code == 200
+
+
+def test_logistics_providers_q_filter(admin_client):
+    c = admin_client
+    _provider(c, tag="AlphaSearch", trade_name="Alpha Trade")
+    _provider(c, tag="BetaOther", trade_name="Other")
+    r = c.get("/api/logistics-providers", params={"q": "Alpha"})
+    assert r.status_code == 200, r.text
+    names = [x["legal_name"] for x in r.json()]
+    assert any("AlphaSearch" in n for n in names)
+    assert not any("BetaOther" in n for n in names)
 
 
 def test_delete_empty_and_annul(admin_client):

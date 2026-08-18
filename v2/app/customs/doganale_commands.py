@@ -274,6 +274,7 @@ def replace_doganale_lines(
         )
     db.flush()
     _bump(ver)
+    db.expire(ver, ["lines"])
     return repo.get_version(db, ver.id) or ver
 
 
@@ -291,7 +292,8 @@ def activate_doganale_version(
         return ver  # idempotent
     if ver.status != "DRAFT":
         raise DoganaleImmutable("Somente DRAFT pode ser ativada")
-    if not ver.lines:
+    db.expire(ver, ["lines"])
+    if not list(ver.lines):
         raise DoganaleValidationError("Versão sem linhas não pode ser ativada", code="lines_required")
 
     dog = repo.get_doganale_for_update(db, ver.doganale_id)

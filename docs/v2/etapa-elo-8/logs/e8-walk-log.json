@@ -1,0 +1,59 @@
+[
+  {
+    "step": "W1",
+    "abri": "/customs/1",
+    "vi": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\nWASH BAG STARLIGHT - RED\n8057628953814\n\t50\t0\t50\t\nWASH BAG FIERCE\n8057628953104\n\t10\t0\t10\t",
+    "typeVal": "DOMESTIC_IN",
+    "hasProductId": 0,
+    "typeOptions": [
+      "DOMESTIC_IN"
+    ],
+    "at": "2026-08-17T18:40:59.638Z"
+  },
+  {
+    "step": "W2",
+    "cliquei": "Receber 20 + double-click",
+    "listAfterW2": "#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+    "residualAfterW2": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\nWASH BAG STARLIGHT - RED\n8057628953814\n\t50\t20\t30\t\nWASH BAG FIERCE\n8057628953104\n\t10\t0\t10\t",
+    "at": "2026-08-17T18:41:00.122Z"
+  },
+  {
+    "step": "W3",
+    "movText": "Quando\tProduto\tLocal\tRegime\tTipo\tΔ Qtd\n17/08/2026 15:40:59 -03:00\t8057628953814 — WASH BAG STARLIGHT - RED\tDOMESTIC-MAIN\tDoméstico\tEntrada doméstica\t20",
+    "available": "Disponível\t20",
+    "cleared": "Liberado não recebido\nAgregado do produto em todos os processos — não é o residual deste processo.\n\t30",
+    "scope": "Agregado do produto em todos os processos — não é o residual deste processo.",
+    "balances": "Saldos por local\nLocal\tRegime\tQuantidade\nDOMESTIC-MAIN\tDoméstico\t20",
+    "availableReload": "Disponível\t20",
+    "at": "2026-08-17T18:41:01.535Z"
+  },
+  {
+    "step": "W4",
+    "residualSnippet": true,
+    "at": "2026-08-17T18:41:03.042Z"
+  },
+  {
+    "step": "W5",
+    "overHint": "Acima do residual — o sistema bloqueia.",
+    "overCopy": "Não é possível receber mais do que o residual nacionalizado disponível. Reduza a quantidade.",
+    "at": "2026-08-17T18:41:04.970Z"
+  },
+  {
+    "step": "W6",
+    "afterW6": "#3 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#2 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+    "at": "2026-08-17T18:41:05.568Z"
+  },
+  {
+    "step": "W7",
+    "reverseNat": 0,
+    "reverseHidden": 1,
+    "nRev": 3,
+    "afterRereceive": "#4 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#3 · Entrada doméstica · Estornado · DOMESTIC-MAIN · 1 linhas\n#2 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+    "at": "2026-08-17T18:41:06.517Z"
+  },
+  {
+    "step": "W8",
+    "audit": "Onde\tAção\tQuando\tQuem\nRecebimento\tRecebimento estornado\t17/08/2026 15:41:05 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 15:41:05 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 15:41:05 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 15:41:05 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 15:41:02 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 15:41:02 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 15:41:02 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 15:40:59 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 15:40:59 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 15:40:59 -03:00\t1\nLiberação\tLiberação confirmada\t17/08/2026 15:40:52 -03:00\t1\nLiberação\tQuantidades adicionadas à liberação\t17/08/2026 15:40:51 -03:00\t1\nLiberação\tLiberação criada\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tProcesso submetido\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tItem de embarque alocado\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tItem de embarque alocado\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tItem de fatura alocado\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tItem de fatura alocado\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tEmbarque vinculado ao processo\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tFatura vinculada ao processo\t17/08/2026 15:40:51 -03:00\t1\nProcesso\tProcesso criado\t17/08/2026 15:40:51 -03:00\t1",
+    "at": "2026-08-17T18:41:06.954Z"
+  }
+]

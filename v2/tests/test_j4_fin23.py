@@ -270,6 +270,10 @@ def test_fin3_fattura_244_amount_iban_issue_payables(admin_client, db):
             "operation_key": f"fin3-244-{doc_id}",
             "policy": "A",
             "order_id": order.id,
+            "line_choices": [
+                {"row_index": 0, "order_item_id": order.items[0].id},
+                {"row_index": 1, "order_item_id": order.items[1].id},
+            ],
         },
     )
     assert r.status_code == 200, r.text

@@ -1,0 +1,66 @@
+{
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-08-17T19:26:22.882604Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "025",
+    "alembic_expected": "025",
+    "schema_ok": true
+  },
+  "process_id": 1,
+  "process_status": "PARTIALLY_CLEARED",
+  "process_code": "IMP-C63AD235DDA3",
+  "shipment_status": "ARRIVED",
+  "nationalization_id": 1,
+  "nationalization_status": "CONFIRMED",
+  "products": {
+    "8057628950936": 1,
+    "8057628953104": 2,
+    "8057628954194": 3,
+    "8057628953814": 4,
+    "8057628955191": 5,
+    "8057628955207": 6,
+    "8057628955214": 7
+  },
+  "residuals": [
+    {
+      "nationalization_id": 1,
+      "nationalization_item_id": 1,
+      "product_id": 4,
+      "product_sku": "8057628953814",
+      "product_name": "WASH BAG STARLIGHT - RED",
+      "nationalized_qty": "50.0000",
+      "received_qty": "0",
+      "residual_qty": "50.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "nationalization_item_id": 2,
+      "product_id": 2,
+      "product_sku": "8057628953104",
+      "product_name": "WASH BAG FIERCE",
+      "nationalized_qty": "10.0000",
+      "received_qty": "0",
+      "residual_qty": "10.0000"
+    }
+  ],
+  "receipts": [],
+  "walk_skus": [
+    {
+      "sku": "8057628953814",
+      "qty": "200",
+      "nat_qty": "50",
+      "unit_price": "10"
+    },
+    {
+      "sku": "8057628953104",
+      "qty": "10",
+      "nat_qty": "10",
+      "unit_price": "12"
+    }
+  ]
+}

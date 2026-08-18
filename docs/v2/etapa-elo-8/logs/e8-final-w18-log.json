@@ -1,0 +1,302 @@
+{
+  "result": "PASS",
+  "process_id": 1,
+  "product_starlight": 4,
+  "inventoryMutations": [
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:39.540Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/lines",
+      "at": "2026-08-17T19:26:39.591Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/confirm",
+      "at": "2026-08-17T19:26:39.644Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:41.633Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/lines",
+      "at": "2026-08-17T19:26:41.666Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/confirm",
+      "at": "2026-08-17T19:26:41.691Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:43.450Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/lines",
+      "at": "2026-08-17T19:26:43.488Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/confirm",
+      "at": "2026-08-17T19:26:43.511Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/reverse",
+      "at": "2026-08-17T19:26:43.967Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:44.368Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/4/lines",
+      "at": "2026-08-17T19:26:44.410Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/4/confirm",
+      "at": "2026-08-17T19:26:44.430Z"
+    }
+  ],
+  "inventoryPostCount": 13,
+  "log": [
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/auth/login",
+      "at": "2026-08-17T19:26:38.083Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:38.528Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:38.528Z"
+    },
+    {
+      "step": "W1",
+      "abri": "/customs/1",
+      "vi": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\nWASH BAG STARLIGHT - RED\n8057628953814\n\t50\t0\t50\t\nWASH BAG FIERCE\n8057628953104\n\t10\t0\t10\t",
+      "typeVal": "DOMESTIC_IN",
+      "hasProductId": 0,
+      "hasNatItemId": 0,
+      "typeOptions": [
+        "DOMESTIC_IN"
+      ],
+      "at": "2026-08-17T19:26:39.507Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:39.540Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/lines",
+      "at": "2026-08-17T19:26:39.591Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/confirm",
+      "at": "2026-08-17T19:26:39.644Z"
+    },
+    {
+      "step": "W2",
+      "cliquei": "Receber 20 + double-click mesmo tick; location DOMESTIC-MAIN",
+      "listAfterW2": "#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+      "residualAfterW2": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\nWASH BAG STARLIGHT - RED\n8057628953814\n\t50\t20\t30\t\nWASH BAG FIERCE\n8057628953104\n\t10\t0\t10\t",
+      "inventoryPostsThisStep": 3,
+      "at": "2026-08-17T19:26:39.868Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:39.961Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:39.961Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.161Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.161Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.447Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.448Z"
+    },
+    {
+      "step": "W3",
+      "movText": "Quando\tProduto\tLocal\tRegime\tTipo\tΔ Qtd\n17/08/2026 16:26:39 -03:00\t8057628953814 — WASH BAG STARLIGHT - RED\tDOMESTIC-MAIN\tDoméstico\tEntrada doméstica\t20",
+      "available": "Disponível\t20",
+      "cleared": "Liberado não recebido\nAgregado do produto em todos os processos — não é o residual deste processo.\n\t30",
+      "scope": "Agregado do produto em todos os processos — não é o residual deste processo.",
+      "balances": "Saldos por local\nLocal\tRegime\tQuantidade\nDOMESTIC-MAIN\tDoméstico\t20",
+      "availableReload": "Disponível\t20",
+      "at": "2026-08-17T19:26:40.680Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.768Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:40.768Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:41.633Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/lines",
+      "at": "2026-08-17T19:26:41.666Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/confirm",
+      "at": "2026-08-17T19:26:41.691Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:42.002Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:42.002Z"
+    },
+    {
+      "step": "W4",
+      "available50": "Disponível\t50",
+      "at": "2026-08-17T19:26:42.170Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:42.308Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:26:42.308Z"
+    },
+    {
+      "step": "W5",
+      "overHint": "Acima do residual — o sistema bloqueia.",
+      "overCopy": "Não é possível receber mais do que o residual nacionalizado disponível. Reduza a quantidade.",
+      "at": "2026-08-17T19:26:43.396Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:43.450Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/lines",
+      "at": "2026-08-17T19:26:43.488Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/confirm",
+      "at": "2026-08-17T19:26:43.511Z"
+    },
+    {
+      "step": "W6",
+      "afterW6": "#3 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#2 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+      "at": "2026-08-17T19:26:43.882Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/3/reverse",
+      "at": "2026-08-17T19:26:43.967Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:26:44.368Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/4/lines",
+      "at": "2026-08-17T19:26:44.410Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/4/confirm",
+      "at": "2026-08-17T19:26:44.430Z"
+    },
+    {
+      "step": "W7",
+      "reverseNat": 0,
+      "reverseHidden": 1,
+      "hiddenCopy": "Reverter indisponível — já há estoque recebido",
+      "afterRereceive": "#4 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#3 · Entrada doméstica · Estornado · DOMESTIC-MAIN · 1 linhas\n#2 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter",
+      "at": "2026-08-17T19:26:44.581Z"
+    },
+    {
+      "step": "W8",
+      "audit": "Onde\tAção\tQuando\tQuem\nRecebimento\tRecebimento estornado\t17/08/2026 16:26:43 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 16:26:43 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 16:26:43 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 16:26:43 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 16:26:41 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 16:26:41 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 16:26:41 -03:00\t1\nRecebimento\tRecebimento confirmado\t17/08/2026 16:26:39 -03:00\t1\nRecebimento\tLinhas adicionadas ao recebimento\t17/08/2026 16:26:39 -03:00\t1\nRecebimento\tRecebimento criado\t17/08/2026 16:26:39 -03:00\t1\nLiberação\tLiberação confirmada\t17/08/2026 16:26:24 -03:00\t1\nLiberação\tQuantidades adicionadas à liberação\t17/08/2026 16:26:24 -03:00\t1\nLiberação\tLiberação criada\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tProcesso submetido\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tItem de embarque alocado\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tItem de embarque alocado\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tItem de fatura alocado\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tItem de fatura alocado\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tEmbarque vinculado ao processo\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tFatura vinculada ao processo\t17/08/2026 16:26:24 -03:00\t1\nProcesso\tProcesso criado\t17/08/2026 16:26:24 -03:00\t1",
+      "at": "2026-08-17T19:26:44.816Z"
+    }
+  ]
+}

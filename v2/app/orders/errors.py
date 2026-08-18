@@ -24,8 +24,8 @@ class OrderConflict(OrdersError):
 
 
 class OrderValidationError(OrdersError):
-    def __init__(self, message: str):
-        super().__init__(message, code="validation_error")
+    def __init__(self, message: str, *, code: str = "validation_error"):
+        super().__init__(message, code=code)
 
 
 class OrderItemNotFound(OrdersError):

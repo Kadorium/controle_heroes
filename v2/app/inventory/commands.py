@@ -217,9 +217,27 @@ def add_receipt_lines(
         shp_item_id = raw.get("shipment_item_id")
 
         if receipt.receipt_type in ("DOMESTIC_IN", "RECLASS"):
-            if nat_item_id is None and receipt.nationalization_id is None:
+            if nat_item_id is None:
                 raise NationalizationRequired(
-                    "Linha doméstica exige nationalization_item_id ou receipt.nationalization_id"
+                    "Linha doméstica exige nationalization_item_id"
+                )
+            nat_item = customs_public.get_nationalization_item(db, int(nat_item_id))
+            if nat_item is None:
+                raise NationalizationRequired(
+                    f"NationalizationItem {nat_item_id} não encontrado"
+                )
+            if nat_item.product_id is not None and int(product_id) != int(nat_item.product_id):
+                raise InventoryValidationError(
+                    "O produto da linha não coincide com o item da liberação",
+                    code="product_mismatch",
+                )
+            if (
+                receipt.nationalization_id is not None
+                and int(nat_item.nationalization_id) != int(receipt.nationalization_id)
+            ):
+                raise InventoryValidationError(
+                    "O item da liberação não pertence ao recebimento",
+                    code="validation_error",
                 )
 
         db.add(
@@ -239,39 +257,35 @@ def add_receipt_lines(
 
 
 def _assert_domestic_coverage(db: Session, receipt: GoodsReceipt) -> None:
-    """Domestic/reclass: qty ≤ residual nacionalizado (por nat_item ou product)."""
+    """Domestic/reclass: qty ≤ residual do mesmo nationalization_item_id (item-level)."""
     for line in receipt.lines:
         qty = Decimal(str(line.quantity))
-        if line.nationalization_item_id is not None:
-            nat_item = customs_public.get_nationalization_item(db, line.nationalization_item_id)
-            if nat_item is None:
-                raise NationalizationRequired(
-                    f"NationalizationItem {line.nationalization_item_id} não encontrado"
-                )
-            nat = customs_public.get_nationalization(db, nat_item.nationalization_id)
-            if nat.status != "CONFIRMED":
-                raise NationalizationRequired(
-                    f"Nationalization {nat.id} não está CONFIRMED"
-                )
-            cleared = Decimal(str(nat_item.quantity))
-            used = repo.sum_domestic_received_for_nat_item(db, line.nationalization_item_id)
-            if used + qty > cleared:
-                raise OverReceiptError(
-                    f"Nat item {line.nationalization_item_id}: "
-                    f"{used + qty} > nacionalizado {cleared}"
-                )
-        else:
-            # product-level residual
-            cleared = customs_public.sum_nationalized_qty_by_product(db, line.product_id)
-            if cleared <= 0:
-                raise NationalizationRequired(
-                    f"Produto {line.product_id} sem qty nacionalizada"
-                )
-            used = repo.sum_domestic_received_for_product(db, line.product_id)
-            if used + qty > cleared:
-                raise OverReceiptError(
-                    f"Produto {line.product_id}: {used + qty} > nacionalizado {cleared}"
-                )
+        if line.nationalization_item_id is None:
+            raise NationalizationRequired(
+                "Linha doméstica exige nationalization_item_id"
+            )
+        nat_item = customs_public.get_nationalization_item(db, line.nationalization_item_id)
+        if nat_item is None:
+            raise NationalizationRequired(
+                f"NationalizationItem {line.nationalization_item_id} não encontrado"
+            )
+        if nat_item.product_id is not None and int(line.product_id) != int(nat_item.product_id):
+            raise InventoryValidationError(
+                "O produto da linha não coincide com o item da liberação",
+                code="product_mismatch",
+            )
+        nat = customs_public.get_nationalization(db, nat_item.nationalization_id)
+        if nat.status != "CONFIRMED":
+            raise NationalizationRequired(
+                f"Nationalization {nat.id} não está CONFIRMED"
+            )
+        cleared = Decimal(str(nat_item.quantity))
+        used = repo.sum_domestic_received_for_nat_item(db, line.nationalization_item_id)
+        if used + qty > cleared:
+            raise OverReceiptError(
+                f"Nat item {line.nationalization_item_id}: "
+                f"{used + qty} > nacionalizado {cleared}"
+            )
 
 
 def confirm_receipt(

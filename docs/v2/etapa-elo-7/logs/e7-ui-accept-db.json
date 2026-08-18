@@ -1,0 +1,1314 @@
+{
+  "db": "epic_v2_test",
+  "orders": [
+    {
+      "id": 1,
+      "code": "202",
+      "status": "CONFIRMED"
+    }
+  ],
+  "invoices": [
+    {
+      "id": 1,
+      "invoice_number": "202",
+      "status": "ISSUED"
+    }
+  ],
+  "payables": [
+    {
+      "id": 1,
+      "source_type": "INVOICE",
+      "status": "OPEN",
+      "currency": "EUR",
+      "amount": "15094.0000",
+      "balance": "15094.0000"
+    },
+    {
+      "id": 2,
+      "source_type": "INVOICE",
+      "status": "OPEN",
+      "currency": "EUR",
+      "amount": "15094.0000",
+      "balance": "15094.0000"
+    },
+    {
+      "id": 3,
+      "source_type": "CUSTOMS_FUNDING",
+      "status": "OPEN",
+      "currency": "BRL",
+      "amount": "1425554.6400",
+      "balance": "1425554.6400"
+    }
+  ],
+  "payments": [],
+  "shipments": [
+    {
+      "id": 1,
+      "code": "SHP-96F0ED319FED",
+      "status": "ARRIVED"
+    }
+  ],
+  "processes": [
+    {
+      "id": 1,
+      "code": "IMP-2B62AD7A1313",
+      "status": "PARTIALLY_CLEARED",
+      "external_reference": "TEST-DUIMP-E7-202",
+      "version": 13
+    }
+  ],
+  "funding": [
+    {
+      "id": 1,
+      "process_id": 1,
+      "status": "CONFIRMED",
+      "declared_total": "1425554.6400"
+    }
+  ],
+  "tax_codes": [
+    {
+      "code": "AFRMM",
+      "amount": "2000.0000"
+    },
+    {
+      "code": "ICMS",
+      "amount": "556000.0000"
+    },
+    {
+      "code": "II",
+      "amount": "343800.0000"
+    },
+    {
+      "code": "IPI",
+      "amount": "253500.0000"
+    },
+    {
+      "code": "PIS",
+      "amount": "37700.0000"
+    },
+    {
+      "code": "COFINS",
+      "amount": "167900.0000"
+    },
+    {
+      "code": "SISCOMEX",
+      "amount": "223.6400"
+    }
+  ],
+  "nats": [
+    {
+      "id": 1,
+      "process_id": 1,
+      "status": "CONFIRMED"
+    },
+    {
+      "id": 2,
+      "process_id": 1,
+      "status": "DRAFT"
+    }
+  ],
+  "nat_items": [
+    {
+      "nationalization_id": 1,
+      "product_id": 4,
+      "quantity": "50.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 3,
+      "quantity": "200.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 1,
+      "quantity": "150.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 2,
+      "quantity": "150.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 7,
+      "quantity": "300.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 5,
+      "quantity": "300.0000"
+    },
+    {
+      "nationalization_id": 1,
+      "product_id": 6,
+      "quantity": "300.0000"
+    }
+  ],
+  "doganale_versions": [
+    {
+      "id": 1,
+      "doganale_id": 1,
+      "version_number": 1,
+      "status": "ACTIVE",
+      "is_current": true
+    }
+  ],
+  "doganale_line_count": [
+    {
+      "n": 7
+    }
+  ],
+  "receipts": [],
+  "audit_actions": [
+    {
+      "entity_type": "user",
+      "action": "login",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "6"
+    },
+    {
+      "entity_type": "product",
+      "action": "create",
+      "entity_id": "7"
+    },
+    {
+      "entity_type": "supplier",
+      "action": "create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "add_item",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "order",
+      "action": "confirm",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "6"
+    },
+    {
+      "entity_type": "logistics_provider",
+      "action": "logistics_provider.create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "7"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "8"
+    },
+    {
+      "entity_type": "ingestion_batch",
+      "action": "batch_created",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "ingestion_occurrence",
+      "action": "upload_accepted",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "ingestion_document",
+      "action": "document_seeded",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "9"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "10"
+    },
+    {
+      "entity_type": "ingestion_commit_attempt",
+      "action": "commit_completed",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "11"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "12"
+    },
+    {
+      "entity_type": "invoice",
+      "action": "issue",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "13"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "14"
+    },
+    {
+      "entity_type": "ingestion_batch",
+      "action": "batch_created",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "ingestion_occurrence",
+      "action": "upload_accepted",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "ingestion_document",
+      "action": "document_seeded",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "15"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "16"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.item.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.packages.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.package.contents.set",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.reference.add",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.summary.upsert",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "ingestion_commit_attempt",
+      "action": "commit_pl_detail_completed",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "17"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "18"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.update",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.advance",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.advance",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "shipment",
+      "action": "shipment.advance",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "19"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "20"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "21"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "22"
+    },
+    {
+      "entity_type": "ingestion_batch",
+      "action": "batch_created",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "ingestion_occurrence",
+      "action": "upload_accepted",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "ingestion_document",
+      "action": "document_seeded",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "23"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "24"
+    },
+    {
+      "entity_type": "ingestion_commit_attempt",
+      "action": "commit_doganale_completed",
+      "entity_id": "3"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "25"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "26"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "27"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "28"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "29"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "30"
+    },
+    {
+      "entity_type": "ingestion_batch",
+      "action": "batch_created",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "ingestion_occurrence",
+      "action": "upload_accepted",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "ingestion_document",
+      "action": "document_seeded",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "31"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "32"
+    },
+    {
+      "entity_type": "ingestion_commit_attempt",
+      "action": "commit_print_completed",
+      "entity_id": "4"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "33"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "34"
+    },
+    {
+      "entity_type": "ingestion_batch",
+      "action": "batch_created",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "ingestion_occurrence",
+      "action": "upload_accepted",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "ingestion_document",
+      "action": "document_seeded",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "35"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "36"
+    },
+    {
+      "entity_type": "ingestion_commit_attempt",
+      "action": "commit_numerario_completed",
+      "entity_id": "5"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "37"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "38"
+    },
+    {
+      "entity_type": "customs_funding_request",
+      "action": "funding.confirm",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "39"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "40"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "41"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "42"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "43"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "44"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "45"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "46"
+    },
+    {
+      "entity_type": "import_process",
+      "action": "import_process.update",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "import_process",
+      "action": "import_process.submit",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "nationalization",
+      "action": "nationalization.create",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "nationalization",
+      "action": "nationalization.add_items",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "nationalization",
+      "action": "nationalization.confirm",
+      "entity_id": "1"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "47"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "48"
+    },
+    {
+      "entity_type": "nationalization",
+      "action": "nationalization.create",
+      "entity_id": "2"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "49"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "50"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "51"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "52"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "53"
+    },
+    {
+      "entity_type": "fx_market_quote",
+      "action": "fx.quote.refresh",
+      "entity_id": "54"
+    }
+  ],
+  "commit_attempts": [
+    {
+      "id": 1,
+      "document_id": 1,
+      "operation_key": "fattura-commit-1-1786733869317",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 2,
+      "document_id": 2,
+      "operation_key": "pl-detail-2-1786734246554",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 3,
+      "document_id": 3,
+      "operation_key": "doganale-3-1786734690920",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 4,
+      "document_id": 4,
+      "operation_key": "print-4-1786734844151",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 5,
+      "document_id": 5,
+      "operation_key": "ING-NUM-DOC-5-1786734920779",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "inv_alloc": [],
+  "shp_alloc": [
+    {
+      "process_id": 1,
+      "shipment_item_id": 7,
+      "allocated_qty": "200.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 6,
+      "allocated_qty": "200.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 5,
+      "allocated_qty": "150.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 4,
+      "allocated_qty": "150.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 3,
+      "allocated_qty": "300.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 2,
+      "allocated_qty": "300.0000"
+    },
+    {
+      "process_id": 1,
+      "shipment_item_id": 1,
+      "allocated_qty": "300.0000"
+    }
+  ]
+}

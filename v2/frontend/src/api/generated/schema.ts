@@ -72,6 +72,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Http List Roles */
+        get: operations["http_list_roles_api_roles_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Http List Users */
+        get: operations["http_list_users_api_users_get"];
+        put?: never;
+        /** Http Create User */
+        post: operations["http_create_user_api_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Http Get User */
+        get: operations["http_get_user_api_users__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Http Patch User */
+        patch: operations["http_patch_user_api_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/users/{user_id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Http Set Password */
+        post: operations["http_set_password_api_users__user_id__password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/audit": {
         parameters: {
             query?: never;
@@ -148,6 +218,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/catalog/supplier-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Supplier List Report */
+        get: operations["supplier_list_report_api_catalog_supplier_list_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/suppliers/{supplier_id}": {
         parameters: {
             query?: never;
@@ -162,7 +249,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Patch Supplier */
+        patch: operations["patch_supplier_api_suppliers__supplier_id__patch"];
         trace?: never;
     };
     "/api/products": {
@@ -183,6 +271,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/catalog/product-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Product List Report */
+        get: operations["product_list_report_api_catalog_product_list_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/product-attribute-values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Product Attribute Values */
+        get: operations["product_attribute_values_api_catalog_product_attribute_values_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products/{product_id}": {
         parameters: {
             query?: never;
@@ -197,7 +319,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Patch Product */
+        patch: operations["patch_product_api_products__product_id__patch"];
         trace?: never;
     };
     "/api/orders": {
@@ -271,6 +394,23 @@ export interface paths {
         patch: operations["patch_item_api_orders__order_id__items__item_id__patch"];
         trace?: never;
     };
+    "/api/orders/{order_id}/items/{item_id}/bind-product": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bind Commitment Product */
+        post: operations["bind_commitment_product_api_orders__order_id__items__item_id__bind_product_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/{order_id}/confirm": {
         parameters: {
             query?: never;
@@ -299,6 +439,24 @@ export interface paths {
         put?: never;
         /** Cancel Order */
         post: operations["cancel_order_api_orders__order_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/{order_id}/payment-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Payment Schedule */
+        get: operations["get_payment_schedule_api_orders__order_id__payment_schedule_get"];
+        /** Put Payment Schedule */
+        put: operations["put_payment_schedule_api_orders__order_id__payment_schedule_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1941,6 +2099,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/processes/{process_id}/receipt-residuals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api List Receipt Residuals */
+        get: operations["api_list_receipt_residuals_api_inventory_processes__process_id__receipt_residuals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory/receipts": {
         parameters: {
             query?: never;
@@ -2823,6 +2998,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ingestion/documents/{document_id}/preview-commit-pl-detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview Commit Pl Detail
+         * @description Preview do commit Packing List Detail — sem escrever owners.
+         */
+        get: operations["preview_commit_pl_detail_api_ingestion_documents__document_id__preview_commit_pl_detail_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingestion/documents/{document_id}/commit-pl-detail": {
         parameters: {
             query?: never;
@@ -2834,9 +3029,26 @@ export interface paths {
         put?: never;
         /**
          * Commit Document Pl Detail
-         * @description Commit PL Detail: promove documento + cria Shipment PLANNED.
+         * @description Commit PL Detail: promove documento + preenche Shipment PLANNED via Logistics.
          */
         post: operations["commit_document_pl_detail_api_ingestion_documents__document_id__commit_pl_detail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingestion/documents/{document_id}/preview-commit-doganale": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Commit Doganale */
+        get: operations["preview_commit_doganale_api_ingestion_documents__document_id__preview_commit_doganale_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2854,9 +3066,43 @@ export interface paths {
         put?: never;
         /**
          * Commit Document Doganale
-         * @description Commit Fattura Doganale: promove documento + cria ImportProcess DRAFT.
+         * @description Commit Fattura Doganale: preenche CustomsDoganale + 0/1/N processo/fatura/embarque.
          */
         post: operations["commit_document_doganale_api_ingestion_documents__document_id__commit_doganale_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingestion/documents/{document_id}/preview-commit-print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Commit Print */
+        get: operations["preview_commit_print_api_ingestion_documents__document_id__preview_commit_print_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ingestion/documents/{document_id}/commit-print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Commit Document Print */
+        post: operations["commit_document_print_api_ingestion_documents__document_id__commit_print_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3200,6 +3446,8 @@ export interface components {
         AdvanceItemResponse: {
             /** Payment Id */
             payment_id: number;
+            /** Purpose */
+            purpose?: string | null;
             /** Amount */
             amount: string;
             /** Currency */
@@ -3240,6 +3488,8 @@ export interface components {
             currency: string;
             /** Advances */
             advances: components["schemas"]["AdvanceItemResponse"][];
+            /** Settlements */
+            settlements?: components["schemas"]["AdvanceItemResponse"][];
             consolidated: components["schemas"]["AdvanceConsolidated"];
         };
         /** AdvanceRegisterResponse */
@@ -3322,6 +3572,13 @@ export interface components {
             /** Created At */
             created_at?: string | null;
         };
+        /** AttributeValuesResponse */
+        AttributeValuesResponse: {
+            /** Field */
+            field: string;
+            /** Values */
+            values: string[];
+        };
         /** AuditEventResponse */
         AuditEventResponse: {
             /** Id */
@@ -3375,6 +3632,13 @@ export interface components {
             updated_at: string | null;
             /** Occurrences */
             occurrences?: components["schemas"]["OccurrenceOut"][];
+        };
+        /** BindProductBody */
+        BindProductBody: {
+            /** Expected Version */
+            expected_version: number;
+            /** Product Id */
+            product_id: number;
         };
         /** Body_create_order_advance_with_document_api_orders__order_id__advances_with_document_post */
         Body_create_order_advance_with_document_api_orders__order_id__advances_with_document_post: {
@@ -3530,6 +3794,14 @@ export interface components {
             nationalized_qty: string;
             /** Residual Qty */
             residual_qty: string;
+            /** Product Id */
+            product_id?: number | null;
+            /** Product Sku */
+            product_sku?: string | null;
+            /** Product Name */
+            product_name?: string | null;
+            /** Shipped Qty */
+            shipped_qty?: string | null;
         };
         /** CommitAttemptOut */
         CommitAttemptOut: {
@@ -3864,6 +4136,32 @@ export interface components {
             /** Created Order Code */
             created_order_code?: string | null;
         };
+        /** DoganaleCommitIn */
+        DoganaleCommitIn: {
+            /** Operation Key */
+            operation_key: string;
+            /** Process Id */
+            process_id?: number | null;
+            /** Invoice Id */
+            invoice_id?: number | null;
+            /** Shipment Id */
+            shipment_id?: number | null;
+        };
+        /** DoganaleInvoiceCandidateOut */
+        DoganaleInvoiceCandidateOut: {
+            /** Invoice Id */
+            invoice_id: number;
+            /** Invoice Number */
+            invoice_number: string;
+            /** Status */
+            status: string;
+            /** Order Id */
+            order_id?: number | null;
+            /** Linked Process Id */
+            linked_process_id?: number | null;
+            /** Evidence */
+            evidence?: string[];
+        };
         /** DoganaleLineIn */
         DoganaleLineIn: {
             /** Position */
@@ -3948,6 +4246,119 @@ export interface components {
             /** Notes */
             notes: string | null;
         };
+        /** DoganaleLinePreviewOut */
+        DoganaleLinePreviewOut: {
+            /** Position */
+            position: number;
+            /** Ncm */
+            ncm?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Quantity */
+            quantity?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Currency */
+            currency?: string | null;
+            /** Unit Price */
+            unit_price?: string | null;
+            /** Line Amount */
+            line_amount?: string | null;
+        };
+        /** DoganalePreviewOpOut */
+        DoganalePreviewOpOut: {
+            /** Op Key */
+            op_key: string;
+            /** Description */
+            description: string;
+            /** Entity Type */
+            entity_type?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+        };
+        /** DoganalePreviewOut */
+        DoganalePreviewOut: {
+            /** Document Id */
+            document_id: number;
+            /** Fingerprint */
+            fingerprint: string;
+            /** Operations */
+            operations?: components["schemas"]["DoganalePreviewOpOut"][];
+            /** Open Error Count */
+            open_error_count: number;
+            /** Can Commit */
+            can_commit: boolean;
+            /** Process Targets */
+            process_targets?: components["schemas"]["DoganaleProcessTargetOut"][];
+            /** Process Targets Reason */
+            process_targets_reason?: string | null;
+            /** Invoice Candidates */
+            invoice_candidates?: components["schemas"]["DoganaleInvoiceCandidateOut"][];
+            /** Invoice Candidates Reason */
+            invoice_candidates_reason?: string | null;
+            /** Shipment Targets */
+            shipment_targets?: components["schemas"]["DoganaleShipmentTargetOut"][];
+            /** Shipment Targets Reason */
+            shipment_targets_reason?: string | null;
+            /** Lines */
+            lines?: components["schemas"]["DoganaleLinePreviewOut"][];
+            /** Blockers */
+            blockers?: string[];
+            /** Resolved Process Id */
+            resolved_process_id?: number | null;
+            /** Resolved Invoice Id */
+            resolved_invoice_id?: number | null;
+            /** Resolved Shipment Id */
+            resolved_shipment_id?: number | null;
+            /**
+             * Will Create Process
+             * @default false
+             */
+            will_create_process: boolean;
+            /** Reuse Reason */
+            reuse_reason?: string | null;
+            /**
+             * Already Committed
+             * @default false
+             */
+            already_committed: boolean;
+            /** Last Succeeded Attempt Id */
+            last_succeeded_attempt_id?: number | null;
+            /** Last Succeeded Process Id */
+            last_succeeded_process_id?: number | null;
+            /** Document Number */
+            document_number?: string | null;
+        };
+        /** DoganaleProcessTargetOut */
+        DoganaleProcessTargetOut: {
+            /** Process Id */
+            process_id: number;
+            /** Code */
+            code: string;
+            /** Status */
+            status: string;
+            /** Compatible */
+            compatible: boolean;
+            /** Evidence */
+            evidence?: string[];
+        };
+        /** DoganaleShipmentTargetOut */
+        DoganaleShipmentTargetOut: {
+            /** Shipment Id */
+            shipment_id: number;
+            /** Code */
+            code: string;
+            /** Status */
+            status: string;
+            /** Compatible */
+            compatible: boolean;
+            /** Linked Process Id */
+            linked_process_id?: number | null;
+            /** Evidence */
+            evidence?: string[];
+        };
         /** DoganaleSummaryOut */
         DoganaleSummaryOut: {
             /** Id */
@@ -3989,11 +4400,6 @@ export interface components {
             created_at: string | null;
             /** Lines */
             lines: components["schemas"]["DoganaleLineOut"][];
-        };
-        /** DossierCommitIn */
-        DossierCommitIn: {
-            /** Operation Key */
-            operation_key: string;
         };
         /** DossierPreviewItemOut */
         DossierPreviewItemOut: {
@@ -4089,6 +4495,79 @@ export interface components {
             c2_confirm: boolean;
             /** C2 Reason */
             c2_reason?: string | null;
+            /** Line Choices */
+            line_choices?: components["schemas"]["FatturaLineChoiceIn"][];
+        };
+        /** FatturaLineCandidateOut */
+        FatturaLineCandidateOut: {
+            /** Order Item Id */
+            order_item_id: number;
+            /** Position */
+            position: number;
+            /** Unit Price */
+            unit_price?: string | null;
+            /** Remaining */
+            remaining: string;
+        };
+        /** FatturaLineChoiceIn */
+        FatturaLineChoiceIn: {
+            /** Row Index */
+            row_index: number;
+            /** Order Item Id */
+            order_item_id: number;
+        };
+        /** FatturaLineMatchOut */
+        FatturaLineMatchOut: {
+            /** Row Index */
+            row_index: number;
+            /** Sku */
+            sku: string;
+            /** Pdf Qty */
+            pdf_qty: string;
+            /** Pdf Unit Price */
+            pdf_unit_price?: string | null;
+            /** Order Item Id */
+            order_item_id?: number | null;
+            /** Order Unit Price */
+            order_unit_price?: string | null;
+            /** Remaining Before */
+            remaining_before?: string | null;
+            /** Candidate Count */
+            candidate_count: number;
+            /** Candidates */
+            candidates?: components["schemas"]["FatturaLineCandidateOut"][];
+            /**
+             * Price Mismatch
+             * @default false
+             */
+            price_mismatch: boolean;
+            /**
+             * Ambiguous Price
+             * @default false
+             */
+            ambiguous_price: boolean;
+            /** Status */
+            status: string;
+        };
+        /** FatturaOrderCandidateOut */
+        FatturaOrderCandidateOut: {
+            /** Order Id */
+            order_id: number;
+            /** Order Code */
+            order_code: string;
+            /** Status */
+            status: string;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Currency */
+            currency: string;
+            /** Evidence */
+            evidence?: string[];
+            /**
+             * Currency Match
+             * @default true
+             */
+            currency_match: boolean;
         };
         /** FatturaPolicyMatchOut */
         FatturaPolicyMatchOut: {
@@ -4131,6 +4610,21 @@ export interface components {
             open_error_count: number;
             /** Can Commit */
             can_commit: boolean;
+            /** Order Candidates */
+            order_candidates?: components["schemas"]["FatturaOrderCandidateOut"][];
+            /** Order Candidates Reason */
+            order_candidates_reason?: string | null;
+            /** Line Matches */
+            line_matches?: components["schemas"]["FatturaLineMatchOut"][];
+            /**
+             * Already Committed
+             * @default false
+             */
+            already_committed: boolean;
+            /** Last Succeeded Attempt Id */
+            last_succeeded_attempt_id?: number | null;
+            /** Last Succeeded Invoice Id */
+            last_succeeded_invoice_id?: number | null;
         };
         /** FieldCorrectIn */
         FieldCorrectIn: {
@@ -4378,7 +4872,7 @@ export interface components {
             alembic_head?: string | null;
             /**
              * Alembic Expected
-             * @default 023
+             * @default 026
              */
             alembic_expected: string;
             /**
@@ -4895,7 +5389,12 @@ export interface components {
             /** Operation Key */
             operation_key: string;
             /** Process Ids */
-            process_ids: number[];
+            process_ids?: number[];
+            /**
+             * Create Process
+             * @default false
+             */
+            create_process: boolean;
         };
         /** NumerarioCommitResultOut */
         NumerarioCommitResultOut: {
@@ -4956,6 +5455,35 @@ export interface components {
             open_error_count: number;
             /** Can Commit */
             can_commit: boolean;
+            /** Process Candidates */
+            process_candidates?: components["schemas"]["NumerarioProcessCandidateOut"][];
+            /** Process Candidates Reason */
+            process_candidates_reason?: string | null;
+            /**
+             * Already Committed
+             * @default false
+             */
+            already_committed: boolean;
+            /** Last Succeeded Attempt Id */
+            last_succeeded_attempt_id?: number | null;
+            /** Last Succeeded Process Id */
+            last_succeeded_process_id?: number | null;
+            /**
+             * Can Create Process
+             * @default false
+             */
+            can_create_process: boolean;
+        };
+        /** NumerarioProcessCandidateOut */
+        NumerarioProcessCandidateOut: {
+            /** Process Id */
+            process_id: number;
+            /** Code */
+            code: string;
+            /** Status */
+            status: string;
+            /** Evidence */
+            evidence?: string[];
         };
         /** OccurrenceOut */
         OccurrenceOut: {
@@ -5391,6 +5919,187 @@ export interface components {
             /** Source Document Id */
             source_document_id?: number | null;
         };
+        /** PackingCartonOut */
+        PackingCartonOut: {
+            /** Row Index */
+            row_index: number;
+            /** Pallet No */
+            pallet_no?: string | null;
+            /** Carton No */
+            carton_no?: string | null;
+            /** Items Per Ctn */
+            items_per_ctn?: string | null;
+            /** Ncm */
+            ncm: string;
+            /** Description */
+            description: string;
+            /** Dimensions */
+            dimensions?: string | null;
+            /** Unit Net Weight Kg */
+            unit_net_weight_kg?: string | null;
+            /** Unit Gross Weight Kg */
+            unit_gross_weight_kg?: string | null;
+            /** Total Net Weight Kg */
+            total_net_weight_kg?: string | null;
+            /** Total Gross Weight Kg */
+            total_gross_weight_kg?: string | null;
+            /**
+             * Packaging
+             * @default false
+             */
+            packaging: boolean;
+        };
+        /** PackingCommitIn */
+        PackingCommitIn: {
+            /** Operation Key */
+            operation_key: string;
+            /** Order Id */
+            order_id?: number | null;
+            /** Shipment Id */
+            shipment_id?: number | null;
+            /** Line Choices */
+            line_choices?: components["schemas"]["PackingLineChoiceIn"][];
+        };
+        /** PackingLineCandidateOut */
+        PackingLineCandidateOut: {
+            /** Order Item Id */
+            order_item_id: number;
+            /** Position */
+            position: number;
+            /** Sku */
+            sku: string;
+            /** Description */
+            description: string;
+            /** Remaining */
+            remaining: string;
+            /** Line Kind */
+            line_kind: string;
+        };
+        /** PackingLineChoiceIn */
+        PackingLineChoiceIn: {
+            /** Group Key */
+            group_key: string;
+            /** Order Item Id */
+            order_item_id: number;
+        };
+        /** PackingLineMatchOut */
+        PackingLineMatchOut: {
+            /** Group Key */
+            group_key: string;
+            /** Ncm */
+            ncm: string;
+            /** Description */
+            description: string;
+            /** Carton Count */
+            carton_count: number;
+            /** Total Qty */
+            total_qty: string;
+            /** Packaging */
+            packaging: boolean;
+            /** Order Item Id */
+            order_item_id?: number | null;
+            /** Remaining Before */
+            remaining_before?: string | null;
+            /** Candidate Count */
+            candidate_count: number;
+            /** Candidates */
+            candidates?: components["schemas"]["PackingLineCandidateOut"][];
+            /** Status */
+            status: string;
+            /** Carton Row Indexes */
+            carton_row_indexes?: number[];
+        };
+        /** PackingOrderCandidateOut */
+        PackingOrderCandidateOut: {
+            /** Order Id */
+            order_id: number;
+            /** Order Code */
+            order_code: string;
+            /** Status */
+            status: string;
+            /** Supplier Id */
+            supplier_id: number;
+            /** Currency */
+            currency: string;
+            /** Evidence */
+            evidence?: string[];
+            /**
+             * Currency Match
+             * @default true
+             */
+            currency_match: boolean;
+        };
+        /** PackingPreviewOperationOut */
+        PackingPreviewOperationOut: {
+            /** Op Key */
+            op_key: string;
+            /** Description */
+            description: string;
+            /** Entity Type */
+            entity_type?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+        };
+        /** PackingPreviewOut */
+        PackingPreviewOut: {
+            /** Document Id */
+            document_id: number;
+            /** Fingerprint */
+            fingerprint: string;
+            /** Operations */
+            operations?: components["schemas"]["PackingPreviewOperationOut"][];
+            /** Open Error Count */
+            open_error_count: number;
+            /** Can Commit */
+            can_commit: boolean;
+            /** Order Candidates */
+            order_candidates?: components["schemas"]["PackingOrderCandidateOut"][];
+            /** Order Candidates Reason */
+            order_candidates_reason?: string | null;
+            /** Shipment Targets */
+            shipment_targets?: components["schemas"]["PackingShipmentTargetOut"][];
+            /** Shipment Targets Reason */
+            shipment_targets_reason?: string | null;
+            /** Line Matches */
+            line_matches?: components["schemas"]["PackingLineMatchOut"][];
+            /** Cartons */
+            cartons?: components["schemas"]["PackingCartonOut"][];
+            /** Blockers */
+            blockers?: string[];
+            /** Resolved Order Id */
+            resolved_order_id?: number | null;
+            /** Resolved Shipment Id */
+            resolved_shipment_id?: number | null;
+            /**
+             * Will Create Shipment
+             * @default false
+             */
+            will_create_shipment: boolean;
+            /**
+             * Already Committed
+             * @default false
+             */
+            already_committed: boolean;
+            /** Last Succeeded Attempt Id */
+            last_succeeded_attempt_id?: number | null;
+            /** Last Succeeded Shipment Id */
+            last_succeeded_shipment_id?: number | null;
+        };
+        /** PackingShipmentTargetOut */
+        PackingShipmentTargetOut: {
+            /** Shipment Id */
+            shipment_id: number;
+            /** Code */
+            code: string;
+            /** Status */
+            status: string;
+            /** Compatible */
+            compatible: boolean;
+            /** Evidence */
+            evidence?: string[];
+        };
         /** PayablePreview */
         PayablePreview: {
             /** Sequence */
@@ -5539,6 +6248,8 @@ export interface components {
             supplier_name?: string | null;
             /** Order Id */
             order_id?: number | null;
+            /** Purpose */
+            purpose?: string | null;
             /** Amount */
             amount: string;
             /** Currency */
@@ -5640,6 +6351,71 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** PrintCommitIn */
+        PrintCommitIn: {
+            /** Operation Key */
+            operation_key: string;
+            /** Process Id */
+            process_id?: number | null;
+        };
+        /** PrintPreviewOpOut */
+        PrintPreviewOpOut: {
+            /** Op Key */
+            op_key: string;
+            /** Description */
+            description: string;
+            /** Entity Type */
+            entity_type?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
+        };
+        /** PrintPreviewOut */
+        PrintPreviewOut: {
+            /** Document Id */
+            document_id: number;
+            /** Fingerprint */
+            fingerprint: string;
+            /** Operations */
+            operations?: components["schemas"]["PrintPreviewOpOut"][];
+            /** Open Error Count */
+            open_error_count: number;
+            /** Can Commit */
+            can_commit: boolean;
+            /** Invoice Ref */
+            invoice_ref?: string | null;
+            /** Process Targets */
+            process_targets?: components["schemas"]["PrintProcessTargetOut"][];
+            /** Process Targets Reason */
+            process_targets_reason?: string | null;
+            /** Blockers */
+            blockers?: string[];
+            /**
+             * Already Committed
+             * @default false
+             */
+            already_committed: boolean;
+            /** Last Succeeded Attempt Id */
+            last_succeeded_attempt_id?: number | null;
+            /** Last Succeeded Process Id */
+            last_succeeded_process_id?: number | null;
+            /** Resolved Process Id */
+            resolved_process_id?: number | null;
+        };
+        /** PrintProcessTargetOut */
+        PrintProcessTargetOut: {
+            /** Process Id */
+            process_id: number;
+            /** Code */
+            code: string;
+            /** Status */
+            status: string;
+            /** Compatible */
+            compatible: boolean;
+            /** Evidence */
+            evidence?: string[];
+        };
         /** ProcessCreate */
         ProcessCreate: {
             /** External Reference */
@@ -5728,6 +6504,38 @@ export interface components {
              */
             is_active: boolean;
         };
+        /** ProductListResponse */
+        ProductListResponse: {
+            /** Items */
+            items: components["schemas"]["ProductResponse"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ProductPatch */
+        ProductPatch: {
+            /** Description */
+            description?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Ean */
+            ean?: string | null;
+            /** Size */
+            size?: string | null;
+            /** Color */
+            color?: string | null;
+            /** Ncm */
+            ncm?: string | null;
+            /** Country Of Origin */
+            country_of_origin?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Net Weight Kg */
+            net_weight_kg?: number | string | null;
+        };
         /** ProductResponse */
         ProductResponse: {
             /** Id */
@@ -5738,8 +6546,24 @@ export interface components {
             description: string;
             /** Is Active */
             is_active: boolean;
+            /** Ean */
+            ean?: string | null;
+            /** Size */
+            size?: string | null;
+            /** Color */
+            color?: string | null;
+            /** Ncm */
+            ncm?: string | null;
+            /** Country Of Origin */
+            country_of_origin?: string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Net Weight Kg */
+            net_weight_kg?: string | null;
             /** Created At */
             created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** ProvenanceIn */
         ProvenanceIn: {
@@ -5980,6 +6804,25 @@ export interface components {
             /** Lines */
             lines: components["schemas"]["ReceiptLineOut"][];
         };
+        /** ReceiptResidualOut */
+        ReceiptResidualOut: {
+            /** Nationalization Id */
+            nationalization_id: number;
+            /** Nationalization Item Id */
+            nationalization_item_id: number;
+            /** Product Id */
+            product_id: number | null;
+            /** Product Sku */
+            product_sku: string | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Nationalized Qty */
+            nationalized_qty: string;
+            /** Received Qty */
+            received_qty: string;
+            /** Residual Qty */
+            residual_qty: string;
+        };
         /** ReceiptVersionBody */
         ReceiptVersionBody: {
             /** Expected Version */
@@ -6082,6 +6925,15 @@ export interface components {
             /** Created At */
             created_at: string | null;
         };
+        /** RoleOut */
+        RoleOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+        };
         /** RowAddIn */
         RowAddIn: {
             /** Cells Json */
@@ -6168,6 +7020,68 @@ export interface components {
             /** Open Issue Count */
             open_issue_count: number;
         };
+        /** ScheduleLineIn */
+        ScheduleLineIn: {
+            /** Due Date */
+            due_date?: string | null;
+            /** Condition Text */
+            condition_text?: string | null;
+            /** Percent */
+            percent?: string | null;
+            /** Amount */
+            amount?: string | null;
+        };
+        /** ScheduleLineOut */
+        ScheduleLineOut: {
+            /** Id */
+            id: number;
+            /** Sequence */
+            sequence: number;
+            /** Due Date */
+            due_date?: string | null;
+            /** Condition Text */
+            condition_text?: string | null;
+            /** Percent */
+            percent?: string | null;
+            /** Amount */
+            amount?: string | null;
+            /** Derived Amount */
+            derived_amount?: string | null;
+        };
+        /** ScheduleReplace */
+        ScheduleReplace: {
+            /** Expected Version */
+            expected_version: number;
+            /** Mode */
+            mode?: string | null;
+            /** Lines */
+            lines?: components["schemas"]["ScheduleLineIn"][];
+            /** Reason Code */
+            reason_code?: string | null;
+        };
+        /** ScheduleView */
+        ScheduleView: {
+            /** Order Id */
+            order_id: number;
+            /** Order Version */
+            order_version: number;
+            /** Order Status */
+            order_status: string;
+            /** Currency */
+            currency: string;
+            /** Mode */
+            mode?: string | null;
+            /** Commercial Total */
+            commercial_total?: string | null;
+            /** Amount Sum */
+            amount_sum?: string | null;
+            /** Delta */
+            delta?: string | null;
+            /** Coherence */
+            coherence?: string | null;
+            /** Lines */
+            lines?: components["schemas"]["ScheduleLineOut"][];
+        };
         /** SectionOut */
         SectionOut: {
             /** Id */
@@ -6212,6 +7126,11 @@ export interface components {
             expected_version: number;
             /** Document Id */
             document_id?: number | null;
+        };
+        /** SetPasswordIn */
+        SetPasswordIn: {
+            /** Password */
+            password: string;
         };
         /** ShipmentCreate */
         ShipmentCreate: {
@@ -6452,6 +7371,32 @@ export interface components {
              * @default true
              */
             is_active: boolean;
+            /** Tax Id */
+            tax_id?: string | null;
+        };
+        /** SupplierListResponse */
+        SupplierListResponse: {
+            /** Items */
+            items: components["schemas"]["SupplierResponse"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** SupplierPatch */
+        SupplierPatch: {
+            /** Name */
+            name?: string | null;
+            /** Code */
+            code?: string | null;
+            /** Country Code */
+            country_code?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Tax Id */
+            tax_id?: string | null;
         };
         /** SupplierResponse */
         SupplierResponse: {
@@ -6465,8 +7410,12 @@ export interface components {
             country_code: string | null;
             /** Is Active */
             is_active: boolean;
+            /** Tax Id */
+            tax_id?: string | null;
             /** Created At */
             created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** TermIn */
         TermIn: {
@@ -6525,6 +7474,66 @@ export interface components {
             batch_id: number;
             /** Results */
             results: components["schemas"]["OccurrenceOut"][];
+        };
+        /** UserAdminOut */
+        UserAdminOut: {
+            /** Id */
+            id: number;
+            /** Email */
+            email: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role: string;
+            /** Role Id */
+            role_id: number;
+            /** Is Active */
+            is_active: boolean;
+            /** Last Login */
+            last_login?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Permissions */
+            permissions: string[];
+        };
+        /** UserCreateIn */
+        UserCreateIn: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password: string;
+            /** Role Id */
+            role_id: number;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /** UserListOut */
+        UserListOut: {
+            /** Items */
+            items: components["schemas"]["UserAdminOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** UserPatchIn */
+        UserPatchIn: {
+            /** Name */
+            name?: string | null;
+            /** Role Id */
+            role_id?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** UserResponse */
         UserResponse: {
@@ -6841,6 +7850,193 @@ export interface operations {
             };
         };
     };
+    http_list_roles_api_roles_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleOut"][];
+                };
+            };
+        };
+    };
+    http_list_users_api_users_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserListOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    http_create_user_api_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    http_get_user_api_users__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    http_patch_user_api_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserPatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    http_set_password_api_users__user_id__password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetPasswordIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_audit_api_audit_get: {
         parameters: {
             query: {
@@ -7038,6 +8234,42 @@ export interface operations {
             };
         };
     };
+    supplier_list_report_api_catalog_supplier_list_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                active_only?: boolean;
+                missing_tax_id?: boolean;
+                sort?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_supplier_api_suppliers__supplier_id__get: {
         parameters: {
             query?: never;
@@ -7048,6 +8280,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_supplier_api_suppliers__supplier_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplier_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierPatch"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -7136,6 +8403,76 @@ export interface operations {
             };
         };
     };
+    product_list_report_api_catalog_product_list_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                active_only?: boolean;
+                incomplete?: boolean;
+                missing_ncm?: boolean;
+                size?: string | null;
+                color?: string | null;
+                sort?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    product_attribute_values_api_catalog_product_attribute_values_get: {
+        parameters: {
+            query: {
+                field: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttributeValuesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_product_api_products__product_id__get: {
         parameters: {
             query?: never;
@@ -7146,6 +8483,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_product_api_products__product_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductPatch"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -7404,6 +8776,42 @@ export interface operations {
             };
         };
     };
+    bind_commitment_product_api_orders__order_id__items__item_id__bind_product_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindProductBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     confirm_order_api_orders__order_id__confirm_post: {
         parameters: {
             query?: never;
@@ -7461,6 +8869,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_payment_schedule_api_orders__order_id__payment_schedule_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_payment_schedule_api_orders__order_id__payment_schedule_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleReplace"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleView"];
                 };
             };
             /** @description Validation Error */
@@ -8817,6 +10291,7 @@ export interface operations {
     list_providers_api_logistics_providers_get: {
         parameters: {
             query?: {
+                q?: string | null;
                 active_only?: boolean;
                 shipment_eligible_only?: boolean;
                 limit?: number;
@@ -11418,6 +12893,37 @@ export interface operations {
             };
         };
     };
+    api_list_receipt_residuals_api_inventory_processes__process_id__receipt_residuals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                process_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptResidualOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     api_list_receipts_api_inventory_receipts_get: {
         parameters: {
             query?: {
@@ -12982,6 +14488,7 @@ export interface operations {
                 order_id?: number | null;
                 c2_confirm?: boolean;
                 c2_reason?: string | null;
+                line_choices?: string | null;
             };
             header?: never;
             path: {
@@ -13077,6 +14584,41 @@ export interface operations {
             };
         };
     };
+    preview_commit_pl_detail_api_ingestion_documents__document_id__preview_commit_pl_detail_get: {
+        parameters: {
+            query?: {
+                order_id?: number | null;
+                shipment_id?: number | null;
+                line_choices?: string | null;
+            };
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackingPreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     commit_document_pl_detail_api_ingestion_documents__document_id__commit_pl_detail_post: {
         parameters: {
             query?: never;
@@ -13088,7 +14630,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DossierCommitIn"];
+                "application/json": components["schemas"]["PackingCommitIn"];
             };
         };
         responses: {
@@ -13099,6 +14641,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommitAttemptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_commit_doganale_api_ingestion_documents__document_id__preview_commit_doganale_get: {
+        parameters: {
+            query?: {
+                process_id?: number | null;
+                invoice_id?: number | null;
+                shipment_id?: number | null;
+            };
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoganalePreviewOut"];
                 };
             };
             /** @description Validation Error */
@@ -13123,7 +14700,75 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DossierCommitIn"];
+                "application/json": components["schemas"]["DoganaleCommitIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommitAttemptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_commit_print_api_ingestion_documents__document_id__preview_commit_print_get: {
+        parameters: {
+            query?: {
+                process_id?: number | null;
+            };
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintPreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    commit_document_print_api_ingestion_documents__document_id__commit_print_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrintCommitIn"];
             };
         };
         responses: {

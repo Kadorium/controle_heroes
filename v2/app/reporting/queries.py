@@ -229,14 +229,7 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
             }
         )
 
-    # Realized FX sum — only for payables that have valuation (via fx_view; bounded)
-    fx_realized_total = Decimal("0")
-    for p in payable_rows[:COCKPIT_LIST_LIMIT]:
-        if p.status == "CANCELLED":
-            continue
-        view = treasury_public.fx_queries.payable_fx_view(db, p.id)
-        if view.get("realized_result_vs_reference") is not None:
-            fx_realized_total += Decimal(str(view["realized_result_vs_reference"]))
+    fx_cost = treasury_public.fx_queries.order_fx_cost(db, order_id)
 
     # Lista principal = só deste pedido (FIN-1C-FIX-1 F1). Candidatos = fornecedor+moeda.
     order_payments = treasury_public.list_payments(
@@ -260,7 +253,7 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
                 "amount_unallocated": None if cancelled else f"{residual:.2f}",
             }
         )
-        if pay.status == "REGISTERED" and residual > 0:
+        if pay.status == "REGISTERED" and residual > 0 and pay.purpose == "ADVANCE":
             advanced_credit += residual
 
     supplier_payments = treasury_public.list_payments(
@@ -357,21 +350,28 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
         "treasury": {
             "paid_via_allocations": f"{paid_via_alloc:.2f}",
             "advanced_credit": f"{advanced_credit:.2f}",
+            "cost_brl": fx_cost["cost_brl"],
+            "cost_weighted_avg_rate": fx_cost["weighted_avg_rate"],
             "payments": payment_summaries,
             "unallocated_candidates": unallocated_candidates,
             "note": (
                 "paid_via_allocations = Σ(amount−balance) Payables; "
-                "advanced_credit = residual REGISTERED com order_id; "
+                "advanced_credit = residual REGISTERED com purpose ADVANCE; "
+                "cost_brl = soma FxExecution dos pagamentos REGISTERED do pedido "
+                "(não é média × EUR; não é resultado vs taxa planejada); "
                 "payments = order-scoped; candidates = supplier+currency."
             ),
         },
         "fx": {
             "open_foreign_exposure": f"{fx_exposure_open:.2f}",
-            "realized_result_vs_reference_sum": f"{fx_realized_total:.2f}",
+            "cost_brl": fx_cost["cost_brl"],
+            "cost_eur": fx_cost["cost_eur"],
+            "weighted_avg_rate": fx_cost["weighted_avg_rate"],
         },
         "documents": {"items": doc_summaries, "count": len(doc_summaries), "truncated": True},
         "audit": {"items": audit_summaries, "count": len(audit_summaries), "truncated": True},
         "alerts": alerts,
+        "schedule": orders_public.payment_schedule_view(db, order),
         "kpis": {
             "ordered": commercial_totals.get("commercial_total"),
             "invoiced": f"{invoiced:.2f}",
@@ -380,7 +380,7 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
             "balance": f"{open_balance:.2f}",
             "next_due": next_due.isoformat() if next_due else None,
             "fx_exposure": f"{fx_exposure_open:.2f}",
-            "fx_realized": f"{fx_realized_total:.2f}",
+            "cost_brl": fx_cost["cost_brl"],
         },
     }
 

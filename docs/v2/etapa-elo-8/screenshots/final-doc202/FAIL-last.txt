@@ -1,0 +1,189 @@
+http://localhost:5174/customs/1
+
+Ir para o conteúdo
+Epic Controle
+Administrador · Administrador
+COMPRAS
+Pedidos
+Faturas
+Ingestão
+FINANCEIRO
+Contas a pagar
+Pagamentos realizados
+LOGÍSTICA
+Embarques
+ADUANA
+Processos
+Estoque
+AMBIENTE: TESTE
+EUR/BRL 6,0402 · Frankfurter (ECB)
+Sair
+Aduana / Processos / IMP-85C5825D8EB3
+IMP-85C5825D8EB3
+
+Status: Parcialmente liberado · v13
+
+Parcialmente liberado
+Resumo
+
+Status: Parcialmente liberado
+
+Ref. externa: TEST-DUIMP-E8-DOC-202
+
+Motivo cancelamento
+Cancelar processo
+Faturas
+Estrutura bloqueada após submissão.
+Fatura #1 abrir
+Alocações (fatura)
+8057628950936 · qty 150 · alocado 0 · residual 150
+8057628953104 · qty 150 · alocado 0 · residual 150
+8057628954194 · qty 200 · alocado 0 · residual 200
+8057628953814 · qty 200 · alocado 0 · residual 200
+8057628955191 · qty 300 · alocado 0 · residual 300
+8057628955207 · qty 300 · alocado 0 · residual 300
+8057628955214 · qty 300 · alocado 0 · residual 300
+Embarques
+Embarque #1 abrir
+Alocações (embarque)
+Embarque #1 · qty 200 · alocado 200 · residual 0
+Embarque #1 · qty 200 · alocado 200 · residual 0
+Embarque #1 · qty 150 · alocado 150 · residual 0
+Embarque #1 · qty 150 · alocado 150 · residual 0
+Embarque #1 · qty 300 · alocado 300 · residual 0
+Embarque #1 · qty 300 · alocado 300 · residual 0
+Embarque #1 · qty 300 · alocado 300 · residual 0
+Documentos
+PrintDeclaration_202.pdf
+PrintDeclaration_202.pdf
+Abrir
+Baixar
+FatturaDoganale_202.pdf
+FatturaDoganale_202.pdf
+Abrir
+Baixar
+Anexar documento
+Nenhum arquivo selecionado
+Doganale
+
+Atual: v1 (ACTIVE)
+
+Criar versãoRetificar (supersede)
+Histórico de versões
+v1 · ACTIVE · current · 7 linha(s) · WASH BAG REBEL · doc #3
+Divergências
+Mensagem
+Registrar divergência
+Numerário
+#1 · Confirmado · declarado BRL 1.425.554,64 · tributos+despesas BRL 1.425.554,64 · BECHTRANS LOGÍSTICA INTERNATIONAL LTDA
+Novo favorecido / Numerário (ensaio — não substitui o PDF)
+
+Use só quando não houver Solicitação de Numerário no ingest. Valores digitados aqui não são fato documental.
+
+Nome do payee
+Banco
+PIX
+Moeda
+Total declarado
+Criar favorecido + Numerário
+
+1 favorecido(s) cadastrado(s)
+
+Numerário #1 (Confirmado)
+Bases FOB/CIF não são o total do Numerário. O total documental declarado compara-se a tributos + despesas, não à soma que inclui bases.
+
+Total documental declarado BRL 1.425.554,64
+
+Tributos BRL 1.361.123,64 + despesas BRL 64.431,00 = obrigação BRL 1.425.554,64
+
+Diferença obrigação vs declarado BRL 0,00
+
+Conta a pagar #3 · Abrir AP
+
+Bases aduaneiras (FOB/CIF) — referência, não entram no total a pagar
+
+Base FOB: 1706259.6800 BRL
+Base FRETE: 20000.0400 BRL
+Base SEGURO: 0.0000 BRL
+Base CIF: 1726259.7200 BRL
+
+Tributos
+
+Tributo AFRMM: 2000.0000 BRL
+Tributo ICMS: 556000.0000 BRL
+Tributo II: 343800.0000 BRL
+Tributo IPI: 253500.0000 BRL
+Tributo PIS: 37700.0000 BRL
+Tributo COFINS: 167900.0000 BRL
+Tributo SISCOMEX: 223.6400 BRL
+
+Despesas
+
+Despesa FRETE_INTERNACIONAL: 28600.0000 BRL
+Despesa DESCONSOLIDACAO: 600.0000 BRL
+Despesa ARMAZENAGEM_SANTOS_BRASIL: 9000.0000 BRL
+Despesa ARMAZENAGEM_CNAGA: 8500.0000 BRL
+Despesa FRETE__REMOCAO: 7300.0000 BRL
+Despesa FRETE__ENTREGA: 5600.0000 BRL
+Despesa SDA: 2310.0000 BRL
+Despesa HONORARIOS: 1621.0000 BRL
+Despesa DESPESAS_DIVERSAS: 900.0000 BRL
+Cancelar (se conta a pagar aberta)
+Residual nacionalizável
+Produto	Embarcada	Já nacionalizada	Ainda nacionalizável	Proposta agora
+8057628953814
+8057628953814
+	200	50	150	
+8057628954194
+8057628954194
+	200	0	200	
+8057628950936
+8057628950936
+	150	0	150	
+8057628953104
+8057628953104
+	150	0	150	
+8057628955214
+8057628955214
+	300	0	300	
+8057628955191
+8057628955191
+	300	0	300	
+8057628955207
+8057628955207
+	300	0	300	
+Liberações
+#1 · Confirmada · v3 · 1 itens [produto qty=50]Reverter
+Nova liberação
+Criar liberaçãoAdicionar quantidades propostas ao rascunho
+Residual recebível
+Produto	Nacionalizada	Já recebida	Ainda recebível	Proposta agora
+8057628953814
+8057628953814
+	50	0	50	
+Recebimentos
+
+Sem recebimentos
+
+Receba a quantidade nacionalizada neste local doméstico.
+
+Novo recebimento
+Tipo
+Entrada doméstica
+
+Somente entrada doméstica neste fluxo.
+
+Localização
+Estoque doméstico principal (Doméstico)
+Receber quantidades propostas
+Auditoria
+Esta trilha junta o processo, o Numerário, a Doganale, as liberações e os recebimentos. Commits de ingestão (Doganale, Print, Numerário PDF) ficam no documento em Ingestão — não são duplicados aqui.
+Onde	Ação	Quando	Quem
+Liberação	Liberação confirmada	17/08/2026 16:56:40 -03:00	1
+Liberação	Quantidades adicionadas à liberação	17/08/2026 16:56:39 -03:00	1
+Liberação	Liberação criada	17/08/2026 16:56:39 -03:00	1
+Processo	Processo submetido	17/08/2026 16:55:12 -03:00	1
+Processo	Processo atualizado	17/08/2026 16:55:11 -03:00	1
+Numerário	Numerário confirmado (obrigação)
+payable_created_i5_3b
+	17/08/2026 16:55:09 -03:00	1

@@ -4,13 +4,10 @@ import type { User } from "../auth/types";
 import { Button, Notice, SectionCard } from "../../ui";
 import {
   addDocumentSetMember,
-  commitDoganale,
-  commitPlDetail,
   createDocumentSet,
   getDocumentSet,
   previewDossier,
   reconcileDocumentSet,
-  type CommitAttemptOut,
   type DocumentDetail,
   type DossierPreviewOut,
   type ReconciliationIssueOut,
@@ -29,37 +26,8 @@ const EXPECTED_ROLES = [
   { role: "PRINT_DECLARATION", label: "Print Declaration" },
 ];
 
-function canCommitPl(user: User) {
-  const p = user.permissions ?? [];
-  return user.role === "admin" || (p.includes("ingestion:commit") && p.includes("logistics:write"));
-}
-
-function canCommitDoganale(user: User) {
-  const p = user.permissions ?? [];
-  return user.role === "admin" || (p.includes("ingestion:commit") && p.includes("customs:write"));
-}
-
 function canWrite(user: User) {
   return user.role === "admin" || (user.permissions ?? []).includes("ingestion:write");
-}
-
-function entityLink(op: { entity_type: string | null; entity_id: string | null }) {
-  if (!op.entity_id) return null;
-  if (op.entity_type === "shipment") {
-    return (
-      <Link to={`/shipments/${op.entity_id}`} data-testid={`dossier-shipment-${op.entity_id}`}>
-        Shipment #{op.entity_id}
-      </Link>
-    );
-  }
-  if (op.entity_type === "import_process" || op.entity_type === "process") {
-    return (
-      <Link to={`/customs/${op.entity_id}`} data-testid={`dossier-process-${op.entity_id}`}>
-        Processo #{op.entity_id}
-      </Link>
-    );
-  }
-  return <span>#{op.entity_id}</span>;
 }
 
 export function DossierPanel({ user, doc, onUpdated }: Props) {
@@ -67,8 +35,6 @@ export function DossierPanel({ user, doc, onUpdated }: Props) {
   const [members, setMembers] = useState<{ document_id: number; role: string | null }[]>([]);
   const [preview, setPreview] = useState<DossierPreviewOut | null>(null);
   const [reconcileIssues, setReconcileIssues] = useState<ReconciliationIssueOut[]>([]);
-  const [plAttempt, setPlAttempt] = useState<CommitAttemptOut | null>(null);
-  const [dogAttempt, setDogAttempt] = useState<CommitAttemptOut | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -137,39 +103,7 @@ export function DossierPanel({ user, doc, onUpdated }: Props) {
     }
   }
 
-  async function handleCommitPl() {
-    if (!canCommitPl(user)) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await commitPlDetail(doc.id, `pl-detail-${doc.id}-${Date.now()}`);
-      setPlAttempt(result);
-      onUpdated?.();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha commit PL");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleCommitDoganale() {
-    if (!canCommitDoganale(user)) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await commitDoganale(doc.id, `doganale-${doc.id}-${Date.now()}`);
-      setDogAttempt(result);
-      onUpdated?.();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Falha commit doganale");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const presentRoles = new Set(members.map((m) => m.role).filter(Boolean) as string[]);
-  const isPlDoc = doc.doc_type === "PACKING_LIST_DETAIL" || doc.doc_type === "PACKING_LIST_GROUPED";
-  const isDoganaleDoc = doc.doc_type === "FATTURA_DOGANALE";
 
   return (
     <SectionCard title="Dossier — conjunto documental" data-testid="ingestion-dossier-panel">
@@ -246,51 +180,7 @@ export function DossierPanel({ user, doc, onUpdated }: Props) {
         </div>
       ) : null}
 
-      <div className="ingestion-dossier-commits">
-        {isPlDoc ? (
-          <div data-testid="dossier-commit-pl">
-            <h3 className="ingestion-subtitle">Commit Packing List</h3>
-            {canCommitPl(user) ? (
-              <Button type="button" disabled={busy} onClick={() => void handleCommitPl()}>
-                Commit PL → Shipment PLANNED
-              </Button>
-            ) : (
-              <p className="muted">Requer ingestion:commit + logistics:write</p>
-            )}
-            {plAttempt ? (
-              <ul>
-                {(plAttempt.operations ?? []).map((op) => (
-                  <li key={op.id}>
-                    {op.op_key}: {op.status} {entityLink(op)}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        ) : null}
-
-        {isDoganaleDoc ? (
-          <div data-testid="dossier-commit-doganale">
-            <h3 className="ingestion-subtitle">Commit Fattura Doganale</h3>
-            {canCommitDoganale(user) ? (
-              <Button type="button" disabled={busy} onClick={() => void handleCommitDoganale()}>
-                Commit Doganale → ImportProcess DRAFT
-              </Button>
-            ) : (
-              <p className="muted">Requer ingestion:commit + customs:write</p>
-            )}
-            {dogAttempt ? (
-              <ul>
-                {(dogAttempt.operations ?? []).map((op) => (
-                  <li key={op.id}>
-                    {op.op_key}: {op.status} {entityLink(op)}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+      <div className="ingestion-dossier-commits" />
     </SectionCard>
   );
 }

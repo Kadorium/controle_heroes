@@ -190,17 +190,21 @@ export async function uploadProcessDocument(processId: number, file: File) {
   return res.json();
 }
 
-export async function listProcessAudit(processId: number) {
+export async function listEntityAudit(entityType: string, entityId: string) {
   const { data, error } = await api.GET("/api/audit", {
     params: {
       query: {
-        entity_type: "import_process",
-        entity_id: String(processId),
+        entity_type: entityType,
+        entity_id: entityId,
       },
     },
   });
   if (error) throw new Error(errMsg(error, "Erro ao carregar auditoria"));
   return data ?? [];
+}
+
+export async function listProcessAudit(processId: number) {
+  return listEntityAudit("import_process", String(processId));
 }
 
 /* —— Doganale (I5-2) —— */

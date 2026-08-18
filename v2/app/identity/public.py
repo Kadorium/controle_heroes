@@ -267,3 +267,34 @@ def ensure_admin_user(db: Session, email: str, password: str, name: str) -> User
     db.add(user)
     db.flush()
     return user
+
+
+from app.identity.commands import create_user, set_user_password, update_user
+from app.identity.errors import IdentityError
+from app.identity.queries import get_user, list_roles, list_users_page
+
+__all__ = [
+    "ADMIN_PERMISSIONS",
+    "COMPRADOR_PERMISSIONS",
+    "ADUANA_PERMISSIONS",
+    "ESTOQUE_PERMISSIONS",
+    "authenticate_user",
+    "create_session",
+    "get_user_by_session_token",
+    "revoke_session",
+    "permissions_for",
+    "require_permission",
+    "ensure_admin_role",
+    "ensure_comprador_role",
+    "ensure_aduana_role",
+    "ensure_estoque_role",
+    "ensure_admin_user",
+    "create_user",
+    "update_user",
+    "set_user_password",
+    "get_user",
+    "list_roles",
+    "list_users_page",
+    "IdentityError",
+]
+

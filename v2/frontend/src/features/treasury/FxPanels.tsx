@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import {
@@ -109,9 +110,11 @@ function fxRate(value: string | null | undefined) {
 export function PayableFxPanel({
   user,
   payableId,
+  reloadToken = 0,
 }: {
   user: User;
   payableId: number;
+  reloadToken?: number;
 }) {
   const [view, setView] = useState<PayableFxView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -127,7 +130,7 @@ export function PayableFxPanel({
 
   useEffect(() => {
     void reload().catch((e) => setError(e instanceof Error ? e.message : "Erro"));
-  }, [payableId]);
+  }, [payableId, reloadToken]);
 
   if (!canReadFx(user)) return null;
   if (!view) return <LoadingState message="Carregando câmbio…" />;
@@ -173,7 +176,8 @@ export function PayableFxPanel({
         <SectionCard title="Executado e avaliação">
           <SummaryGrid
             items={[
-              { label: "BRL realizado", value: fxMoney(view.realized_brl, "BRL") },
+              { label: "Custo BRL (soma dos câmbios)", value: fxMoney(view.cost_brl, "BRL") },
+              { label: "BRL das valuations (P&L)", value: fxMoney(view.realized_brl, "BRL") },
               {
                 label: "Resultado vs referência",
                 value: fxMoney(view.realized_result_vs_reference, "BRL"),

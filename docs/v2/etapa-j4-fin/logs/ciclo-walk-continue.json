@@ -1,0 +1,162 @@
+{
+  "t001_p23": {
+    "status": "PAID",
+    "cost_brl": "487200.00",
+    "unalloc_25": "0.00"
+  },
+  "t002": {
+    "invoice_id": 26,
+    "net": "180000.00",
+    "p90a": 24,
+    "p90b": 25
+  },
+  "t002_credit": {
+    "p90a_status": "PARTIALLY_PAID",
+    "p90a_balance": "30000.0000",
+    "p90a_cost": "369000.00"
+  },
+  "t002_rem_30k": {
+    "payment_id": 27,
+    "status": "PAID",
+    "balance": "0.0000",
+    "cost_brl": "555000.00"
+  },
+  "t002_rem_90k": {
+    "payment_id": 28,
+    "status": "PAID",
+    "balance": "0.0000",
+    "cost_brl": "535500.00"
+  },
+  "fattura244_preview": {
+    "doc_id": 31,
+    "can_commit": true,
+    "blocked": null,
+    "warnings": null
+  },
+  "fattura244_commit": {
+    "status": "SUCCEEDED",
+    "ops": [
+      {
+        "op_key": "store_document",
+        "status": "SUCCEEDED",
+        "entity_id": "46"
+      },
+      {
+        "op_key": "match_order",
+        "status": "SUCCEEDED",
+        "entity_id": "34"
+      },
+      {
+        "op_key": "create_invoice",
+        "status": "SUCCEEDED",
+        "entity_id": "27"
+      },
+      {
+        "op_key": "set_terms",
+        "status": "SUCCEEDED",
+        "entity_id": "27"
+      },
+      {
+        "op_key": "link_document",
+        "status": "SUCCEEDED",
+        "entity_id": "46→invoice:27"
+      }
+    ]
+  },
+  "fattura244_invoice": {
+    "id": 27,
+    "status": "ISSUED",
+    "net": "19966.00",
+    "payables": [
+      {
+        "id": 26,
+        "amount": "5000.0000",
+        "due": "2026-04-20"
+      },
+      {
+        "id": 27,
+        "amount": "14966.0000",
+        "due": "2026-06-30"
+      }
+    ]
+  },
+  "fattura244_pay_26": {
+    "payment_id": 29,
+    "status": "PAID",
+    "balance": "0.0000",
+    "cost_brl": "32000.00"
+  },
+  "fattura244_pay_27": {
+    "payment_id": 30,
+    "status": "PAID",
+    "balance": "0.0000",
+    "cost_brl": "95782.40"
+  },
+  "t003": {
+    "invoice_id": 28,
+    "net": "300000.00",
+    "payable_id": 28
+  },
+  "t003_rem": {
+    "payment_id": 31,
+    "status": "PAID",
+    "balance": "0.0000",
+    "cost_brl": "1920000.00"
+  },
+  "cockpit": {
+    "kpis": {
+      "ordered": "600000.0000",
+      "invoiced": "619966.00",
+      "paid": "619966.00",
+      "advanced_credit": "0.00",
+      "balance": "0.00",
+      "next_due": null,
+      "fx_exposure": "0.00",
+      "cost_brl": "3834282.40"
+    },
+    "fx": {
+      "open_foreign_exposure": "0.00",
+      "cost_brl": "3834282.40",
+      "cost_eur": "619966.00",
+      "weighted_avg_rate": "6.184666"
+    },
+    "treasury_cost": "3834282.40",
+    "invoiced": "619966.00"
+  },
+  "qty": [
+    {
+      "order_item_id": 47,
+      "ordered_qty": "10000.0000",
+      "issued_qty": "10000.0000",
+      "available_qty": "0.0000",
+      "line_kind": "PRODUCT",
+      "description": "8057628953586",
+      "billable": true
+    }
+  ],
+  "order_589": {
+    "id": 31,
+    "code": "589",
+    "status": "CONFIRMED",
+    "items": [
+      {
+        "kind": "COMMITMENT",
+        "qty": "14600.0000"
+      },
+      {
+        "kind": "COMMITMENT",
+        "qty": "2000.0000"
+      }
+    ]
+  },
+  "order_589_kpis": {
+    "ordered": "830000.0000",
+    "invoiced": "0.00",
+    "paid": "0.00",
+    "advanced_credit": "0.00",
+    "balance": "0.00",
+    "next_due": null,
+    "fx_exposure": "0.00",
+    "cost_brl": "0.00"
+  }
+}

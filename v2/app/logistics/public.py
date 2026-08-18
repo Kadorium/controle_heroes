@@ -41,6 +41,7 @@ from app.logistics.queries import (
     physical_totals_derived,
     residuals_for_order,
     shipped_qty_by_order_item,
+    shipment_item_facts,
 )
 
 __all__ = [
@@ -74,6 +75,7 @@ __all__ = [
     "list_shipments",
     "find_shipments_by_reference",
     "shipped_qty_by_order_item",
+    "shipment_item_facts",
     "residuals_for_order",
     "physical_totals_derived",
     "declared_totals_by_document",

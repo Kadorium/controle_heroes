@@ -164,10 +164,79 @@ export function OrderCockpitPage({ user }: Props) {
               },
               { label: "Saldo", value: kpiValue(kpis.balance, currency), hint: "Saldo aberto em obrigações" },
               { label: "Próx. venc.", value: kpiValue(kpis.next_due, undefined, { date: true }) },
-              { label: "Exposição FX", value: kpiValue(kpis.fx_exposure, "BRL") },
-              { label: "FX realizado", value: kpiValue(kpis.fx_realized, "BRL") },
+              {
+                label: "Exposição FX",
+                value: kpiValue(kpis.fx_exposure, currency),
+                hint: "Saldo aberto nas obrigações, na moeda do pedido",
+              },
+              {
+                label: "Custo BRL",
+                value: kpiValue(kpis.cost_brl, "BRL"),
+                hint: "Soma dos câmbios deste pedido. Não é média × EUR.",
+              },
             ]}
           />
+          <SectionCard title="Cronograma de pagamento" data-testid="cockpit-schedule">
+            <p className="muted">
+              Planejamento comercial. Não entra em Pago, Adiantado nem Exposição FX.
+            </p>
+            {!(data.schedule?.lines?.length) ? (
+              <p className="muted" data-testid="cockpit-schedule-empty">
+                Sem cronograma cadastrado.
+              </p>
+            ) : (
+              <>
+                {data.schedule.coherence === "unverifiable" ? (
+                  <Notice tone="info" data-testid="cockpit-schedule-coherence">
+                    Coerência não verificável — total comercial incompleto. Ausência não é zero.
+                  </Notice>
+                ) : null}
+                {data.schedule.coherence === "divergent" ? (
+                  <Notice tone="warning" data-testid="cockpit-schedule-coherence">
+                    Divergente do total comercial (delta{" "}
+                    {kpiValue(data.schedule.delta, data.schedule.currency ?? currency)}).
+                  </Notice>
+                ) : null}
+                {data.schedule.coherence === "aligned" ? (
+                  <Notice tone="info" data-testid="cockpit-schedule-coherence">
+                    Alinhado ao total comercial.
+                  </Notice>
+                ) : null}
+                <OperationalTable density="standard">
+                  <thead>
+                    <tr>
+                      <th>Quando</th>
+                      <th className="num">
+                        {data.schedule.mode === "AMOUNT" ? "Valor" : "%"}
+                      </th>
+                      <th className="num">Derivado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(data.schedule.lines ?? []).map((ln, idx) => (
+                      <tr key={String(ln.sequence ?? idx)}>
+                        <td>
+                          {[ln.due_date ? formatDateOnly(ln.due_date) : null, ln.condition_text]
+                            .filter(Boolean)
+                            .join(" · ") || "—"}
+                        </td>
+                        <td className="num">
+                          {data.schedule?.mode === "AMOUNT"
+                            ? kpiValue(ln.amount, data.schedule.currency ?? currency)
+                            : ln.percent
+                              ? `${ln.percent}%`
+                              : "—"}
+                        </td>
+                        <td className="num">
+                          {kpiValue(ln.derived_amount, data.schedule?.currency ?? currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </OperationalTable>
+              </>
+            )}
+          </SectionCard>
           {data.alerts?.length ? (
             <Notice tone="warning" title="Pendências" data-testid="cockpit-alerts">
               <div className="stack">
@@ -264,6 +333,21 @@ export function OrderCockpitPage({ user }: Props) {
                         )}
                         currency={currency}
                       />
+                    ),
+                  },
+                  {
+                    label: "Custo BRL (soma dos câmbios)",
+                    value: (
+                      <MoneyDisplay
+                        amount={String((data.treasury as Record<string, unknown>).cost_brl ?? "0.00")}
+                        currency="BRL"
+                      />
+                    ),
+                  },
+                  {
+                    label: "Câmbio médio ponderado",
+                    value: String(
+                      (data.treasury as Record<string, unknown>).cost_weighted_avg_rate ?? "—",
                     ),
                   },
                 ]}

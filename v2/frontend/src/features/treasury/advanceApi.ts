@@ -2,6 +2,7 @@
 
 export type OrderAdvance = {
   payment_id: number;
+  purpose?: string | null;
   amount: string;
   currency: string;
   payment_date: string;
@@ -22,6 +23,7 @@ export type OrderAdvancesResponse = {
   order_code: string;
   currency: string;
   advances: OrderAdvance[];
+  settlements?: OrderAdvance[];
   consolidated: {
     total_eur: string;
     total_brl: string;

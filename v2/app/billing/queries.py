@@ -17,6 +17,13 @@ def get_invoice(db: Session, invoice_id: int) -> Invoice:
     return inv
 
 
+def find_invoices_by_number(db: Session, invoice_number: str) -> list[Invoice]:
+    number = (invoice_number or "").strip()
+    if not number:
+        return []
+    return repo.find_invoices_by_number(db, number)
+
+
 def list_invoices(
     db: Session,
     *,
@@ -379,12 +386,38 @@ def issue_blockers(db: Session, inv: Invoice) -> list[str]:
     docs = documents_public.list_by_entity(db, "invoice", str(inv.id))
     if not docs:
         out.append("Anexe o documento oficial da fatura (ou use override autorizado na emissão)")
+    if inv.order_id:
+        issued = repo.issued_qty_by_order_item(db, inv.order_id)
+        try:
+            order = orders_public.get_order(db, inv.order_id)
+        except orders_public.OrdersError:
+            order = None
+        if order is not None:
+            ordered_by_id = {oi.id: oi.quantity for oi in order.items}
+            this_qty: dict[int, Decimal] = {}
+            for item in inv.items:
+                this_qty[item.order_item_id] = this_qty.get(item.order_item_id, Decimal("0")) + item.quantity
+            for oid, qty in this_qty.items():
+                ordered = ordered_by_id.get(oid)
+                if ordered is None:
+                    continue
+                already = issued.get(oid, Decimal("0"))
+                if already + qty > ordered:
+                    out.append(
+                        f"Quantidade faturada excede a pedida no item #{oid}: "
+                        f"pedida={ordered}, já emitida={already}, nesta fatura={qty}"
+                    )
     return out
 
 
 def order_invoiced_quantities(db: Session, order_id: int) -> dict[int, str]:
     raw = repo.issued_qty_by_order_item(db, order_id)
     return {k: decimal_str(v) or "0" for k, v in raw.items()}
+
+
+def issued_qty_for_order_item(db: Session, order_id: int, order_item_id: int) -> Decimal:
+    """Quantidade ISSUED da linha; 0 se não houver fatura emitida."""
+    return repo.issued_qty_by_order_item(db, order_id).get(order_item_id, Decimal("0"))
 
 
 def order_qty_availability(db: Session, order_id: int) -> list[dict[str, str | int | bool | None]]:

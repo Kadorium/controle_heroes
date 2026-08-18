@@ -27,7 +27,7 @@ from app.treasury.commands import (
 from app.treasury.errors import PaymentValidationError
 from app.treasury.fx_money import rate6, weighted_rate
 from app.treasury.fx_models import FxExecution
-from app.treasury.models import Payment
+from app.treasury.models import PURPOSE_ADVANCE, Payment
 
 
 def register_order_advance(
@@ -81,6 +81,7 @@ def register_order_advance(
         idempotency_key=idempotency_key,
         allow_without_document=True,
         order_id=order.id,
+        purpose=PURPOSE_ADVANCE,
     )
 
     execution = fx.register_execution(
@@ -99,8 +100,41 @@ def register_order_advance(
     return get_payment(db, payment.id), execution
 
 
+def _payment_row(db: Session, pay: Payment) -> dict:
+    executions = fx.list_executions(db, pay.id)
+    ex = executions[0] if executions else None
+    fx_docs = []
+    if ex:
+        fx_docs = [
+            {"id": d.id, "original_filename": d.original_filename}
+            for d in documents_public.list_by_entity(db, "fx_execution", str(ex.id))
+        ]
+    return {
+        "payment_id": pay.id,
+        "purpose": pay.purpose,
+        "amount": format(money2(pay.amount), "f"),
+        "currency": pay.currency,
+        "payment_date": pay.payment_date.isoformat(),
+        "external_reference": pay.external_reference,
+        "status": pay.status,
+        "version": pay.version,
+        "fx_execution_id": ex.id if ex else None,
+        "foreign_amount": format(money2(ex.foreign_amount), "f") if ex else None,
+        "brl_amount": format(money2(ex.brl_amount), "f") if ex else None,
+        "rate": format(rate6(ex.rate), "f") if ex else None,
+        "execution_date": ex.execution_date.isoformat() if ex else None,
+        "amount_unallocated": format(amount_unallocated(db, pay), "f"),
+        "fx_documents": fx_docs,
+        "_fx": ex,
+    }
+
+
 def list_order_advances(db: Session, order_id: int) -> dict:
-    """Lista adiantamentos do pedido + consolidado (EUR, BRL soma, média ponderada)."""
+    """Adiantamentos (crédito) vs pagamentos de saldo do mesmo pedido.
+
+    Adiantamento = Payment.purpose ADVANCE (nasce no painel de adiantamento).
+    Continua adiantamento depois de aplicado. Pagamento de saldo = SETTLEMENT.
+    """
     try:
         order = orders_public.get_order(db, order_id)
     except OrdersError as e:
@@ -110,43 +144,24 @@ def list_order_advances(db: Session, order_id: int) -> dict:
         db, order_id=order_id, status="REGISTERED", limit=200, offset=0
     )
     advances: list[dict] = []
+    settlements: list[dict] = []
     total_eur = Decimal("0")
     total_brl = Decimal("0")
 
     for pay in payments:
         if pay.order_id != order_id:
             continue
-        executions = fx.list_executions(db, pay.id)
-        ex = executions[0] if executions else None
-        fx_docs = []
-        if ex:
-            fx_docs = [
-                {"id": d.id, "original_filename": d.original_filename}
-                for d in documents_public.list_by_entity(db, "fx_execution", str(ex.id))
-            ]
-            total_eur += money2(ex.foreign_amount)
-            total_brl += money2(ex.brl_amount)
+        row = _payment_row(db, pay)
+        ex = row.pop("_fx")
+        if pay.purpose == PURPOSE_ADVANCE:
+            if ex:
+                total_eur += money2(ex.foreign_amount)
+                total_brl += money2(ex.brl_amount)
+            else:
+                total_eur += money2(pay.amount)
+            advances.append(row)
         else:
-            total_eur += money2(pay.amount)
-
-        advances.append(
-            {
-                "payment_id": pay.id,
-                "amount": format(money2(pay.amount), "f"),
-                "currency": pay.currency,
-                "payment_date": pay.payment_date.isoformat(),
-                "external_reference": pay.external_reference,
-                "status": pay.status,
-                "version": pay.version,
-                "fx_execution_id": ex.id if ex else None,
-                "foreign_amount": format(money2(ex.foreign_amount), "f") if ex else None,
-                "brl_amount": format(money2(ex.brl_amount), "f") if ex else None,
-                "rate": format(rate6(ex.rate), "f") if ex else None,
-                "execution_date": ex.execution_date.isoformat() if ex else None,
-                "amount_unallocated": format(amount_unallocated(db, pay), "f"),
-                "fx_documents": fx_docs,
-            }
-        )
+            settlements.append(row)
 
     avg = weighted_rate(total_eur, total_brl)
     return {
@@ -154,6 +169,7 @@ def list_order_advances(db: Session, order_id: int) -> dict:
         "order_code": order.code,
         "currency": order.currency,
         "advances": advances,
+        "settlements": settlements,
         "consolidated": {
             "total_eur": format(money2(total_eur), "f"),
             "total_brl": format(money2(total_brl), "f"),
@@ -184,7 +200,7 @@ def cancel_order_advance(
     payment = get_payment(db, payment_id)
     if payment.order_id != order_id:
         raise PaymentValidationError("Pagamento não pertence a este pedido")
-    if payment.order_id is None:
+    if payment.purpose != PURPOSE_ADVANCE:
         raise PaymentValidationError("Pagamento não é adiantamento de pedido")
 
     payment = cancel_payment(

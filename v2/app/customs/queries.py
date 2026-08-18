@@ -30,6 +30,20 @@ def list_import_processes(
     return repo.list_processes(db, status=status, limit=limit, offset=offset)
 
 
+def find_process_for_invoice(db: Session, invoice_id: int) -> ImportProcess | None:
+    link = repo.find_invoice_link(db, invoice_id)
+    if not link:
+        return None
+    return repo.get_process(db, link.process_id)
+
+
+def find_process_for_shipment(db: Session, shipment_id: int) -> ImportProcess | None:
+    link = repo.find_shipment_link(db, shipment_id)
+    if not link:
+        return None
+    return repo.get_process(db, link.process_id)
+
+
 def invoice_item_residuals(db: Session, process_id: int) -> list[dict]:
     process = get_import_process(db, process_id)
     rows: list[dict] = []

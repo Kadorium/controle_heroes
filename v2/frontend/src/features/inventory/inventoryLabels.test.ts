@@ -12,6 +12,7 @@ import {
   receiptStatusLabel,
   receiptTypeLabel,
   skuBucketLabel,
+  skuBucketScopeNote,
 } from "./inventoryLabels";
 import type { User } from "../auth/types";
 
@@ -44,6 +45,11 @@ describe("inventoryLabels", () => {
     expect(skuBucketLabel("bonded_qty")).toBe("Entreposto");
     expect(skuBucketLabel("cleared_not_received_qty")).toBe("Liberado não recebido");
     expect(skuBucketLabel("future_order_qty")).toBe("Pedido futuro");
+  });
+
+  it("cleared_not_received has all-processes scope note", () => {
+    expect(skuBucketScopeNote("cleared_not_received_qty")).toMatch(/todos os processos/i);
+    expect(skuBucketScopeNote("available_qty")).toBeNull();
   });
 
   it("movement / receipt / location labels", () => {

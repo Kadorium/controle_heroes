@@ -14,6 +14,54 @@ from app.inventory.errors import InventoryValidationError, LocationNotFound
 from app.logistics import public as logistics_public
 
 
+def list_receipt_residuals(db: Session, process_id: int) -> list[dict[str, Any]]:
+    """Residual recebível item-level de um ImportProcess.
+
+    Fonte: NationalizationItem de liberações CONFIRMED do processo.
+    received_qty = soma DOMESTIC_IN|RECLASS CONFIRMED do mesmo nationalization_item_id.
+    Não usa SkuPosition nem soma global por produto.
+    """
+    try:
+        nats = customs_public.list_nationalizations(db, process_id)
+    except customs_public.CustomsError as exc:
+        raise InventoryValidationError(str(exc), code="process_not_found") from exc
+
+    rows: list[dict[str, Any]] = []
+    for nat in nats:
+        if getattr(nat, "status", None) != "CONFIRMED":
+            continue
+        for it in getattr(nat, "items", None) or []:
+            nat_qty = Decimal(str(it.quantity))
+            received = repo.sum_domestic_received_for_nat_item(db, it.id)
+            residual = nat_qty - received
+            if residual < 0:
+                residual = Decimal("0")
+            sku = None
+            name = None
+            product_id = getattr(it, "product_id", None)
+            if product_id is not None:
+                try:
+                    prod = catalog_public.get_product(db, int(product_id))
+                    sku = getattr(prod, "sku", None)
+                    name = getattr(prod, "description", None)
+                except Exception:
+                    sku = None
+                    name = None
+            rows.append(
+                {
+                    "nationalization_id": nat.id,
+                    "nationalization_item_id": it.id,
+                    "product_id": product_id,
+                    "product_sku": sku,
+                    "product_name": name,
+                    "nationalized_qty": str(nat_qty),
+                    "received_qty": str(received),
+                    "residual_qty": str(residual),
+                }
+            )
+    return rows
+
+
 def get_stock_balance(
     db: Session, *, location_id: int | None = None, location_code: str | None = None, product_id: int
 ) -> dict[str, Any]:

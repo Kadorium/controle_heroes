@@ -1,5 +1,6 @@
 """Logistics repository."""
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.logistics.models import (
@@ -22,16 +23,25 @@ def list_providers(
     *,
     active_only: bool = False,
     provider_types: list[str] | tuple[str, ...] | None = None,
+    q: str | None = None,
     limit: int = 100,
     offset: int = 0,
 ) -> list[LogisticsProvider]:
-    q = db.query(LogisticsProvider)
+    query = db.query(LogisticsProvider)
     if active_only:
-        q = q.filter(LogisticsProvider.active.is_(True))
+        query = query.filter(LogisticsProvider.active.is_(True))
     if provider_types:
-        q = q.filter(LogisticsProvider.provider_type.in_(list(provider_types)))
+        query = query.filter(LogisticsProvider.provider_type.in_(list(provider_types)))
+    if q:
+        like = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                LogisticsProvider.legal_name.ilike(like),
+                LogisticsProvider.trade_name.ilike(like),
+            )
+        )
     return (
-        q.order_by(LogisticsProvider.legal_name.asc())
+        query.order_by(LogisticsProvider.legal_name.asc())
         .offset(offset)
         .limit(limit)
         .all()

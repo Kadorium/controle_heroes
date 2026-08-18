@@ -316,80 +316,43 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Abrir fatura" })).toHaveCount(0);
   await shot(page, "j5-10-customs-payable-ap.png");
 
-  // --- 11) Bonded receipt ---
+  // --- 11) Partial nationalization (residual table; no raw IDs) ---
   await page.goto(`/customs/${processId}`);
-  await page.getByTestId("customs-receipt-panel").scrollIntoViewIfNeeded();
-  await page.getByTestId("receipt-type").fill("BONDED_IN");
-  await page.getByTestId("receipt-location").fill("BONDED-MAIN");
-  await page.getByTestId("receipt-create").click();
-  await expect(page.getByTestId("receipt-list")).toContainText(/Entrada entreposto|BONDED/i);
-
-  await page.getByTestId("receipt-product-id").fill(String(product.id));
-  await page.getByTestId("receipt-qty").fill("5");
-  await page.getByTestId("receipt-add-lines").click();
-
-  const receiptConfirm = page.locator('[data-testid^="receipt-confirm-"]').first();
-  await expect(receiptConfirm).toBeVisible();
-  await receiptConfirm.click();
-  await expect(page.getByTestId("receipt-list")).toContainText("Confirmado");
-  await shot(page, "j5-11-bonded-receipt.png");
-
-  // --- 12) Partial nationalization ---
+  await expect(page.getByTestId("customs-detail-page")).toBeVisible();
   await page.getByTestId("customs-nationalization-panel").scrollIntoViewIfNeeded();
   await page.getByTestId("nationalization-create").click();
-  await page.getByTestId("nationalization-product-id").fill(String(product.id));
-  await page.getByTestId("nationalization-qty").fill("2");
-  await page.getByTestId("nationalization-shipment-item").fill(String(shpItemId));
-  await page.getByTestId("nationalization-invoice-item").fill(String(invItemId));
+  await page.getByTestId(`nationalization-proposed-s-${shpItemId}`).fill("2");
   await page.getByTestId("nationalization-add-items").click();
-  await expect(page.getByTestId("nationalization-list")).toContainText(`SKU ${product.id}`);
-
   const natConfirm = page.locator('[data-testid^="nationalization-confirm-"]').first();
   await expect(natConfirm).toBeVisible();
   await natConfirm.click();
   await expect(page.getByTestId("nationalization-list")).toContainText("Confirmada");
   await shot(page, "j5-12-partial-nationalization.png");
 
-  // --- 12b) RECLASS bonded → domestic (SC-10 conservação) ---
-  const natMeta = await page.evaluate(async (pid) => {
-    const res = await fetch(`/api/import-processes/${pid}/nationalizations`, {
-      credentials: "include",
-    });
-    const list = await res.json();
-    const confirmed = list.find((n: { status: string }) => n.status === "CONFIRMED");
-    return {
-      natId: confirmed?.id ?? null,
-      itemId: confirmed?.items?.[0]?.id ?? null,
-    };
-  }, processId);
-  expect(natMeta.natId).toBeTruthy();
-  expect(natMeta.itemId).toBeTruthy();
-
+  // --- 12) DOMESTIC_IN via residual (Elo 8; BONDED/RECLASS fora deste painel) ---
   await page.getByTestId("customs-receipt-panel").scrollIntoViewIfNeeded();
-  await page.getByTestId("receipt-type").fill("RECLASS");
-  await page.getByTestId("receipt-location").fill("DOMESTIC-MAIN");
-  await page.getByTestId("receipt-nat-id").fill(String(natMeta.natId));
-  await page.getByTestId("receipt-create").click();
-  await expect(page.getByTestId("receipt-list")).toContainText(/Reclass|Rascunho|DOMESTIC/i);
-
-  await page.getByTestId("receipt-product-id").fill(String(product.id));
-  await page.getByTestId("receipt-qty").fill("2");
-  await page.getByTestId("receipt-nat-item-id").fill(String(natMeta.itemId));
-  await page.getByTestId("receipt-add-lines").click();
-  const reclassConfirm = page.locator('[data-testid^="receipt-confirm-"]').first();
-  await expect(reclassConfirm).toBeVisible();
-  await reclassConfirm.click();
+  await expect(page.getByTestId("receipt-residual-table")).toBeVisible();
+  await expect(page.getByTestId("receipt-type")).toHaveValue("DOMESTIC_IN");
+  await expect(page.getByTestId("receipt-product-id")).toHaveCount(0);
+  await page.getByTestId("receipt-location").selectOption("DOMESTIC-MAIN");
+  await page.locator('[data-testid^="receipt-proposed-"]').first().fill("2");
+  await page.getByTestId("receipt-receive").click();
   await expect(page.getByTestId("receipt-list")).toContainText("Confirmado");
+  await expect(page.getByTestId("receipt-list")).toContainText(/Entrada doméstica/i);
+  await shot(page, "j5-11-bonded-receipt.png");
 
-  // --- 13) SKU position after conservation ---
+  // --- 13) SKU position after domestic receipt ---
   await page.goto(`/inventory/sku/${product.id}`);
   await expect(page.getByTestId("sku-position-page")).toBeVisible();
   await expect(page.getByTestId("sku-buckets")).toBeVisible();
-  await expect(page.getByTestId("sku-bucket-bonded_qty")).toContainText("3");
   await expect(page.getByTestId("sku-bucket-available_qty")).toContainText("2");
   await expect(page.getByTestId("sku-bucket-cleared_not_received_qty")).toContainText("0");
+  await expect(page.getByTestId("sku-bucket-scope-cleared_not_received_qty")).toContainText(
+    /todos os processos/i,
+  );
   await expect(page.getByTestId("sku-bucket-in_clearance_qty")).toContainText("Não disponível");
   await expect(page.getByTestId("sku-dimension-note")).toBeVisible();
+  await expect(page.getByTestId("sku-balances")).toBeVisible();
   await shot(page, "j5-13-sku-position.png");
 
   // --- 14) Inventory movements ---
@@ -397,8 +360,7 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   await expect(page.getByTestId("inventory-movements-page")).toBeVisible();
   await expect(page.getByTestId("movements-product-filter")).toHaveValue(String(product.id));
   await expect(page.getByTestId("movements-list")).toBeVisible();
-  await expect(page.getByTestId("movements-list")).toContainText(/Entrada entreposto|Reclassificação/);
-  await expect(page.getByTestId("movements-list")).toContainText(/BONDED-MAIN|Entreposto/i);
+  await expect(page.getByTestId("movements-list")).toContainText(/Entrada doméstica/i);
   await expect(page.getByTestId("movements-list")).toContainText(/DOMESTIC-MAIN|Doméstic/i);
   await shot(page, "j5-14-inventory-movements.png");
 

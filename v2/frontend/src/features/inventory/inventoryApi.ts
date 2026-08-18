@@ -104,6 +104,27 @@ export type SkuPosition = {
   balances: Array<Record<string, unknown>>;
 };
 
+export type ClearanceResidual = {
+  source_kind: string;
+  shipment_item_id: number | null;
+  invoice_item_id: number | null;
+  allocated_qty: string;
+  nationalized_qty: string;
+  residual_qty: string;
+  product_id: number | null;
+  product_sku: string | null;
+  product_name: string | null;
+  shipped_qty: string | null;
+};
+
+export async function listClearanceResiduals(processId: number): Promise<ClearanceResidual[]> {
+  const res = await fetch(`/api/import-processes/${processId}/clearance-residuals`, {
+    credentials: "include",
+  });
+  if (!res.ok) await parseError(res, "Erro ao listar residual de nacionalização");
+  return res.json();
+}
+
 export async function listNationalizations(processId: number): Promise<Nationalization[]> {
   const res = await fetch(`/api/import-processes/${processId}/nationalizations`, {
     credentials: "include",
@@ -187,6 +208,25 @@ export async function reverseNationalization(
     },
   );
   if (!res.ok) await parseError(res, "Erro ao reverter liberação");
+  return res.json();
+}
+
+export type ReceiptResidual = {
+  nationalization_id: number;
+  nationalization_item_id: number;
+  product_id: number | null;
+  product_sku: string | null;
+  product_name: string | null;
+  nationalized_qty: string;
+  received_qty: string;
+  residual_qty: string;
+};
+
+export async function listReceiptResiduals(processId: number): Promise<ReceiptResidual[]> {
+  const res = await fetch(`/api/inventory/processes/${processId}/receipt-residuals`, {
+    credentials: "include",
+  });
+  if (!res.ok) await parseError(res, "Erro ao listar residual recebível");
   return res.json();
 }
 

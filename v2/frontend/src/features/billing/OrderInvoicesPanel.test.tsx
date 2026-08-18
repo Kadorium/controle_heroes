@@ -58,11 +58,15 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
     );
 
     expect(await screen.findByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /só tem linhas de compromisso/i,
+      /linhas de categoria \(compromisso\)/i,
     );
     expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /importação da Fattura/i,
+      /Vincule cada linha a um produto/i,
     );
+    expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
+      /estoque após a nacionalização/i,
+    );
+    expect(screen.queryByText(/produtos reais chegam por ali/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/fantasma|inválido/i)).not.toBeInTheDocument();
     expect(screen.getByText(/racchette 2027 GRAFICATE/i)).toBeInTheDocument();
     expect(screen.getAllByText(/· compromisso/i).length).toBe(2);
@@ -72,7 +76,7 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
     expect(screen.queryByTestId("new-invoice-number")).not.toBeInTheDocument();
   });
 
-  it("mixed PRODUCT+COMMITMENT: create only when billable exists; commitment shows —", async () => {
+  it("mixed PRODUCT+COMMITMENT: notice appears; create only when billable exists; commitment shows —", async () => {
     vi.mocked(billingApi.invoicedQuantities).mockResolvedValue([
       {
         order_item_id: 10,
@@ -101,7 +105,9 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
     );
 
     await waitFor(() => expect(screen.getByTestId("create-invoice")).toBeInTheDocument());
-    expect(screen.queryByTestId("order-invoices-commitment-notice")).not.toBeInTheDocument();
+    expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
+      /Vincule cada linha a um produto/i,
+    );
     expect(screen.getByTestId("qty-available-10")).not.toHaveTextContent("—");
     expect(screen.getByTestId("qty-available-11")).toHaveTextContent("—");
     expect(screen.getByText(/só compromisso/i)).toBeInTheDocument();

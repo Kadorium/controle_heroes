@@ -26,6 +26,15 @@ def get_invoice_for_update(db: Session, invoice_id: int) -> Invoice | None:
     return get_invoice(db, invoice_id)
 
 
+def find_invoices_by_number(db: Session, invoice_number: str) -> list[Invoice]:
+    return (
+        db.query(Invoice)
+        .options(joinedload(Invoice.items))
+        .filter(Invoice.invoice_number == invoice_number)
+        .all()
+    )
+
+
 def get_by_supplier_number(db: Session, supplier_id: int, invoice_number: str) -> Invoice | None:
     return (
         db.query(Invoice)

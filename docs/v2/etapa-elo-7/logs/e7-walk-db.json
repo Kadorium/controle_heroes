@@ -1,0 +1,211 @@
+{
+  "db": "epic_v2_test",
+  "orders": [
+    {
+      "id": 1,
+      "code": "E7-202-MOCK",
+      "status": "CONFIRMED"
+    }
+  ],
+  "invoices": [
+    {
+      "id": 1,
+      "invoice_number": "202",
+      "status": "ISSUED"
+    }
+  ],
+  "payables": [
+    {
+      "id": 1,
+      "source_type": "INVOICE",
+      "status": "OPEN",
+      "currency": "EUR",
+      "amount": "15094.0000",
+      "balance": "15094.0000"
+    },
+    {
+      "id": 2,
+      "source_type": "INVOICE",
+      "status": "OPEN",
+      "currency": "EUR",
+      "amount": "15094.0000",
+      "balance": "15094.0000"
+    },
+    {
+      "id": 3,
+      "source_type": "CUSTOMS_FUNDING",
+      "status": "OPEN",
+      "currency": "BRL",
+      "amount": "1425554.6400",
+      "balance": "1425554.6400"
+    }
+  ],
+  "shipments": [
+    {
+      "id": 1,
+      "code": "SHP-25E16ADE58A8",
+      "status": "ARRIVED"
+    }
+  ],
+  "processes": [
+    {
+      "id": 2,
+      "code": "IMP-D7230C2FB424",
+      "status": "PARTIALLY_CLEARED",
+      "external_reference": "TEST-DUIMP-E7-202",
+      "version": 13
+    }
+  ],
+  "funding": [
+    {
+      "id": 1,
+      "process_id": 2,
+      "status": "CONFIRMED",
+      "declared_total": "1425554.6400"
+    }
+  ],
+  "tax_codes": [
+    {
+      "code": "AFRMM",
+      "amount": "2000.0000"
+    },
+    {
+      "code": "ICMS",
+      "amount": "556000.0000"
+    },
+    {
+      "code": "II",
+      "amount": "343800.0000"
+    },
+    {
+      "code": "IPI",
+      "amount": "253500.0000"
+    },
+    {
+      "code": "PIS",
+      "amount": "37700.0000"
+    },
+    {
+      "code": "COFINS",
+      "amount": "167900.0000"
+    },
+    {
+      "code": "SISCOMEX",
+      "amount": "223.6400"
+    }
+  ],
+  "nats": [
+    {
+      "id": 1,
+      "process_id": 2,
+      "status": "CONFIRMED"
+    },
+    {
+      "id": 2,
+      "process_id": 2,
+      "status": "DRAFT"
+    }
+  ],
+  "nat_items": [
+    {
+      "nationalization_id": 1,
+      "product_id": 4,
+      "quantity": "50.0000"
+    }
+  ],
+  "doganale_versions": [
+    {
+      "id": 1,
+      "doganale_id": 1,
+      "version_number": 1,
+      "status": "ACTIVE",
+      "is_current": true
+    }
+  ],
+  "doganale_line_count": [
+    {
+      "n": 7
+    }
+  ],
+  "receipts": [],
+  "audit_process": [
+    {
+      "action": "import_process.update",
+      "entity_id": "2"
+    },
+    {
+      "action": "import_process.submit",
+      "entity_id": "2"
+    }
+  ],
+  "commit_attempts": [
+    {
+      "id": 1,
+      "document_id": 1,
+      "operation_key": "fattura-commit-1-1786729528583",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 2,
+      "document_id": 2,
+      "operation_key": "pl-detail-2-1786729646474",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 4,
+      "document_id": 3,
+      "operation_key": "doganale-3-1786730073125",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 5,
+      "document_id": 4,
+      "operation_key": "print-4-1786730151313",
+      "status": "SUCCEEDED"
+    },
+    {
+      "id": 6,
+      "document_id": 5,
+      "operation_key": "ING-NUM-DOC-5-1786730220512",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "inv_alloc": [],
+  "shp_alloc": [
+    {
+      "process_id": 2,
+      "shipment_item_id": 7,
+      "allocated_qty": "200.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 6,
+      "allocated_qty": "200.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 5,
+      "allocated_qty": "150.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 4,
+      "allocated_qty": "150.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 3,
+      "allocated_qty": "300.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 2,
+      "allocated_qty": "300.0000"
+    },
+    {
+      "process_id": 2,
+      "shipment_item_id": 1,
+      "allocated_qty": "300.0000"
+    }
+  ]
+}

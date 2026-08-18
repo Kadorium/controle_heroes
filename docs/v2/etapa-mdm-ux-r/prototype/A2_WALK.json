@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "abri": "Abri #/catalog/products",
+    "vi": "Vi busca dominante sem botão Buscar, KPIs rotulados, chips, tabela",
+    "cliquei": "Cliquei/digitei STARLIGHT na busca (debounce 280ms)",
+    "resultado": "Resultado: lista filtrada (6 resultados · página 1 de 1)",
+    "at": "2026-08-18T16:17:31.476Z"
+  },
+  {
+    "id": 2,
+    "abri": "Abri lista sem filtro",
+    "vi": "Vi chip Dados incompletos solto",
+    "cliquei": "Cliquei quick filter Dados incompletos",
+    "resultado": "Resultado: KPI ativo + chip removível + 91 resultados · página 1 de 5",
+    "at": "2026-08-18T16:17:32.129Z"
+  },
+  {
+    "id": 3,
+    "abri": "Abri lista com incompletos",
+    "vi": "Vi botão Mais filtros",
+    "cliquei": "Cliquei Mais filtros",
+    "resultado": "Resultado: painel de facets Tamanho/Cor/Origem (só com valores)",
+    "at": "2026-08-18T16:17:32.230Z"
+  },
+  {
+    "id": 4,
+    "abri": "Abri lista com chip Dados incompletos",
+    "vi": "Vi chip removível",
+    "cliquei": "Cliquei × no chip",
+    "resultado": "Resultado: filtro saiu; total 100 resultados · página 1 de 5",
+    "at": "2026-08-18T16:17:32.531Z"
+  },
+  {
+    "id": 5,
+    "abri": "Abri lista página 1",
+    "vi": "Vi paginação e total",
+    "cliquei": "Cliquei Próxima",
+    "resultado": "Resultado: 100 resultados · página 2 de 5",
+    "at": "2026-08-18T16:17:32.779Z"
+  },
+  {
+    "id": 6,
+    "abri": "Abri lista na página 2",
+    "vi": "Vi select Ordenar",
+    "cliquei": "Cliquei ordenação SKU",
+    "resultado": "Resultado: lista reordenada por SKU e offset resetado para 0",
+    "at": "2026-08-18T16:17:32.993Z"
+  },
+  {
+    "id": 7,
+    "abri": "Abri lista filtrada WASH BAG",
+    "vi": "Vi linha WASH BAG STARLIGHT — RED",
+    "cliquei": "Cliquei a linha inteira",
+    "resultado": "Resultado: ficha em leitura; descrição no H1; SKU secundário; badge Ativo",
+    "at": "2026-08-18T16:17:33.419Z"
+  },
+  {
+    "id": 8,
+    "abri": "Abri ficha a partir de http://127.0.0.1:8765/#/catalog/products/97?q=WASH+BAG&row=97",
+    "vi": "Vi Voltar à lista",
+    "cliquei": "Cliquei Voltar à lista",
+    "resultado": "Resultado: voltei com query preservada (http://127.0.0.1:8765/#/catalog/products?q=WASH+BAG&row=97)",
+    "at": "2026-08-18T16:17:34.411Z"
+  },
+  {
+    "id": 9,
+    "abri": "Abri ficha em leitura",
+    "vi": "Vi botão Editar explícito (não era formulário permanente)",
+    "cliquei": "Cliquei Editar",
+    "resultado": "Resultado: seções verticais editáveis; SKU readonly",
+    "at": "2026-08-18T16:17:34.538Z"
+  },
+  {
+    "id": 10,
+    "abri": "Abri #/catalog/products/new",
+    "vi": "Vi SKU + descrição + CTA Criar; sem L-006 obrigatório",
+    "cliquei": "Cliquei Criar",
+    "resultado": "Resultado: ficha do novo produto na sessão; notice sem epic_v2",
+    "at": "2026-08-18T16:17:34.739Z"
+  }
+]

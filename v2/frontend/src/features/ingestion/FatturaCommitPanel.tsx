@@ -1,15 +1,17 @@
 /**
- * FatturaCommitPanel — J3-I4
- * Policy selection (A/B/C1/C2) + preview + commit for FATTURA_VENDITA documents.
+ * FatturaCommitPanel — J3-I4 + A0
+ * Policy A/B/C1/C2 + candidatos de Order + ambiguidade de linha + preview + commit.
+ * Depois do DRAFT, o Billing existente (Invoice Detail) continua a jornada.
  */
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { User } from "../auth/types";
-import { Button, SectionCard } from "../../ui";
+import { Button, Notice, SectionCard } from "../../ui";
 import {
   commitFatturaDocument,
   fetchFatturaPreview,
   type CommitAttemptOut,
+  type FatturaLineChoiceIn,
   type FatturaPolicy,
   type FatturaPreviewOut,
 } from "./ingestionApi";
@@ -50,9 +52,18 @@ function canCommit(user: User): boolean {
   );
 }
 
+function lineChoicesPayload(choices: Record<number, number>): FatturaLineChoiceIn[] {
+  return Object.entries(choices).map(([row, item]) => ({
+    row_index: Number(row),
+    order_item_id: item,
+  }));
+}
+
 export function FatturaCommitPanel({ documentId, user }: Props) {
   const [policy, setPolicy] = useState<FatturaPolicy>("A");
   const [orderId, setOrderId] = useState<string>("");
+  const [pickedOrderId, setPickedOrderId] = useState<string>("");
+  const [lineChoices, setLineChoices] = useState<Record<number, number>>({});
   const [c2Reason, setC2Reason] = useState<string>("");
   const [opKey, setOpKey] = useState(() => `fattura-commit-${documentId}-${Date.now()}`);
 
@@ -64,35 +75,56 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
   const [commitError, setCommitError] = useState<string | null>(null);
   const [commitBusy, setCommitBusy] = useState(false);
 
+  const runPreview = useCallback(
+    async (explicitOrderId: string, choices: Record<number, number>) => {
+      setPreviewBusy(true);
+      setPreviewError(null);
+      try {
+        const orderIdNum = explicitOrderId.trim() ? Number(explicitOrderId.trim()) : null;
+        const choiceList = lineChoicesPayload(choices);
+        const p = await fetchFatturaPreview(
+          documentId,
+          policy,
+          orderIdNum,
+          policy === "C2" ? true : false,
+          policy === "C2" ? c2Reason : null,
+          choiceList,
+        );
+        setPreview(p);
+      } catch (e) {
+        setPreviewError(e instanceof Error ? e.message : "Erro no preview");
+        setPreview(null);
+      } finally {
+        setPreviewBusy(false);
+      }
+    },
+    [c2Reason, documentId, policy],
+  );
+
+  useEffect(() => {
+    if (policy !== "A") return;
+    void runPreview("", {});
+  }, [policy, documentId, runPreview]);
+
   async function onPreview() {
-    if ((policy === "A" || policy === "B") && !orderId.trim()) {
+    if ((policy === "A" || policy === "B") && !orderId.trim() && policy === "B") {
       setPreviewError("Informe o Order ID — matching automático foi desativado.");
       return;
     }
-    setPreviewBusy(true);
-    setPreviewError(null);
-    setPreview(null);
-    try {
-      const orderIdNum = orderId.trim() ? Number(orderId.trim()) : null;
-      const p = await fetchFatturaPreview(
-        documentId,
-        policy,
-        orderIdNum,
-        policy === "C2" ? true : false,
-        policy === "C2" ? c2Reason : null,
-      );
-      setPreview(p);
-    } catch (e) {
-      setPreviewError(e instanceof Error ? e.message : "Erro no preview");
-    } finally {
-      setPreviewBusy(false);
-    }
+    await runPreview(orderId, lineChoices);
+  }
+
+  function confirmPickedOrder() {
+    if (!pickedOrderId.trim()) return;
+    setOrderId(pickedOrderId);
+    setLineChoices({});
+    void runPreview(pickedOrderId, {});
   }
 
   async function onCommit() {
     if (!canCommit(user)) return;
     if ((policy === "A" || policy === "B") && !orderId.trim()) {
-      setCommitError("Informe o Order ID — matching automático foi desativado.");
+      setCommitError("Confirme o pedido explicitamente — o sistema não escolhe em silêncio.");
       return;
     }
     setCommitBusy(true);
@@ -105,8 +137,11 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
         order_id: orderIdNum,
         c2_confirm: policy === "C2",
         c2_reason: policy === "C2" ? c2Reason : null,
+        line_choices: lineChoicesPayload(lineChoices),
       });
       setAttempt(result);
+      setOpKey(`fattura-commit-${documentId}-${Date.now()}`);
+      await runPreview(orderId, lineChoices);
     } catch (e) {
       setCommitError(e instanceof Error ? e.message : "Erro no commit");
     } finally {
@@ -114,14 +149,52 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
     }
   }
 
+  const alreadyCommitted = Boolean(preview?.already_committed);
   const invoiceOp = attempt?.operations?.find((o) => o.entity_type === "invoice" && o.entity_id);
-  const invoiceId = invoiceOp?.entity_id ?? null;
+  const invoiceId = preview?.last_succeeded_invoice_id
+    ? String(preview.last_succeeded_invoice_id)
+    : invoiceOp?.entity_id ?? null;
   const orderOp = attempt?.operations?.find((o) => o.entity_type === "order" && o.entity_id);
   const ordIdFromAttempt = orderOp?.entity_id ?? null;
 
+  const candidates = preview?.order_candidates ?? [];
+  const lineMatches = preview?.line_matches ?? [];
+  const ambiguousLines = lineMatches.filter((m) => m.status === "ambiguous");
+  const unmatchedLines = lineMatches.filter((m) => m.status === "unmatched");
+  const matchedLines = lineMatches.filter((m) => m.status === "matched");
+
+  const createOps = useMemo(
+    () =>
+      (preview?.operations ?? []).filter((op) =>
+        ["create_invoice", "set_terms", "link_document", "map_invoice_items"].includes(op.op_key),
+      ),
+    [preview],
+  );
+
   return (
-    <SectionCard title="Fattura — Policy A/B/C1/C2" data-testid="fattura-commit-panel">
-      {/* Policy selector */}
+    <SectionCard title="Fattura — revisão e commit" data-testid="fattura-commit-panel">
+      {alreadyCommitted ? (
+        <Notice tone="info" data-testid="fattura-processed-banner" title="Fattura processada">
+          <p>
+            Invoice{" "}
+            {invoiceId ? (
+              <Link to={`/invoices/${invoiceId}`} data-testid="fattura-invoice-link">
+                #{invoiceId}
+              </Link>
+            ) : (
+              "já gerada"
+            )}{" "}
+            a partir deste documento. Não reexecuta o commit.
+          </p>
+          <p className="muted">
+            A extração permanece editável. Isso não significa que a fatura está pendente de
+            processamento.
+          </p>
+        </Notice>
+      ) : null}
+
+      {!alreadyCommitted ? (
+      <>
       <fieldset style={{ border: "none", padding: 0, margin: 0, marginBottom: "0.75rem" }}>
         <legend style={{ fontWeight: 600, marginBottom: "0.4rem" }}>Policy de matching</legend>
         {POLICIES.map((p) => (
@@ -138,6 +211,9 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
               onChange={() => {
                 setPolicy(p.value);
                 setPreview(null);
+                setOrderId("");
+                setPickedOrderId("");
+                setLineChoices({});
               }}
               style={{ marginRight: "0.4rem" }}
             />
@@ -149,10 +225,71 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
         ))}
       </fieldset>
 
-      {/* Order ID field for A/B */}
+      {policy === "A" ? (
+        <div data-testid="fattura-order-candidates" style={{ marginBottom: "0.75rem" }}>
+          <h3 className="ingestion-subtitle">Pedido</h3>
+          {previewBusy && !preview ? <p className="muted">Buscando candidatos…</p> : null}
+          {preview?.order_candidates_reason ? (
+            <p role="alert" style={{ color: "#b91c1c" }} data-testid="fattura-order-none">
+              {preview.order_candidates_reason}
+            </p>
+          ) : null}
+          {candidates.length === 1 ? (
+            <p data-testid="fattura-order-suggested">
+              Sugestão forte: pedido{" "}
+              <strong>
+                #{candidates[0].order_id} {candidates[0].order_code}
+              </strong>{" "}
+              ({candidates[0].status}). Confirme explicitamente — não há commit automático.
+            </p>
+          ) : null}
+          {candidates.length > 1 ? (
+            <p data-testid="fattura-order-multiple">
+              {candidates.length} pedidos possíveis. O sistema não escolhe em silêncio.
+            </p>
+          ) : null}
+          {candidates.length > 0 ? (
+            <ul data-testid="fattura-order-candidate-list" style={{ listStyle: "none", padding: 0 }}>
+              {candidates.map((c) => (
+                <li key={c.order_id} style={{ marginBottom: "0.4rem" }}>
+                  <label style={{ cursor: "pointer" }} data-testid={`fattura-order-candidate-${c.order_id}`}>
+                    <input
+                      type="radio"
+                      name="fattura-order-pick"
+                      value={c.order_id}
+                      checked={pickedOrderId === String(c.order_id)}
+                      onChange={() => setPickedOrderId(String(c.order_id))}
+                      style={{ marginRight: "0.4rem" }}
+                    />
+                    <strong>
+                      #{c.order_id} {c.order_code}
+                    </strong>{" "}
+                    · {c.status} · {c.currency}
+                    <ul className="muted" style={{ margin: "0.15rem 0 0 1.4rem" }}>
+                      {c.evidence.map((ev) => (
+                        <li key={ev}>{ev}</li>
+                      ))}
+                    </ul>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={!pickedOrderId}
+            onClick={confirmPickedOrder}
+            data-testid="fattura-order-confirm-btn"
+          >
+            Confirmar este pedido
+          </Button>
+        </div>
+      ) : null}
+
       {(policy === "A" || policy === "B") && (
         <label style={{ display: "block", marginBottom: "0.5rem" }}>
-          Order ID (obrigatório)
+          Pedido confirmado (order_id)
           <input
             type="number"
             value={orderId}
@@ -165,7 +302,6 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
         </label>
       )}
 
-      {/* C2 reason */}
       {policy === "C2" && (
         <label style={{ display: "block", marginBottom: "0.5rem" }}>
           <span style={{ color: "#b45309", fontWeight: 600 }}>
@@ -182,7 +318,62 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
         </label>
       )}
 
-      {/* Preview */}
+      {lineMatches.length > 0 ? (
+        <div data-testid="fattura-line-review" style={{ marginBottom: "0.75rem" }}>
+          <h3 className="ingestion-subtitle">Linhas</h3>
+          <p className="muted">
+            Casadas: {matchedLines.length} · Ambíguas: {ambiguousLines.length} · Sem match:{" "}
+            {unmatchedLines.length}
+          </p>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {lineMatches.map((m) => (
+              <li
+                key={m.row_index}
+                data-testid={`fattura-line-match-${m.row_index}`}
+                style={{
+                  marginBottom: "0.5rem",
+                  color:
+                    m.status === "ambiguous" || m.status === "unmatched" || m.status === "qty_exceeded"
+                      ? "#b91c1c"
+                      : undefined,
+                }}
+              >
+                Linha {m.row_index} SKU {m.sku} · qty {m.pdf_qty} @ {m.pdf_unit_price ?? "—"} ·{" "}
+                {m.status === "matched"
+                  ? `item #${m.order_item_id}`
+                  : m.status === "ambiguous"
+                    ? "ambígua — escolha a linha do pedido"
+                    : m.status}
+                {m.price_mismatch ? " · preço da Fattura ≠ pedido (segue o documento)" : ""}
+                {m.status === "ambiguous" && m.candidates.length > 0 ? (
+                  <ul style={{ marginTop: "0.25rem" }}>
+                    {m.candidates.map((c) => (
+                      <li key={c.order_item_id}>
+                        <label data-testid={`fattura-line-choice-${m.row_index}-${c.order_item_id}`}>
+                          <input
+                            type="radio"
+                            name={`fattura-line-${m.row_index}`}
+                            checked={lineChoices[m.row_index] === c.order_item_id}
+                            onChange={() => {
+                              const next = { ...lineChoices, [m.row_index]: c.order_item_id };
+                              setLineChoices(next);
+                              if (orderId.trim()) void runPreview(orderId, next);
+                            }}
+                            style={{ marginRight: "0.35rem" }}
+                          />
+                          item #{c.order_item_id} · pos {c.position} · preço {c.unit_price ?? "—"} ·
+                          saldo {c.remaining}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <Button
         type="button"
         variant="ghost"
@@ -220,6 +411,13 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
               Aviso: {preview.policy_match.warning}
             </p>
           ) : null}
+          {createOps.length > 0 ? (
+            <p data-testid="fattura-will-create">
+              Ao confirmar: {createOps.map((o) => o.op_key).join(", ")}.
+            </p>
+          ) : (
+            <p className="muted">Nada a criar até o pedido (e linhas ambíguas) estarem resolvidos.</p>
+          )}
           <p>
             Pode commit: {preview.can_commit ? "sim" : "não"} · ops:{" "}
             {preview.operations.length}
@@ -228,7 +426,7 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
           <ul data-testid="fattura-preview-ops">
             {preview.operations.map((op, i) => {
               const lines = Array.isArray(op.params?.lines) ? op.params.lines : null;
-              const candidates = Array.isArray(op.params?.candidates)
+              const opCandidates = Array.isArray(op.params?.candidates)
                 ? op.params.candidates
                 : null;
               const blocked = op.op_key.startsWith("blocked_");
@@ -246,9 +444,9 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
                   }
                 >
                   <code>{op.op_key}</code>: {op.description}
-                  {candidates && candidates.length > 0 ? (
+                  {opCandidates && opCandidates.length > 0 ? (
                     <ul>
-                      {candidates.map((c: Record<string, unknown>, j: number) => (
+                      {(opCandidates as Array<Record<string, unknown>>).map((c, j) => (
                         <li key={j}>
                           item #{String(c.order_item_id)} · preço {String(c.unit_price ?? "—")} ·
                           saldo {String(c.remaining ?? "—")}
@@ -280,18 +478,8 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
         </div>
       ) : null}
 
-      {/* Commit form */}
       {canCommit(user) ? (
         <div className="ingestion-commit-actions" style={{ marginTop: "0.75rem" }}>
-          <label>
-            operation_key{" "}
-            <input
-              value={opKey}
-              onChange={(e) => setOpKey(e.target.value)}
-              data-testid="fattura-commit-op-key"
-              style={{ marginLeft: "0.4rem", width: "260px" }}
-            />
-          </label>
           <Button
             type="button"
             disabled={commitBusy || (preview != null && !preview.can_commit)}
@@ -312,8 +500,9 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
           Requer ingestion:commit, orders:write e billing:write
         </p>
       )}
+      </>
+      ) : null}
 
-      {/* Result */}
       {attempt ? (
         <div data-testid="fattura-commit-result" style={{ marginTop: "0.75rem" }}>
           <p>

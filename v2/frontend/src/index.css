@@ -564,6 +564,7 @@ a {
 
 .shell-nav-icon {
   flex: 0 0 auto;
+  display: block;
   opacity: 0.9;
 }
 

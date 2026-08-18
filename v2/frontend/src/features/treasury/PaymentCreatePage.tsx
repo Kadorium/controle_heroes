@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
-import { listSuppliers } from "../catalog/catalogApi";
+import { getSupplier } from "../catalog/catalogApi";
+import { useSupplierSearch } from "../catalog/useCatalogSearch";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
   Button,
@@ -47,6 +48,14 @@ export function PaymentCreatePage({ user }: Props) {
 
   const [suppliers, setSuppliers] = useState<{ id: number; name: string }[]>([]);
   const [supplierId, setSupplierId] = useState(g02.supplier_id);
+  const [supplierQ, setSupplierQ] = useState("");
+  const searchedSuppliers = useSupplierSearch(supplierQ, { activeOnly: true, limit: 20 });
+  const supplierOptions = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    for (const s of suppliers) map.set(s.id, s);
+    for (const s of searchedSuppliers) map.set(s.id, { id: s.id, name: s.name });
+    return [...map.values()];
+  }, [suppliers, searchedSuppliers]);
   const [amount, setAmount] = useState(g02.amount || "1000");
   const [currency, setCurrency] = useState(g02.currency || "EUR");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -61,8 +70,11 @@ export function PaymentCreatePage({ user }: Props) {
   const allowWithoutDoc = canRegisterWithoutDoc(user);
 
   useEffect(() => {
-    void listSuppliers().then((s) => setSuppliers(s.map((x) => ({ id: x.id, name: x.name }))));
-  }, []);
+    if (!g02.supplier_id) return;
+    void getSupplier(Number(g02.supplier_id))
+      .then((s) => setSuppliers([{ id: s.id, name: s.name }]))
+      .catch(() => undefined);
+  }, [g02.supplier_id]);
 
   useEffect(() => {
     if (g02.supplier_id) setSupplierId(g02.supplier_id);
@@ -74,6 +86,7 @@ export function PaymentCreatePage({ user }: Props) {
 
   const supplierName =
     suppliers.find((s) => String(s.id) === String(supplierId))?.name ||
+    supplierOptions.find((s) => String(s.id) === String(supplierId))?.name ||
     (g02.supplier_id && suppliers.length === 0 ? "Fornecedor" : null);
 
   async function doRegister(opts: { withoutDocument: boolean }) {
@@ -164,16 +177,34 @@ export function PaymentCreatePage({ user }: Props) {
       <SectionCard title="Dados do pagamento">
         <form className="stack" onSubmit={(e) => void onSubmit(e)}>
           <div className="form-grid">
+            <FormField label="Fornecedor" htmlFor="pay-supplier-q">
+              <TextInput
+                id="pay-supplier-q"
+                data-testid="pay-supplier-search"
+                placeholder="Buscar fornecedor…"
+                value={supplierQ}
+                onChange={(e) => setSupplierQ(e.target.value)}
+              />
+            </FormField>
             <FormField label="Fornecedor" htmlFor="pay-supplier" required>
               <SelectField
                 id="pay-supplier"
                 data-testid="pay-supplier"
                 required
                 value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSupplierId(next);
+                  const picked = supplierOptions.find((s) => String(s.id) === next);
+                  if (picked) {
+                    setSuppliers((prev) =>
+                      prev.some((p) => p.id === picked.id) ? prev : [...prev, picked],
+                    );
+                  }
+                }}
                 options={[
                   { value: "", label: "Selecione" },
-                  ...suppliers.map((s) => ({ value: String(s.id), label: s.name })),
+                  ...supplierOptions.map((s) => ({ value: String(s.id), label: s.name })),
                 ]}
               />
             </FormField>

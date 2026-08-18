@@ -237,7 +237,7 @@ def test_migration_021_revises_019():
     assert rev.down_revision == "019"
     # 020 Catalog RUX-3A não está na chain (arquivo isolado fora de versions/)
     assert "020" not in {r.revision for r in script.walk_revisions()}
-    assert EXPECTED_ALEMBIC_REVISION == "023"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
 
 
 def test_migration_022_revises_021():
@@ -252,8 +252,8 @@ def test_migration_022_revises_021():
     rev = script.get_revision("022")
     assert rev is not None
     assert rev.down_revision == "021"
-    assert script.get_current_head() == "023"
-    assert EXPECTED_ALEMBIC_REVISION == "023"
+    assert script.get_current_head() == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
 
 
 def test_migration_023_revises_022():
@@ -268,5 +268,55 @@ def test_migration_023_revises_022():
     rev = script.get_revision("023")
     assert rev is not None
     assert rev.down_revision == "022"
-    assert script.get_current_head() == "023"
-    assert EXPECTED_ALEMBIC_REVISION == "023"
+    assert script.get_current_head() == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
+
+
+def test_migration_024_revises_023():
+    """J4-FIN-CICLO-FIX: payments.purpose ADVANCE/SETTLEMENT."""
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    from app.foundation.schema_revision import EXPECTED_ALEMBIC_REVISION
+
+    cfg = Config("alembic.ini")
+    script = ScriptDirectory.from_config(cfg)
+    rev = script.get_revision("024")
+    assert rev is not None
+    assert rev.down_revision == "023"
+    assert script.get_current_head() == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
+
+
+def test_migration_025_revises_024():
+    """FIN-4: order_payment_schedule_lines. 020 continua fora da árvore."""
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    from app.foundation.schema_revision import EXPECTED_ALEMBIC_REVISION
+
+    cfg = Config("alembic.ini")
+    script = ScriptDirectory.from_config(cfg)
+    rev = script.get_revision("025")
+    assert rev is not None
+    assert rev.down_revision == "024"
+    assert "020" not in {r.revision for r in script.walk_revisions()}
+    assert script.get_current_head() == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
+
+def test_migration_026_revises_025():
+    """MDM-4: L-006 + Supplier.tax_id. 020 continua fora da árvore."""
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    from app.foundation.schema_revision import EXPECTED_ALEMBIC_REVISION
+
+    cfg = Config("alembic.ini")
+    script = ScriptDirectory.from_config(cfg)
+    rev = script.get_revision("026")
+    assert rev is not None
+    assert rev.down_revision == "025"
+    assert "020" not in {r.revision for r in script.walk_revisions()}
+    assert script.get_current_head() == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
+

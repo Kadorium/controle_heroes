@@ -179,6 +179,43 @@ export interface FatturaPreviewOperationOut {
   params: Record<string, unknown>;
 }
 
+export interface FatturaLineChoiceIn {
+  row_index: number;
+  order_item_id: number;
+}
+
+export interface FatturaOrderCandidateOut {
+  order_id: number;
+  order_code: string;
+  status: string;
+  supplier_id: number;
+  currency: string;
+  evidence: string[];
+  currency_match: boolean;
+}
+
+export interface FatturaLineCandidateOut {
+  order_item_id: number;
+  position: number;
+  unit_price?: string | null;
+  remaining: string;
+}
+
+export interface FatturaLineMatchOut {
+  row_index: number;
+  sku: string;
+  pdf_qty: string;
+  pdf_unit_price?: string | null;
+  order_item_id?: number | null;
+  order_unit_price?: string | null;
+  remaining_before?: string | null;
+  candidate_count: number;
+  candidates: FatturaLineCandidateOut[];
+  price_mismatch: boolean;
+  ambiguous_price: boolean;
+  status: string;
+}
+
 export interface FatturaPreviewOut {
   document_id: number;
   fingerprint: string;
@@ -186,6 +223,12 @@ export interface FatturaPreviewOut {
   operations: FatturaPreviewOperationOut[];
   open_error_count: number;
   can_commit: boolean;
+  order_candidates?: FatturaOrderCandidateOut[];
+  order_candidates_reason?: string | null;
+  line_matches?: FatturaLineMatchOut[];
+  already_committed?: boolean;
+  last_succeeded_attempt_id?: number | null;
+  last_succeeded_invoice_id?: number | null;
 }
 
 export interface FatturaCommitIn {
@@ -194,6 +237,7 @@ export interface FatturaCommitIn {
   order_id?: number | null;
   c2_confirm?: boolean;
   c2_reason?: string | null;
+  line_choices?: FatturaLineChoiceIn[];
 }
 
 export async function runAdapterFattura(occurrenceId: number): Promise<DocumentDetail> {
@@ -214,11 +258,15 @@ export async function fetchFatturaPreview(
   orderId?: number | null,
   c2Confirm?: boolean,
   c2Reason?: string | null,
+  lineChoices?: FatturaLineChoiceIn[] | null,
 ): Promise<FatturaPreviewOut> {
   const params = new URLSearchParams({ policy });
   if (orderId != null) params.set("order_id", String(orderId));
   if (c2Confirm) params.set("c2_confirm", "true");
   if (c2Reason) params.set("c2_reason", c2Reason);
+  if (lineChoices && lineChoices.length > 0) {
+    params.set("line_choices", JSON.stringify(lineChoices));
+  }
 
   const res = await fetch(
     `/api/ingestion/documents/${documentId}/preview-commit-fattura?${params.toString()}`,
@@ -258,6 +306,13 @@ export interface NumerarioPreviewOpOut {
   params: Record<string, unknown>;
 }
 
+export interface NumerarioProcessCandidateOut {
+  process_id: number;
+  code: string;
+  status: string;
+  evidence: string[];
+}
+
 export interface NumerarioPreviewOut {
   document_id: number;
   fingerprint: string;
@@ -266,6 +321,12 @@ export interface NumerarioPreviewOut {
   planned_operations: NumerarioPreviewOpOut[];
   open_error_count: number;
   can_commit: boolean;
+  process_candidates?: NumerarioProcessCandidateOut[];
+  process_candidates_reason?: string | null;
+  already_committed?: boolean;
+  last_succeeded_attempt_id?: number | null;
+  last_succeeded_process_id?: number | null;
+  can_create_process?: boolean;
 }
 
 export interface NumerarioOpResultOut {
@@ -315,7 +376,7 @@ export async function fetchNumerarioPreview(
 
 export async function commitNumerarioDocument(
   documentId: number,
-  body: { operation_key: string; process_ids: number[] },
+  body: { operation_key: string; process_ids: number[]; create_process?: boolean },
 ): Promise<NumerarioCommitResultOut> {
   const res = await fetch(`/api/ingestion/documents/${documentId}/commit-numerario`, {
     method: "POST",
@@ -622,25 +683,266 @@ export async function previewDossier(setId: number): Promise<DossierPreviewOut> 
   return fetchJson<DossierPreviewOut>(`/api/ingestion/document-sets/${setId}/preview-dossier`);
 }
 
+export interface PackingLineChoiceIn {
+  group_key: string;
+  order_item_id: number;
+}
+
+export interface PackingOrderCandidateOut {
+  order_id: number;
+  order_code: string;
+  status: string;
+  supplier_id: number;
+  currency: string;
+  evidence: string[];
+  currency_match: boolean;
+}
+
+export interface PackingShipmentTargetOut {
+  shipment_id: number;
+  code: string;
+  status: string;
+  compatible: boolean;
+  evidence: string[];
+}
+
+export interface PackingLineCandidateOut {
+  order_item_id: number;
+  position: number;
+  sku: string;
+  description: string;
+  remaining: string;
+  line_kind: string;
+}
+
+export interface PackingLineMatchOut {
+  group_key: string;
+  ncm: string;
+  description: string;
+  carton_count: number;
+  total_qty: string;
+  packaging: boolean;
+  order_item_id?: number | null;
+  remaining_before?: string | null;
+  candidate_count: number;
+  candidates: PackingLineCandidateOut[];
+  status: string;
+  carton_row_indexes: number[];
+}
+
+export interface PackingCartonOut {
+  row_index: number;
+  pallet_no?: string | null;
+  carton_no?: string | null;
+  items_per_ctn?: string | null;
+  ncm: string;
+  description: string;
+  dimensions?: string | null;
+  unit_net_weight_kg?: string | null;
+  unit_gross_weight_kg?: string | null;
+  total_net_weight_kg?: string | null;
+  total_gross_weight_kg?: string | null;
+  packaging: boolean;
+}
+
+export interface PackingPreviewOperationOut {
+  op_key: string;
+  description: string;
+  entity_type?: string | null;
+  params?: Record<string, unknown>;
+}
+
+export interface PackingPreviewOut {
+  document_id: number;
+  fingerprint: string;
+  operations: PackingPreviewOperationOut[];
+  open_error_count: number;
+  can_commit: boolean;
+  order_candidates: PackingOrderCandidateOut[];
+  order_candidates_reason?: string | null;
+  shipment_targets: PackingShipmentTargetOut[];
+  shipment_targets_reason?: string | null;
+  line_matches: PackingLineMatchOut[];
+  cartons: PackingCartonOut[];
+  blockers: string[];
+  resolved_order_id?: number | null;
+  resolved_shipment_id?: number | null;
+  will_create_shipment: boolean;
+  already_committed?: boolean;
+  last_succeeded_attempt_id?: number | null;
+  last_succeeded_shipment_id?: number | null;
+}
+
+export interface PackingCommitIn {
+  operation_key: string;
+  order_id?: number | null;
+  shipment_id?: number | null;
+  line_choices?: PackingLineChoiceIn[];
+}
+
+export async function fetchPackingPreview(
+  documentId: number,
+  orderId?: number | null,
+  shipmentId?: number | null,
+  lineChoices?: PackingLineChoiceIn[] | null,
+): Promise<PackingPreviewOut> {
+  const params = new URLSearchParams();
+  if (orderId != null) params.set("order_id", String(orderId));
+  if (shipmentId != null) params.set("shipment_id", String(shipmentId));
+  if (lineChoices && lineChoices.length > 0) {
+    params.set("line_choices", JSON.stringify(lineChoices));
+  }
+  const qs = params.toString();
+  return fetchJson<PackingPreviewOut>(
+    `/api/ingestion/documents/${documentId}/preview-commit-pl-detail${qs ? `?${qs}` : ""}`,
+  );
+}
+
 export async function commitPlDetail(
   documentId: number,
-  operationKey: string,
+  body: PackingCommitIn | string,
 ): Promise<CommitAttemptOut> {
+  const payload: PackingCommitIn =
+    typeof body === "string" ? { operation_key: body } : body;
   return fetchJson<CommitAttemptOut>(`/api/ingestion/documents/${documentId}/commit-pl-detail`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ operation_key: operationKey }),
+    body: JSON.stringify(payload),
   });
+}
+
+export interface DoganaleCommitIn {
+  operation_key: string;
+  process_id?: number | null;
+  invoice_id?: number | null;
+  shipment_id?: number | null;
+}
+
+export interface DoganaleProcessTargetOut {
+  process_id: number;
+  code: string;
+  status: string;
+  compatible: boolean;
+  evidence: string[];
+}
+
+export interface DoganaleInvoiceCandidateOut {
+  invoice_id: number;
+  invoice_number: string;
+  status: string;
+  order_id: number | null;
+  linked_process_id: number | null;
+  evidence: string[];
+}
+
+export interface DoganaleShipmentTargetOut {
+  shipment_id: number;
+  code: string;
+  status: string;
+  compatible: boolean;
+  linked_process_id: number | null;
+  evidence: string[];
+}
+
+export interface DoganaleLinePreviewOut {
+  position: number;
+  ncm: string | null;
+  description: string | null;
+  quantity: string | null;
+  unit: string | null;
+  currency: string | null;
+  unit_price: string | null;
+  line_amount: string | null;
+}
+
+export interface DoganalePreviewOut {
+  document_id: number;
+  fingerprint: string;
+  operations: { op_key: string; description: string; entity_type: string | null; params: Record<string, unknown> }[];
+  open_error_count: number;
+  can_commit: boolean;
+  process_targets: DoganaleProcessTargetOut[];
+  process_targets_reason: string | null;
+  invoice_candidates: DoganaleInvoiceCandidateOut[];
+  invoice_candidates_reason: string | null;
+  shipment_targets: DoganaleShipmentTargetOut[];
+  shipment_targets_reason: string | null;
+  lines: DoganaleLinePreviewOut[];
+  blockers: string[];
+  resolved_process_id: number | null;
+  resolved_invoice_id: number | null;
+  resolved_shipment_id: number | null;
+  will_create_process: boolean;
+  reuse_reason: string | null;
+  already_committed: boolean;
+  last_succeeded_attempt_id: number | null;
+  last_succeeded_process_id: number | null;
+  document_number: string | null;
+}
+
+export async function fetchDoganalePreview(
+  documentId: number,
+  opts?: { process_id?: number | null; invoice_id?: number | null; shipment_id?: number | null },
+): Promise<DoganalePreviewOut> {
+  const params = new URLSearchParams();
+  if (opts?.process_id != null) params.set("process_id", String(opts.process_id));
+  if (opts?.invoice_id != null) params.set("invoice_id", String(opts.invoice_id));
+  if (opts?.shipment_id != null) params.set("shipment_id", String(opts.shipment_id));
+  const qs = params.toString();
+  return fetchJson<DoganalePreviewOut>(
+    `/api/ingestion/documents/${documentId}/preview-commit-doganale${qs ? `?${qs}` : ""}`,
+  );
 }
 
 export async function commitDoganale(
   documentId: number,
-  operationKey: string,
+  body: DoganaleCommitIn | string,
 ): Promise<CommitAttemptOut> {
+  const payload: DoganaleCommitIn =
+    typeof body === "string" ? { operation_key: body } : body;
   return fetchJson<CommitAttemptOut>(`/api/ingestion/documents/${documentId}/commit-doganale`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ operation_key: operationKey }),
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface PrintPreviewOut {
+  document_id: number;
+  fingerprint: string;
+  operations: { op_key: string; description: string; entity_type: string | null; params: Record<string, unknown> }[];
+  open_error_count: number;
+  can_commit: boolean;
+  invoice_ref: string | null;
+  process_targets: DoganaleProcessTargetOut[];
+  process_targets_reason: string | null;
+  blockers: string[];
+  already_committed: boolean;
+  last_succeeded_attempt_id: number | null;
+  last_succeeded_process_id: number | null;
+  resolved_process_id: number | null;
+}
+
+export async function fetchPrintPreview(
+  documentId: number,
+  processId?: number | null,
+): Promise<PrintPreviewOut> {
+  const params = new URLSearchParams();
+  if (processId != null) params.set("process_id", String(processId));
+  const qs = params.toString();
+  return fetchJson<PrintPreviewOut>(
+    `/api/ingestion/documents/${documentId}/preview-commit-print${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function commitPrint(
+  documentId: number,
+  body: { operation_key: string; process_id?: number | null },
+): Promise<CommitAttemptOut> {
+  return fetchJson<CommitAttemptOut>(`/api/ingestion/documents/${documentId}/commit-print`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 }
 

@@ -393,12 +393,18 @@ class CommitAttemptOut(BaseModel):
 # --- J3-I4 Fattura schemas ---
 
 
+class FatturaLineChoiceIn(BaseModel):
+    row_index: int
+    order_item_id: int
+
+
 class FatturaCommitIn(BaseModel):
     operation_key: str
     policy: str  # A | B | C1 | C2
     order_id: int | None = None
     c2_confirm: bool = False
     c2_reason: str | None = None
+    line_choices: list[FatturaLineChoiceIn] = Field(default_factory=list)
 
 
 class FatturaPolicyMatchOut(BaseModel):
@@ -417,6 +423,38 @@ class FatturaPreviewOperationOut(BaseModel):
     params: dict = Field(default_factory=dict)
 
 
+class FatturaOrderCandidateOut(BaseModel):
+    order_id: int
+    order_code: str
+    status: str
+    supplier_id: int
+    currency: str
+    evidence: list[str] = Field(default_factory=list)
+    currency_match: bool = True
+
+
+class FatturaLineCandidateOut(BaseModel):
+    order_item_id: int
+    position: int
+    unit_price: str | None = None
+    remaining: str
+
+
+class FatturaLineMatchOut(BaseModel):
+    row_index: int
+    sku: str
+    pdf_qty: str
+    pdf_unit_price: str | None = None
+    order_item_id: int | None = None
+    order_unit_price: str | None = None
+    remaining_before: str | None = None
+    candidate_count: int
+    candidates: list[FatturaLineCandidateOut] = Field(default_factory=list)
+    price_mismatch: bool = False
+    ambiguous_price: bool = False
+    status: str
+
+
 class FatturaPreviewOut(BaseModel):
     document_id: int
     fingerprint: str
@@ -424,6 +462,12 @@ class FatturaPreviewOut(BaseModel):
     operations: list[FatturaPreviewOperationOut] = Field(default_factory=list)
     open_error_count: int
     can_commit: bool
+    order_candidates: list[FatturaOrderCandidateOut] = Field(default_factory=list)
+    order_candidates_reason: str | None = None
+    line_matches: list[FatturaLineMatchOut] = Field(default_factory=list)
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_invoice_id: int | None = None
 
 
 # --- J3-I5 Dossier schemas ---
@@ -431,6 +475,13 @@ class FatturaPreviewOut(BaseModel):
 
 class DossierCommitIn(BaseModel):
     operation_key: str
+
+
+class DoganaleCommitIn(BaseModel):
+    operation_key: str
+    process_id: int | None = None
+    invoice_id: int | None = None
+    shipment_id: int | None = None
 
 
 class ReconciliationIssueOut(BaseModel):
@@ -454,12 +505,215 @@ class DossierPreviewOut(BaseModel):
     can_commit: bool
 
 
+class PackingLineChoiceIn(BaseModel):
+    group_key: str
+    order_item_id: int
+
+
+class PackingCommitIn(BaseModel):
+    operation_key: str
+    order_id: int | None = None
+    shipment_id: int | None = None
+    line_choices: list[PackingLineChoiceIn] = Field(default_factory=list)
+
+
+class PackingPreviewOperationOut(BaseModel):
+    op_key: str
+    description: str
+    entity_type: str | None = None
+    params: dict = Field(default_factory=dict)
+
+
+class PackingOrderCandidateOut(BaseModel):
+    order_id: int
+    order_code: str
+    status: str
+    supplier_id: int
+    currency: str
+    evidence: list[str] = Field(default_factory=list)
+    currency_match: bool = True
+
+
+class PackingShipmentTargetOut(BaseModel):
+    shipment_id: int
+    code: str
+    status: str
+    compatible: bool
+    evidence: list[str] = Field(default_factory=list)
+
+
+class PackingLineCandidateOut(BaseModel):
+    order_item_id: int
+    position: int
+    sku: str
+    description: str
+    remaining: str
+    line_kind: str
+
+
+class PackingLineMatchOut(BaseModel):
+    group_key: str
+    ncm: str
+    description: str
+    carton_count: int
+    total_qty: str
+    packaging: bool
+    order_item_id: int | None = None
+    remaining_before: str | None = None
+    candidate_count: int
+    candidates: list[PackingLineCandidateOut] = Field(default_factory=list)
+    status: str
+    carton_row_indexes: list[int] = Field(default_factory=list)
+
+
+class PackingCartonOut(BaseModel):
+    row_index: int
+    pallet_no: str | None = None
+    carton_no: str | None = None
+    items_per_ctn: str | None = None
+    ncm: str
+    description: str
+    dimensions: str | None = None
+    unit_net_weight_kg: str | None = None
+    unit_gross_weight_kg: str | None = None
+    total_net_weight_kg: str | None = None
+    total_gross_weight_kg: str | None = None
+    packaging: bool = False
+
+
+class PackingPreviewOut(BaseModel):
+    document_id: int
+    fingerprint: str
+    operations: list[PackingPreviewOperationOut] = Field(default_factory=list)
+    open_error_count: int
+    can_commit: bool
+    order_candidates: list[PackingOrderCandidateOut] = Field(default_factory=list)
+    order_candidates_reason: str | None = None
+    shipment_targets: list[PackingShipmentTargetOut] = Field(default_factory=list)
+    shipment_targets_reason: str | None = None
+    line_matches: list[PackingLineMatchOut] = Field(default_factory=list)
+    cartons: list[PackingCartonOut] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    resolved_order_id: int | None = None
+    resolved_shipment_id: int | None = None
+    will_create_shipment: bool = False
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_shipment_id: int | None = None
+
+
+class DoganalePreviewOpOut(BaseModel):
+    op_key: str
+    description: str
+    entity_type: str | None = None
+    params: dict = Field(default_factory=dict)
+
+
+class DoganaleProcessTargetOut(BaseModel):
+    process_id: int
+    code: str
+    status: str
+    compatible: bool
+    evidence: list[str] = Field(default_factory=list)
+
+
+class DoganaleInvoiceCandidateOut(BaseModel):
+    invoice_id: int
+    invoice_number: str
+    status: str
+    order_id: int | None = None
+    linked_process_id: int | None = None
+    evidence: list[str] = Field(default_factory=list)
+
+
+class DoganaleShipmentTargetOut(BaseModel):
+    shipment_id: int
+    code: str
+    status: str
+    compatible: bool
+    linked_process_id: int | None = None
+    evidence: list[str] = Field(default_factory=list)
+
+
+class DoganaleLinePreviewOut(BaseModel):
+    position: int
+    ncm: str | None = None
+    description: str | None = None
+    quantity: str | None = None
+    unit: str | None = None
+    currency: str | None = None
+    unit_price: str | None = None
+    line_amount: str | None = None
+
+
+class DoganalePreviewOut(BaseModel):
+    document_id: int
+    fingerprint: str
+    operations: list[DoganalePreviewOpOut] = Field(default_factory=list)
+    open_error_count: int
+    can_commit: bool
+    process_targets: list[DoganaleProcessTargetOut] = Field(default_factory=list)
+    process_targets_reason: str | None = None
+    invoice_candidates: list[DoganaleInvoiceCandidateOut] = Field(default_factory=list)
+    invoice_candidates_reason: str | None = None
+    shipment_targets: list[DoganaleShipmentTargetOut] = Field(default_factory=list)
+    shipment_targets_reason: str | None = None
+    lines: list[DoganaleLinePreviewOut] = Field(default_factory=list)
+    blockers: list[str] = Field(default_factory=list)
+    resolved_process_id: int | None = None
+    resolved_invoice_id: int | None = None
+    resolved_shipment_id: int | None = None
+    will_create_process: bool = False
+    reuse_reason: str | None = None
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_process_id: int | None = None
+    document_number: str | None = None
+
+
+class PrintCommitIn(BaseModel):
+    operation_key: str
+    process_id: int | None = None
+
+
+class PrintPreviewOpOut(BaseModel):
+    op_key: str
+    description: str
+    entity_type: str | None = None
+    params: dict = Field(default_factory=dict)
+
+
+class PrintProcessTargetOut(BaseModel):
+    process_id: int
+    code: str
+    status: str
+    compatible: bool
+    evidence: list[str] = Field(default_factory=list)
+
+
+class PrintPreviewOut(BaseModel):
+    document_id: int
+    fingerprint: str
+    operations: list[PrintPreviewOpOut] = Field(default_factory=list)
+    open_error_count: int
+    can_commit: bool
+    invoice_ref: str | None = None
+    process_targets: list[PrintProcessTargetOut] = Field(default_factory=list)
+    process_targets_reason: str | None = None
+    blockers: list[str] = Field(default_factory=list)
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_process_id: int | None = None
+    resolved_process_id: int | None = None
+
+
 # --- J3-I6 Numerário schemas ---
 
 
 class NumerarioCommitIn(BaseModel):
     operation_key: str
-    process_ids: list[int]  # explicit list of ImportProcess IDs to create FundingRequests for
+    process_ids: list[int] = Field(default_factory=list)
+    create_process: bool = False
 
 
 class NumerarioPreviewOpOut(BaseModel):
@@ -470,6 +724,13 @@ class NumerarioPreviewOpOut(BaseModel):
     params: dict = Field(default_factory=dict)
 
 
+class NumerarioProcessCandidateOut(BaseModel):
+    process_id: int
+    code: str
+    status: str
+    evidence: list[str] = Field(default_factory=list)
+
+
 class NumerarioPreviewOut(BaseModel):
     document_id: int
     fingerprint: str
@@ -478,6 +739,12 @@ class NumerarioPreviewOut(BaseModel):
     planned_operations: list[NumerarioPreviewOpOut] = Field(default_factory=list)
     open_error_count: int
     can_commit: bool
+    process_candidates: list[NumerarioProcessCandidateOut] = Field(default_factory=list)
+    process_candidates_reason: str | None = None
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_process_id: int | None = None
+    can_create_process: bool = False
 
 
 class NumerarioOpResultOut(BaseModel):

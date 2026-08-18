@@ -35,7 +35,10 @@ import {
 import { PdfViewerPanel } from "./PdfViewerPanel";
 import { CommitResultPanel } from "./CommitResultPanel";
 import { FatturaCommitPanel } from "./FatturaCommitPanel";
+import { PackingCommitPanel } from "./PackingCommitPanel";
 import { NumerarioCommitPanel } from "./NumerarioCommitPanel";
+import { DoganaleCommitPanel } from "./DoganaleCommitPanel";
+import { PrintCommitPanel } from "./PrintCommitPanel";
 import { MatchingPanel } from "./MatchingPanel";
 import { OrdineSummaryPanel } from "./OrdineSummaryPanel";
 import { OrdineBeforeCreatePanel } from "./OrdineBeforeCreatePanel";
@@ -62,6 +65,21 @@ function versionConflictMessage(err: unknown): string {
     return "Conflito de versão (409): outro usuário alterou o documento. Recarregue e tente novamente.";
   }
   return err instanceof Error ? err.message : "Erro";
+}
+
+function extractionReviewPhrase(status: string): string {
+  switch (status) {
+    case "DRAFT":
+      return "extração ainda editável";
+    case "IN_REVIEW":
+      return "extração em revisão";
+    case "READY":
+      return "extração pronta";
+    case "REJECTED":
+      return "extração rejeitada";
+    default:
+      return status;
+  }
 }
 
 export function IngestionWorkspacePage({ user }: Props) {
@@ -443,11 +461,17 @@ export function IngestionWorkspacePage({ user }: Props) {
           </SectionCard>
 
           {(currentDoc.sections ?? []).length > 0 ? (
-            <SectionCard title="Seções" data-testid="ingestion-sections-panel">
+            <SectionCard title="Seções da extração" data-testid="ingestion-sections-panel">
+              {currentDoc.doc_type === "PACKING_LIST_DETAIL" || currentDoc.doc_type === "FATTURA_VENDITA" ? (
+                <p className="muted" data-testid="extraction-status-hint">
+                  O status abaixo descreve se a extração ainda pode ser editada. Não indica se o
+                  documento já gerou fatura ou embarque.
+                </p>
+              ) : null}
               <ul>
                 {(currentDoc.sections ?? []).map((s) => (
                   <li key={s.id} data-testid={`section-${s.id}`}>
-                    <strong>{s.section_key}</strong> — {s.review_status}
+                    <strong>{s.section_key}</strong> — {extractionReviewPhrase(s.review_status)}
                     {canWrite(user) ? (
                       <>
                         <Button type="button" variant="ghost" disabled={busy} onClick={() => void reviewSection(s, "APPROVED")}>
@@ -628,7 +652,7 @@ export function IngestionWorkspacePage({ user }: Props) {
         subtitle={
           showOrdineCommit
             ? `Importação #${doc.id} · ${reviewLabel}`
-            : `Revisão IR · status ${doc.review_status} · adapter ${doc.adapter_id}`
+            : `Revisão da extração · ${extractionReviewPhrase(doc.review_status)} · ${doc.adapter_id}`
         }
         actions={
           <>
@@ -747,6 +771,15 @@ export function IngestionWorkspacePage({ user }: Props) {
           ) : null}
           {doc.doc_type === "FATTURA_VENDITA" ? (
             <FatturaCommitPanel documentId={doc.id} user={user} />
+          ) : null}
+          {doc.doc_type === "FATTURA_DOGANALE" ? (
+            <DoganaleCommitPanel documentId={doc.id} user={user} />
+          ) : null}
+          {doc.doc_type === "PRINT_DECLARATION" ? (
+            <PrintCommitPanel documentId={doc.id} user={user} />
+          ) : null}
+          {doc.doc_type === "PACKING_LIST_DETAIL" ? (
+            <PackingCommitPanel documentId={doc.id} user={user} />
           ) : null}
           {doc.doc_type === "SOLICITACAO_NUMERARIO" ? (
             <NumerarioCommitPanel documentId={doc.id} user={user} />

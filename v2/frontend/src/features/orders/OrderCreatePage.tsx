@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { User } from "../auth/types";
-import {
-  createProduct,
-  createSupplier,
-  listProducts,
-  listSuppliers,
-  type Product,
-  type Supplier,
-} from "../catalog/catalogApi";
+import { createProduct, createSupplier, listProducts, type Supplier } from "../catalog/catalogApi";
+import { useProductSearch, useSupplierSearch } from "../catalog/useCatalogSearch";
 import { addOrderItem, confirmOrder, createOrder, getOrder } from "./ordersApi";
 import { canWriteOrders, deriveLineTotal, summarizeLines } from "./orderTotals";
 import { buildReturnTo } from "../../navigation/returnState";
@@ -47,14 +41,15 @@ type Props = { user: User };
 export function OrderCreatePage({ user }: Props) {
   const navigate = useNavigate();
   const ordersReturn = buildReturnTo("/orders");
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [code, setCode] = useState("");
   const [orderDate, setOrderDate] = useState(todayIso());
   const [notes, setNotes] = useState("");
   const [supplierId, setSupplierId] = useState<number | "">("");
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  const [supplierQ, setSupplierQ] = useState("");
   const [newSupplierName, setNewSupplierName] = useState("");
   const [sku, setSku] = useState("");
+  const [skuDescription, setSkuDescription] = useState("");
   const [qty, setQty] = useState("1");
   const [unit, setUnit] = useState("PZ");
   const [price, setPrice] = useState("");
@@ -64,17 +59,11 @@ export function OrderCreatePage({ user }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   /** Após createOrder OK — não recriar em retry. */
   const [persistedOrder, setPersistedOrder] = useState<{ id: number; code: string } | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        setSuppliers(await listSuppliers());
-        setProducts(await listProducts());
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Erro ao carregar catálogo");
-      }
-    })();
-  }, []);
+  const products = useProductSearch(sku, { activeOnly: true, limit: 20 });
+  const searchedSuppliers = useSupplierSearch(supplierQ, { activeOnly: true, limit: 20 });
+  const suppliers = selectedSupplier
+    ? [selectedSupplier, ...searchedSuppliers.filter((s) => s.id !== selectedSupplier.id)]
+    : searchedSuppliers;
 
   if (!canWriteOrders(user)) {
     return <ErrorState message="Sem permissão para criar pedidos." />;
@@ -86,14 +75,19 @@ export function OrderCreatePage({ user }: Props) {
     if (supplierId !== "") return Number(supplierId);
     if (!newSupplierName.trim()) throw new Error("Informe ou crie um fornecedor");
     const s = await createSupplier({ name: newSupplierName.trim() });
-    setSuppliers((prev) => [...prev, s]);
+    setSelectedSupplier(s);
     setSupplierId(s.id);
     return s.id;
   }
 
-  function addLine() {
+  async function addLine() {
     setError(null);
-    const match = products.find((p) => p.sku.toLowerCase() === sku.trim().toLowerCase());
+    const wanted = sku.trim();
+    let match = products.find((p) => p.sku.toLowerCase() === wanted.toLowerCase());
+    if (!match && wanted) {
+      const rows = await listProducts(wanted, { activeOnly: true, limit: 20 });
+      match = rows.find((p) => p.sku.toLowerCase() === wanted.toLowerCase());
+    }
     if (!match) {
       setError("SKU não encontrado — crie o produto abaixo ou escolha um existente");
       return;
@@ -113,6 +107,7 @@ export function OrderCreatePage({ user }: Props) {
       },
     ]);
     setSku("");
+    setSkuDescription("");
     setQty("1");
     setUnit("PZ");
     setPrice("");
@@ -124,9 +119,19 @@ export function OrderCreatePage({ user }: Props) {
 
   async function createSku() {
     setError(null);
+    const desc = skuDescription.trim();
+    if (!sku.trim()) {
+      setError("Informe o SKU");
+      return;
+    }
+    if (!desc) {
+      setError("Descrição é obrigatória para criar o produto");
+      return;
+    }
     try {
-      const p = await createProduct({ sku: sku.trim(), description: sku.trim() });
-      setProducts((prev) => [...prev, p]);
+      const p = await createProduct({ sku: sku.trim(), description: desc });
+      setSku(p.sku);
+      setSkuDescription(p.description);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar SKU");
     }
@@ -232,12 +237,27 @@ export function OrderCreatePage({ user }: Props) {
               required
             />
           </FormField>
-          <FormField label="Fornecedor" htmlFor="order-supplier">
+          <FormField label="Fornecedor" htmlFor="order-supplier-q">
+            <TextInput
+              id="order-supplier-q"
+              data-testid="order-supplier-search"
+              placeholder="Buscar fornecedor…"
+              value={supplierQ}
+              onChange={(e) => setSupplierQ(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Selecionado" htmlFor="order-supplier">
             <SelectField
               id="order-supplier"
               data-testid="order-supplier"
               value={supplierId === "" ? "" : String(supplierId)}
-              onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) => {
+                const next = e.target.value ? Number(e.target.value) : "";
+                setSupplierId(next);
+                setSelectedSupplier(
+                  next === "" ? null : suppliers.find((s) => s.id === next) ?? selectedSupplier,
+                );
+              }}
               options={[
                 { value: "", label: "— criar novo —" },
                 ...suppliers.map((s) => ({ value: String(s.id), label: s.name })),
@@ -285,9 +305,17 @@ export function OrderCreatePage({ user }: Props) {
           />
           <datalist id="sku-list">
             {products.map((p) => (
-              <option key={p.id} value={p.sku} />
+              <option key={p.id} value={p.sku}>
+                {p.description}
+              </option>
             ))}
           </datalist>
+          <TextInput
+            data-testid="line-sku-description"
+            placeholder="Descrição (obrigatória ao criar)"
+            value={skuDescription}
+            onChange={(e) => setSkuDescription(e.target.value)}
+          />
           <TextInput
             data-testid="line-qty"
             placeholder="Qtd"
@@ -307,7 +335,7 @@ export function OrderCreatePage({ user }: Props) {
             onValueChange={setPrice}
             placeholder="Preço (opcional)"
           />
-          <Button type="button" onClick={addLine}>
+          <Button type="button" onClick={() => void addLine()}>
             Adicionar linha
           </Button>
           <Button type="button" variant="secondary" onClick={() => void createSku()}>

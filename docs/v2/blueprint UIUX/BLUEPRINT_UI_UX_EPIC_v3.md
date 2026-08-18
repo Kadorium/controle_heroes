@@ -638,6 +638,11 @@ Evidência de mercado: majoritariamente `OBSERVED_SECONDARY` / `INFERRED`. Só e
 - Status: Etapa 8 **DONE**; ponteiro para `HANDOFF_UI_UX_EPIC_V2.md` **v1.0**.
 - E8-A APROVADO COM AJUSTES; E8-B APROVADO. Conteúdo normativo §§20–§27 **inalterado**. Etapa 9 não iniciada.
 
+## 18.13 Changelog v3.10 — FIN-4 cronograma (sem bump)
+
+- Ajuste pontual em §21.4: cronograma no comercial (edição) e no cockpit (leitura); coerência/delta; empty/loading/erro/409; não misturar com Pago/Adiantado.
+- Sem tela nova Treasury/Billing. Sem redesign. Versão permanece **v3.10**.
+
 ---
 
 ## 19. Path canônico deste candidato
@@ -1054,6 +1059,8 @@ Convenção normativa reutilizável. Cada §21.x **declara** quais itens aplica 
 **Retorno:** link Ordens → `/orders` (preservação query TARGET).
 
 **Aceite:** Reporting não escreve; modes sem fingir dados.
+
+**Cronograma (FIN-4, pontual):** leitura no cockpit (`schedule` no summary) — faixa/seção, **não** KPI de Pago/Adiantado/Exposição FX. Edição no comercial `/orders/:id/commercial` (data e/ou condição; PERCENT ou AMOUNT). Estados: vazio · loading · erro · 409 (`Order.version`). Coerência/delta visíveis; `unverifiable` não se apresenta como alinhado nem como delta zero. Não duplicar AP/Payments.
 
 ---
 

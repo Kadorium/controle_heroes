@@ -14,6 +14,7 @@ function throwApi(error: unknown, response: Response | undefined, fallback: stri
 }
 
 export async function listLogisticsProviders(query?: {
+  q?: string;
   active_only?: boolean;
   shipment_eligible_only?: boolean;
   limit?: number;

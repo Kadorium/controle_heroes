@@ -270,4 +270,70 @@ describe("ShipmentDetailPage RTL", () => {
     expect(screen.getByTestId("shipment-doc-upload")).toBeInTheDocument();
     expect(screen.getByTestId("document-summary-editor")).toBeInTheDocument();
   });
+
+  it("explica palete declarado vs caixas CARTON sem tratar como erro de parse", async () => {
+    vi.mocked(shipmentsApi.getShipment).mockResolvedValue({
+      id: 8,
+      code: "SHP-PLANNED",
+      status: "PLANNED",
+      version: 1,
+      cancelled_at: null,
+      modal: null,
+      origin: null,
+      destination: null,
+      logistics_provider_id: null,
+      carrier_name_snapshot: null,
+      logistics_provider: null,
+      planned_departure: null,
+      planned_arrival: null,
+      actual_departure: null,
+      actual_arrival: null,
+      status_changed_at: "2026-07-01T12:00:00Z",
+      notes: null,
+      created_at: "2026-07-01T10:00:00Z",
+      updated_at: "2026-07-01T12:00:00Z",
+      items: [],
+      packages: [],
+      references: [],
+      document_summaries: [],
+    });
+    vi.mocked(shipmentsApi.getDerivedTotals).mockResolvedValue({
+      net_weight_kg: "16",
+      gross_weight_kg: "120",
+      volume_m3: "0",
+      pallet_count: 0,
+      carton_count: 5,
+      box_count: 0,
+      package_row_count: 5,
+    });
+    vi.mocked(shipmentsApi.getDivergences).mockResolvedValue([
+      {
+        document_id: 3,
+        summary_id: 1,
+        is_significant: true,
+        diffs: [
+          {
+            field: "pallet_count",
+            declared: 1,
+            derived: 0,
+            is_significant: true,
+          },
+        ],
+      },
+    ]);
+    render(
+      <MemoryRouter initialEntries={["/shipments/8"]}>
+        <Routes>
+          <Route path="/shipments/:shipmentId" element={<ShipmentDetailPage user={writer} />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByTestId("divergence-pallet-notice")).toBeInTheDocument());
+    expect(screen.getByTestId("divergence-pallet-notice")).toHaveTextContent(
+      "O documento declara 1 palete",
+    );
+    expect(screen.getByTestId("divergence-pallet-notice")).toHaveTextContent("5 caixa");
+    expect(screen.getByTestId("divergence-pallet-notice")).toHaveTextContent("nenhum volume do tipo PALLET");
+    expect(screen.queryByTestId("divergence-notice")).not.toBeInTheDocument();
+  });
 });

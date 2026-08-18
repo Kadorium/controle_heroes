@@ -18,6 +18,7 @@ from app.foundation.errors import AppError, app_error_handler, http_error_handle
 from app.foundation.health import router as health_router
 from app.foundation.logging import configure_logging
 from app.foundation.settings import ensure_runtime_dirs, get_settings
+from app.foundation.user_routes import router as user_router
 from app.identity.seed import ensure_seed
 from app.catalog.routes import router as catalog_router
 from app.orders.routes import router as orders_router
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
 
     application.include_router(health_router, prefix="/api")
     application.include_router(auth_router, prefix="/api")
+    application.include_router(user_router, prefix="/api")
     application.include_router(audit_router, prefix="/api")
     application.include_router(document_router, prefix="/api")
     application.include_router(catalog_router, prefix="/api")

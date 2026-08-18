@@ -15,7 +15,7 @@ from app.treasury.errors import (
     PaymentNotFound,
     PaymentValidationError,
 )
-from app.treasury.models import Payment, PaymentAllocation, PaymentAllocationBatch
+from app.treasury.models import PURPOSE_ADVANCE, PURPOSE_SETTLEMENT, Payment, PaymentAllocation, PaymentAllocationBatch
 
 
 def money2(value: Decimal) -> Decimal:
@@ -105,6 +105,7 @@ def register_payment(
     idempotency_key: str | None = None,
     allow_without_document: bool = False,
     order_id: int | None = None,
+    purpose: str | None = None,
 ) -> Payment:
     if idempotency_key:
         key = idempotency_key.strip()
@@ -123,10 +124,19 @@ def register_payment(
     if not created_by_actor_id or not str(created_by_actor_id).strip():
         raise PaymentValidationError("Ator da criação é obrigatório")
 
+    resolved_purpose: str | None = None
+    if purpose is not None:
+        resolved_purpose = purpose.strip().upper()
+        if resolved_purpose not in (PURPOSE_ADVANCE, PURPOSE_SETTLEMENT):
+            raise PaymentValidationError("purpose do pagamento deve ser ADVANCE ou SETTLEMENT")
+    elif order_id is not None:
+        resolved_purpose = PURPOSE_SETTLEMENT
+
     docs = []  # checked by caller after flush with known id — register creates first
     payment = Payment(
         supplier_id=supplier_id,
         order_id=order_id,
+        purpose=resolved_purpose,
         amount=amt,
         currency=cur,
         payment_date=payment_date,
@@ -271,7 +281,60 @@ def allocate_payment(
             )
         )
     db.flush()
+    _link_existing_fx_to_new_allocations(
+        db,
+        payment_id=payment_id,
+        batch_id=batch.id,
+        created_by_actor_id=created_by_actor_id,
+    )
     return get_payment(db, payment_id)
+
+
+def _link_existing_fx_to_new_allocations(
+    db: Session,
+    *,
+    payment_id: int,
+    batch_id: int,
+    created_by_actor_id: str,
+) -> None:
+    """Se o Payment já tem FxExecution (adiantamento), rateia BRL nas alocações novas.
+
+    Sem execução ainda (saldo pago primeiro, câmbio depois) — não faz nada;
+    o link continua no fluxo FX existente.
+    """
+    from app.treasury.fx_commands import link_execution_allocation, list_executions
+    from app.treasury.fx_models import FxExecutionAllocation
+
+    executions = list_executions(db, payment_id)
+    if not executions:
+        return
+    execution = executions[0]
+    used_raw = (
+        db.query(func.coalesce(func.sum(FxExecutionAllocation.foreign_amount), 0))
+        .filter(FxExecutionAllocation.fx_execution_id == execution.id)
+        .scalar()
+    )
+    remaining = money2(execution.foreign_amount - money2(Decimal(str(used_raw))))
+    allocs = (
+        db.query(PaymentAllocation)
+        .filter(PaymentAllocation.batch_id == batch_id)
+        .order_by(PaymentAllocation.id.asc())
+        .all()
+    )
+    for alloc in allocs:
+        if remaining <= 0:
+            break
+        fa = money2(alloc.amount if alloc.amount <= remaining else remaining)
+        if fa <= 0:
+            continue
+        link_execution_allocation(
+            db,
+            fx_execution_id=execution.id,
+            payment_allocation_id=alloc.id,
+            foreign_amount=fa,
+            created_by_actor_id=created_by_actor_id,
+        )
+        remaining = money2(remaining - fa)
 
 
 def cancel_payment(

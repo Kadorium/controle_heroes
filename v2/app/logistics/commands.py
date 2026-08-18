@@ -37,6 +37,7 @@ from app.logistics.models import (
 )
 
 _BATCH_MAX_PACKAGES = 500
+from app.audit import public as audit_public
 from app.orders import public as orders_public
 
 TRANSITIONS = {
@@ -77,6 +78,27 @@ def _assert_planned_active(shipment: Shipment) -> None:
         raise ShipmentNotPlanned("Embarque anulado")
     if shipment.status != "PLANNED":
         raise ShipmentNotPlanned()
+
+
+def _audit_shipment(
+    db: Session,
+    *,
+    actor_id: str | None,
+    shipment_id: int,
+    action: str,
+    details: str | None = None,
+) -> None:
+    """Same UoW as the mutation. Skip if caller has no actor (tests/internal)."""
+    if not actor_id:
+        return
+    audit_public.record_event(
+        db,
+        actor_id=str(actor_id),
+        entity_type="shipment",
+        entity_id=str(shipment_id),
+        action=action,
+        details=details,
+    )
 
 
 def _assert_structure_mutable(shipment: Shipment) -> None:
@@ -215,6 +237,7 @@ def create_shipment(
     planned_departure: date | None = None,
     planned_arrival: date | None = None,
     notes: str | None = None,
+    actor_id: str | None = None,
 ) -> Shipment:
     modal_value = _validate_modal(modal)
     provider_id, snapshot = _resolve_shipment_provider(db, logistics_provider_id)
@@ -232,7 +255,9 @@ def create_shipment(
         notes=notes,
         status_changed_at=_now(),
     )
-    return repo.add_shipment(db, shipment)
+    created = repo.add_shipment(db, shipment)
+    _audit_shipment(db, actor_id=actor_id, shipment_id=created.id, action="shipment.create")
+    return created
 
 
 def update_shipment(
@@ -353,6 +378,7 @@ def add_shipment_item(
     expected_version: int,
     order_item_id: int,
     quantity: str | Decimal,
+    actor_id: str | None = None,
 ) -> Shipment:
     s = _require_shipment(db, shipment_id)
     _check_version(s, expected_version)
@@ -377,6 +403,13 @@ def add_shipment_item(
     db.add(item)
     _bump(s)
     db.flush()
+    _audit_shipment(
+        db,
+        actor_id=actor_id,
+        shipment_id=shipment_id,
+        action="shipment.item.add",
+        details=f"order_item_id={order_item_id}",
+    )
     return repo.get_shipment(db, shipment_id)  # type: ignore[return-value]
 
 
@@ -641,6 +674,7 @@ def set_package_contents(
     *,
     expected_version: int,
     contents: list[dict],
+    actor_id: str | None = None,
 ) -> Shipment:
     """Replace contents. Snapshots documentais (NCM produto, pesos unitários/linha) ≠ pesos físicos do package."""
     s = _require_shipment(db, shipment_id)
@@ -652,6 +686,13 @@ def set_package_contents(
     _apply_package_contents(db, s, pkg, contents)
     _bump(s)
     db.flush()
+    _audit_shipment(
+        db,
+        actor_id=actor_id,
+        shipment_id=shipment_id,
+        action="shipment.package.contents.set",
+        details=f"package_id={package_id}",
+    )
     return repo.get_shipment(db, shipment_id)  # type: ignore[return-value]
 
 
@@ -747,6 +788,7 @@ def add_shipment_packages_batch(
     range_to: int | None = None,
     template: dict | None = None,
     contents_template: list[dict] | None = None,
+    actor_id: str | None = None,
 ) -> Shipment:
     """Atomic batch: explicit package list OR numbered range with shared template."""
     s = _require_shipment(db, shipment_id)
@@ -788,6 +830,13 @@ def add_shipment_packages_batch(
 
     _bump(s)
     db.flush()
+    _audit_shipment(
+        db,
+        actor_id=actor_id,
+        shipment_id=shipment_id,
+        action="shipment.packages.add",
+        details=f"count={len(created)}",
+    )
     return repo.get_shipment(db, shipment_id)  # type: ignore[return-value]
 
 
@@ -870,6 +919,7 @@ def add_shipment_reference(
     reference_type: str,
     reference_value: str,
     document_id: int | None = None,
+    actor_id: str | None = None,
 ) -> Shipment:
     s = _require_shipment(db, shipment_id)
     _check_version(s, expected_version)
@@ -889,6 +939,13 @@ def add_shipment_reference(
     )
     _bump(s)
     db.flush()
+    _audit_shipment(
+        db,
+        actor_id=actor_id,
+        shipment_id=shipment_id,
+        action="shipment.reference.add",
+        details=f"{reference_type}={value}",
+    )
     return repo.get_shipment(db, shipment_id)  # type: ignore[return-value]
 
 
@@ -924,6 +981,7 @@ def upsert_document_summary(
     declared_volume_m3: str | Decimal | None = None,
     declared_provenance: str | None = None,
     raw_notes: str | None = None,
+    actor_id: str | None = None,
 ) -> Shipment:
     """Declared totals are documentary snapshots. FATTURA_DOGANALE is not Logistics SoT (J#5)."""
     s = _require_shipment(db, shipment_id)
@@ -946,6 +1004,13 @@ def upsert_document_summary(
     row.raw_notes = raw_notes
     _bump(s)
     db.flush()
+    _audit_shipment(
+        db,
+        actor_id=actor_id,
+        shipment_id=shipment_id,
+        action="shipment.summary.upsert",
+        details=f"document_id={document_id}",
+    )
     return repo.get_shipment(db, shipment_id)  # type: ignore[return-value]
 
 

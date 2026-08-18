@@ -9,8 +9,9 @@ function errMsg(error: unknown, fallback: string) {
 }
 
 function throwApi(error: unknown, response: Response | undefined, fallback: string): never {
-  const err = new Error(errMsg(error, fallback)) as Error & { status?: number };
+  const err = new Error(errMsg(error, fallback)) as Error & { status?: number; code?: string };
   err.status = response?.status;
+  err.code = (error as { error?: string } | undefined)?.error;
   throw err;
 }
 
@@ -131,4 +132,75 @@ export async function cancelOrder(
   });
   if (error) throwApi(error, response, "Erro ao cancelar");
   return data!;
+}
+
+export async function bindCommitmentProduct(
+  orderId: number,
+  itemId: number,
+  body: { expected_version: number; product_id: number },
+) {
+  const { data, error, response } = await api.POST(
+    "/api/orders/{order_id}/items/{item_id}/bind-product",
+    {
+      params: { path: { order_id: orderId, item_id: itemId } },
+      body,
+    },
+  );
+  if (error) throwApi(error, response, "Erro ao vincular produto");
+  return data!;
+}
+
+export type PaymentScheduleLine = {
+  id?: number;
+  sequence: number;
+  due_date: string | null;
+  condition_text: string | null;
+  percent: string | null;
+  amount: string | null;
+  derived_amount: string | null;
+};
+
+export type PaymentScheduleView = {
+  order_id: number;
+  order_version: number;
+  order_status: string;
+  currency: string;
+  mode: "PERCENT" | "AMOUNT" | null;
+  commercial_total: string | null;
+  amount_sum: string | null;
+  delta: string | null;
+  coherence: "aligned" | "divergent" | "unverifiable" | null;
+  lines: PaymentScheduleLine[];
+};
+
+export async function getPaymentSchedule(orderId: number) {
+  const res = await fetch(`/api/orders/${orderId}/payment-schedule`, { credentials: "include" });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throwApi(body, res, "Erro ao carregar cronograma");
+  return body as PaymentScheduleView;
+}
+
+export async function setPaymentSchedule(
+  orderId: number,
+  body: {
+    expected_version: number;
+    mode: "PERCENT" | "AMOUNT" | null;
+    lines: Array<{
+      due_date?: string | null;
+      condition_text?: string | null;
+      percent?: string | null;
+      amount?: string | null;
+    }>;
+    reason_code?: string | null;
+  },
+) {
+  const res = await fetch(`/api/orders/${orderId}/payment-schedule`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throwApi(payload, res, "Erro ao gravar cronograma");
+  return payload as PaymentScheduleView;
 }

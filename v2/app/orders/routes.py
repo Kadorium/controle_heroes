@@ -8,6 +8,7 @@ from app.audit import public as audit_public
 from app.catalog import public as catalog_public
 from app.catalog.public import CatalogError
 from app.documents import public as documents_public
+from app.foundation.billing_facts import issued_qty_for_order_item
 from app.foundation.database import get_db
 from app.foundation.deps import enforce_permission, get_current_user
 from app.foundation.errors import AppError
@@ -57,6 +58,11 @@ class ItemUpdate(BaseModel):
     unit: str | None = None
 
 
+class BindProductBody(BaseModel):
+    expected_version: int
+    product_id: int
+
+
 class VersionBody(BaseModel):
     expected_version: int
 
@@ -64,6 +70,43 @@ class VersionBody(BaseModel):
 class CancelBody(BaseModel):
     expected_version: int
     reason_code: str | None = None
+
+
+class ScheduleLineIn(BaseModel):
+    due_date: date | None = None
+    condition_text: str | None = None
+    percent: str | None = None
+    amount: str | None = None
+
+
+class ScheduleReplace(BaseModel):
+    expected_version: int
+    mode: str | None = None
+    lines: list[ScheduleLineIn] = Field(default_factory=list)
+    reason_code: str | None = None
+
+
+class ScheduleLineOut(BaseModel):
+    id: int
+    sequence: int
+    due_date: date | None = None
+    condition_text: str | None = None
+    percent: str | None = None
+    amount: str | None = None
+    derived_amount: str | None = None
+
+
+class ScheduleView(BaseModel):
+    order_id: int
+    order_version: int
+    order_status: str
+    currency: str
+    mode: str | None = None
+    commercial_total: str | None = None
+    amount_sum: str | None = None
+    delta: str | None = None
+    coherence: str | None = None
+    lines: list[ScheduleLineOut] = Field(default_factory=list)
 
 
 class OrderItemResponse(BaseModel):
@@ -130,7 +173,17 @@ class OrderListItem(BaseModel):
 def _map_error(exc: OrdersError | CatalogError) -> AppError:
     code = exc.code
     status = 400
-    if code.endswith("not_found"):
+    if code in (
+        "item_not_commitment",
+        "line_already_invoiced",
+        "invalid_product",
+        "schedule_when_required",
+        "schedule_mode_mixed",
+        "schedule_amount_mismatch",
+        "reason_required",
+    ):
+        status = 422
+    elif code.endswith("not_found"):
         status = 404
     elif code == "conflict":
         status = 409
@@ -424,6 +477,34 @@ def delete_item(
         raise _map_error(e) from e
 
 
+@router.post("/orders/{order_id}/items/{item_id}/bind-product", response_model=OrderResponse)
+def bind_commitment_product(
+    order_id: int,
+    item_id: int,
+    payload: BindProductBody,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "orders:write")
+    try:
+        with UnitOfWork(db) as uow:
+            issued = issued_qty_for_order_item(uow.session, order_id, item_id)
+            order = orders_public.bind_commitment_product(
+                uow.session,
+                order_id,
+                item_id,
+                payload.product_id,
+                actor=str(user.id),
+                expected_version=payload.expected_version,
+                issued_qty=issued,
+            )
+            uow.commit()
+            order = orders_public.get_order(uow.session, order.id)
+            return _order_response(uow.session, order)
+    except (OrdersError, CatalogError) as e:
+        raise _map_error(e) from e
+
+
 @router.post("/orders/{order_id}/confirm", response_model=OrderResponse)
 def confirm_order(
     order_id: int,
@@ -511,5 +592,45 @@ def cancel_order(
             uow.commit()
             order = orders_public.get_order(uow.session, order.id)
             return _order_response(uow.session, order)
+    except (OrdersError, CatalogError) as e:
+        raise _map_error(e) from e
+
+
+@router.get("/orders/{order_id}/payment-schedule", response_model=ScheduleView)
+def get_payment_schedule(
+    order_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "orders:read")
+    try:
+        order = orders_public.get_order(db, order_id)
+        return orders_public.payment_schedule_view(db, order)
+    except OrdersError as e:
+        raise _map_error(e) from e
+
+
+@router.put("/orders/{order_id}/payment-schedule", response_model=ScheduleView)
+def put_payment_schedule(
+    order_id: int,
+    payload: ScheduleReplace,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "orders:write")
+    try:
+        with UnitOfWork(db) as uow:
+            order = orders_public.set_payment_schedule(
+                uow.session,
+                order_id,
+                expected_version=payload.expected_version,
+                actor=str(user.id),
+                mode=payload.mode,
+                lines=[line.model_dump() for line in payload.lines],
+                reason_code=payload.reason_code,
+            )
+            uow.commit()
+            order = orders_public.get_order(uow.session, order.id)
+            return orders_public.payment_schedule_view(uow.session, order)
     except (OrdersError, CatalogError) as e:
         raise _map_error(e) from e

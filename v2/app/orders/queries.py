@@ -73,9 +73,16 @@ def get_order_items_bulk(db: Session, item_ids: list[int] | set[int]) -> dict[in
 
 
 def list_orders(
-    db: Session, *, status: str | None = None, limit: int = 50, offset: int = 0
+    db: Session,
+    *,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    supplier_id: int | None = None,
 ) -> list[Order]:
-    return repo.list_orders(db, status=status, limit=limit, offset=offset)
+    return repo.list_orders(
+        db, status=status, limit=limit, offset=offset, supplier_id=supplier_id
+    )
 
 
 def find_confirmed_order_items(

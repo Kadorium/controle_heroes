@@ -99,6 +99,37 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function divergenceFieldLabel(field: string): string {
+  switch (field) {
+    case "pallet_count":
+      return "Paletes (documento vs volumes PALLET)";
+    case "carton_count":
+      return "Caixas";
+    case "net_weight_kg":
+      return "Peso líquido (kg)";
+    case "gross_weight_kg":
+      return "Peso bruto (kg)";
+    case "volume_m3":
+      return "Volume (m³)";
+    default:
+      return field;
+  }
+}
+
+function palletDivergenceCopy(
+  rows: DivergenceRow[],
+  derived: DerivedTotals | null,
+): string | null {
+  const pallet = rows.flatMap((r) => r.diffs).find((d) => d.field === "pallet_count" && d.is_significant);
+  if (!pallet) return null;
+  const cartons = derived?.carton_count ?? 0;
+  return (
+    `O documento declara ${pallet.declared} palete(s), mas os volumes detalhados importados ` +
+    `são ${cartons} caixa(s) e nenhum volume do tipo PALLET. Palete no cabeçalho do packing ` +
+    `não é o mesmo que um volume PALLET. Isso não impede o embarque.`
+  );
+}
+
 type OrderItemPickerProps = {
   open: boolean;
   busy: boolean;
@@ -374,6 +405,17 @@ export function ShipmentDetailPage({ user }: Props) {
 
   const significantDivergence = useMemo(
     () => divergences.some((row) => row.is_significant),
+    [divergences],
+  );
+  const palletCopy = useMemo(
+    () => palletDivergenceCopy(divergences, derived),
+    [divergences, derived],
+  );
+  const otherSignificantDivergence = useMemo(
+    () =>
+      divergences.some((row) =>
+        row.diffs.some((d) => d.is_significant && d.field !== "pallet_count"),
+      ),
     [divergences],
   );
 
@@ -874,6 +916,13 @@ export function ShipmentDetailPage({ user }: Props) {
         </Notice>
       ) : null}
 
+      {write && status === "PLANNED" && !cancelled && (!modal || !providerId) ? (
+        <Notice tone="warning" data-testid="shipment-booked-prereq">
+          Para reservar (BOOKED), informe modal e prestador no resumo e salve antes de avançar.
+          O packing deixa o embarque planejado sem modal.
+        </Notice>
+      ) : null}
+
       <SectionCard title="Resumo">
         <div className="form-grid">
           <FormField label="Modal de transporte" htmlFor="detail-modal">
@@ -1123,7 +1172,12 @@ export function ShipmentDetailPage({ user }: Props) {
       </SectionCard>
 
       <SectionCard title="Totais" data-testid="shipment-totals">
-        {significantDivergence ? (
+        {palletCopy ? (
+          <Notice tone="warning" data-testid="divergence-pallet-notice">
+            {palletCopy}
+          </Notice>
+        ) : null}
+        {otherSignificantDivergence || (significantDivergence && !palletCopy) ? (
           <Notice tone="warning" data-testid="divergence-notice">
             Divergência significativa entre declarado e derivado — revise volumes e resumos documentais.
           </Notice>
@@ -1158,7 +1212,7 @@ export function ShipmentDetailPage({ user }: Props) {
                 row.diffs.map((diff, idx) => (
                   <tr key={`${row.document_id}-${diff.field}-${idx}`}>
                     <td>#{row.document_id}</td>
-                    <td>{diff.field}</td>
+                    <td>{divergenceFieldLabel(diff.field)}</td>
                     <td>{String(diff.declared)}</td>
                     <td>{String(diff.derived)}</td>
                     <td>{diff.is_significant ? "Sim" : "—"}</td>

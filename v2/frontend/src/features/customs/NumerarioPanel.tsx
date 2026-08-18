@@ -15,6 +15,7 @@ import {
   type FundingRequest,
 } from "./customsApi";
 import { canWriteCustoms, conflictMessage } from "./customsPermissions";
+import { numerarioDisplayTotals } from "./numerarioDisplay";
 import { fundingStatusLabel } from "../inventory/inventoryLabels";
 import {
   Button,
@@ -109,21 +110,27 @@ export function NumerarioPanel({ user, processId }: Props) {
           />
         ) : (
           <ul data-testid="numerario-list">
-            {fundings.map((f) => (
-              <li key={f.id} data-testid={`numerario-item-${f.id}`}>
-                #{f.id} · {fundingStatusLabel(f.status)} · declarado{" "}
-                {formatMoney(f.declared_total, f.currency)} · estruturado{" "}
-                {formatMoney(f.structured_total, f.currency)} · divergência{" "}
-                {formatMoney(f.divergence, f.currency)}
-                {f.payee ? ` · ${f.payee.name}` : ""}
-              </li>
-            ))}
+            {fundings.map((f) => {
+              const t = numerarioDisplayTotals(f);
+              return (
+                <li key={f.id} data-testid={`numerario-item-${f.id}`}>
+                  #{f.id} · {fundingStatusLabel(f.status)} · declarado{" "}
+                  {formatMoney(t.declaredWire, f.currency)} · tributos+despesas{" "}
+                  {formatMoney(t.obligationWire, f.currency)}
+                  {f.payee ? ` · ${f.payee.name}` : ""}
+                </li>
+              );
+            })}
           </ul>
         )}
       </SectionCard>
 
       {writable ? (
-        <SectionCard title="Novo favorecido / Numerário">
+        <SectionCard title="Novo favorecido / Numerário (ensaio — não substitui o PDF)">
+          <p className="muted">
+            Use só quando não houver Solicitação de Numerário no ingest. Valores digitados aqui não
+            são fato documental.
+          </p>
           <div className="form-actions">
             <FormField label="Nome do payee">
               <TextInput
@@ -190,7 +197,45 @@ export function NumerarioPanel({ user, processId }: Props) {
       ) : null}
 
       {selected && selected.status === "DRAFT" && writable ? (
-        <SectionCard title={`Editar linhas — Numerário #${selected.id} (rascunho)`}>
+        <SectionCard title={`Numerário #${selected.id} (rascunho) — confirmar obrigação`}>
+          <Notice tone="warning" data-testid="numerario-pdf-lines-notice">
+            Confirmar registra a obrigação (payable CUSTOMS_FUNDING em aberto). Não paga. Não
+            substitua linhas extraídas do PDF por valores digitados.
+          </Notice>
+          <NumerarioLineGroups fr={selected} />
+          <NumerarioComparableTotals fr={selected} />
+          <div className="form-actions">
+            <Button
+              type="button"
+              disabled={busy}
+              data-testid="numerario-confirm"
+              onClick={() =>
+                void run(async () => {
+                  await confirmFundingRequest(processId, selected.id, {
+                    expected_version: selected.version,
+                  });
+                })
+              }
+            >
+              Confirmar (nasce a obrigação, sem pagar)
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={busy}
+              data-testid="numerario-cancel"
+              onClick={() =>
+                void run(async () => {
+                  await cancelFundingRequest(processId, selected.id, {
+                    expected_version: selected.version,
+                  });
+                })
+              }
+            >
+              Cancelar
+            </Button>
+          </div>
+          <p className="muted">Ajuste excepcional de linhas (não usar em documento real):</p>
           <div className="form-actions">
             <FormField label="Base (valor)">
               <TextInput
@@ -275,41 +320,7 @@ export function NumerarioPanel({ user, processId }: Props) {
             >
               Salvar bases / tributos / despesas
             </Button>
-            <Button
-              type="button"
-              disabled={busy}
-              data-testid="numerario-confirm"
-              onClick={() =>
-                void run(async () => {
-                  await confirmFundingRequest(processId, selected.id, {
-                    expected_version: selected.version,
-                  });
-                })
-              }
-            >
-              Confirmar
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              disabled={busy}
-              data-testid="numerario-cancel"
-              onClick={() =>
-                void run(async () => {
-                  await cancelFundingRequest(processId, selected.id, {
-                    expected_version: selected.version,
-                  });
-                })
-              }
-            >
-              Cancelar
-            </Button>
           </div>
-          <p data-testid="numerario-totals">
-            Declarado {formatMoney(selected.declared_total, selected.currency)} · Estruturado{" "}
-            {formatMoney(selected.structured_total, selected.currency)} · Divergência{" "}
-            {formatMoney(selected.divergence, selected.currency)}
-          </p>
         </SectionCard>
       ) : null}
 
@@ -317,11 +328,7 @@ export function NumerarioPanel({ user, processId }: Props) {
         <SectionCard
           title={`Numerário #${selected.id} (${fundingStatusLabel(selected.status)})`}
         >
-          <p data-testid="numerario-confirmed-totals">
-            Declarado {formatMoney(selected.declared_total, selected.currency)} · Estruturado{" "}
-            {formatMoney(selected.structured_total, selected.currency)} · Divergência{" "}
-            {formatMoney(selected.divergence, selected.currency)}
-          </p>
+          <NumerarioComparableTotals fr={selected} testId="numerario-confirmed-totals" />
           {selected.payable_links && selected.payable_links.length > 0 ? (
             <p data-testid="numerario-payable-links">
               Conta a pagar{" "}
@@ -334,23 +341,7 @@ export function NumerarioPanel({ user, processId }: Props) {
               · <Link to="/payables">Abrir AP</Link>
             </p>
           ) : null}
-          <ul>
-            {selected.value_bases.map((l) => (
-              <li key={`vb-${l.id}`}>
-                Base {l.code || l.label}: {l.amount ?? "(vazio)"}
-              </li>
-            ))}
-            {selected.tax_lines.map((l) => (
-              <li key={`tx-${l.id}`}>
-                Tributo {l.code || l.label}: {l.amount ?? "(vazio)"}
-              </li>
-            ))}
-            {selected.expense_lines.map((l) => (
-              <li key={`ex-${l.id}`}>
-                Despesa {l.code || l.label}: {l.amount ?? "(vazio)"}
-              </li>
-            ))}
-          </ul>
+          <NumerarioLineGroups fr={selected} />
           {selected.status === "CONFIRMED" && writable ? (
             <Button
               type="button"
@@ -370,6 +361,70 @@ export function NumerarioPanel({ user, processId }: Props) {
           ) : null}
         </SectionCard>
       ) : null}
+    </div>
+  );
+}
+
+function lineLabel(l: { code?: string | null; label?: string | null; amount?: string | null; currency?: string | null }) {
+  const name = l.code || l.label || "linha";
+  const amt = l.amount ?? "(vazio)";
+  const cur = l.currency?.trim();
+  return `${name}: ${amt}${cur ? ` ${cur}` : ""}`;
+}
+
+function NumerarioLineGroups({ fr }: { fr: FundingRequest }) {
+  return (
+    <div data-testid="numerario-draft-lines">
+      <p className="muted">Bases aduaneiras (FOB/CIF) — referência, não entram no total a pagar</p>
+      <ul data-testid="numerario-bases">
+        {fr.value_bases.map((l) => (
+          <li key={`vb-${l.id}`}>Base {lineLabel(l)}</li>
+        ))}
+      </ul>
+      <p className="muted">Tributos</p>
+      <ul data-testid="numerario-taxes">
+        {fr.tax_lines.map((l) => (
+          <li key={`tx-${l.id}`}>Tributo {lineLabel(l)}</li>
+        ))}
+      </ul>
+      <p className="muted">Despesas</p>
+      <ul data-testid="numerario-expenses">
+        {fr.expense_lines.map((l) => (
+          <li key={`ex-${l.id}`}>Despesa {lineLabel(l)}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function NumerarioComparableTotals({
+  fr,
+  testId = "numerario-totals",
+}: {
+  fr: FundingRequest;
+  testId?: string;
+}) {
+  const t = numerarioDisplayTotals(fr);
+  return (
+    <div data-testid={testId}>
+      <Notice tone="info" data-testid="numerario-bases-notice">
+        Bases FOB/CIF não são o total do Numerário. O total documental declarado compara-se a
+        tributos + despesas, não à soma que inclui bases.
+      </Notice>
+      {t.basesMixedCurrency ? (
+        <p className="muted">As bases estão em moedas distintas — não somar com o total em reais.</p>
+      ) : null}
+      <p data-testid="numerario-declared">
+        Total documental declarado {formatMoney(t.declaredWire, fr.currency)}
+      </p>
+      <p data-testid="numerario-obligation">
+        Tributos {formatMoney(t.taxesWire, fr.currency)} + despesas{" "}
+        {formatMoney(t.expensesWire, fr.currency)} = obrigação{" "}
+        {formatMoney(t.obligationWire, fr.currency)}
+      </p>
+      <p data-testid="numerario-obligation-gap">
+        Diferença obrigação vs declarado {formatMoney(t.obligationVsDeclaredWire, fr.currency)}
+      </p>
     </div>
   );
 }

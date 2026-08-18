@@ -51,6 +51,68 @@ def list_products(
     return repo.list_products(db, q=q, active_only=active_only, limit=limit, offset=offset)
 
 
+def list_products_page(
+    db: Session,
+    *,
+    q: str | None = None,
+    active_only: bool = False,
+    limit: int = 50,
+    offset: int = 0,
+    sort: str | None = None,
+    incomplete: bool = False,
+    missing_ncm: bool = False,
+    size: str | None = None,
+    color: str | None = None,
+) -> tuple[list[Product], int]:
+    items = repo.list_products(
+        db,
+        q=q,
+        active_only=active_only,
+        limit=limit,
+        offset=offset,
+        sort=sort,
+        incomplete=incomplete,
+        missing_ncm=missing_ncm,
+        size=size,
+        color=color,
+    )
+    total = repo.count_products(
+        db,
+        q=q,
+        active_only=active_only,
+        incomplete=incomplete,
+        missing_ncm=missing_ncm,
+        size=size,
+        color=color,
+    )
+    return items, total
+
+
+def list_suppliers_page(
+    db: Session,
+    *,
+    q: str | None = None,
+    active_only: bool = False,
+    limit: int = 50,
+    offset: int = 0,
+    sort: str | None = None,
+    missing_tax_id: bool = False,
+) -> tuple[list[Supplier], int]:
+    items = repo.list_suppliers(
+        db,
+        q=q,
+        active_only=active_only,
+        limit=limit,
+        offset=offset,
+        sort=sort,
+        missing_tax_id=missing_tax_id,
+    )
+    total = repo.count_suppliers(
+        db, q=q, active_only=active_only, missing_tax_id=missing_tax_id
+    )
+    return items, total
+
+
 def resolve_product(db: Session, *, product_id: int | None = None, sku: str | None = None) -> Product:
     if product_id is not None:
         return get_product(db, product_id)

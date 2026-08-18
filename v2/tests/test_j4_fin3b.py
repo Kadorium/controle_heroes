@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -307,10 +308,38 @@ def test_fin3b_ambiguous_match_visible_in_preview(admin_client, db):
 
     doc_id = _ingest_fattura_244(client)
     preview = _preview_a(client, doc_id, order.id).json()
-    assert preview["can_commit"] is True
-    assert any(op["op_key"] == "match_choice" for op in preview["operations"])
-    assert any(op["op_key"] == "warn_ambiguous_match" for op in preview["operations"])
-    choice = next(op for op in preview["operations"] if op["op_key"] == "match_choice")
-    assert choice["params"]["candidate_count"] == 2
-    assert choice["params"]["order_item_id"] == order.items[0].id
-    assert any(c["unit_price"] in ("50.00", "50.0000", "50") for c in choice["params"]["candidates"])
+    assert preview["can_commit"] is False
+    assert any(op["op_key"] == "blocked_fattura_line_ambiguous" for op in preview["operations"])
+    amb = [m for m in preview["line_matches"] if m["status"] == "ambiguous"]
+    assert amb
+    assert amb[0]["candidate_count"] == 2
+    assert amb[0]["order_item_id"] is None
+
+    choices = [
+        {"row_index": m["row_index"], "order_item_id": order.items[0].id}
+        for m in preview["line_matches"]
+        if m["status"] == "ambiguous"
+    ]
+    preview2 = client.get(
+        f"/api/ingestion/documents/{doc_id}/preview-commit-fattura",
+        params={
+            "policy": "A",
+            "order_id": order.id,
+            "line_choices": json.dumps(choices),
+        },
+    ).json()
+    assert preview2["can_commit"] is True
+    r = client.post(
+        f"/api/ingestion/documents/{doc_id}/commit-fattura",
+        json={
+            "operation_key": f"fin3b-amb-{doc_id}",
+            "policy": "A",
+            "order_id": order.id,
+            "line_choices": choices,
+        },
+    )
+    assert r.status_code == 200, r.text
+    inv_op = next(op for op in r.json()["operations"] if op.get("entity_type") == "invoice")
+    inv = client.get(f"/api/invoices/{inv_op['entity_id']}").json()
+    assert inv["status"] == "DRAFT"
+    assert all(int(it["order_item_id"]) == order.items[0].id for it in inv["items"])

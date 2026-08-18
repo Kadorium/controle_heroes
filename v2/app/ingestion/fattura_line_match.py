@@ -87,6 +87,7 @@ class PdfLineMatch:
     candidates: list[CandidateView]
     price_mismatch: bool
     ambiguous_price: bool
+    status: str
 
     def as_params(self) -> dict:
         return {
@@ -109,6 +110,7 @@ class PdfLineMatch:
             ],
             "price_mismatch": self.price_mismatch,
             "ambiguous_price": self.ambiguous_price,
+            "status": self.status,
         }
 
 
@@ -149,6 +151,30 @@ def _product_id_from_cell(raw: str | None) -> int | None:
     return n if n > 0 else None
 
 
+def matching_product_items(product_items, *, sku: str, product_id: int | None) -> list:
+    """G4: product_id, sku_snapshot, external_code. Sem chave documental inventada."""
+    same_key: list = []
+    for oi in product_items:
+        if product_id is not None and oi.product_id == product_id:
+            same_key.append(oi)
+            continue
+        snap = (oi.sku_snapshot or "").strip()
+        if sku and snap == sku:
+            same_key.append(oi)
+            continue
+        ext = (getattr(oi, "external_code", None) or "").strip()
+        if ext and sku and ext == sku:
+            same_key.append(oi)
+    seen_ids: set[int] = set()
+    unique_same: list = []
+    for oi in sorted(same_key, key=lambda x: x.position):
+        if oi.id in seen_ids:
+            continue
+        seen_ids.add(oi.id)
+        unique_same.append(oi)
+    return unique_same
+
+
 def _issued_and_draft_qty(db: Session, order_id: int) -> tuple[dict[int, Decimal], dict[int, Decimal]]:
     avail = billing_public.order_qty_availability(db, order_id)
     issued: dict[int, Decimal] = {}
@@ -164,8 +190,18 @@ def _issued_and_draft_qty(db: Session, order_id: int) -> tuple[dict[int, Decimal
     return issued, draft
 
 
-def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLinePlan:
-    """Casa cada linha IR a um OrderItem PRODUCT; não escreve nada."""
+def plan_fattura_lines(
+    db: Session,
+    doc: IngestionDocument,
+    order,
+    line_choices: dict[int, int] | None = None,
+) -> FatturaLinePlan:
+    """Casa cada linha IR a um OrderItem PRODUCT; não escreve nada.
+
+    ``candidate_count == 1`` (itens que cabem a qty) pode casar sozinho.
+    ``candidate_count > 1`` bloqueia até ``line_choices[row_index]``.
+    Divergência de preço não é ambiguidade de identidade.
+    """
     plan = FatturaLinePlan()
     product_items = [oi for oi in (order.items or []) if oi.product_id is not None]
     if not product_items:
@@ -225,23 +261,9 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
             )
             continue
 
-        same_key: list = []
-        for oi in product_items:
-            if pdf_pid is not None and oi.product_id == pdf_pid:
-                same_key.append(oi)
-                continue
-            snap = (oi.sku_snapshot or "").strip()
-            if sku and snap == sku:
-                same_key.append(oi)
-
-        # unique by id, keep position order
-        seen_ids: set[int] = set()
-        unique_same: list = []
-        for oi in sorted(same_key, key=lambda x: x.position):
-            if oi.id in seen_ids:
-                continue
-            seen_ids.add(oi.id)
-            unique_same.append(oi)
+        unique_same = matching_product_items(
+            product_items, sku=sku, product_id=pdf_pid
+        )
 
         if not unique_same:
             plan.blockers.append(
@@ -268,6 +290,7 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
                     candidates=[],
                     price_mismatch=False,
                     ambiguous_price=False,
+                    status="unmatched",
                 )
             )
             continue
@@ -282,11 +305,9 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
             )
             for oi in unique_same
         ]
-        prices = {
-            _dstr(oi.unit_price)
-            for oi in fitting
-        }
+        prices = {_dstr(oi.unit_price) for oi in fitting}
         ambiguous = len(fitting) > 1 and len(prices) > 1
+        choice_id = (line_choices or {}).get(row.row_index)
 
         if not fitting:
             best = unique_same[0]
@@ -313,15 +334,109 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
                     order_item_id=best.id,
                     order_unit_price=_dstr(best.unit_price),
                     remaining_before=_dstr(rem),
-                    candidate_count=len(unique_same),
+                    candidate_count=len(fitting),
                     candidates=cand_views,
                     price_mismatch=False,
-                    ambiguous_price=ambiguous,
+                    ambiguous_price=False,
+                    status="qty_exceeded",
                 )
             )
             continue
 
-        chosen = fitting[0]
+        chosen = None
+        if len(fitting) == 1:
+            chosen = fitting[0]
+            if choice_id is not None and choice_id != chosen.id:
+                plan.blockers.append(
+                    LineBlocker(
+                        code="fattura_line_choice_invalid",
+                        message=(
+                            f"Linha PDF {row.row_index} SKU {sku}: a escolha "
+                            f"item #{choice_id} não é o único candidato com saldo."
+                        ),
+                        sku=sku,
+                    )
+                )
+                plan.matches.append(
+                    PdfLineMatch(
+                        row_index=row.row_index,
+                        sku=sku,
+                        pdf_qty=_dstr(qty) or "0",
+                        pdf_unit_price=_dstr(pdf_price),
+                        unit=unit,
+                        order_item_id=None,
+                        order_unit_price=None,
+                        remaining_before=None,
+                        candidate_count=len(fitting),
+                        candidates=cand_views,
+                        price_mismatch=False,
+                        ambiguous_price=False,
+                        status="ambiguous",
+                    )
+                )
+                continue
+        else:
+            if choice_id is None:
+                plan.blockers.append(
+                    LineBlocker(
+                        code="fattura_line_ambiguous",
+                        message=(
+                            f"Linha PDF {row.row_index} SKU {sku}: "
+                            f"{len(fitting)} itens do pedido cabem a quantidade. "
+                            "Escolha explicitamente a linha correta."
+                        ),
+                        sku=sku,
+                    )
+                )
+                plan.matches.append(
+                    PdfLineMatch(
+                        row_index=row.row_index,
+                        sku=sku,
+                        pdf_qty=_dstr(qty) or "0",
+                        pdf_unit_price=_dstr(pdf_price),
+                        unit=unit,
+                        order_item_id=None,
+                        order_unit_price=None,
+                        remaining_before=None,
+                        candidate_count=len(fitting),
+                        candidates=cand_views,
+                        price_mismatch=False,
+                        ambiguous_price=ambiguous,
+                        status="ambiguous",
+                    )
+                )
+                continue
+            chosen = next((oi for oi in fitting if oi.id == choice_id), None)
+            if chosen is None:
+                plan.blockers.append(
+                    LineBlocker(
+                        code="fattura_line_choice_invalid",
+                        message=(
+                            f"Linha PDF {row.row_index} SKU {sku}: item #{choice_id} "
+                            "não é um candidato válido com saldo para esta quantidade."
+                        ),
+                        sku=sku,
+                    )
+                )
+                plan.matches.append(
+                    PdfLineMatch(
+                        row_index=row.row_index,
+                        sku=sku,
+                        pdf_qty=_dstr(qty) or "0",
+                        pdf_unit_price=_dstr(pdf_price),
+                        unit=unit,
+                        order_item_id=None,
+                        order_unit_price=None,
+                        remaining_before=None,
+                        candidate_count=len(fitting),
+                        candidates=cand_views,
+                        price_mismatch=False,
+                        ambiguous_price=ambiguous,
+                        status="ambiguous",
+                    )
+                )
+                continue
+
         rem_before = remaining[chosen.id]
         remaining[chosen.id] = rem_before - qty
         this_take[chosen.id] = this_take.get(chosen.id, Decimal("0")) + qty
@@ -340,10 +455,11 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
             order_item_id=chosen.id,
             order_unit_price=_dstr(chosen.unit_price),
             remaining_before=_dstr(rem_before),
-            candidate_count=len(unique_same),
+            candidate_count=len(fitting),
             candidates=cand_views if len(unique_same) > 1 else [],
             price_mismatch=mismatch,
             ambiguous_price=ambiguous,
+            status="matched",
         )
         plan.matches.append(match)
 
@@ -367,17 +483,15 @@ def plan_fattura_lines(db: Session, doc: IngestionDocument, order) -> FatturaLin
                 f"SKU {sku} linha PDF {row.row_index}: pedido {_dstr(chosen.unit_price)} "
                 f"· Fattura {_dstr(pdf_price)} (item pedido #{chosen.id})"
             )
-        if len(unique_same) > 1:
+        if len(unique_same) > 1 and len(fitting) == 1:
             plan.warnings.append(
-                f"Linha PDF {row.row_index} SKU {sku}: {len(unique_same)} candidatos no pedido; "
-                f"escolhido item #{chosen.id} (posição {chosen.position}, "
-                f"preço {_dstr(chosen.unit_price)}, saldo antes {_dstr(rem_before)})."
+                f"Linha PDF {row.row_index} SKU {sku}: {len(unique_same)} linhas no pedido; "
+                f"só o item #{chosen.id} tem saldo para a quantidade."
             )
-        if ambiguous:
+        if len(fitting) > 1 and choice_id is not None:
             plan.warnings.append(
-                f"Ambiguidade de preço na linha PDF {row.row_index} SKU {sku}: "
-                "dois itens do pedido cabem a quantidade e têm preços diferentes. "
-                "O operador pode trocar o pedido ou seguir com a escolha por posição."
+                f"Linha PDF {row.row_index} SKU {sku}: operador escolheu item #{chosen.id} "
+                f"(posição {chosen.position}, preço {_dstr(chosen.unit_price)})."
             )
 
     if plan.price_divergence_lines:

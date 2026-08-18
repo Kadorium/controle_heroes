@@ -104,6 +104,10 @@ class ClearanceResidualOut(BaseModel):
     allocated_qty: str
     nationalized_qty: str
     residual_qty: str
+    product_id: int | None = None
+    product_sku: str | None = None
+    product_name: str | None = None
+    shipped_qty: str | None = None
 
 
 def _item_out(it: NationalizationItem) -> NatItemOut:

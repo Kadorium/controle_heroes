@@ -2,11 +2,13 @@
 
 from app.orders.commands import (
     add_item,
+    bind_commitment_product,
     cancel_order,
     commitment_line_summary,
     confirm_order,
     create_order,
     remove_item,
+    set_payment_schedule,
     update_item,
     update_order_header,
 )
@@ -23,6 +25,7 @@ from app.orders.queries import (
     totals_as_strings,
 )
 from app.orders.repository import get_order_by_code
+from app.orders.schedule import build_view as payment_schedule_view
 
 __all__ = [
     "OrdersError",
@@ -31,9 +34,12 @@ __all__ = [
     "add_item",
     "update_item",
     "remove_item",
+    "bind_commitment_product",
     "confirm_order",
     "commitment_line_summary",
     "cancel_order",
+    "set_payment_schedule",
+    "payment_schedule_view",
     "get_order",
     "get_order_by_code",
     "get_order_item",

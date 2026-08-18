@@ -74,6 +74,7 @@ class PaymentResponse(BaseModel):
     supplier_id: int
     supplier_name: str | None = None
     order_id: int | None = None
+    purpose: str | None = None
     amount: str
     currency: str
     payment_date: date
@@ -106,6 +107,7 @@ class AdvanceCreate(BaseModel):
 
 class AdvanceItemResponse(BaseModel):
     payment_id: int
+    purpose: str | None = None
     amount: str
     currency: str
     payment_date: str
@@ -139,6 +141,7 @@ class AdvanceListResponse(BaseModel):
     order_code: str
     currency: str
     advances: list[AdvanceItemResponse]
+    settlements: list[AdvanceItemResponse] = Field(default_factory=list)
     consolidated: AdvanceConsolidated
 
 
@@ -205,6 +208,7 @@ def _payment_response(db: Session, payment, *, supplier_name: str | None = None)
         supplier_id=payment.supplier_id,
         supplier_name=supplier_name,
         order_id=payment.order_id,
+        purpose=getattr(payment, "purpose", None),
         amount=decimal_str(payment.amount) or "0",
         currency=payment.currency,
         payment_date=payment.payment_date,
@@ -229,6 +233,40 @@ def _payment_response(db: Session, payment, *, supplier_name: str | None = None)
         documents=docs,
         cancelled_at=payment.cancelled_at,
         cancel_reason_code=payment.cancel_reason_code,
+    )
+
+
+def _advance_item_response(a: dict) -> AdvanceItemResponse:
+    return AdvanceItemResponse(
+        payment_id=a["payment_id"],
+        purpose=a.get("purpose"),
+        amount=a["amount"],
+        currency=a["currency"],
+        payment_date=a["payment_date"],
+        external_reference=a.get("external_reference"),
+        status=a["status"],
+        version=int(a.get("version") or 1),
+        fx_execution_id=a.get("fx_execution_id"),
+        foreign_amount=a.get("foreign_amount"),
+        brl_amount=a.get("brl_amount"),
+        rate=a.get("rate"),
+        execution_date=a.get("execution_date"),
+        amount_unallocated=a.get("amount_unallocated"),
+        fx_documents=[
+            DocumentBrief(id=d["id"], original_filename=d["original_filename"])
+            for d in a.get("fx_documents") or []
+        ],
+    )
+
+
+def _advance_list_response(raw: dict) -> AdvanceListResponse:
+    return AdvanceListResponse(
+        order_id=raw["order_id"],
+        order_code=raw["order_code"],
+        currency=raw["currency"],
+        advances=[_advance_item_response(a) for a in raw.get("advances") or []],
+        settlements=[_advance_item_response(a) for a in raw.get("settlements") or []],
+        consolidated=AdvanceConsolidated(**raw["consolidated"]),
     )
 
 
@@ -580,34 +618,7 @@ def get_order_advances(
     enforce_permission(user, "treasury:read")
     try:
         raw = treasury_public.advances.list_order_advances(db, order_id)
-        return AdvanceListResponse(
-            order_id=raw["order_id"],
-            order_code=raw["order_code"],
-            currency=raw["currency"],
-            advances=[
-                AdvanceItemResponse(
-                    payment_id=a["payment_id"],
-                    amount=a["amount"],
-                    currency=a["currency"],
-                    payment_date=a["payment_date"],
-                    external_reference=a.get("external_reference"),
-                    status=a["status"],
-                    version=int(a.get("version") or 1),
-                    fx_execution_id=a.get("fx_execution_id"),
-                    foreign_amount=a.get("foreign_amount"),
-                    brl_amount=a.get("brl_amount"),
-                    rate=a.get("rate"),
-                    execution_date=a.get("execution_date"),
-                    amount_unallocated=a.get("amount_unallocated"),
-                    fx_documents=[
-                        DocumentBrief(id=d["id"], original_filename=d["original_filename"])
-                        for d in a.get("fx_documents") or []
-                    ],
-                )
-                for a in raw["advances"]
-            ],
-            consolidated=AdvanceConsolidated(**raw["consolidated"]),
-        )
+        return _advance_list_response(raw)
     except TreasuryError as e:
         raise _map_error(e) from e
 
@@ -799,32 +810,6 @@ def cancel_order_advance(
             )
             uow.commit()
             raw = treasury_public.advances.list_order_advances(uow.session, order_id)
-            return AdvanceListResponse(
-                order_id=raw["order_id"],
-                order_code=raw["order_code"],
-                currency=raw["currency"],
-                advances=[
-                    AdvanceItemResponse(
-                        payment_id=a["payment_id"],
-                        amount=a["amount"],
-                        currency=a["currency"],
-                        payment_date=a["payment_date"],
-                        external_reference=a.get("external_reference"),
-                        status=a["status"],
-                        version=int(a.get("version") or 1),
-                        fx_execution_id=a.get("fx_execution_id"),
-                        foreign_amount=a.get("foreign_amount"),
-                        brl_amount=a.get("brl_amount"),
-                        rate=a.get("rate"),
-                        execution_date=a.get("execution_date"),
-                        fx_documents=[
-                            DocumentBrief(id=d["id"], original_filename=d["original_filename"])
-                            for d in a.get("fx_documents") or []
-                        ],
-                    )
-                    for a in raw["advances"]
-                ],
-                consolidated=AdvanceConsolidated(**raw["consolidated"]),
-            )
+            return _advance_list_response(raw)
     except TreasuryError as e:
         raise _map_error(e) from e

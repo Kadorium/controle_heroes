@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import { getSkuPosition, type SkuPosition } from "./inventoryApi";
 import { canReadInventory } from "./inventoryPermissions";
-import { skuBucketLabel } from "./inventoryLabels";
+import { skuBucketLabel, skuBucketScopeNote, locationTypeLabel } from "./inventoryLabels";
 import {
   ContextBreadcrumb,
   EmptyState,
@@ -88,7 +88,14 @@ export function SkuPositionPage({ user }: Props) {
         <tbody>
           {keys.map((key) => (
             <tr key={key} data-testid={`sku-bucket-${key}`}>
-              <td>{skuBucketLabel(key)}</td>
+              <td>
+                {skuBucketLabel(key)}
+                {skuBucketScopeNote(key) ? (
+                  <div className="muted" data-testid={`sku-bucket-scope-${key}`}>
+                    {skuBucketScopeNote(key)}
+                  </div>
+                ) : null}
+              </td>
               <td>
                 {STUB_KEYS.has(key)
                   ? "Não disponível"
@@ -132,6 +139,38 @@ export function SkuPositionPage({ user }: Props) {
       </SectionCard>
       <SectionCard title="Situação logística" data-testid="sku-logistics-dim">
         {renderRows(LOGISTICS_KEYS, pos)}
+      </SectionCard>
+      <SectionCard title="Saldos por local" data-testid="sku-balances">
+        {pos.balances.length === 0 ? (
+          <EmptyState title="Sem saldos" message="Nenhum saldo derivado neste produto." />
+        ) : (
+          <table className="mini-table">
+            <thead>
+              <tr>
+                <th>Local</th>
+                <th>Regime</th>
+                <th>Quantidade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pos.balances.map((bal, i) => {
+                const row = bal as {
+                  location_id?: number;
+                  location_code?: string | null;
+                  location_type?: string | null;
+                  qty?: string;
+                };
+                return (
+                  <tr key={`${row.location_id ?? i}`} data-testid={`sku-balance-${row.location_code ?? i}`}>
+                    <td>{row.location_code ?? "—"}</td>
+                    <td>{locationTypeLabel(row.location_type)}</td>
+                    <td>{formatQuantity(row.qty ?? null)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </SectionCard>
       <p>
         <Link to="/inventory/movements">Ver movimentações</Link>

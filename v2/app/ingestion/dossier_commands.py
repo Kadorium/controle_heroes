@@ -30,7 +30,6 @@ from app.ingestion.commit_models import IngestionCommitAttempt, IngestionCommitO
 from app.ingestion.errors import IngestionError
 from app.ingestion.models import IngestionOccurrence
 from app.ingestion.reconciler import reconcile_document_set
-from app.logistics import public as logistics_public
 
 DOC_TYPE_PL_DETAIL = "PACKING_LIST_DETAIL"
 DOC_TYPE_DOGANALE = "FATTURA_DOGANALE"
@@ -174,9 +173,9 @@ def preview_dossier(
             planned_ops.append(
                 DossierPreviewItem(
                     op_key="create_shipment_planned",
-                    description=f"Criar Shipment PLANNED via logistics.create_shipment (PL {doc_num})",
+                    description=f"Criar Shipment PLANNED via logistics.create_shipment (PL {doc_num}, modal nulo)",
                     entity_type="shipment",
-                    params={"modal": "MARITIME", "pl_document_id": doc.id, "doc_number": doc_num},
+                    params={"modal": None, "pl_document_id": doc.id, "doc_number": doc_num},
                 )
             )
 
@@ -252,132 +251,24 @@ def commit_pl_detail(
     actor_id: str,
     attachments_path: Path,
     quarantine_path: Path,
+    order_id: int | None = None,
+    shipment_id: int | None = None,
+    line_choices: list | None = None,
 ) -> IngestionCommitAttempt:
-    """Commit PL Detail: promote document + create Logistics Shipment PLANNED."""
-    import hashlib
+    """Commit PL Detail: orquestra Logistics via packing_commit_commands (C6)."""
+    from app.ingestion.packing_commit_commands import commit_pl_detail as _commit
 
-    doc = staging_queries.get_document_detail(db, document_id)
-
-    open_errors = [i for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"]
-    if open_errors:
-        raise DossierCommitBlockedByIssues(len(open_errors))
-
-    # Fingerprint
-    canonical = json.dumps(
-        {"doc_id": document_id, "doc_type": doc.doc_type, "adapter": doc.adapter_id},
-        sort_keys=True,
-    )
-    fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
-
-    existing = (
-        db.query(IngestionCommitAttempt)
-        .filter(IngestionCommitAttempt.operation_key == operation_key)
-        .first()
-    )
-    if existing is not None:
-        if existing.payload_fingerprint == fingerprint:
-            return existing
-        raise DossierConflictFingerprint(operation_key)
-
-    attempt = IngestionCommitAttempt(
+    return _commit(
+        db,
         document_id=document_id,
         operation_key=operation_key,
-        payload_fingerprint=fingerprint,
-        status="UNKNOWN",
         actor_id=actor_id,
+        attachments_path=attachments_path,
+        quarantine_path=quarantine_path,
+        order_id=order_id,
+        shipment_id=shipment_id,
+        line_choices=line_choices,
     )
-    db.add(attempt)
-    db.flush()
-
-    succeeded: list[str] = []
-    failed: list[str] = []
-
-    # Op 1: store_document
-    promoted_doc_id: int | None = None
-    try:
-        occ = db.get(IngestionOccurrence, doc.occurrence_id)
-        if occ and occ.blob and occ.blob.physical_status == "PRESENT" and occ.blob.storage_path:
-            blob_path = quarantine_storage.resolve_quarantine_path(
-                quarantine_path, occ.blob.storage_path
-            )
-            if blob_path and blob_path.is_file():
-                pdf_bytes = blob_path.read_bytes()
-                promoted = documents_public.store_document(
-                    db,
-                    attachments_path=attachments_path,
-                    actor_id=actor_id,
-                    filename=occ.original_filename or f"pl_{document_id}.pdf",
-                    content=pdf_bytes,
-                    mime_type=occ.detected_mime or "application/pdf",
-                )
-                promoted_doc_id = promoted.id
-        _record_op(
-            db, attempt, "store_document",
-            status="SUCCEEDED",
-            entity_type="document",
-            entity_id=str(promoted_doc_id) if promoted_doc_id else None,
-        )
-        succeeded.append("store_document")
-    except Exception as exc:
-        _record_op(db, attempt, "store_document", status="FAILED", error_message=str(exc)[:512])
-        failed.append("store_document")
-        attempt.status = "FAILED"
-        db.flush()
-        return attempt
-
-    # Op 2: create_shipment PLANNED via logistics public API
-    try:
-        doc_num = _get_field_value(doc, "document_number")
-        shipment = logistics_public.create_shipment(
-            db,
-            modal="MARITIME",
-            notes=f"Criado via ingestão PL Detail — documento IR {document_id} ref={doc_num}",
-        )
-        _record_op(
-            db, attempt, "create_shipment_planned",
-            status="SUCCEEDED",
-            entity_type="shipment",
-            entity_id=str(shipment.id),
-            details_json=json.dumps({"shipment_code": shipment.code, "status": shipment.status}),
-        )
-        succeeded.append("create_shipment_planned")
-
-        # Link document to shipment
-        if promoted_doc_id:
-            try:
-                documents_public.link_document(
-                    db,
-                    document_id=promoted_doc_id,
-                    entity_type="shipment",
-                    entity_id=str(shipment.id),
-                    role="packing_list",
-                )
-            except Exception:
-                pass  # link failure is non-fatal
-
-    except Exception as exc:
-        _record_op(
-            db, attempt, "create_shipment_planned",
-            status="FAILED",
-            error_message=str(exc)[:512],
-        )
-        failed.append("create_shipment_planned")
-
-    attempt.status = "PARTIAL" if failed else "SUCCEEDED"
-    db.flush()
-
-    audit_public.record_event(
-        db,
-        actor_id=actor_id,
-        entity_type="ingestion_commit_attempt",
-        entity_id=str(attempt.id),
-        action="commit_pl_detail_completed",
-        reason_code="INGEST_PL_COMMIT_DONE",
-        details=json.dumps(
-            {"document_id": document_id, "status": attempt.status, "succeeded": succeeded, "failed": failed}
-        ),
-    )
-    return attempt
 
 
 def commit_doganale(
@@ -388,128 +279,21 @@ def commit_doganale(
     actor_id: str,
     attachments_path: Path,
     quarantine_path: Path,
+    process_id: int | None = None,
+    invoice_id: int | None = None,
+    shipment_id: int | None = None,
 ) -> IngestionCommitAttempt:
-    """Commit Fattura Doganale: promote document + create Customs ImportProcess DRAFT."""
-    import hashlib
+    """Commit Fattura Doganale: preenche CustomsDoganale via doganale_commit_commands."""
+    from app.ingestion.doganale_commit_commands import commit_doganale as _commit
 
-    doc = staging_queries.get_document_detail(db, document_id)
-
-    open_errors = [i for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"]
-    if open_errors:
-        raise DossierCommitBlockedByIssues(len(open_errors))
-
-    canonical = json.dumps(
-        {"doc_id": document_id, "doc_type": doc.doc_type, "adapter": doc.adapter_id},
-        sort_keys=True,
-    )
-    fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
-
-    existing = (
-        db.query(IngestionCommitAttempt)
-        .filter(IngestionCommitAttempt.operation_key == operation_key)
-        .first()
-    )
-    if existing is not None:
-        if existing.payload_fingerprint == fingerprint:
-            return existing
-        raise DossierConflictFingerprint(operation_key)
-
-    attempt = IngestionCommitAttempt(
+    return _commit(
+        db,
         document_id=document_id,
         operation_key=operation_key,
-        payload_fingerprint=fingerprint,
-        status="UNKNOWN",
         actor_id=actor_id,
+        attachments_path=attachments_path,
+        quarantine_path=quarantine_path,
+        process_id=process_id,
+        invoice_id=invoice_id,
+        shipment_id=shipment_id,
     )
-    db.add(attempt)
-    db.flush()
-
-    succeeded: list[str] = []
-    failed: list[str] = []
-
-    # Op 1: store_document
-    promoted_doc_id: int | None = None
-    try:
-        occ = db.get(IngestionOccurrence, doc.occurrence_id)
-        if occ and occ.blob and occ.blob.physical_status == "PRESENT" and occ.blob.storage_path:
-            blob_path = quarantine_storage.resolve_quarantine_path(
-                quarantine_path, occ.blob.storage_path
-            )
-            if blob_path and blob_path.is_file():
-                pdf_bytes = blob_path.read_bytes()
-                promoted = documents_public.store_document(
-                    db,
-                    attachments_path=attachments_path,
-                    actor_id=actor_id,
-                    filename=occ.original_filename or f"doganale_{document_id}.pdf",
-                    content=pdf_bytes,
-                    mime_type=occ.detected_mime or "application/pdf",
-                )
-                promoted_doc_id = promoted.id
-        _record_op(
-            db, attempt, "store_document",
-            status="SUCCEEDED",
-            entity_type="document",
-            entity_id=str(promoted_doc_id) if promoted_doc_id else None,
-        )
-        succeeded.append("store_document")
-    except Exception as exc:
-        _record_op(db, attempt, "store_document", status="FAILED", error_message=str(exc)[:512])
-        failed.append("store_document")
-        attempt.status = "FAILED"
-        db.flush()
-        return attempt
-
-    # Op 2: create ImportProcess DRAFT via customs public API
-    try:
-        doc_num = _get_field_value(doc, "document_number")
-        process = customs_public.create_import_process(
-            db,
-            external_reference=f"ING-DOGANALE-{doc_num or document_id}",
-            notes=f"Criado via ingestão Fattura Doganale — documento IR {document_id} ref={doc_num}",
-        )
-        _record_op(
-            db, attempt, "create_import_process_draft",
-            status="SUCCEEDED",
-            entity_type="import_process",
-            entity_id=str(process.id),
-            details_json=json.dumps({"process_code": process.code, "status": process.status}),
-        )
-        succeeded.append("create_import_process_draft")
-
-        # Link document to import process
-        if promoted_doc_id:
-            try:
-                documents_public.link_document(
-                    db,
-                    document_id=promoted_doc_id,
-                    entity_type="import_process",
-                    entity_id=str(process.id),
-                    role="fattura_doganale",
-                )
-            except Exception:
-                pass
-
-    except Exception as exc:
-        _record_op(
-            db, attempt, "create_import_process_draft",
-            status="FAILED",
-            error_message=str(exc)[:512],
-        )
-        failed.append("create_import_process_draft")
-
-    attempt.status = "PARTIAL" if failed else "SUCCEEDED"
-    db.flush()
-
-    audit_public.record_event(
-        db,
-        actor_id=actor_id,
-        entity_type="ingestion_commit_attempt",
-        entity_id=str(attempt.id),
-        action="commit_doganale_completed",
-        reason_code="INGEST_DOGANALE_COMMIT_DONE",
-        details=json.dumps(
-            {"document_id": document_id, "status": attempt.status, "succeeded": succeeded, "failed": failed}
-        ),
-    )
-    return attempt

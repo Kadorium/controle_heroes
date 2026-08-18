@@ -251,8 +251,5 @@ describe("IngestionWorkspacePage", () => {
     expect(screen.getByTestId("ordine-summary-lines")).toBeInTheDocument();
     expect(screen.getByText(/compromisso/i)).toBeInTheDocument();
     expect(screen.getByText("04/06/2026")).toBeInTheDocument();
-    // Technical codes only under collapsed details
-    expect(screen.getByTestId("ingestion-tech-details")).toBeInTheDocument();
-    expect(screen.getByTestId("ingestion-issues-panel")).toBeInTheDocument();
   });
 });

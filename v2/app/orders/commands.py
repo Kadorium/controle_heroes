@@ -1,8 +1,10 @@
+import json
 from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.audit import public as audit_public
 from app.catalog import public as catalog_public
 from app.orders import repository as repo
 from app.orders.errors import (
@@ -19,6 +21,7 @@ from app.orders.models import (
     Order,
     OrderItem,
 )
+from app.orders import schedule as order_schedule
 from app.orders.money import normalize_unit, parse_decimal, require_positive_qty
 
 
@@ -258,7 +261,44 @@ def confirm_order(db: Session, order_id: int, *, expected_version: int) -> Order
         raise InvalidTransition("Só DRAFT pode ser confirmada")
     if not order.items:
         raise OrderValidationError("Ordem sem itens não pode ser confirmada")
+    order_schedule.assert_amount_matches_total_if_calculable(db, order)
     order.status = "CONFIRMED"
+    return _lock(db, order, expected_version)
+
+
+def set_payment_schedule(
+    db: Session,
+    order_id: int,
+    *,
+    expected_version: int,
+    actor: str,
+    mode: str | None,
+    lines: list[dict],
+    reason_code: str | None,
+) -> Order:
+    order = repo.get_order(db, order_id)
+    if not order:
+        raise OrderNotFound(order_id)
+    order_schedule.assert_writable(order)
+    audit_reason = order_schedule.assert_confirmed_reason(order, reason_code)
+    parsed = order_schedule.validate_incoming(mode=mode, raw_lines=lines)
+    before = order_schedule.snapshot_lines(repo.list_schedule_lines(db, order.id))
+    if order.status == "CONFIRMED":
+        order_schedule.assert_incoming_amount_vs_order(order, parsed)
+    order_schedule.persist_lines(db, order.id, parsed)
+    after = order_schedule.snapshot_lines(repo.list_schedule_lines(db, order.id))
+    audit_public.record_event(
+        db,
+        actor_id=str(actor),
+        entity_type="order",
+        entity_id=str(order.id),
+        action="set_payment_schedule",
+        reason_code=audit_reason,
+        details=json.dumps(
+            {"before": before, "after": after, "mode": (mode or "").strip().upper() or None},
+            ensure_ascii=False,
+        ),
+    )
     return _lock(db, order, expected_version)
 
 
@@ -281,4 +321,83 @@ def cancel_order(
     order.status = "CANCELLED"
     order.cancelled_at = datetime.now(timezone.utc)
     order.cancel_reason_code = reason_code.strip() if reason_code and reason_code.strip() else None
+    return _lock(db, order, expected_version)
+
+
+def bind_commitment_product(
+    db: Session,
+    order_id: int,
+    item_id: int,
+    product_id: int,
+    *,
+    actor: str,
+    expected_version: int,
+    issued_qty: Decimal,
+) -> Order:
+    """Vincula um Product ativo a uma linha COMMITMENT em pedido CONFIRMED.
+
+    `issued_qty` é fato de Billing (qty ISSUED nessa linha) — Orders não importa Billing.
+    Quantidade emitida > 0 recusa o vínculo. Não altera qty/preço/unidade nem external_code.
+    """
+    order = repo.get_order(db, order_id)
+    if not order:
+        raise OrderNotFound(order_id)
+    if order.status != "CONFIRMED":
+        raise InvalidTransition(
+            "Vínculo de produto só é permitido em pedido CONFIRMED "
+            f"(status atual: {order.status})"
+        )
+    item = repo.get_item(db, order_id, item_id)
+    if not item:
+        raise OrderItemNotFound(item_id)
+    if item.line_kind != LINE_KIND_COMMITMENT:
+        raise OrderValidationError(
+            "Item já é PRODUCT — vínculo de compromisso não se aplica",
+            code="item_not_commitment",
+        )
+    if issued_qty > 0:
+        raise OrderValidationError(
+            "Linha já tem quantidade emitida em fatura ISSUED — vínculo recusado",
+            code="line_already_invoiced",
+        )
+    try:
+        product = catalog_public.get_product(db, product_id)
+    except catalog_public.CatalogError:
+        raise OrderValidationError(
+            f"Produto {product_id} não encontrado",
+            code="invalid_product",
+        ) from None
+    if not product.is_active:
+        raise OrderValidationError(
+            f"Produto {product_id} está inativo",
+            code="invalid_product",
+        )
+
+    from_external_code = item.external_code
+    item.line_kind = LINE_KIND_PRODUCT
+    item.product_id = product.id
+    item.sku_snapshot = product.sku[:64]
+    item.description_snapshot = product.description[:512]
+    db.flush()
+
+    audit_public.record_event(
+        db,
+        actor_id=str(actor),
+        entity_type="order",
+        entity_id=str(order.id),
+        action="bind_product",
+        reason_code="BIND_PRODUCT",
+        details=json.dumps(
+            {
+                "item_id": item.id,
+                "from_kind": LINE_KIND_COMMITMENT,
+                "from_external_code": from_external_code,
+                "from_product_id": None,
+                "to_product_id": product.id,
+                "to_sku": product.sku,
+                "actor": str(actor),
+            },
+            ensure_ascii=False,
+        ),
+    )
     return _lock(db, order, expected_version)

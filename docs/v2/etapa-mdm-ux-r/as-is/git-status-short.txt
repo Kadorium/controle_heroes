@@ -1,0 +1,230 @@
+ M .cursor/rules/epic-v2.mdc
+MM ROADMAP_V2_EPIC.md
+ M docs/README.md
+A  docs/_AUDITORIA_COMPROMISSO_SKU_2026-08-12/G1_ANCORA_BILLING_ADVISOR_HANDOFF.md
+ M docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md
+ M docs/v2/archive/roadmap/README.md
+ M "docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md"
+ M docs/v2/etapa-j5/screenshots/i5-1-detail-created-1366.png
+ M docs/v2/etapa-j5/screenshots/i5-1-list-submitted-1366.png
+ M docs/v2/etapa-j5/screenshots/i5-2-doganale-v1-1366.png
+ M docs/v2/etapa-j5/screenshots/i5-2-doganale-v2-history-1366.png
+ M docs/v2/etapa-j5/screenshots/j5-01-process-list.png
+ M docs/v2/etapa-j5/screenshots/j5-02-process-links.png
+ M docs/v2/etapa-j5/screenshots/j5-03-item-allocations.png
+ M docs/v2/etapa-j5/screenshots/j5-04-process-submitted.png
+ M docs/v2/etapa-j5/screenshots/j5-05-doganale-v1.png
+ M docs/v2/etapa-j5/screenshots/j5-06-doganale-v2-history.png
+ M docs/v2/etapa-j5/screenshots/j5-07-doganale-divergence.png
+ M docs/v2/etapa-j5/screenshots/j5-08-funding-request.png
+ M docs/v2/etapa-j5/screenshots/j5-09-funding-composition.png
+ M docs/v2/etapa-j5/screenshots/j5-10-customs-payable-ap.png
+ M docs/v2/etapa-j5/screenshots/j5-11-bonded-receipt.png
+ M docs/v2/etapa-j5/screenshots/j5-12-partial-nationalization.png
+ M docs/v2/etapa-j5/screenshots/j5-13-sku-position.png
+ M docs/v2/etapa-j5/screenshots/j5-14-inventory-movements.png
+ M docs/v2/etapa-j5/screenshots/j5-15-documents-audit.png
+ M v2/app/billing/public.py
+ M v2/app/billing/queries.py
+ M v2/app/billing/repository.py
+ M v2/app/catalog/commands.py
+ M v2/app/catalog/models.py
+ M v2/app/catalog/normalization.py
+ M v2/app/catalog/public.py
+ M v2/app/catalog/queries.py
+ M v2/app/catalog/repository.py
+ M v2/app/catalog/routes.py
+ M v2/app/customs/doganale_commands.py
+ M v2/app/customs/nationalization_commands.py
+ M v2/app/customs/nationalization_routes.py
+ M v2/app/customs/public.py
+ M v2/app/customs/queries.py
+ M v2/app/foundation/create_app.py
+ M v2/app/foundation/module_graph.py
+ M v2/app/foundation/schema_revision.py
+ M v2/app/identity/public.py
+ M v2/app/ingestion/adapters/packing_list_detail_v1.py
+ M v2/app/ingestion/dossier_commands.py
+ M v2/app/ingestion/fattura_commit_commands.py
+ M v2/app/ingestion/fattura_line_match.py
+ M v2/app/ingestion/numerario_commit_commands.py
+ M v2/app/ingestion/routes.py
+ M v2/app/ingestion/schemas.py
+ M v2/app/inventory/commands.py
+ M v2/app/inventory/public.py
+ M v2/app/inventory/queries.py
+ M v2/app/inventory/routes.py
+ M v2/app/logistics/commands.py
+ M v2/app/logistics/public.py
+ M v2/app/logistics/queries.py
+ M v2/app/logistics/repository.py
+ M v2/app/logistics/routes.py
+ M v2/app/orders/commands.py
+ M v2/app/orders/errors.py
+ M v2/app/orders/models.py
+ M v2/app/orders/money.py
+ M v2/app/orders/public.py
+ M v2/app/orders/queries.py
+ M v2/app/orders/repository.py
+ M v2/app/orders/routes.py
+MM v2/app/reporting/queries.py
+ M v2/app/treasury/advance_commands.py
+MM v2/app/treasury/commands.py
+M  v2/app/treasury/fx_queries.py
+ M v2/app/treasury/models.py
+ M v2/app/treasury/routes.py
+ M v2/frontend/e2e/j5-acceptance.spec.ts
+ M v2/frontend/src/App.tsx
+ M v2/frontend/src/api/generated/openapi.json
+ M v2/frontend/src/api/generated/schema.ts
+ M v2/frontend/src/app-shell/AppShell.tsx
+ M v2/frontend/src/features/billing/ApQueuePage.tsx
+ M v2/frontend/src/features/billing/InvoiceDetailPage.tsx
+ M v2/frontend/src/features/billing/OrderInvoicesPanel.test.tsx
+ M v2/frontend/src/features/catalog/catalogApi.ts
+ M v2/frontend/src/features/customs/CustomsDetailPage.tsx
+ M v2/frontend/src/features/customs/NationalizationPanel.tsx
+ M v2/frontend/src/features/customs/NumerarioPanel.tsx
+ M v2/frontend/src/features/customs/ReceiptPanel.tsx
+ M v2/frontend/src/features/customs/customsApi.ts
+ M v2/frontend/src/features/customs/customsPermissions.test.ts
+ M v2/frontend/src/features/customs/customsPermissions.ts
+ M v2/frontend/src/features/ingestion/DossierPanel.tsx
+ M v2/frontend/src/features/ingestion/FatturaCommitPanel.tsx
+ M v2/frontend/src/features/ingestion/FatturaStructuredPanel.tsx
+ M v2/frontend/src/features/ingestion/IngestionPages.test.tsx
+ M v2/frontend/src/features/ingestion/IngestionWorkspacePage.tsx
+ M v2/frontend/src/features/ingestion/NumerarioCommitPanel.tsx
+ M v2/frontend/src/features/ingestion/ingestionApi.ts
+ M v2/frontend/src/features/inventory/SkuPositionPage.tsx
+ M v2/frontend/src/features/inventory/inventoryApi.ts
+ M v2/frontend/src/features/inventory/inventoryLabels.test.ts
+ M v2/frontend/src/features/inventory/inventoryLabels.ts
+MM v2/frontend/src/features/orders/OrderCockpitPage.tsx
+ M v2/frontend/src/features/orders/OrderCreatePage.tsx
+ M v2/frontend/src/features/orders/OrderDetailPage.tsx
+ M v2/frontend/src/features/orders/OrdersPages.test.tsx
+ M v2/frontend/src/features/orders/ordersApi.ts
+ M v2/frontend/src/features/reporting/reportingApi.ts
+ M v2/frontend/src/features/shipments/LogisticsProvidersPage.tsx
+ M v2/frontend/src/features/shipments/ShipmentDetailPage.tsx
+ M v2/frontend/src/features/shipments/ShipmentsPages.test.tsx
+ M v2/frontend/src/features/shipments/providersApi.ts
+MM v2/frontend/src/features/treasury/FxPanels.tsx
+MM v2/frontend/src/features/treasury/OrderAdvancesPanel.tsx
+ M v2/frontend/src/features/treasury/PayableFxPage.tsx
+MM v2/frontend/src/features/treasury/PayableOrderCreditPanel.tsx
+ M v2/frontend/src/features/treasury/PaymentCreatePage.tsx
+ M v2/frontend/src/features/treasury/advanceApi.ts
+M  v2/frontend/src/features/treasury/fxApi.ts
+ M v2/frontend/src/index.css
+ M v2/frontend/src/ui/domainLabels.ts
+ M v2/tests/test_catalog_api.py
+ M v2/tests/test_ingestion_i7.py
+ M v2/tests/test_inventory_i5_4.py
+ M v2/tests/test_j4_fin23.py
+ M v2/tests/test_j4_fin3b.py
+ M v2/tests/test_logistics_api.py
+ M v2/tests/test_orders_billing_a2.py
+?? docs/_AUDITORIA_COMPROMISSO_SKU_2026-08-12/G2_BIND_PRODUCT_ADVISOR_HANDOFF.md
+?? docs/_AUDITORIA_COMPROMISSO_SKU_2026-08-12/G3_G4_G5_BIND_UI_ADVISOR_HANDOFF.md
+?? docs/v2/archive/roadmap/ROADMAP_AB_ADVISOR_HANDOFF.md
+?? docs/v2/archive/roadmap/ROADMAP_HISTORICO.md
+?? docs/v2/etapa-cadeia-46/
+?? docs/v2/etapa-elo-7/
+?? docs/v2/etapa-elo-8/
+?? docs/v2/etapa-j4-fin/J4_BILLING_CAPACITY_ADVISOR_HANDOFF.md
+?? docs/v2/etapa-j4-fin/J4_CICLO_INTEGRAL.md
+?? docs/v2/etapa-j4-fin/J4_FIN4_ADVISOR_HANDOFF.md
+?? docs/v2/etapa-j4-fin/J4_FIN4_EXECUTION_PLAN.md
+?? docs/v2/etapa-j4-fin/J4_FIN_CICLO_FIX_ADVISOR_HANDOFF.md
+?? docs/v2/etapa-j4-fin/logs/a0-f0-seed.json
+?? docs/v2/etapa-j4-fin/logs/a0-f5-seed.json
+?? docs/v2/etapa-j4-fin/logs/a0_f0_attach.py
+?? docs/v2/etapa-j4-fin/logs/a0_f0_upload.py
+?? docs/v2/etapa-j4-fin/logs/a0_f5_seed.py
+?? docs/v2/etapa-j4-fin/logs/a0_f5_verify.py
+?? docs/v2/etapa-j4-fin/logs/ciclo-pytest-full.txt
+?? docs/v2/etapa-j4-fin/logs/ciclo-walk-continue.json
+?? docs/v2/etapa-j4-fin/logs/ciclo_fix_c3_seed.py
+?? docs/v2/etapa-j4-fin/logs/ciclo_walk_continue.py
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-589-after.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-589-before.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-A-order-34.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-B-advance-1.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-C-advances-both.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-C-cockpit.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-D-t001-issued.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-E-payable22-cost.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-F-invoice-244.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-F-qty-disponivel-0.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-G-payable24-credit-remainder.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-H-cockpit-final.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-chromium-version.txt
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-589-intact.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c1-advances.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c1-settlements.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c2-exposure-ciclo001.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c2-exposure-fixc3.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c3-after.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c3-before-cost.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-c3-before.png
+?? docs/v2/etapa-j4-fin/screenshots/ciclo-fix-chromium-version.txt
+?? docs/v2/etapa-j4-fin/screenshots/fin4-walk-chromium-version.txt
+?? docs/v2/etapa-j4-fin/screenshots/fin4-walk-cockpit-after-advance.png
+?? docs/v2/etapa-j4-fin/screenshots/fin4-walk-cockpit.png
+?? docs/v2/etapa-j4-fin/screenshots/fin4-walk-empty.png
+?? docs/v2/etapa-j4-fin/screenshots/fin4-walk-saved.png
+?? docs/v2/etapa-mdm-ux-r/
+?? docs/v2/etapa-mdm-ux/
+?? v2/alembic/versions/024_payment_purpose.py
+?? v2/alembic/versions/025_order_payment_schedule.py
+?? v2/alembic/versions/026_catalog_l006_tax_id.py
+?? v2/app/foundation/billing_facts.py
+?? v2/app/foundation/user_routes.py
+?? v2/app/identity/commands.py
+?? v2/app/identity/errors.py
+?? v2/app/identity/queries.py
+?? v2/app/identity/repository.py
+?? v2/app/ingestion/doganale_commit_commands.py
+?? v2/app/ingestion/fattura_order_candidates.py
+?? v2/app/ingestion/packing_commit_commands.py
+?? v2/app/ingestion/packing_line_match.py
+?? v2/app/ingestion/packing_order_candidates.py
+?? v2/app/ingestion/print_commit_commands.py
+?? v2/app/orders/schedule.py
+?? v2/data/attachments_test/
+?? v2/data/quarantine_test/
+?? v2/frontend/public/
+?? v2/frontend/src/app-shell/AppShell.nav.test.tsx
+?? v2/frontend/src/features/admin/
+?? v2/frontend/src/features/catalog/CatalogPages.test.tsx
+?? v2/frontend/src/features/catalog/ProductCreatePage.tsx
+?? v2/frontend/src/features/catalog/ProductDetailPage.tsx
+?? v2/frontend/src/features/catalog/ProductListPage.tsx
+?? v2/frontend/src/features/catalog/SupplierCreatePage.tsx
+?? v2/frontend/src/features/catalog/SupplierDetailPage.tsx
+?? v2/frontend/src/features/catalog/SupplierListPage.tsx
+?? v2/frontend/src/features/catalog/useCatalogSearch.ts
+?? v2/frontend/src/features/customs/NationalizationPanel.test.tsx
+?? v2/frontend/src/features/customs/ReceiptPanel.test.tsx
+?? v2/frontend/src/features/customs/numerarioDisplay.test.ts
+?? v2/frontend/src/features/customs/numerarioDisplay.ts
+?? v2/frontend/src/features/ingestion/DoganaleCommitPanel.test.tsx
+?? v2/frontend/src/features/ingestion/DoganaleCommitPanel.tsx
+?? v2/frontend/src/features/ingestion/FatturaCommitPanel.test.tsx
+?? v2/frontend/src/features/ingestion/NumerarioCommitPanel.test.tsx
+?? v2/frontend/src/features/ingestion/PackingCommitPanel.test.tsx
+?? v2/frontend/src/features/ingestion/PackingCommitPanel.tsx
+?? v2/frontend/src/features/ingestion/PrintCommitPanel.tsx
+?? v2/frontend/src/features/orders/BindProductModal.tsx
+?? v2/frontend/src/features/orders/OrderPaymentSchedulePanel.tsx
+?? v2/frontend/src/features/treasury/PayableFxPage.test.tsx
+?? v2/tests/test_elo7.py
+?? v2/tests/test_identity_users_api.py
+?? v2/tests/test_j4_ciclo.py
+?? v2/tests/test_orders_a0_fattura_assist.py
+?? v2/tests/test_orders_fin4_schedule.py
+?? v2/tests/test_orders_g2_bind_product.py
+?? v2/tests/test_orders_g4_fattura_external_code.py
+?? v2/tests/test_packing_c6.py

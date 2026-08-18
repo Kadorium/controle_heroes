@@ -13,6 +13,26 @@ from app.logistics.models import Shipment
 from app.orders import public as orders_public
 
 
+def shipment_item_facts(db: Session, shipment_item_id: int) -> dict:
+    """Catalog facts for a ShipmentItem — public contract for Customs UI."""
+    item = repo.get_item(db, shipment_item_id)
+    if not item:
+        raise ShipmentValidationError(
+            f"ShipmentItem {shipment_item_id} não encontrado",
+            code="shipment_item_not_found",
+        )
+    oi = orders_public.get_order_item(db, item.order_item_id)
+    return {
+        "shipment_item_id": item.id,
+        "shipment_id": item.shipment_id,
+        "order_item_id": item.order_item_id,
+        "quantity": str(item.quantity),
+        "product_id": oi.product_id,
+        "sku": oi.sku_snapshot,
+        "description": oi.description_snapshot,
+    }
+
+
 def get_shipment(db: Session, shipment_id: int) -> Shipment:
     s = repo.get_shipment(db, shipment_id)
     if not s:
@@ -62,6 +82,7 @@ def list_logistics_providers(
     *,
     active_only: bool = False,
     shipment_eligible_only: bool = False,
+    q: str | None = None,
     limit: int = 100,
     offset: int = 0,
 ):
@@ -72,6 +93,7 @@ def list_logistics_providers(
         db,
         active_only=active_only,
         provider_types=types,
+        q=q,
         limit=limit,
         offset=offset,
     )

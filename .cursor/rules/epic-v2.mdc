@@ -9,7 +9,7 @@ alwaysApply: true
 
 | Assunto | Canônico |
 |---|---|
-| Estado, sequência, gates, próxima ação | `ROADMAP_V2_EPIC.md` |
+| Estado, sequência, gates, próxima ação | `ROADMAP_V2_EPIC.md` (**Parte B**; painel = Parte A; atualização A↔B = Contrato no próprio arquivo) |
 | Produto, arquitetura, invariantes, aceite | `docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md` |
 | Mapa documental e protocolo de atualização | `docs/README.md` |
 | Estado implementado (investigação) | Código real |
@@ -20,11 +20,11 @@ O código evidencia o estado implementado. Divergências devem ser reportadas e 
 
 ## 2. Ciclo operacional
 
-**Antes:** (1) ler no Roadmap estado, próxima ação e bloqueios; (2) investigar código e docs relevantes; (3) identificar módulo owner, hipóteses, escopo e gates; (4) confirmar ou refutar hipóteses antes de alterar.
+**Antes:** (1) ler no Roadmap **Parte B** (estado, próxima ação, bloqueios, ADRs, livro-razão); (2) investigar código e docs relevantes; (3) identificar módulo owner, hipóteses, escopo e gates; (4) confirmar ou refutar hipóteses antes de alterar. A Parte A é painel do dono — não substitui B.
 
 **Durante:** preservar WIP; respeitar ownership e contratos públicos; testes proporcionais; registrar evidência em `docs/v2/etapa-*` somente quando a execução material justificar.
 
-**Ao fechar:** confirmar gates; atualizar o Roadmap **somente** se houver mudança operacional material; confirmar a próxima ação no Roadmap; retornar status, arquivos, evidências, pendências e DOC_DELTA (ver `docs/README.md`).
+**Ao fechar:** confirmar gates; se houver mudança operacional material, percorrer o **Contrato de coerência** no Roadmap (atualizar B → recalcular livro-razão/A → tetos → busca zero de jargão/IDs de ensaio na Parte A → DOC_DELTA A/B). A nunca afirma além de B; A mede capacidade de compra, não massa de ensaio. Confirmar a próxima ação na Parte B; retornar status, arquivos, evidências, pendências e DOC_DELTA (ver `docs/README.md`).
 
 **Planos mestres de fase:** quando já existir um plano mestre ativo para uma fase, o agente deve atualizá-lo em vez de criar um novo `.plan`. Planos adicionais só podem ser criados para campanha excepcional que não caiba no mestre, com justificativa explícita e marcação de apêndice temporário. O espelho versionado em `docs/v2/etapa-*` deve ser sincronizado na mesma rodada. O status global permanece no Roadmap.
 

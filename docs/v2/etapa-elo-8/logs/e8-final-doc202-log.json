@@ -1,0 +1,329 @@
+{
+  "result": "PASS",
+  "process_id": 1,
+  "duimp": "TEST-DUIMP-E8-DOC-202",
+  "inventoryMutations": [
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:28.450Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/lines",
+      "at": "2026-08-17T19:58:28.568Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/confirm",
+      "at": "2026-08-17T19:58:28.658Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:35.131Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/lines",
+      "at": "2026-08-17T19:58:35.182Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/confirm",
+      "at": "2026-08-17T19:58:35.214Z"
+    }
+  ],
+  "mutating": [
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/auth/login",
+      "at": "2026-08-17T19:58:23.816Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:24.740Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:24.740Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:28.450Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/lines",
+      "at": "2026-08-17T19:58:28.568Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/confirm",
+      "at": "2026-08-17T19:58:28.658Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:31.257Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:31.259Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.255Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.255Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.972Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.972Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:35.131Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/lines",
+      "at": "2026-08-17T19:58:35.182Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/confirm",
+      "at": "2026-08-17T19:58:35.214Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:59:22.293Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:59:22.293Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T20:00:07.420Z"
+    },
+    {
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T20:00:07.420Z"
+    }
+  ],
+  "log": [
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/auth/login",
+      "at": "2026-08-17T19:58:23.816Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:24.740Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:24.740Z"
+    },
+    {
+      "step": "RESUME",
+      "from": "nat",
+      "url": "http://localhost:5174/customs/1",
+      "at": "2026-08-17T19:58:26.107Z"
+    },
+    {
+      "step": "K-nat",
+      "url": "http://localhost:5174/customs/1",
+      "alreadyNat": true,
+      "at": "2026-08-17T19:58:27.354Z"
+    },
+    {
+      "step": "L-residual",
+      "residual0": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\n8057628953814\n8057628953814\n\t50\t0\t50\t",
+      "typeVal": "DOMESTIC_IN",
+      "hasProductId": 0,
+      "hasNatItemId": 0,
+      "at": "2026-08-17T19:58:28.258Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:28.450Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/lines",
+      "at": "2026-08-17T19:58:28.568Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/1/confirm",
+      "at": "2026-08-17T19:58:28.658Z"
+    },
+    {
+      "step": "M-receive-20",
+      "residualAfter20": "Produto\tNacionalizada\tJá recebida\tAinda recebível\tProposta agora\n8057628953814\n8057628953814\n\t50\t20\t30\t",
+      "invPosts": 3,
+      "at": "2026-08-17T19:58:30.306Z"
+    },
+    {
+      "step": "V5-nat-reverse",
+      "reverseNat": 0,
+      "reverseHidden": 1,
+      "reverseVisibleIgnored": 1,
+      "at": "2026-08-17T19:58:30.345Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:31.257Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:31.259Z"
+    },
+    {
+      "step": "N-sku",
+      "available": "Disponível\t20",
+      "balances": "Saldos por local\nLocal\tRegime\tQuantidade\nDOMESTIC-MAIN\tDoméstico\t20",
+      "availableReload": "Disponível\t20",
+      "at": "2026-08-17T19:58:31.718Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.255Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.255Z"
+    },
+    {
+      "step": "N-movements",
+      "movText": "Quando\tProduto\tLocal\tRegime\tTipo\tΔ Qtd\n17/08/2026 16:58:28 -03:00\t8057628953814 — 8057628953814\tDOMESTIC-MAIN\tDoméstico\tEntrada doméstica\t20",
+      "at": "2026-08-17T19:58:32.584Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.972Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:58:32.972Z"
+    },
+    {
+      "step": "P-over-before-second",
+      "overCopy": "Acima do residual — o sistema bloqueia.",
+      "at": "2026-08-17T19:58:35.014Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts",
+      "at": "2026-08-17T19:58:35.131Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/lines",
+      "at": "2026-08-17T19:58:35.182Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/inventory/receipts/2/confirm",
+      "at": "2026-08-17T19:58:35.214Z"
+    },
+    {
+      "step": "O-receive-30",
+      "residualAfter30": "Residual recebível\n\nNada a receber\n\nQuantidades nacionalizadas deste processo já foram recebidas.\n\nItens já totalmente recebidos não aparecem como opção.\n\nRecebimentos\n#2 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\n#1 · Entrada doméstica · Confirmado · DOMESTIC-MAIN · 1 linhasReverter\nNovo recebimento\nTipo\nEntrada doméstica\n\nSomente entrada doméstica neste fluxo.\n\nLocalização\nEstoque doméstico principal (Doméstico)\nReceber quantidades propostas",
+      "at": "2026-08-17T19:59:20.748Z"
+    },
+    {
+      "step": "P-over-after",
+      "overHint": "no proposed inputs — residual table empty as expected",
+      "at": "2026-08-17T19:59:21.090Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:59:22.293Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T19:59:22.293Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T20:00:07.420Z"
+    },
+    {
+      "step": "HTTP",
+      "method": "POST",
+      "url": "http://localhost:5174/api/fx/quotes/refresh?foreign=EUR&base=BRL",
+      "at": "2026-08-17T20:00:07.420Z"
+    },
+    {
+      "step": "O-sku-50",
+      "available50": "Disponível\t50",
+      "at": "2026-08-17T20:00:07.742Z"
+    },
+    {
+      "step": "NET",
+      "inventoryPostCount": 6,
+      "inventoryUrls": [
+        "http://localhost:5174/api/inventory/receipts",
+        "http://localhost:5174/api/inventory/receipts/1/lines",
+        "http://localhost:5174/api/inventory/receipts/1/confirm",
+        "http://localhost:5174/api/inventory/receipts",
+        "http://localhost:5174/api/inventory/receipts/2/lines",
+        "http://localhost:5174/api/inventory/receipts/2/confirm"
+      ],
+      "uploadViaUiCount": 0,
+      "at": "2026-08-17T20:00:07.744Z"
+    }
+  ]
+}

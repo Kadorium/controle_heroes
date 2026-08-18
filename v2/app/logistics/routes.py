@@ -499,6 +499,7 @@ def _provider_out(p) -> ProviderOut:
 
 @router.get("/logistics-providers", response_model=list[ProviderOut])
 def list_providers(
+    q: str | None = None,
     active_only: bool = False,
     shipment_eligible_only: bool = False,
     limit: int = Query(100, ge=1, le=200),
@@ -509,6 +510,7 @@ def list_providers(
     enforce_permission(user, "logistics:read")
     rows = logistics_public.list_logistics_providers(
         db,
+        q=q,
         active_only=active_only,
         shipment_eligible_only=shipment_eligible_only,
         limit=limit,
@@ -656,13 +658,8 @@ def create_shipment(body: ShipmentCreate, db: Session = Depends(get_db), user=De
     enforce_permission(user, "logistics:write")
     try:
         with UnitOfWork(db) as uow:
-            s = logistics_public.create_shipment(uow.session, **body.model_dump())
-            audit_public.record_event(
-                uow.session,
-                actor_id=str(user.id),
-                entity_type="shipment",
-                entity_id=str(s.id),
-                action="shipment.create",
+            s = logistics_public.create_shipment(
+                uow.session, actor_id=str(user.id), **body.model_dump()
             )
             uow.session.flush()
             s = logistics_public.get_shipment(uow.session, s.id)
@@ -790,13 +787,7 @@ def add_item(shipment_id: int, body: ItemCreate, db: Session = Depends(get_db), 
                 expected_version=body.expected_version,
                 order_item_id=body.order_item_id,
                 quantity=body.quantity,
-            )
-            audit_public.record_event(
-                uow.session,
                 actor_id=str(user.id),
-                entity_type="shipment",
-                entity_id=str(shipment_id),
-                action="shipment.item.add",
             )
             uow.commit()
 
@@ -895,6 +886,7 @@ def add_packages_batch(
                     if body.contents_template is not None
                     else None
                 ),
+                actor_id=str(user.id),
             )
             uow.commit()
             return _serialize(uow.session, s)
@@ -989,6 +981,7 @@ def put_contents(
                 package_id,
                 expected_version=body.expected_version,
                 contents=[c.model_dump() for c in body.contents],
+                actor_id=str(user.id),
             )
             uow.commit()
 
@@ -1011,6 +1004,7 @@ def add_ref(
                 reference_type=body.reference_type,
                 reference_value=body.reference_value,
                 document_id=body.document_id,
+                actor_id=str(user.id),
             )
             uow.commit()
 
@@ -1059,6 +1053,7 @@ def upsert_summary(
                 declared_volume_m3=body.declared_volume_m3,
                 declared_provenance=body.declared_provenance,
                 raw_notes=body.raw_notes,
+                actor_id=str(user.id),
             )
             uow.commit()
 

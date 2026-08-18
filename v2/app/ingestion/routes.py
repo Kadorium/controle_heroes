@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 
@@ -40,11 +41,14 @@ from app.ingestion.fattura_commit_commands import (
     FatturaC2MissingReason,
 )
 from app.ingestion import dossier_commands
+from app.ingestion import packing_commit_commands
 from app.ingestion.dossier_commands import (
     DossierConflictFingerprint,
     DossierCommitBlockedByIssues,
 )
 from app.ingestion import numerario_commit_commands
+from app.ingestion import doganale_commit_commands
+from app.ingestion import print_commit_commands
 from app.ingestion.numerario_commit_commands import (
     NumerarioCommitConflictFingerprint,
     NumerarioCommitBlockedByIssues,
@@ -74,6 +78,9 @@ from app.ingestion.schemas import (
     DocumentSetOut,
     DocumentSummaryOut,
     FatturaCommitIn,
+    FatturaLineCandidateOut,
+    FatturaLineMatchOut,
+    FatturaOrderCandidateOut,
     FatturaPreviewOperationOut,
     FatturaPreviewOut,
     FatturaPolicyMatchOut,
@@ -106,10 +113,30 @@ from app.ingestion.schemas import (
     DossierPreviewItemOut,
     ReconciliationIssueOut,
     DossierCommitIn,
+    DoganaleCommitIn,
+    DoganalePreviewOut,
+    DoganalePreviewOpOut,
+    DoganaleProcessTargetOut,
+    DoganaleInvoiceCandidateOut,
+    DoganaleShipmentTargetOut,
+    DoganaleLinePreviewOut,
+    PrintCommitIn,
+    PrintPreviewOut,
+    PrintPreviewOpOut,
+    PrintProcessTargetOut,
+    PackingCommitIn,
+    PackingPreviewOut,
+    PackingPreviewOperationOut,
+    PackingOrderCandidateOut,
+    PackingShipmentTargetOut,
+    PackingLineMatchOut,
+    PackingLineCandidateOut,
+    PackingCartonOut,
     # I6
     NumerarioCommitIn,
     NumerarioPreviewOut,
     NumerarioPreviewOpOut,
+    NumerarioProcessCandidateOut,
     NumerarioOpResultOut,
     NumerarioCommitResultOut,
     # I7
@@ -160,6 +187,7 @@ def _map_error(exc: IngestionError) -> AppError:
         "reextract_blocked",
         "document_delete_blocked",
         "document_reject_blocked",
+        "packing_shipment_incompatible",
     ):
         status = 409
     elif code in ("request_limit_exceeded", "no_files", "hash_race_retry"):
@@ -177,6 +205,25 @@ def _map_error(exc: IngestionError) -> AppError:
         "fattura_sku_not_on_order",
         "fattura_qty_exceeds_remaining",
         "fattura_no_billable_lines",
+        "fattura_line_ambiguous",
+        "fattura_line_choice_invalid",
+        "packing_order_id_required",
+        "packing_shipment_id_required",
+        "packing_line_ambiguous",
+        "packing_line_choice_invalid",
+        "packing_commitment_unbound",
+        "packing_no_carton_rows",
+        "packing_qty_exceeds_residual",
+        "packing_commit_blocked",
+        "packing_wrong_doc_type",
+        "doganale_commit_blocked",
+        "doganale_wrong_doc_type",
+        "doganale_process_id_required",
+        "print_commit_blocked",
+        "print_wrong_doc_type",
+        "print_process_id_required",
+        "overship",
+        "validation_error",
     ):
         status = 422
     details = None
@@ -1422,12 +1469,28 @@ def preview_commit_fattura(
     order_id: int | None = None,
     c2_confirm: bool = False,
     c2_reason: str | None = None,
+    line_choices: str | None = None,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Preview do commit Fattura com policy A/B/C1/C2 — sem escrever owners."""
     enforce_permission(user, "ingestion:read")
     try:
+        parsed_choices = None
+        if line_choices:
+            try:
+                raw = json.loads(line_choices)
+            except json.JSONDecodeError as exc:
+                raise IngestionError(
+                    "line_choices inválido (JSON)",
+                    code="fattura_line_choice_invalid",
+                ) from exc
+            if not isinstance(raw, list):
+                raise IngestionError(
+                    "line_choices deve ser uma lista JSON",
+                    code="fattura_line_choice_invalid",
+                )
+            parsed_choices = raw
         result = fattura_commit_commands.preview_commit_fattura(
             db,
             document_id,
@@ -1435,6 +1498,7 @@ def preview_commit_fattura(
             order_id=order_id,
             c2_confirm=c2_confirm,
             c2_reason=c2_reason,
+            line_choices=parsed_choices,
         )
         return FatturaPreviewOut(
             document_id=result.document_id,
@@ -1458,6 +1522,32 @@ def preview_commit_fattura(
             ],
             open_error_count=result.open_error_count,
             can_commit=result.can_commit,
+            order_candidates=[
+                FatturaOrderCandidateOut(**c) for c in result.order_candidates
+            ],
+            order_candidates_reason=result.order_candidates_reason,
+            line_matches=[
+                FatturaLineMatchOut(
+                    row_index=m["row_index"],
+                    sku=m["sku"],
+                    pdf_qty=m["pdf_qty"],
+                    pdf_unit_price=m.get("pdf_unit_price"),
+                    order_item_id=m.get("order_item_id"),
+                    order_unit_price=m.get("order_unit_price"),
+                    remaining_before=m.get("remaining_before"),
+                    candidate_count=m.get("candidate_count") or 0,
+                    candidates=[
+                        FatturaLineCandidateOut(**c) for c in (m.get("candidates") or [])
+                    ],
+                    price_mismatch=bool(m.get("price_mismatch")),
+                    ambiguous_price=bool(m.get("ambiguous_price")),
+                    status=m.get("status") or "unmatched",
+                )
+                for m in result.line_matches
+            ],
+            already_committed=result.already_committed,
+            last_succeeded_attempt_id=result.last_succeeded_attempt_id,
+            last_succeeded_invoice_id=result.last_succeeded_invoice_id,
         )
     except IngestionError as exc:
         raise _map_error(exc) from exc
@@ -1497,6 +1587,7 @@ def commit_document_fattura(
                 order_id=body.order_id,
                 c2_confirm=body.c2_confirm,
                 c2_reason=body.c2_reason,
+                line_choices=[c.model_dump() for c in body.line_choices],
                 attachments_path=settings.attachments_path,
                 quarantine_path=settings.quarantine_path,
                 pending_files=pending_files,
@@ -1566,17 +1657,100 @@ def preview_dossier(
         raise _map_error(exc) from exc
 
 
+@router.get(
+    "/documents/{document_id}/preview-commit-pl-detail",
+    response_model=PackingPreviewOut,
+)
+def preview_commit_pl_detail(
+    document_id: int,
+    order_id: int | None = None,
+    shipment_id: int | None = None,
+    line_choices: str | None = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Preview do commit Packing List Detail — sem escrever owners."""
+    enforce_permission(user, "ingestion:read")
+    try:
+        parsed_choices = None
+        if line_choices:
+            try:
+                raw = json.loads(line_choices)
+            except json.JSONDecodeError as exc:
+                raise IngestionError(
+                    "line_choices inválido (JSON)",
+                    code="packing_line_choice_invalid",
+                ) from exc
+            if not isinstance(raw, list):
+                raise IngestionError(
+                    "line_choices deve ser uma lista JSON",
+                    code="packing_line_choice_invalid",
+                )
+            parsed_choices = raw
+        result = packing_commit_commands.preview_commit_pl_detail(
+            db,
+            document_id,
+            order_id=order_id,
+            shipment_id=shipment_id,
+            line_choices=parsed_choices,
+        )
+        return PackingPreviewOut(
+            document_id=result.document_id,
+            fingerprint=result.fingerprint,
+            operations=[
+                PackingPreviewOperationOut(
+                    op_key=op.op_key,
+                    description=op.description,
+                    entity_type=op.entity_type,
+                    params=op.params,
+                )
+                for op in result.operations
+            ],
+            open_error_count=result.open_error_count,
+            can_commit=result.can_commit,
+            order_candidates=[
+                PackingOrderCandidateOut(**c) for c in result.order_candidates
+            ],
+            order_candidates_reason=result.order_candidates_reason,
+            shipment_targets=[
+                PackingShipmentTargetOut(**t) for t in result.shipment_targets
+            ],
+            shipment_targets_reason=result.shipment_targets_reason,
+            line_matches=[
+                PackingLineMatchOut(
+                    **{
+                        **m,
+                        "candidates": [
+                            PackingLineCandidateOut(**c) for c in m.get("candidates", [])
+                        ],
+                    }
+                )
+                for m in result.line_matches
+            ],
+            cartons=[PackingCartonOut(**c) for c in result.cartons],
+            blockers=result.blockers,
+            resolved_order_id=result.resolved_order_id,
+            resolved_shipment_id=result.resolved_shipment_id,
+            will_create_shipment=result.will_create_shipment,
+            already_committed=result.already_committed,
+            last_succeeded_attempt_id=result.last_succeeded_attempt_id,
+            last_succeeded_shipment_id=result.last_succeeded_shipment_id,
+        )
+    except IngestionError as exc:
+        raise _map_error(exc) from exc
+
+
 @router.post(
     "/documents/{document_id}/commit-pl-detail",
     response_model=CommitAttemptOut,
 )
 def commit_document_pl_detail(
     document_id: int,
-    body: DossierCommitIn,
+    body: PackingCommitIn,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Commit PL Detail: promove documento + cria Shipment PLANNED."""
+    """Commit PL Detail: promove documento + preenche Shipment PLANNED via Logistics."""
     enforce_permission(user, "ingestion:commit")
     enforce_permission(user, "logistics:write")
     settings = get_settings()
@@ -1589,11 +1763,74 @@ def commit_document_pl_detail(
                 actor_id=str(user.id),
                 attachments_path=settings.attachments_path,
                 quarantine_path=settings.quarantine_path,
+                order_id=body.order_id,
+                shipment_id=body.shipment_id,
+                line_choices=[c.model_dump() for c in body.line_choices],
             )
             uow.commit()
             uow.session.refresh(attempt)
         attempt = commit_queries.get_commit_attempt(db, attempt.id)
         return _attempt_out(attempt)
+    except IngestionError as exc:
+        raise _map_error(exc) from exc
+
+
+@router.get(
+    "/documents/{document_id}/preview-commit-doganale",
+    response_model=DoganalePreviewOut,
+)
+def preview_commit_doganale(
+    document_id: int,
+    process_id: int | None = None,
+    invoice_id: int | None = None,
+    shipment_id: int | None = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    enforce_permission(user, "ingestion:read")
+    try:
+        result = doganale_commit_commands.preview_commit_doganale(
+            db,
+            document_id,
+            process_id=process_id,
+            invoice_id=invoice_id,
+            shipment_id=shipment_id,
+        )
+        return DoganalePreviewOut(
+            document_id=result.document_id,
+            fingerprint=result.fingerprint,
+            operations=[
+                DoganalePreviewOpOut(
+                    op_key=op.op_key,
+                    description=op.description,
+                    entity_type=op.entity_type,
+                    params=op.params,
+                )
+                for op in result.operations
+            ],
+            open_error_count=result.open_error_count,
+            can_commit=result.can_commit,
+            process_targets=[DoganaleProcessTargetOut(**t) for t in result.process_targets],
+            process_targets_reason=result.process_targets_reason,
+            invoice_candidates=[DoganaleInvoiceCandidateOut(**c) for c in result.invoice_candidates],
+            invoice_candidates_reason=result.invoice_candidates_reason,
+            shipment_targets=[DoganaleShipmentTargetOut(**t) for t in result.shipment_targets],
+            shipment_targets_reason=result.shipment_targets_reason,
+            lines=[DoganaleLinePreviewOut(**{k: ln.get(k) for k in (
+                "position", "ncm", "description", "quantity", "unit", "currency",
+                "unit_price", "line_amount",
+            )}) for ln in result.lines],
+            blockers=result.blockers,
+            resolved_process_id=result.resolved_process_id,
+            resolved_invoice_id=result.resolved_invoice_id,
+            resolved_shipment_id=result.resolved_shipment_id,
+            will_create_process=result.will_create_process,
+            reuse_reason=result.reuse_reason,
+            already_committed=result.already_committed,
+            last_succeeded_attempt_id=result.last_succeeded_attempt_id,
+            last_succeeded_process_id=result.last_succeeded_process_id,
+            document_number=result.document_number,
+        )
     except IngestionError as exc:
         raise _map_error(exc) from exc
 
@@ -1604,11 +1841,11 @@ def commit_document_pl_detail(
 )
 def commit_document_doganale(
     document_id: int,
-    body: DossierCommitIn,
+    body: DoganaleCommitIn,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Commit Fattura Doganale: promove documento + cria ImportProcess DRAFT."""
+    """Commit Fattura Doganale: preenche CustomsDoganale + 0/1/N processo/fatura/embarque."""
     enforce_permission(user, "ingestion:commit")
     enforce_permission(user, "customs:write")
     settings = get_settings()
@@ -1621,6 +1858,83 @@ def commit_document_doganale(
                 actor_id=str(user.id),
                 attachments_path=settings.attachments_path,
                 quarantine_path=settings.quarantine_path,
+                process_id=body.process_id,
+                invoice_id=body.invoice_id,
+                shipment_id=body.shipment_id,
+            )
+            uow.commit()
+            uow.session.refresh(attempt)
+        attempt = commit_queries.get_commit_attempt(db, attempt.id)
+        return _attempt_out(attempt)
+    except IngestionError as exc:
+        raise _map_error(exc) from exc
+
+
+@router.get(
+    "/documents/{document_id}/preview-commit-print",
+    response_model=PrintPreviewOut,
+)
+def preview_commit_print(
+    document_id: int,
+    process_id: int | None = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    enforce_permission(user, "ingestion:read")
+    try:
+        result = print_commit_commands.preview_commit_print(
+            db, document_id, process_id=process_id
+        )
+        return PrintPreviewOut(
+            document_id=result.document_id,
+            fingerprint=result.fingerprint,
+            operations=[
+                PrintPreviewOpOut(
+                    op_key=op.op_key,
+                    description=op.description,
+                    entity_type=op.entity_type,
+                    params=op.params,
+                )
+                for op in result.operations
+            ],
+            open_error_count=result.open_error_count,
+            can_commit=result.can_commit,
+            invoice_ref=result.invoice_ref,
+            process_targets=[PrintProcessTargetOut(**t) for t in result.process_targets],
+            process_targets_reason=result.process_targets_reason,
+            blockers=result.blockers,
+            already_committed=result.already_committed,
+            last_succeeded_attempt_id=result.last_succeeded_attempt_id,
+            last_succeeded_process_id=result.last_succeeded_process_id,
+            resolved_process_id=result.resolved_process_id,
+        )
+    except IngestionError as exc:
+        raise _map_error(exc) from exc
+
+
+@router.post(
+    "/documents/{document_id}/commit-print",
+    response_model=CommitAttemptOut,
+)
+def commit_document_print(
+    document_id: int,
+    body: PrintCommitIn,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    enforce_permission(user, "ingestion:commit")
+    enforce_permission(user, "customs:write")
+    settings = get_settings()
+    try:
+        with UnitOfWork(db) as uow:
+            attempt = print_commit_commands.commit_print(
+                uow.session,
+                document_id=document_id,
+                operation_key=body.operation_key,
+                actor_id=str(user.id),
+                attachments_path=settings.attachments_path,
+                quarantine_path=settings.quarantine_path,
+                process_id=body.process_id,
             )
             uow.commit()
             uow.session.refresh(attempt)
@@ -1747,6 +2061,14 @@ def preview_numerario_commit(
             ],
             open_error_count=result.open_error_count,
             can_commit=result.can_commit,
+            process_candidates=[
+                NumerarioProcessCandidateOut(**c) for c in result.process_candidates
+            ],
+            process_candidates_reason=result.process_candidates_reason,
+            already_committed=result.already_committed,
+            last_succeeded_attempt_id=result.last_succeeded_attempt_id,
+            last_succeeded_process_id=result.last_succeeded_process_id,
+            can_create_process=result.can_create_process,
         )
     except IngestionError as exc:
         raise _map_error(exc) from exc
@@ -1778,10 +2100,11 @@ def commit_document_numerario(
                 uow.session,
                 document_id=document_id,
                 operation_key=body.operation_key,
-                process_ids=body.process_ids,
+                process_ids=list(body.process_ids or []),
                 actor_id=str(user.id),
                 attachments_path=settings.attachments_path,
                 quarantine_path=settings.quarantine_path,
+                create_process=body.create_process,
             )
             uow.commit()
             uow.session.refresh(attempt)

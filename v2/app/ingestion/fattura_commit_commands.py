@@ -52,6 +52,10 @@ from app.ingestion.fattura_line_match import (
     notes_with_price_divergence,
     plan_fattura_lines,
 )
+from app.ingestion.fattura_order_candidates import (
+    FatturaOrderSuggestion,
+    suggest_fattura_orders,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -139,15 +143,56 @@ class FatturaQtyExceedsRemaining(IngestionError):
         )
 
 
+class FatturaLineAmbiguous(IngestionError):
+    def __init__(self, messages: list[str]) -> None:
+        super().__init__(
+            " ".join(messages) if messages else "Linha da Fattura ambígua — escolha explícita.",
+            code="fattura_line_ambiguous",
+        )
+
+
+class FatturaLineChoiceInvalid(IngestionError):
+    def __init__(self, messages: list[str]) -> None:
+        super().__init__(
+            " ".join(messages) if messages else "Escolha de linha inválida.",
+            code="fattura_line_choice_invalid",
+        )
+
+
+def _choices_map(line_choices: list | None) -> dict[int, int] | None:
+    if not line_choices:
+        return None
+    out: dict[int, int] = {}
+    for raw in line_choices:
+        if isinstance(raw, dict):
+            row_index = int(raw["row_index"])
+            order_item_id = int(raw["order_item_id"])
+        else:
+            row_index = int(raw.row_index)
+            order_item_id = int(raw.order_item_id)
+        if row_index in out and out[row_index] != order_item_id:
+            raise FatturaLineChoiceInvalid(
+                [f"Escolhas conflitantes para a linha PDF {row_index}."]
+            )
+        out[row_index] = order_item_id
+    return out
+
+
 def _raise_line_plan_blockers(plan: FatturaLinePlan) -> None:
     if plan.commitment_only:
         raise FatturaNoBillableLines()
     sku_msgs = [b.message for b in plan.blockers if b.code == "fattura_sku_not_on_order"]
     qty_msgs = [b.message for b in plan.blockers if b.code == "fattura_qty_exceeds_remaining"]
+    amb_msgs = [b.message for b in plan.blockers if b.code == "fattura_line_ambiguous"]
+    choice_msgs = [b.message for b in plan.blockers if b.code == "fattura_line_choice_invalid"]
     if sku_msgs:
         raise FatturaSkuNotOnOrder(sku_msgs)
     if qty_msgs:
         raise FatturaQtyExceedsRemaining(qty_msgs)
+    if amb_msgs:
+        raise FatturaLineAmbiguous(amb_msgs)
+    if choice_msgs:
+        raise FatturaLineChoiceInvalid(choice_msgs)
     if plan.blockers:
         first = plan.blockers[0]
         raise IngestionError(first.message, code=first.code)
@@ -189,26 +234,16 @@ def _preview_ops_for_line_plan(plan: FatturaLinePlan) -> list[FatturaPreviewOper
             )
         )
     for m in plan.matches:
+        if m.status == "ambiguous":
+            continue
         if m.candidate_count > 1 and m.order_item_id is not None:
             ops.append(
                 FatturaPreviewOperation(
                     op_key="match_choice",
                     description=(
                         f"Linha PDF {m.row_index} SKU {m.sku}: "
-                        f"{m.candidate_count} candidatos; escolhido item #{m.order_item_id} "
+                        f"operador escolheu item #{m.order_item_id} "
                         f"(preço pedido {m.order_unit_price}, saldo {m.remaining_before})"
-                    ),
-                    params=m.as_params(),
-                )
-            )
-        if m.ambiguous_price:
-            ops.append(
-                FatturaPreviewOperation(
-                    op_key="warn_ambiguous_match",
-                    description=(
-                        f"Ambiguidade de preço: linha PDF {m.row_index} SKU {m.sku} "
-                        "cabe em mais de um item do pedido com preços diferentes. "
-                        "Troque o pedido ou siga com a escolha por posição."
                     ),
                     params=m.as_params(),
                 )
@@ -407,6 +442,12 @@ class FatturaPreviewResult:
     operations: list[FatturaPreviewOperation]
     open_error_count: int
     can_commit: bool
+    order_candidates: list[dict] = field(default_factory=list)
+    order_candidates_reason: str | None = None
+    line_matches: list[dict] = field(default_factory=list)
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_invoice_id: int | None = None
 
 
 def preview_commit_fattura(
@@ -417,6 +458,7 @@ def preview_commit_fattura(
     order_id: int | None = None,
     c2_confirm: bool = False,
     c2_reason: str | None = None,
+    line_choices: list | None = None,
 ) -> FatturaPreviewResult:
     """Calcula digest e lista de operações sem escrever nada nos owners."""
     if policy not in VALID_POLICIES:
@@ -427,22 +469,86 @@ def preview_commit_fattura(
 
     doc = get_document_detail(db, document_id)
     fingerprint = _compute_fingerprint(db, document_id)
+    choices = _choices_map(line_choices)
 
     open_errors = sum(
         1 for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"
     )
 
+    existing_ok = (
+        db.query(IngestionCommitAttempt)
+        .filter(
+            IngestionCommitAttempt.document_id == document_id,
+            IngestionCommitAttempt.status == "SUCCEEDED",
+        )
+        .order_by(IngestionCommitAttempt.id.desc())
+        .first()
+    )
+    if existing_ok is not None:
+        inv_id = None
+        for op in existing_ok.operations or []:
+            if op.entity_type == "invoice" and op.entity_id:
+                try:
+                    inv_id = int(op.entity_id)
+                except (TypeError, ValueError):
+                    continue
+                break
+        return FatturaPreviewResult(
+            document_id=document_id,
+            fingerprint=existing_ok.payload_fingerprint or fingerprint,
+            policy_match=FatturaPolicyMatch(
+                policy=policy,
+                order_id=None,
+                order_status=None,
+                order_code=None,
+                invoice_will_be_created=False,
+                warning=None,
+            ),
+            operations=[
+                FatturaPreviewOperation(
+                    op_key=op.op_key,
+                    description=op.op_key.replace("_", " "),
+                    entity_type=op.entity_type,
+                    params={"entity_id": op.entity_id} if op.entity_id else {},
+                )
+                for op in (existing_ok.operations or [])
+            ],
+            open_error_count=open_errors,
+            can_commit=False,
+            already_committed=True,
+            last_succeeded_attempt_id=existing_ok.id,
+            last_succeeded_invoice_id=inv_id,
+        )
+
     supplier_id_str = _field_value(doc, "supplier_id_catalog")
     supplier_id = int(supplier_id_str) if supplier_id_str and supplier_id_str.isdigit() else None
 
     invoice_number = _field_value(doc, "invoice_number")
-    invoice_date_str = _field_value(doc, "invoice_date")
-    currency = _field_value(doc, "currency") or "EUR"
+
+    suggestion: FatturaOrderSuggestion | None = None
+    if policy == POLICY_A:
+        suggestion = suggest_fattura_orders(db, doc)
 
     # --- policy match analysis ---
     matched_order = None
     explicit_order_missing = policy in (POLICY_A, POLICY_B) and order_id is None
     if explicit_order_missing:
+        extra = ""
+        if suggestion is not None:
+            n = len(suggestion.candidates)
+            if n == 0:
+                extra = " " + (suggestion.reason or "Nenhum pedido candidato.")
+            elif n == 1:
+                c = suggestion.candidates[0]
+                extra = (
+                    f" Pedido sugerido #{c.order_id} ({c.order_code}) — "
+                    "confirme explicitamente; não há auto-commit."
+                )
+            else:
+                extra = (
+                    f" {n} pedidos candidatos — escolha um explicitamente; "
+                    "o sistema não escolhe em silêncio."
+                )
         policy_match = FatturaPolicyMatch(
             policy=policy,
             order_id=None,
@@ -452,6 +558,7 @@ def preview_commit_fattura(
             warning=(
                 "order_id é obrigatório para policy A/B — "
                 "informe o pedido explicitamente."
+                + extra
             ),
         )
     else:
@@ -474,7 +581,37 @@ def preview_commit_fattura(
         params={"occurrence_id": doc.occurrence_id},
     ))
 
-    if policy in (POLICY_A, POLICY_C2):
+    if suggestion is not None:
+        ops.append(
+            FatturaPreviewOperation(
+                op_key="order_candidates",
+                description=(
+                    suggestion.reason
+                    if not suggestion.candidates
+                    else (
+                        f"{len(suggestion.candidates)} pedido(s) candidato(s) — "
+                        "o operador confirma o order_id."
+                    )
+                ),
+                params={
+                    "count": len(suggestion.candidates),
+                    "reason": suggestion.reason,
+                    "supplier_used": suggestion.supplier_used,
+                    "supplier_unreliable": suggestion.supplier_unreliable,
+                },
+            )
+        )
+
+    will_create_invoice = (
+        policy in (POLICY_A, POLICY_C2)
+        and not explicit_order_missing
+        and (
+            policy == POLICY_C2
+            or (matched_order is not None and matched_order.status == "CONFIRMED")
+        )
+    )
+
+    if will_create_invoice:
         # Will create Invoice DRAFT
         ops.append(FatturaPreviewOperation(
             op_key="create_invoice",
@@ -529,8 +666,7 @@ def preview_commit_fattura(
                 entity_type=None,
                 params={},
             ))
-    elif policy == POLICY_C2:
-        # Already handled above (same as A for invoice creation, with extra confirm step)
+    elif policy == POLICY_C2 and not explicit_order_missing:
         ops.append(FatturaPreviewOperation(
             op_key="c2_confirm_order",
             description="Policy C2: confirmar reconstruction Order na mesma sessão (EXCEPTION)",
@@ -539,14 +675,16 @@ def preview_commit_fattura(
         ))
 
     line_plan_ok = True
+    line_matches: list[dict] = []
     if (
         policy == POLICY_A
         and matched_order is not None
         and matched_order.status == "CONFIRMED"
     ):
-        line_plan = plan_fattura_lines(db, doc, matched_order)
+        line_plan = plan_fattura_lines(db, doc, matched_order, line_choices=choices)
         ops.extend(_preview_ops_for_line_plan(line_plan))
         line_plan_ok = line_plan.ok
+        line_matches = [m.as_params() for m in line_plan.matches]
 
     can_commit = (
         open_errors == 0
@@ -562,6 +700,11 @@ def preview_commit_fattura(
         operations=ops,
         open_error_count=open_errors,
         can_commit=can_commit,
+        order_candidates=(
+            [c.as_dict() for c in suggestion.candidates] if suggestion else []
+        ),
+        order_candidates_reason=suggestion.reason if suggestion else None,
+        line_matches=line_matches,
     )
 
 
@@ -646,6 +789,7 @@ def execute_commit_fattura(
     attachments_path: Path,
     quarantine_path: Path,
     pending_files: list[Path] | None = None,
+    line_choices: list | None = None,
 ) -> IngestionCommitAttempt:
     """Executa commit idempotente: promote document + Invoice DRAFT via policy A/B/C1/C2.
 
@@ -667,6 +811,19 @@ def execute_commit_fattura(
             f"Policy inválida: '{policy}'. Valores permitidos: {sorted(VALID_POLICIES)}",
             code="invalid_policy",
         )
+
+    existing_ok = (
+        db.query(IngestionCommitAttempt)
+        .filter(
+            IngestionCommitAttempt.document_id == document_id,
+            IngestionCommitAttempt.status == "SUCCEEDED",
+        )
+        .order_by(IngestionCommitAttempt.id.desc())
+        .first()
+    )
+    if existing_ok is not None:
+        return existing_ok
+
     if policy == POLICY_C2:
         if not c2_confirm:
             raise IngestionError(
@@ -680,6 +837,7 @@ def execute_commit_fattura(
         raise FatturaOrderIdRequired()
 
     doc = get_document_detail(db, document_id)
+    choices = _choices_map(line_choices)
 
     # Check for blocker issues
     open_errors = [i for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"]
@@ -700,7 +858,7 @@ def execute_commit_fattura(
         elif early_order.status == "DRAFT":
             raise FatturaOrderDraftMustConfirm(early_order.id)
         elif early_order.status == "CONFIRMED":
-            line_plan = plan_fattura_lines(db, doc, early_order)
+            line_plan = plan_fattura_lines(db, doc, early_order, line_choices=choices)
             _raise_line_plan_blockers(line_plan)
 
     fingerprint = _compute_fingerprint(db, document_id)
@@ -1097,7 +1255,9 @@ def execute_commit_fattura(
         try:
             if line_plan is None:
                 target_order = orders_public.get_order(db, target_order_id)
-                line_plan = plan_fattura_lines(db, doc, target_order)
+                line_plan = plan_fattura_lines(
+                    db, doc, target_order, line_choices=choices
+                )
                 _raise_line_plan_blockers(line_plan)
             if not line_plan.items_payload:
                 raise FatturaNoBillableLines()

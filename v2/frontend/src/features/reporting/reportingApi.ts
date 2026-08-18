@@ -41,6 +41,22 @@ export type OrderCockpit = {
   documents: Record<string, unknown>;
   audit: Record<string, unknown>;
   alerts: Array<{ code: string; message: string; href?: string }>;
+  schedule?: {
+    mode?: string | null;
+    commercial_total?: string | null;
+    amount_sum?: string | null;
+    delta?: string | null;
+    coherence?: string | null;
+    currency?: string;
+    lines?: Array<{
+      sequence?: number;
+      due_date?: string | null;
+      condition_text?: string | null;
+      percent?: string | null;
+      amount?: string | null;
+      derived_amount?: string | null;
+    }>;
+  };
   kpis: Record<string, string | null | undefined>;
 };
 

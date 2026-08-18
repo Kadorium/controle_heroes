@@ -57,10 +57,16 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { orderId: number; orderStatus: string }) {
+export function OrderInvoicesPanel({
+  user,
+  orderId,
+  orderStatus,
+  orderVersion,
+}: Props & { orderId: number; orderStatus: string; orderVersion?: number }) {
   const nav = useNavigate();
   const [rows, setRows] = useState<InvoiceListItem[]>([]);
   const [qtys, setQtys] = useState<OrderQtyRow[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [number, setNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(todayIso());
   const [error, setError] = useState<string | null>(null);
@@ -68,13 +74,22 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
   const canWrite = canWriteBilling(user);
 
   async function reload() {
-    setRows(await listOrderInvoices(orderId));
-    setQtys(await invoicedQuantities(orderId));
+    const [nextRows, nextQtys] = await Promise.all([
+      listOrderInvoices(orderId),
+      invoicedQuantities(orderId),
+    ]);
+    setRows(nextRows);
+    setQtys(nextQtys);
+    setLoaded(true);
   }
 
   useEffect(() => {
-    void reload().catch((e) => setError(e instanceof Error ? e.message : "Erro"));
-  }, [orderId]);
+    setLoaded(false);
+    void reload().catch((e) => {
+      setError(e instanceof Error ? e.message : "Erro");
+      setLoaded(true);
+    });
+  }, [orderId, orderVersion]);
 
   async function onCreate() {
     setBusy(true);
@@ -93,7 +108,7 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
   }
 
   const hasBillable = qtys.some((q) => Boolean(q.billable));
-  const onlyCommitment = qtys.length > 0 && !hasBillable;
+  const hasUnbillable = qtys.some((q) => !q.billable);
 
   return (
     <SectionCard title="Faturas" data-testid="order-invoices">
@@ -103,11 +118,12 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
         </Notice>
       ) : null}
 
-      {onlyCommitment ? (
+      {hasUnbillable ? (
         <Notice tone="info" data-testid="order-invoices-commitment-notice">
-          Este pedido só tem linhas de compromisso (artigos ainda sem SKU final). As
-          faturas destes itens entram pela importação da Fattura do fornecedor — os
-          produtos reais chegam por ali. Não é possível criar fatura manual aqui.
+          Este pedido tem linhas de categoria (compromisso), ainda sem produto de
+          catálogo. Vincule cada linha a um produto na aba Itens antes de importar a
+          Fattura. A Fattura traz a mesma linha genérica do pedido — não o
+          modelo/cor/tamanho final. Isso é definido no estoque após a nacionalização.
         </Notice>
       ) : null}
 
@@ -145,7 +161,11 @@ export function OrderInvoicesPanel({ user, orderId, orderStatus }: Props & { ord
         </OperationalTable>
       ) : null}
 
-      {rows.length === 0 ? (
+      {!loaded ? (
+        <p className="muted" data-testid="order-invoices-loading">
+          Carregando faturas…
+        </p>
+      ) : rows.length === 0 ? (
         <p className="muted">Nenhuma fatura</p>
       ) : (
         <OperationalTable density="standard">

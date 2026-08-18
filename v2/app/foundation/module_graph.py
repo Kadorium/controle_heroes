@@ -34,9 +34,17 @@ INTERNAL_SUFFIXES = (
     ".annotations",
     ".numerario_commit_commands",
     ".fattura_commit_commands",
+    ".fattura_line_match",
+    ".fattura_order_candidates",
+    ".packing_commit_commands",
+    ".packing_line_match",
+    ".packing_order_candidates",
+    ".doganale_commit_commands",
+    ".print_commit_commands",
     ".xlsx_commit_commands",
     ".metrics_commands",
     ".metrics_models",
+    ".schedule",
 )
 
 MODULE_PACKAGES = frozenset(

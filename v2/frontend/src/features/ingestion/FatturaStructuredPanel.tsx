@@ -5,7 +5,13 @@ import type { DocumentDetail, RowOut } from "./ingestionApi";
 
 type Props = { doc: DocumentDetail };
 
-type Scadenza = { date?: string; amount?: string | number; label?: string };
+type Scadenza = {
+  date?: string;
+  due_date_iso?: string;
+  due_date_raw?: string;
+  amount?: string | number;
+  label?: string;
+};
 
 function field(doc: DocumentDetail, key: string): string | null {
   const f = (doc.fields ?? []).find((x) => x.field_key === key);
@@ -171,7 +177,15 @@ export function FatturaStructuredPanel({ doc }: Props) {
           <ul>
             {scadenze.map((s, idx) => (
               <li key={idx} data-testid={`fattura-scadenza-${idx}`}>
-                {s.date ? formatDateOnly(s.date) : s.label ?? `Parcela ${idx + 1}`}:{" "}
+                {(() => {
+                  const iso = s.due_date_iso || s.date;
+                  const formatted = iso ? formatDateOnly(iso) : "—";
+                  const dateLabel =
+                    formatted !== "—"
+                      ? formatted
+                      : s.due_date_raw || s.label || `Parcela ${idx + 1}`;
+                  return dateLabel;
+                })()}:{" "}
                 {s.amount != null ? (
                   <MoneyDisplay amount={String(s.amount)} currency={header.currency} />
                 ) : (

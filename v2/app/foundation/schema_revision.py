@@ -1,4 +1,4 @@
-"""Schema revision gate — ORM/código espera alembic 021 (RUX-3A/020 fora da árvore)."""
+"""Schema revision gate — ORM/código espera alembic 026 (L-006 + tax_id)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 # Head canônico da árvore em execução. Migration 020 (RUX-3A Catalog) vive em WIP isolado — não aplicar.
-EXPECTED_ALEMBIC_REVISION = "023"
+EXPECTED_ALEMBIC_REVISION = "026"
 
 
 class SchemaRevisionDriftError(RuntimeError):

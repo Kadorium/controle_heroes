@@ -1,0 +1,9 @@
+{
+  "pathB": 37,
+  "pathA": 38,
+  "batch": 32,
+  "occ": 35,
+  "doc": 32,
+  "doc_type": "FATTURA_VENDITA",
+  "review_status": "DRAFT"
+}

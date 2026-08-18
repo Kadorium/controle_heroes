@@ -24,13 +24,14 @@ router = APIRouter(prefix="/inventory", tags=["inventory"])
 def _map_error(exc: InventoryError) -> AppError:
     code = getattr(exc, "code", "inventory_error")
     status = 400
-    if code in ("location_not_found", "receipt_not_found"):
+    if code in ("location_not_found", "receipt_not_found", "process_not_found"):
         status = 404
     elif code in (
         "conflict",
         "receipt_immutable",
         "nationalization_required",
         "over_receipt",
+        "insufficient_bonded",
     ):
         status = 409
     elif code in (
@@ -42,7 +43,7 @@ def _map_error(exc: InventoryError) -> AppError:
         "location_type_mismatch",
         "empty_lines",
         "product_not_found",
-        "process_not_found",
+        "product_mismatch",
     ):
         status = 422
     return AppError(exc.message, code=code, status_code=status)
@@ -159,6 +160,17 @@ class SkuPositionOut(BaseModel):
     balances: list[dict[str, Any]] = []
 
 
+class ReceiptResidualOut(BaseModel):
+    nationalization_id: int
+    nationalization_item_id: int
+    product_id: int | None
+    product_sku: str | None
+    product_name: str | None
+    nationalized_qty: str
+    received_qty: str
+    residual_qty: str
+
+
 def _receipt_out(r: GoodsReceipt) -> ReceiptOut:
     return ReceiptOut(
         id=r.id,
@@ -202,6 +214,23 @@ def api_list_locations(db: Session = Depends(get_db), user=Depends(get_current_u
         )
         for loc in locs
     ]
+
+
+@router.get(
+    "/processes/{process_id}/receipt-residuals",
+    response_model=list[ReceiptResidualOut],
+)
+def api_list_receipt_residuals(
+    process_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "inventory:read")
+    try:
+        rows = inventory_public.list_receipt_residuals(db, process_id)
+        return [ReceiptResidualOut(**r) for r in rows]
+    except InventoryError as exc:
+        raise _map_error(exc) from exc
 
 
 @router.post("/receipts", response_model=ReceiptOut, status_code=201)

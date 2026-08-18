@@ -1,0 +1,27 @@
+{
+  "protected": {
+    "31": "589",
+    "34": "TESTE-CICLO-001"
+  },
+  "supplier_id": 26,
+  "case1": {
+    "order_id": 39,
+    "doc_id": 33,
+    "sku": "A0-F5-ONE-8057"
+  },
+  "case2": {
+    "order_ids": [
+      40,
+      41
+    ],
+    "doc_id": 34
+  },
+  "case3": {
+    "order_id": 42,
+    "doc_id": 35,
+    "item_ids": [
+      55,
+      56
+    ]
+  }
+}

@@ -17,12 +17,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.foundation.database import Base
 
+PURPOSE_ADVANCE = "ADVANCE"
+PURPOSE_SETTLEMENT = "SETTLEMENT"
+
 
 class Payment(Base):
     __tablename__ = "payments"
     __table_args__ = (
         CheckConstraint("status IN ('REGISTERED', 'CANCELLED')", name="ck_payments_status"),
         CheckConstraint("amount > 0", name="ck_payments_amount_positive"),
+        CheckConstraint(
+            "purpose IS NULL OR purpose IN ('ADVANCE', 'SETTLEMENT')",
+            name="ck_payments_purpose",
+        ),
         UniqueConstraint("idempotency_key", name="uq_payments_idempotency_key"),
     )
 
@@ -31,6 +38,7 @@ class Payment(Base):
     order_id: Mapped[int | None] = mapped_column(
         ForeignKey("orders.id"), nullable=True, index=True
     )
+    purpose: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
     payment_date: Mapped[date] = mapped_column(Date, nullable=False)

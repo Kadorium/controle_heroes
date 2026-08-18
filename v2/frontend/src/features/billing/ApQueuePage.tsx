@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
-import { listSuppliers } from "../catalog/catalogApi";
+import { getSupplier } from "../catalog/catalogApi";
+import { useSupplierSearch } from "../catalog/useCatalogSearch";
 import {
   Button,
   ContextBreadcrumb,
@@ -103,6 +104,15 @@ export function ApQueuePage({ user }: Props) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [suppliers, setSuppliers] = useState<{ id: number; name: string }[]>([]);
+  const [supplierQ, setSupplierQ] = useState("");
+  const searchedSuppliers = useSupplierSearch(supplierQ, { activeOnly: false, limit: 20 });
+  const supplierOptions = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    for (const s of suppliers) map.set(s.id, s);
+    for (const s of searchedSuppliers) map.set(s.id, { id: s.id, name: s.name });
+    return [...map.values()];
+  }, [suppliers, searchedSuppliers]);
+  const supplierIdParam = params.get("supplier_id") ?? "";
   useListReturn("/payables", selected ? String(selected.id) : null);
 
   const today = useMemo(() => localDateISO(), []);
@@ -118,10 +128,11 @@ export function ApQueuePage({ user }: Props) {
   }, []);
 
   useEffect(() => {
-    void listSuppliers()
-      .then((rows) => setSuppliers(rows.map((s) => ({ id: s.id, name: s.name }))))
-      .catch(() => setSuppliers([]));
-  }, []);
+    if (!supplierIdParam) return;
+    void getSupplier(Number(supplierIdParam))
+      .then((s) => setSuppliers([{ id: s.id, name: s.name }]))
+      .catch(() => undefined);
+  }, [supplierIdParam]);
 
   const query = useMemo(() => {
     const pendingRaw = params.get("pending");
@@ -427,6 +438,15 @@ export function ApQueuePage({ user }: Props) {
                   inputMode="numeric"
                 />
               </FormField>
+              <FormField label="Fornecedor" htmlFor="ap-supplier-q">
+                <TextInput
+                  id="ap-supplier-q"
+                  data-testid="ap-filter-supplier-search"
+                  placeholder="Buscar fornecedor…"
+                  value={supplierQ}
+                  onChange={(e) => setSupplierQ(e.target.value)}
+                />
+              </FormField>
               <FormField label="Fornecedor" htmlFor="ap-supplier">
                 <SelectField
                   id="ap-supplier"
@@ -435,7 +455,7 @@ export function ApQueuePage({ user }: Props) {
                   onChange={(e) => setFilter("supplier_id", e.target.value)}
                   options={[
                     { value: "", label: "Todos" },
-                    ...suppliers.map((s) => ({ value: String(s.id), label: s.name })),
+                    ...supplierOptions.map((s) => ({ value: String(s.id), label: s.name })),
                   ]}
                 />
               </FormField>

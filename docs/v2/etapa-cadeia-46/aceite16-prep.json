@@ -1,0 +1,23 @@
+{
+  "order_id": 1,
+  "order_code": "C46-328",
+  "supplier_id": 1,
+  "product_id": 1,
+  "invoice_id": 1,
+  "invoice_status": "ISSUED",
+  "advance_payment_id": 1,
+  "settlement_payment_id": 2,
+  "fattura_ir": 1,
+  "packing_ir": 2,
+  "packing_rows": 5,
+  "payables": [
+    {
+      "id": 1,
+      "amount": "1250.0000"
+    },
+    {
+      "id": 2,
+      "amount": "4083.0000"
+    }
+  ]
+}

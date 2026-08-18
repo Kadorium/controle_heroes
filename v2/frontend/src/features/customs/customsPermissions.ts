@@ -35,6 +35,12 @@ export function statusLabel(status: string) {
 /** Mensagem de conflito 409 / reason code visível ao operador. */
 export function conflictMessage(err: Error & { status?: number; code?: string }) {
   const base = err.message?.trim() || "Conflito de estado";
+  if (err.status === 409 && err.code === "over_nationalization") {
+    return "Não é possível nacionalizar mais do que o residual. Reduza a quantidade desta liberação.";
+  }
+  if (err.status === 409 && err.code === "over_receipt") {
+    return "Não é possível receber mais do que o residual nacionalizado disponível. Reduza a quantidade.";
+  }
   if (err.status === 409) {
     const code = err.code?.trim();
     return code ? `Conflito (409 · ${code}): ${base}` : `Conflito (409): ${base}`;

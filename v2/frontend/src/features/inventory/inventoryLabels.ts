@@ -21,6 +21,14 @@ export function skuBucketLabel(key: string): string {
   }
 }
 
+/** Escopo do indicador — evita ler o agregado global como residual do processo. */
+export function skuBucketScopeNote(key: string): string | null {
+  if (key === "cleared_not_received_qty") {
+    return "Agregado do produto em todos os processos — não é o residual deste processo.";
+  }
+  return null;
+}
+
 export function movementTypeLabel(type: string | null | undefined): string {
   switch (type) {
     case "BONDED_IN":

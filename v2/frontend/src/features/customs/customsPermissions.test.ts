@@ -53,6 +53,24 @@ describe("customsPermissions", () => {
     expect(conflictMessage(err)).toContain("qty_oversubscribed");
     expect(conflictMessage(err)).toContain("oversubscription");
   });
+
+  it("over_nationalization is an operational sentence, not a raw 409", () => {
+    const err = Object.assign(new Error("Quantidade excede residual nacionalizável"), {
+      status: 409,
+      code: "over_nationalization",
+    });
+    expect(conflictMessage(err)).toMatch(/residual/i);
+    expect(conflictMessage(err)).not.toContain("409");
+  });
+
+  it("over_receipt is an operational sentence, not a raw 409", () => {
+    const err = Object.assign(new Error("Quantidade excede residual nacionalizado disponível"), {
+      status: 409,
+      code: "over_receipt",
+    });
+    expect(conflictMessage(err)).toMatch(/residual/i);
+    expect(conflictMessage(err)).not.toContain("409");
+  });
 });
 
 /** Matriz mínima de papéis operacionais (espelha seed Identity). */

@@ -1,7 +1,8 @@
 import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import {
+  bindCommitmentProduct,
   cancelOrder,
   confirmOrder,
   getOrder,
@@ -11,8 +12,11 @@ import {
   type Order,
 } from "./ordersApi";
 import { canCancelOrders, canWriteOrders } from "./orderTotals";
+import { BindProductModal, type BindProductLine } from "./BindProductModal";
 import { OrderInvoicesPanel } from "../billing/InvoiceDetailPage";
+import { invoicedQuantities, type OrderQtyRow } from "../billing/billingApi";
 import { OrderAdvancesPanel } from "../treasury/OrderAdvancesPanel";
+import { OrderPaymentSchedulePanel } from "./OrderPaymentSchedulePanel";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
   Button,
@@ -50,14 +54,22 @@ export function OrderDetailPage({ user }: Props) {
   const [orderDate, setOrderDate] = useState("");
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [qtys, setQtys] = useState<OrderQtyRow[]>([]);
+  const [bindLine, setBindLine] = useState<BindProductLine | null>(null);
+  const [bindBusy, setBindBusy] = useState(false);
   const ordersReturn = buildReturnTo("/orders");
   const cockpitHref = `/orders/${id}`;
+
+  const reloadQtys = useCallback(async (orderIdNum: number) => {
+    setQtys(await invoicedQuantities(orderIdNum));
+  }, []);
 
   async function reload() {
     const data = await getOrder(id);
     setOrder(data);
     setOrderDate(data.order_date ?? "");
     setNotes(data.notes ?? "");
+    await reloadQtys(data.id);
   }
 
   useEffect(() => {
@@ -70,6 +82,8 @@ export function OrderDetailPage({ user }: Props) {
           setOrderDate(data.order_date ?? "");
           setNotes(data.notes ?? "");
         }
+        const qtyRows = await invoicedQuantities(id);
+        if (!cancelled) setQtys(qtyRows);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Erro");
       }
@@ -95,10 +109,30 @@ export function OrderDetailPage({ user }: Props) {
     (order.status === "DRAFT" && canWriteOrders(user)) ||
     (order.status === "CONFIRMED" && canCancelOrders(user));
   const canUploadDocs = canWriteOrders(user) && order.status !== "CANCELLED";
+  const canBind =
+    order.status === "CONFIRMED" && canWriteOrders(user);
   const commitmentCount = (order.items ?? []).filter(
     (i) => String(i.line_kind ?? "").toUpperCase() === "COMMITMENT",
   ).length;
   const hasCommitmentLines = commitmentCount > 0;
+  const qtyByItem = new Map(qtys.map((q) => [q.order_item_id, q]));
+
+  async function onBindConfirm(productId: number) {
+    if (!order || !bindLine) return;
+    setBindBusy(true);
+    setError(null);
+    try {
+      const next = await bindCommitmentProduct(order.id, bindLine.id, {
+        expected_version: order.version,
+        product_id: productId,
+      });
+      setOrder(next);
+      await reloadQtys(next.id);
+      setBindLine(null);
+    } finally {
+      setBindBusy(false);
+    }
+  }
 
   async function onConfirm() {
     if (busy) return;
@@ -351,64 +385,102 @@ export function OrderDetailPage({ user }: Props) {
                 <th>UM</th>
                 <th className="num">Preço</th>
                 <th className="num">Total</th>
+                <th className="num">Disponível</th>
+                {canBind ? <th>Ação</th> : null}
               </tr>
             </thead>
             <tbody>
-              {order.items?.map((i) => (
-                <tr key={i.id} data-testid={`order-item-row-${i.id}`}>
-                  <td data-testid={`order-item-kind-${i.id}`}>
-                    {String(i.line_kind ?? "").toUpperCase() === "COMMITMENT"
-                      ? "Compromisso"
-                      : "Produto"}
-                  </td>
-                  <td>{i.external_code || i.sku_snapshot}</td>
-                  <td>{i.description_snapshot}</td>
-                  <td className="num">{formatQuantity(i.quantity)}</td>
-                  <td data-testid={`order-item-unit-${i.id}`}>
-                    {editable ? (
-                      <TextInput
-                        data-testid={`order-item-unit-edit-${i.id}`}
-                        value={i.unit ?? ""}
-                        placeholder="PZ"
-                        maxLength={16}
-                        onChange={(e) => {
-                          const items = (order.items ?? []).map((row) =>
-                            row.id === i.id ? { ...row, unit: e.target.value || null } : row,
-                          );
-                          setOrder({ ...order, items });
-                        }}
-                        onBlur={(e) => {
-                          const nextUnit = e.target.value.trim() || null;
-                          void (async () => {
-                            if (!order) return;
-                            setBusy(true);
-                            setError(null);
-                            try {
-                              const next = await updateOrderItem(order.id, i.id, {
-                                expected_version: order.version,
-                                unit: nextUnit,
-                              });
-                              setOrder(next);
-                            } catch (err) {
-                              setError(err instanceof Error ? err.message : "Erro");
-                            } finally {
-                              setBusy(false);
+              {order.items?.map((i) => {
+                const kind = String(i.line_kind ?? "").toUpperCase();
+                const isCommitment = kind === "COMMITMENT";
+                const qtyRow = qtyByItem.get(i.id);
+                const billable = qtyRow ? Boolean(qtyRow.billable) : !isCommitment;
+                const skuDisplay = isCommitment
+                  ? i.external_code || i.sku_snapshot
+                  : i.sku_snapshot;
+                return (
+                  <tr key={i.id} data-testid={`order-item-row-${i.id}`}>
+                    <td data-testid={`order-item-kind-${i.id}`}>
+                      {isCommitment ? "Compromisso" : "Produto"}
+                    </td>
+                    <td data-testid={`order-item-sku-${i.id}`}>{skuDisplay}</td>
+                    <td>{i.description_snapshot}</td>
+                    <td className="num">{formatQuantity(i.quantity)}</td>
+                    <td data-testid={`order-item-unit-${i.id}`}>
+                      {editable ? (
+                        <TextInput
+                          data-testid={`order-item-unit-edit-${i.id}`}
+                          value={i.unit ?? ""}
+                          placeholder="PZ"
+                          maxLength={16}
+                          onChange={(e) => {
+                            const items = (order.items ?? []).map((row) =>
+                              row.id === i.id ? { ...row, unit: e.target.value || null } : row,
+                            );
+                            setOrder({ ...order, items });
+                          }}
+                          onBlur={(e) => {
+                            const nextUnit = e.target.value.trim() || null;
+                            void (async () => {
+                              if (!order) return;
+                              setBusy(true);
+                              setError(null);
+                              try {
+                                const next = await updateOrderItem(order.id, i.id, {
+                                  expected_version: order.version,
+                                  unit: nextUnit,
+                                });
+                                setOrder(next);
+                              } catch (err) {
+                                setError(err instanceof Error ? err.message : "Erro");
+                              } finally {
+                                setBusy(false);
+                              }
+                            })();
+                          }}
+                        />
+                      ) : (
+                        i.unit ?? "—"
+                      )}
+                    </td>
+                    <td className="num">
+                      <MoneyDisplay amount={i.unit_price} currency={order.currency} />
+                    </td>
+                    <td className="num">
+                      <MoneyDisplay amount={i.line_total} currency={order.currency} />
+                    </td>
+                    <td
+                      className="num"
+                      data-testid={`order-item-available-${i.id}`}
+                    >
+                      {billable
+                        ? formatQuantity(qtyRow?.available_qty ?? i.quantity)
+                        : "—"}
+                    </td>
+                    {canBind ? (
+                      <td>
+                        {isCommitment ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            data-testid={`bind-product-${i.id}`}
+                            onClick={() =>
+                              setBindLine({
+                                id: i.id,
+                                external_code: i.external_code ?? null,
+                                description_snapshot: i.description_snapshot,
+                                quantity: i.quantity,
+                              })
                             }
-                          })();
-                        }}
-                      />
-                    ) : (
-                      i.unit ?? "—"
-                    )}
-                  </td>
-                  <td className="num">
-                    <MoneyDisplay amount={i.unit_price} currency={order.currency} />
-                  </td>
-                  <td className="num">
-                    <MoneyDisplay amount={i.line_total} currency={order.currency} />
-                  </td>
-                </tr>
-              ))}
+                          >
+                            Vincular produto
+                          </Button>
+                        ) : null}
+                      </td>
+                    ) : null}
+                  </tr>
+                );
+              })}
             </tbody>
           </OperationalTable>
         )}
@@ -425,6 +497,15 @@ export function OrderDetailPage({ user }: Props) {
           </>
         ) : null}
       </p>
+
+      <OrderPaymentSchedulePanel
+        user={user}
+        orderId={order.id}
+        orderCurrency={order.currency}
+        orderStatus={order.status}
+        orderVersion={order.version}
+        onSaved={reload}
+      />
 
       {/* Adiantamentos antes de Documentos: upload de câmbio fica no formulário,
           longe do anexo do pedido — evita confundir os dois file inputs (FIN-1C-FIX-1B). */}
@@ -471,11 +552,26 @@ export function OrderDetailPage({ user }: Props) {
         ) : null}
       </SectionCard>
 
-      <OrderInvoicesPanel user={user} orderId={order.id} orderStatus={order.status} />
+      <OrderInvoicesPanel
+        user={user}
+        orderId={order.id}
+        orderStatus={order.status}
+        orderVersion={order.version}
+      />
 
       <Button variant="secondary" onClick={() => void reload()}>
         Atualizar
       </Button>
+
+      <BindProductModal
+        open={bindLine != null}
+        orderId={order.id}
+        expectedVersion={order.version}
+        line={bindLine}
+        busy={bindBusy}
+        onCancel={() => setBindLine(null)}
+        onConfirm={onBindConfirm}
+      />
 
       <ConfirmationModal
         open={confirmOpen}

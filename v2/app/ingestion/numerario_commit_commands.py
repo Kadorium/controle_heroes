@@ -25,6 +25,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
+from app.billing import public as billing_public
 from app.customs import public as customs_public
 from app.documents import public as documents_public
 from app.ingestion import staging_queries
@@ -78,6 +79,12 @@ class NumerarioPreviewResult:
     planned_operations: list[NumerarioPreviewOp]
     open_error_count: int
     can_commit: bool
+    process_candidates: list[dict] = field(default_factory=list)
+    process_candidates_reason: str | None = None
+    already_committed: bool = False
+    last_succeeded_attempt_id: int | None = None
+    last_succeeded_process_id: int | None = None
+    can_create_process: bool = False
 
 
 def _build_fingerprint(document_id: int, process_ids: list[int]) -> str:
@@ -116,14 +123,60 @@ def _parse_invoice_refs(doc) -> list[str]:
     return []
 
 
+def _last_succeeded_attempt(db: Session, document_id: int) -> IngestionCommitAttempt | None:
+    row = (
+        db.query(IngestionCommitAttempt)
+        .filter(
+            IngestionCommitAttempt.document_id == document_id,
+            IngestionCommitAttempt.status == "SUCCEEDED",
+        )
+        .order_by(IngestionCommitAttempt.id.desc())
+        .first()
+    )
+    if row is None or getattr(row, "status", None) != "SUCCEEDED":
+        return None
+    return row
+
+
+def collect_numerario_process_candidates(db: Session, invoice_refs: list[str]) -> list[dict]:
+    out: list[dict] = []
+    seen: set[int] = set()
+    if not isinstance(invoice_refs, list):
+        return out
+    for ref in invoice_refs:
+        try:
+            invoices = billing_public.find_invoices_by_number(db, str(ref))
+        except Exception:
+            continue
+        if not isinstance(invoices, list):
+            continue
+        for inv in invoices:
+            if getattr(inv, "status", None) != "ISSUED":
+                continue
+            try:
+                proc = customs_public.find_process_for_invoice(db, inv.id)
+            except Exception:
+                continue
+            if proc is None or proc.status == "CANCELLED" or proc.id in seen:
+                continue
+            seen.add(proc.id)
+            out.append(
+                {
+                    "process_id": proc.id,
+                    "code": proc.code,
+                    "status": proc.status,
+                    "evidence": [f"Fatura ISSUED {ref} (#{inv.id}) ligada ao processo"],
+                }
+            )
+    return out
+
+
 def preview_numerario(
     db: Session,
     document_id: int,
     process_ids: list[int],
 ) -> NumerarioPreviewResult:
     """Read-only preview — no DB writes."""
-    import hashlib
-
     doc = staging_queries.get_document_detail(db, document_id)
     open_errors = [
         i for i in (doc.issues or []) if i.status == "OPEN" and i.severity == "ERROR"
@@ -131,6 +184,48 @@ def preview_numerario(
 
     invoice_refs = _parse_invoice_refs(doc)
     fingerprint = _build_fingerprint(document_id, process_ids)
+
+    existing_ok = _last_succeeded_attempt(db, document_id)
+    if existing_ok is not None:
+        pid = None
+        for op in existing_ok.operations or []:
+            if op.entity_type in ("import_process", "process") and op.entity_id:
+                try:
+                    pid = int(op.entity_id)
+                    break
+                except (TypeError, ValueError):
+                    continue
+        return NumerarioPreviewResult(
+            document_id=document_id,
+            fingerprint=existing_ok.payload_fingerprint or fingerprint,
+            invoice_refs=invoice_refs,
+            process_ids_input=process_ids,
+            planned_operations=[],
+            open_error_count=len(open_errors),
+            can_commit=False,
+            already_committed=True,
+            last_succeeded_attempt_id=existing_ok.id,
+            last_succeeded_process_id=pid,
+        )
+
+    candidates = collect_numerario_process_candidates(db, invoice_refs)
+    reason = None
+    if not process_ids:
+        if len(candidates) == 1:
+            reason = (
+                "1 processo ligado a fatura do Numerário — confirme para registrar os tributos. "
+                "Sem vínculo silencioso."
+            )
+        elif len(candidates) > 1:
+            reason = (
+                f"{len(candidates)} processos ligados às faturas do Numerário — escolha. "
+                "O documento cobre várias faturas (DUIMP)."
+            )
+        else:
+            reason = (
+                "Nenhum processo com fatura ISSUED das refs do Numerário. "
+                "Pode criar um processo rascunho e registrar os tributos neste processo."
+            )
 
     ops: list[NumerarioPreviewOp] = [
         NumerarioPreviewOp(
@@ -193,6 +288,9 @@ def preview_numerario(
         planned_operations=ops,
         open_error_count=len(open_errors),
         can_commit=len(open_errors) == 0 and len(process_ids) > 0,
+        process_candidates=candidates,
+        process_candidates_reason=reason,
+        can_create_process=len(candidates) == 0,
     )
 
 
@@ -204,7 +302,7 @@ def preview_numerario(
 def _build_value_bases(doc) -> list[dict]:
     """Build value_bases lines from IR fields: FOB, Additions, Deductions, Freight, Insurance, CIF."""
     bases = []
-    pos = 0
+    pos = 1
 
     fob_currency = _get_field_value(doc, "fob_currency") or "EUR"
     fob_brl = _get_field_value(doc, "fob_brl_amount")
@@ -266,8 +364,8 @@ def _build_lines_by_category(doc) -> tuple[list[dict], list[dict]]:
     """Split IR expense rows into tax_lines and expense_lines."""
     tax_lines = []
     expense_lines = []
-    tax_pos = 0
-    exp_pos = 0
+    tax_pos = 1
+    exp_pos = 1
 
     TAX_CODES = {
         "AFRMM",
@@ -362,6 +460,7 @@ def commit_numerario(
     actor_id: str,
     attachments_path: Path,
     quarantine_path: Path,
+    create_process: bool = False,
 ) -> IngestionCommitAttempt:
     """Commit Solicitação de Numerário: promote document + create/update payee + per-process FundingRequest DRAFT.
 
@@ -378,24 +477,39 @@ def commit_numerario(
     if open_errors:
         raise NumerarioCommitBlockedByIssues(len(open_errors))
 
-    if not process_ids:
-        raise IngestionError(
-            "process_ids obrigatório para commit do Numerário",
-            code="commit_blocked_by_issues",
-        )
-
-    fingerprint = _build_fingerprint(document_id, process_ids)
-
-    # Idempotency check
     existing = (
         db.query(IngestionCommitAttempt)
         .filter(IngestionCommitAttempt.operation_key == operation_key)
         .first()
     )
+    prior = _last_succeeded_attempt(db, document_id)
+    if prior is not None and existing is None:
+        return prior
+
+    created_process_id: int | None = None
+    if not process_ids:
+        if create_process:
+            created = customs_public.create_import_process(
+                db,
+                notes=f"Criado via ingestão Numerário — IR {document_id} (registro tributário)",
+            )
+            process_ids = [created.id]
+            created_process_id = created.id
+        else:
+            raise IngestionError(
+                "process_ids obrigatório para commit do Numerário",
+                code="commit_blocked_by_issues",
+            )
+
+    fingerprint = _build_fingerprint(document_id, process_ids)
+
     if existing is not None:
         if existing.payload_fingerprint == fingerprint:
             return existing
         raise NumerarioCommitConflictFingerprint(operation_key)
+
+    if prior is not None:
+        return prior
 
     attempt = IngestionCommitAttempt(
         document_id=document_id,
@@ -409,6 +523,18 @@ def commit_numerario(
 
     succeeded: list[str] = []
     failed: list[str] = []
+
+    if created_process_id is not None:
+        _record_op(
+            db,
+            attempt,
+            "create_import_process",
+            status="SUCCEEDED",
+            entity_type="import_process",
+            entity_id=str(created_process_id),
+            details_json=json.dumps({"reuse_reason": "created_empty"}),
+        )
+        succeeded.append("create_import_process")
 
     # ---------- Op 1: store_document ----------
     promoted_doc_id: int | None = None

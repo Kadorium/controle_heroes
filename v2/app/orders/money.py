@@ -1,6 +1,7 @@
 from decimal import ROUND_HALF_UP, Decimal
 
 MONEY_QUANT = Decimal("0.0001")
+COMMERCIAL_QUANT = Decimal("0.01")
 
 
 def parse_decimal(value: str | Decimal | None) -> Decimal | None:
@@ -29,10 +30,30 @@ def line_amount(quantity: Decimal, unit_price: Decimal | None) -> Decimal | None
     return (quantity * unit_price).quantize(MONEY_QUANT, rounding=ROUND_HALF_UP)
 
 
+def money2(value: Decimal) -> Decimal:
+    return value.quantize(COMMERCIAL_QUANT, rounding=ROUND_HALF_UP)
+
+
 def decimal_str(value: Decimal | None) -> str | None:
     if value is None:
         return None
     return format(value, "f")
+
+
+def split_percent_amounts(base: Decimal, percents: list[Decimal]) -> list[Decimal]:
+    """Residual na última parcela — mesmo critério comercial da Invoice, sem importar Billing."""
+    if not percents:
+        return []
+    amounts: list[Decimal] = []
+    allocated = Decimal("0.00")
+    for i, pct in enumerate(percents):
+        if i == len(percents) - 1:
+            amounts.append(money2(base - allocated))
+        else:
+            part = money2(base * pct / Decimal("100"))
+            amounts.append(part)
+            allocated += part
+    return amounts
 
 
 def normalize_unit(value: str | None) -> str | None:

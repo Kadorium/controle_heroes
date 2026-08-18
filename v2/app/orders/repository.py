@@ -1,7 +1,7 @@
 from sqlalchemy import update
 from sqlalchemy.orm import Session, joinedload
 
-from app.orders.models import Order, OrderItem
+from app.orders.models import Order, OrderItem, OrderPaymentScheduleLine
 
 
 def get_order(db: Session, order_id: int) -> Order | None:
@@ -45,11 +45,18 @@ def get_order_by_code(db: Session, code: str) -> Order | None:
 
 
 def list_orders(
-    db: Session, *, status: str | None, limit: int, offset: int
+    db: Session,
+    *,
+    status: str | None,
+    limit: int,
+    offset: int,
+    supplier_id: int | None = None,
 ) -> list[Order]:
     q = db.query(Order).options(joinedload(Order.items))
     if status:
         q = q.filter(Order.status == status)
+    if supplier_id is not None:
+        q = q.filter(Order.supplier_id == supplier_id)
     return q.order_by(Order.updated_at.desc()).offset(offset).limit(limit).all()
 
 
@@ -98,6 +105,28 @@ def bump_version_if_match(db: Session, order_id: int, expected_version: int) -> 
     )
     db.flush()
     return result.rowcount == 1  # type: ignore[attr-defined]
+
+
+def list_schedule_lines(db: Session, order_id: int) -> list[OrderPaymentScheduleLine]:
+    return (
+        db.query(OrderPaymentScheduleLine)
+        .filter(OrderPaymentScheduleLine.order_id == order_id)
+        .order_by(OrderPaymentScheduleLine.sequence.asc())
+        .all()
+    )
+
+
+def clear_schedule_lines(db: Session, order_id: int) -> None:
+    rows = list_schedule_lines(db, order_id)
+    for row in rows:
+        db.delete(row)
+    db.flush()
+
+
+def add_schedule_line(db: Session, line: OrderPaymentScheduleLine) -> OrderPaymentScheduleLine:
+    db.add(line)
+    db.flush()
+    return line
 
 
 def next_item_position(db: Session, order_id: int) -> int:

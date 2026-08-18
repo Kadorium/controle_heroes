@@ -1,0 +1,4 @@
+574 passed, 1 warning in 296.45s (0:04:56)
+
+Suite completa em epic_v2_test (conftest drop_all). 2026-08-18.
+Inclui test_catalog_api (L-006/tax_id), test_identity_users_api, test_logistics_api q, heads 026.

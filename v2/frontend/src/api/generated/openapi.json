@@ -107,6 +107,286 @@
         }
       }
     },
+    "/api/roles": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http List Roles",
+        "operationId": "http_list_roles_api_roles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RoleOut"
+                  },
+                  "type": "array",
+                  "title": "Response Http List Roles Api Roles Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http List Users",
+        "operationId": "http_list_users_api_users_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http Create User",
+        "operationId": "http_create_user_api_users_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAdminOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{user_id}": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http Get User",
+        "operationId": "http_get_user_api_users__user_id__get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAdminOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http Patch User",
+        "operationId": "http_patch_user_api_users__user_id__patch",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPatchIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAdminOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{user_id}/password": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Http Set Password",
+        "operationId": "http_set_password_api_users__user_id__password_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPasswordIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAdminOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/audit": {
       "get": {
         "tags": [
@@ -432,6 +712,114 @@
         }
       }
     },
+    "/api/catalog/supplier-list": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Supplier List Report",
+        "operationId": "supplier_list_report_api_catalog_supplier_list_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Active Only"
+            }
+          },
+          {
+            "name": "missing_tax_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Missing Tax Id"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/suppliers/{supplier_id}": {
       "get": {
         "tags": [
@@ -450,6 +838,56 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Patch Supplier",
+        "operationId": "patch_supplier_api_suppliers__supplier_id__patch",
+        "parameters": [
+          {
+            "name": "supplier_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Supplier Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierPatch"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -599,6 +1037,199 @@
         }
       }
     },
+    "/api/catalog/product-list": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Product List Report",
+        "operationId": "product_list_report_api_catalog_product_list_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Active Only"
+            }
+          },
+          {
+            "name": "incomplete",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Incomplete"
+            }
+          },
+          {
+            "name": "missing_ncm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Missing Ncm"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Size"
+            }
+          },
+          {
+            "name": "color",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Color"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/product-attribute-values": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Product Attribute Values",
+        "operationId": "product_attribute_values_api_catalog_product_attribute_values_get",
+        "parameters": [
+          {
+            "name": "field",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(size|color)$",
+              "title": "Field"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeValuesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/products/{product_id}": {
       "get": {
         "tags": [
@@ -617,6 +1248,56 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Patch Product",
+        "operationId": "patch_product_api_products__product_id__patch",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPatch"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1019,6 +1700,67 @@
         }
       }
     },
+    "/api/orders/{order_id}/items/{item_id}/bind-product": {
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Bind Commitment Product",
+        "operationId": "bind_commitment_product_api_orders__order_id__items__item_id__bind_product_post",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindProductBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/orders/{order_id}/confirm": {
       "post": {
         "tags": [
@@ -1106,6 +1848,98 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders/{order_id}/payment-schedule": {
+      "get": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Get Payment Schedule",
+        "operationId": "get_payment_schedule_api_orders__order_id__payment_schedule_get",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Put Payment Schedule",
+        "operationId": "put_payment_schedule_api_orders__order_id__payment_schedule_put",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleReplace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleView"
                 }
               }
             }
@@ -3378,6 +4212,22 @@
         "summary": "List Providers",
         "operationId": "list_providers_api_logistics_providers_get",
         "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
           {
             "name": "active_only",
             "in": "query",
@@ -7500,6 +8350,52 @@
         }
       }
     },
+    "/api/inventory/processes/{process_id}/receipt-residuals": {
+      "get": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Api List Receipt Residuals",
+        "operationId": "api_list_receipt_residuals_api_inventory_processes__process_id__receipt_residuals_get",
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReceiptResidualOut"
+                  },
+                  "title": "Response Api List Receipt Residuals Api Inventory Processes  Process Id  Receipt Residuals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/inventory/receipts": {
       "post": {
         "tags": [
@@ -9865,6 +10761,22 @@
               ],
               "title": "C2 Reason"
             }
+          },
+          {
+            "name": "line_choices",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Line Choices"
+            }
           }
         ],
         "responses": {
@@ -9987,13 +10899,104 @@
         }
       }
     },
+    "/api/ingestion/documents/{document_id}/preview-commit-pl-detail": {
+      "get": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Preview Commit Pl Detail",
+        "description": "Preview do commit Packing List Detail — sem escrever owners.",
+        "operationId": "preview_commit_pl_detail_api_ingestion_documents__document_id__preview_commit_pl_detail_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Order Id"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shipment Id"
+            }
+          },
+          {
+            "name": "line_choices",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Line Choices"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackingPreviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ingestion/documents/{document_id}/commit-pl-detail": {
       "post": {
         "tags": [
           "ingestion"
         ],
         "summary": "Commit Document Pl Detail",
-        "description": "Commit PL Detail: promove documento + cria Shipment PLANNED.",
+        "description": "Commit PL Detail: promove documento + preenche Shipment PLANNED via Logistics.",
         "operationId": "commit_document_pl_detail_api_ingestion_documents__document_id__commit_pl_detail_post",
         "parameters": [
           {
@@ -10011,7 +11014,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DossierCommitIn"
+                "$ref": "#/components/schemas/PackingCommitIn"
               }
             }
           }
@@ -10040,13 +11043,103 @@
         }
       }
     },
+    "/api/ingestion/documents/{document_id}/preview-commit-doganale": {
+      "get": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Preview Commit Doganale",
+        "operationId": "preview_commit_doganale_api_ingestion_documents__document_id__preview_commit_doganale_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "process_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Process Id"
+            }
+          },
+          {
+            "name": "invoice_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "shipment_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Shipment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoganalePreviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ingestion/documents/{document_id}/commit-doganale": {
       "post": {
         "tags": [
           "ingestion"
         ],
         "summary": "Commit Document Doganale",
-        "description": "Commit Fattura Doganale: promove documento + cria ImportProcess DRAFT.",
+        "description": "Commit Fattura Doganale: preenche CustomsDoganale + 0/1/N processo/fatura/embarque.",
         "operationId": "commit_document_doganale_api_ingestion_documents__document_id__commit_doganale_post",
         "parameters": [
           {
@@ -10064,7 +11157,117 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DossierCommitIn"
+                "$ref": "#/components/schemas/DoganaleCommitIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommitAttemptOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingestion/documents/{document_id}/preview-commit-print": {
+      "get": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Preview Commit Print",
+        "operationId": "preview_commit_print_api_ingestion_documents__document_id__preview_commit_print_get",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "process_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Process Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintPreviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingestion/documents/{document_id}/commit-print": {
+      "post": {
+        "tags": [
+          "ingestion"
+        ],
+        "summary": "Commit Document Print",
+        "operationId": "commit_document_print_api_ingestion_documents__document_id__commit_print_post",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrintCommitIn"
               }
             }
           }
@@ -10957,6 +12160,17 @@
             "type": "integer",
             "title": "Payment Id"
           },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
           "amount": {
             "type": "string",
             "title": "Amount"
@@ -11093,6 +12307,13 @@
             },
             "type": "array",
             "title": "Advances"
+          },
+          "settlements": {
+            "items": {
+              "$ref": "#/components/schemas/AdvanceItemResponse"
+            },
+            "type": "array",
+            "title": "Settlements"
           },
           "consolidated": {
             "$ref": "#/components/schemas/AdvanceConsolidated"
@@ -11310,6 +12531,27 @@
         ],
         "title": "AllocationResponse"
       },
+      "AttributeValuesResponse": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "values": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "values"
+        ],
+        "title": "AttributeValuesResponse"
+      },
       "AuditEventResponse": {
         "properties": {
           "id": {
@@ -11523,6 +12765,24 @@
           "updated_at"
         ],
         "title": "BatchOut"
+      },
+      "BindProductBody": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "title": "Expected Version"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_version",
+          "product_id"
+        ],
+        "title": "BindProductBody"
       },
       "Body_create_order_advance_with_document_api_orders__order_id__advances_with_document_post": {
         "properties": {
@@ -11986,6 +13246,50 @@
           "residual_qty": {
             "type": "string",
             "title": "Residual Qty"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "product_sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Sku"
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "shipped_qty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipped Qty"
           }
         },
         "type": "object",
@@ -13166,6 +14470,104 @@
         ],
         "title": "DocumentSummaryOut"
       },
+      "DoganaleCommitIn": {
+        "properties": {
+          "operation_key": {
+            "type": "string",
+            "title": "Operation Key"
+          },
+          "process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Id"
+          },
+          "invoice_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Id"
+          },
+          "shipment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipment Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operation_key"
+        ],
+        "title": "DoganaleCommitIn"
+      },
+      "DoganaleInvoiceCandidateOut": {
+        "properties": {
+          "invoice_id": {
+            "type": "integer",
+            "title": "Invoice Id"
+          },
+          "invoice_number": {
+            "type": "string",
+            "title": "Invoice Number"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "linked_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Process Id"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "invoice_number",
+          "status"
+        ],
+        "title": "DoganaleInvoiceCandidateOut"
+      },
       "DoganaleLineIn": {
         "properties": {
           "position": {
@@ -13615,6 +15017,401 @@
         ],
         "title": "DoganaleLineOut"
       },
+      "DoganaleLinePreviewOut": {
+        "properties": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "ncm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ncm"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "line_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "position"
+        ],
+        "title": "DoganaleLinePreviewOut"
+      },
+      "DoganalePreviewOpOut": {
+        "properties": {
+          "op_key": {
+            "type": "string",
+            "title": "Op Key"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "op_key",
+          "description"
+        ],
+        "title": "DoganalePreviewOpOut"
+      },
+      "DoganalePreviewOut": {
+        "properties": {
+          "document_id": {
+            "type": "integer",
+            "title": "Document Id"
+          },
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/DoganalePreviewOpOut"
+            },
+            "type": "array",
+            "title": "Operations"
+          },
+          "open_error_count": {
+            "type": "integer",
+            "title": "Open Error Count"
+          },
+          "can_commit": {
+            "type": "boolean",
+            "title": "Can Commit"
+          },
+          "process_targets": {
+            "items": {
+              "$ref": "#/components/schemas/DoganaleProcessTargetOut"
+            },
+            "type": "array",
+            "title": "Process Targets"
+          },
+          "process_targets_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Targets Reason"
+          },
+          "invoice_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/DoganaleInvoiceCandidateOut"
+            },
+            "type": "array",
+            "title": "Invoice Candidates"
+          },
+          "invoice_candidates_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Candidates Reason"
+          },
+          "shipment_targets": {
+            "items": {
+              "$ref": "#/components/schemas/DoganaleShipmentTargetOut"
+            },
+            "type": "array",
+            "title": "Shipment Targets"
+          },
+          "shipment_targets_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipment Targets Reason"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/DoganaleLinePreviewOut"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blockers"
+          },
+          "resolved_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Process Id"
+          },
+          "resolved_invoice_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Invoice Id"
+          },
+          "resolved_shipment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Shipment Id"
+          },
+          "will_create_process": {
+            "type": "boolean",
+            "title": "Will Create Process",
+            "default": false
+          },
+          "reuse_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reuse Reason"
+          },
+          "already_committed": {
+            "type": "boolean",
+            "title": "Already Committed",
+            "default": false
+          },
+          "last_succeeded_attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Attempt Id"
+          },
+          "last_succeeded_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Process Id"
+          },
+          "document_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "fingerprint",
+          "open_error_count",
+          "can_commit"
+        ],
+        "title": "DoganalePreviewOut"
+      },
+      "DoganaleProcessTargetOut": {
+        "properties": {
+          "process_id": {
+            "type": "integer",
+            "title": "Process Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "compatible": {
+            "type": "boolean",
+            "title": "Compatible"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "process_id",
+          "code",
+          "status",
+          "compatible"
+        ],
+        "title": "DoganaleProcessTargetOut"
+      },
+      "DoganaleShipmentTargetOut": {
+        "properties": {
+          "shipment_id": {
+            "type": "integer",
+            "title": "Shipment Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "compatible": {
+            "type": "boolean",
+            "title": "Compatible"
+          },
+          "linked_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Process Id"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shipment_id",
+          "code",
+          "status",
+          "compatible"
+        ],
+        "title": "DoganaleShipmentTargetOut"
+      },
       "DoganaleSummaryOut": {
         "properties": {
           "id": {
@@ -13779,19 +15576,6 @@
           "lines"
         ],
         "title": "DoganaleVersionOut"
-      },
-      "DossierCommitIn": {
-        "properties": {
-          "operation_key": {
-            "type": "string",
-            "title": "Operation Key"
-          }
-        },
-        "type": "object",
-        "required": [
-          "operation_key"
-        ],
-        "title": "DossierCommitIn"
       },
       "DossierPreviewItemOut": {
         "properties": {
@@ -14062,6 +15846,13 @@
               }
             ],
             "title": "C2 Reason"
+          },
+          "line_choices": {
+            "items": {
+              "$ref": "#/components/schemas/FatturaLineChoiceIn"
+            },
+            "type": "array",
+            "title": "Line Choices"
           }
         },
         "type": "object",
@@ -14070,6 +15861,197 @@
           "policy"
         ],
         "title": "FatturaCommitIn"
+      },
+      "FatturaLineCandidateOut": {
+        "properties": {
+          "order_item_id": {
+            "type": "integer",
+            "title": "Order Item Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "remaining": {
+            "type": "string",
+            "title": "Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_item_id",
+          "position",
+          "remaining"
+        ],
+        "title": "FatturaLineCandidateOut"
+      },
+      "FatturaLineChoiceIn": {
+        "properties": {
+          "row_index": {
+            "type": "integer",
+            "title": "Row Index"
+          },
+          "order_item_id": {
+            "type": "integer",
+            "title": "Order Item Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row_index",
+          "order_item_id"
+        ],
+        "title": "FatturaLineChoiceIn"
+      },
+      "FatturaLineMatchOut": {
+        "properties": {
+          "row_index": {
+            "type": "integer",
+            "title": "Row Index"
+          },
+          "sku": {
+            "type": "string",
+            "title": "Sku"
+          },
+          "pdf_qty": {
+            "type": "string",
+            "title": "Pdf Qty"
+          },
+          "pdf_unit_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pdf Unit Price"
+          },
+          "order_item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Item Id"
+          },
+          "order_unit_price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Unit Price"
+          },
+          "remaining_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Before"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/FatturaLineCandidateOut"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "price_mismatch": {
+            "type": "boolean",
+            "title": "Price Mismatch",
+            "default": false
+          },
+          "ambiguous_price": {
+            "type": "boolean",
+            "title": "Ambiguous Price",
+            "default": false
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row_index",
+          "sku",
+          "pdf_qty",
+          "candidate_count",
+          "status"
+        ],
+        "title": "FatturaLineMatchOut"
+      },
+      "FatturaOrderCandidateOut": {
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "title": "Order Id"
+          },
+          "order_code": {
+            "type": "string",
+            "title": "Order Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "supplier_id": {
+            "type": "integer",
+            "title": "Supplier Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "currency_match": {
+            "type": "boolean",
+            "title": "Currency Match",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id",
+          "order_code",
+          "status",
+          "supplier_id",
+          "currency"
+        ],
+        "title": "FatturaOrderCandidateOut"
       },
       "FatturaPolicyMatchOut": {
         "properties": {
@@ -14199,6 +16181,58 @@
           "can_commit": {
             "type": "boolean",
             "title": "Can Commit"
+          },
+          "order_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/FatturaOrderCandidateOut"
+            },
+            "type": "array",
+            "title": "Order Candidates"
+          },
+          "order_candidates_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Candidates Reason"
+          },
+          "line_matches": {
+            "items": {
+              "$ref": "#/components/schemas/FatturaLineMatchOut"
+            },
+            "type": "array",
+            "title": "Line Matches"
+          },
+          "already_committed": {
+            "type": "boolean",
+            "title": "Already Committed",
+            "default": false
+          },
+          "last_succeeded_attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Attempt Id"
+          },
+          "last_succeeded_invoice_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Invoice Id"
           }
         },
         "type": "object",
@@ -15135,7 +17169,7 @@
           "alembic_expected": {
             "type": "string",
             "title": "Alembic Expected",
-            "default": "023"
+            "default": "026"
           },
           "schema_ok": {
             "type": "boolean",
@@ -16940,12 +18974,16 @@
             },
             "type": "array",
             "title": "Process Ids"
+          },
+          "create_process": {
+            "type": "boolean",
+            "title": "Create Process",
+            "default": false
           }
         },
         "type": "object",
         "required": [
-          "operation_key",
-          "process_ids"
+          "operation_key"
         ],
         "title": "NumerarioCommitIn"
       },
@@ -17129,6 +19167,56 @@
           "can_commit": {
             "type": "boolean",
             "title": "Can Commit"
+          },
+          "process_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/NumerarioProcessCandidateOut"
+            },
+            "type": "array",
+            "title": "Process Candidates"
+          },
+          "process_candidates_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Candidates Reason"
+          },
+          "already_committed": {
+            "type": "boolean",
+            "title": "Already Committed",
+            "default": false
+          },
+          "last_succeeded_attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Attempt Id"
+          },
+          "last_succeeded_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Process Id"
+          },
+          "can_create_process": {
+            "type": "boolean",
+            "title": "Can Create Process",
+            "default": false
           }
         },
         "type": "object",
@@ -17139,6 +19227,36 @@
           "can_commit"
         ],
         "title": "NumerarioPreviewOut"
+      },
+      "NumerarioProcessCandidateOut": {
+        "properties": {
+          "process_id": {
+            "type": "integer",
+            "title": "Process Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "process_id",
+          "code",
+          "status"
+        ],
+        "title": "NumerarioProcessCandidateOut"
       },
       "OccurrenceOut": {
         "properties": {
@@ -18972,6 +21090,564 @@
         ],
         "title": "PackagesBatchUpdate"
       },
+      "PackingCartonOut": {
+        "properties": {
+          "row_index": {
+            "type": "integer",
+            "title": "Row Index"
+          },
+          "pallet_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pallet No"
+          },
+          "carton_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carton No"
+          },
+          "items_per_ctn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Items Per Ctn"
+          },
+          "ncm": {
+            "type": "string",
+            "title": "Ncm"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "dimensions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimensions"
+          },
+          "unit_net_weight_kg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Net Weight Kg"
+          },
+          "unit_gross_weight_kg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Gross Weight Kg"
+          },
+          "total_net_weight_kg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Net Weight Kg"
+          },
+          "total_gross_weight_kg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Gross Weight Kg"
+          },
+          "packaging": {
+            "type": "boolean",
+            "title": "Packaging",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "row_index",
+          "ncm",
+          "description"
+        ],
+        "title": "PackingCartonOut"
+      },
+      "PackingCommitIn": {
+        "properties": {
+          "operation_key": {
+            "type": "string",
+            "title": "Operation Key"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "shipment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipment Id"
+          },
+          "line_choices": {
+            "items": {
+              "$ref": "#/components/schemas/PackingLineChoiceIn"
+            },
+            "type": "array",
+            "title": "Line Choices"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operation_key"
+        ],
+        "title": "PackingCommitIn"
+      },
+      "PackingLineCandidateOut": {
+        "properties": {
+          "order_item_id": {
+            "type": "integer",
+            "title": "Order Item Id"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "sku": {
+            "type": "string",
+            "title": "Sku"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "remaining": {
+            "type": "string",
+            "title": "Remaining"
+          },
+          "line_kind": {
+            "type": "string",
+            "title": "Line Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_item_id",
+          "position",
+          "sku",
+          "description",
+          "remaining",
+          "line_kind"
+        ],
+        "title": "PackingLineCandidateOut"
+      },
+      "PackingLineChoiceIn": {
+        "properties": {
+          "group_key": {
+            "type": "string",
+            "title": "Group Key"
+          },
+          "order_item_id": {
+            "type": "integer",
+            "title": "Order Item Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_key",
+          "order_item_id"
+        ],
+        "title": "PackingLineChoiceIn"
+      },
+      "PackingLineMatchOut": {
+        "properties": {
+          "group_key": {
+            "type": "string",
+            "title": "Group Key"
+          },
+          "ncm": {
+            "type": "string",
+            "title": "Ncm"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "carton_count": {
+            "type": "integer",
+            "title": "Carton Count"
+          },
+          "total_qty": {
+            "type": "string",
+            "title": "Total Qty"
+          },
+          "packaging": {
+            "type": "boolean",
+            "title": "Packaging"
+          },
+          "order_item_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Item Id"
+          },
+          "remaining_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Before"
+          },
+          "candidate_count": {
+            "type": "integer",
+            "title": "Candidate Count"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/PackingLineCandidateOut"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "carton_row_indexes": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Carton Row Indexes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group_key",
+          "ncm",
+          "description",
+          "carton_count",
+          "total_qty",
+          "packaging",
+          "candidate_count",
+          "status"
+        ],
+        "title": "PackingLineMatchOut"
+      },
+      "PackingOrderCandidateOut": {
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "title": "Order Id"
+          },
+          "order_code": {
+            "type": "string",
+            "title": "Order Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "supplier_id": {
+            "type": "integer",
+            "title": "Supplier Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "currency_match": {
+            "type": "boolean",
+            "title": "Currency Match",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id",
+          "order_code",
+          "status",
+          "supplier_id",
+          "currency"
+        ],
+        "title": "PackingOrderCandidateOut"
+      },
+      "PackingPreviewOperationOut": {
+        "properties": {
+          "op_key": {
+            "type": "string",
+            "title": "Op Key"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "op_key",
+          "description"
+        ],
+        "title": "PackingPreviewOperationOut"
+      },
+      "PackingPreviewOut": {
+        "properties": {
+          "document_id": {
+            "type": "integer",
+            "title": "Document Id"
+          },
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/PackingPreviewOperationOut"
+            },
+            "type": "array",
+            "title": "Operations"
+          },
+          "open_error_count": {
+            "type": "integer",
+            "title": "Open Error Count"
+          },
+          "can_commit": {
+            "type": "boolean",
+            "title": "Can Commit"
+          },
+          "order_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/PackingOrderCandidateOut"
+            },
+            "type": "array",
+            "title": "Order Candidates"
+          },
+          "order_candidates_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Candidates Reason"
+          },
+          "shipment_targets": {
+            "items": {
+              "$ref": "#/components/schemas/PackingShipmentTargetOut"
+            },
+            "type": "array",
+            "title": "Shipment Targets"
+          },
+          "shipment_targets_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipment Targets Reason"
+          },
+          "line_matches": {
+            "items": {
+              "$ref": "#/components/schemas/PackingLineMatchOut"
+            },
+            "type": "array",
+            "title": "Line Matches"
+          },
+          "cartons": {
+            "items": {
+              "$ref": "#/components/schemas/PackingCartonOut"
+            },
+            "type": "array",
+            "title": "Cartons"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blockers"
+          },
+          "resolved_order_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Order Id"
+          },
+          "resolved_shipment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Shipment Id"
+          },
+          "will_create_shipment": {
+            "type": "boolean",
+            "title": "Will Create Shipment",
+            "default": false
+          },
+          "already_committed": {
+            "type": "boolean",
+            "title": "Already Committed",
+            "default": false
+          },
+          "last_succeeded_attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Attempt Id"
+          },
+          "last_succeeded_shipment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Shipment Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "fingerprint",
+          "open_error_count",
+          "can_commit"
+        ],
+        "title": "PackingPreviewOut"
+      },
+      "PackingShipmentTargetOut": {
+        "properties": {
+          "shipment_id": {
+            "type": "integer",
+            "title": "Shipment Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "compatible": {
+            "type": "boolean",
+            "title": "Compatible"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shipment_id",
+          "code",
+          "status",
+          "compatible"
+        ],
+        "title": "PackingShipmentTargetOut"
+      },
       "PayablePreview": {
         "properties": {
           "sequence": {
@@ -19503,6 +22179,17 @@
             ],
             "title": "Order Id"
           },
+          "purpose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Purpose"
+          },
           "amount": {
             "type": "string",
             "title": "Amount"
@@ -19765,6 +22452,208 @@
           "entity_type"
         ],
         "title": "PreviewOperationOut"
+      },
+      "PrintCommitIn": {
+        "properties": {
+          "operation_key": {
+            "type": "string",
+            "title": "Operation Key"
+          },
+          "process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "operation_key"
+        ],
+        "title": "PrintCommitIn"
+      },
+      "PrintPreviewOpOut": {
+        "properties": {
+          "op_key": {
+            "type": "string",
+            "title": "Op Key"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "op_key",
+          "description"
+        ],
+        "title": "PrintPreviewOpOut"
+      },
+      "PrintPreviewOut": {
+        "properties": {
+          "document_id": {
+            "type": "integer",
+            "title": "Document Id"
+          },
+          "fingerprint": {
+            "type": "string",
+            "title": "Fingerprint"
+          },
+          "operations": {
+            "items": {
+              "$ref": "#/components/schemas/PrintPreviewOpOut"
+            },
+            "type": "array",
+            "title": "Operations"
+          },
+          "open_error_count": {
+            "type": "integer",
+            "title": "Open Error Count"
+          },
+          "can_commit": {
+            "type": "boolean",
+            "title": "Can Commit"
+          },
+          "invoice_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Ref"
+          },
+          "process_targets": {
+            "items": {
+              "$ref": "#/components/schemas/PrintProcessTargetOut"
+            },
+            "type": "array",
+            "title": "Process Targets"
+          },
+          "process_targets_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Targets Reason"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blockers"
+          },
+          "already_committed": {
+            "type": "boolean",
+            "title": "Already Committed",
+            "default": false
+          },
+          "last_succeeded_attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Attempt Id"
+          },
+          "last_succeeded_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Succeeded Process Id"
+          },
+          "resolved_process_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved Process Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "document_id",
+          "fingerprint",
+          "open_error_count",
+          "can_commit"
+        ],
+        "title": "PrintPreviewOut"
+      },
+      "PrintProcessTargetOut": {
+        "properties": {
+          "process_id": {
+            "type": "integer",
+            "title": "Process Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "compatible": {
+            "type": "boolean",
+            "title": "Compatible"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "process_id",
+          "code",
+          "status",
+          "compatible"
+        ],
+        "title": "PrintProcessTargetOut"
       },
       "ProcessCreate": {
         "properties": {
@@ -20114,6 +23003,146 @@
         ],
         "title": "ProductCreate"
       },
+      "ProductListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProductResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "ProductListResponse"
+      },
+      "ProductPatch": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "ean": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ean"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "ncm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ncm"
+          },
+          "country_of_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Of Origin"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "net_weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Weight Kg"
+          }
+        },
+        "type": "object",
+        "title": "ProductPatch"
+      },
       "ProductResponse": {
         "properties": {
           "id": {
@@ -20132,6 +23161,84 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "ean": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ean"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "ncm": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ncm"
+          },
+          "country_of_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Of Origin"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "net_weight_kg": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Weight Kg"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -20143,6 +23250,18 @@
               }
             ],
             "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
           }
         },
         "type": "object",
@@ -20986,6 +24105,75 @@
         ],
         "title": "ReceiptOut"
       },
+      "ReceiptResidualOut": {
+        "properties": {
+          "nationalization_id": {
+            "type": "integer",
+            "title": "Nationalization Id"
+          },
+          "nationalization_item_id": {
+            "type": "integer",
+            "title": "Nationalization Item Id"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "product_sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Sku"
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "nationalized_qty": {
+            "type": "string",
+            "title": "Nationalized Qty"
+          },
+          "received_qty": {
+            "type": "string",
+            "title": "Received Qty"
+          },
+          "residual_qty": {
+            "type": "string",
+            "title": "Residual Qty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nationalization_id",
+          "nationalization_item_id",
+          "product_id",
+          "product_sku",
+          "product_name",
+          "nationalized_qty",
+          "received_qty",
+          "residual_qty"
+        ],
+        "title": "ReceiptResidualOut"
+      },
       "ReceiptVersionBody": {
         "properties": {
           "expected_version": {
@@ -21326,6 +24514,35 @@
         ],
         "title": "ReviewChangeOut"
       },
+      "RoleOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RoleOut"
+      },
       "RowAddIn": {
         "properties": {
           "cells_json": {
@@ -21628,6 +24845,263 @@
         ],
         "title": "RunAdapterOut"
       },
+      "ScheduleLineIn": {
+        "properties": {
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "condition_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Text"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "title": "ScheduleLineIn"
+      },
+      "ScheduleLineOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "condition_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition Text"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "derived_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derived Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "sequence"
+        ],
+        "title": "ScheduleLineOut"
+      },
+      "ScheduleReplace": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "title": "Expected Version"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleLineIn"
+            },
+            "type": "array",
+            "title": "Lines"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_version"
+        ],
+        "title": "ScheduleReplace"
+      },
+      "ScheduleView": {
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "title": "Order Id"
+          },
+          "order_version": {
+            "type": "integer",
+            "title": "Order Version"
+          },
+          "order_status": {
+            "type": "string",
+            "title": "Order Status"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "commercial_total": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commercial Total"
+          },
+          "amount_sum": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Sum"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta"
+          },
+          "coherence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coherence"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleLineOut"
+            },
+            "type": "array",
+            "title": "Lines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "order_id",
+          "order_version",
+          "order_status",
+          "currency"
+        ],
+        "title": "ScheduleView"
+      },
       "SectionOut": {
         "properties": {
           "id": {
@@ -21759,6 +25233,19 @@
           "expected_version"
         ],
         "title": "SetDocumentBody"
+      },
+      "SetPasswordIn": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "SetPasswordIn"
       },
       "ShipmentCreate": {
         "properties": {
@@ -22742,6 +26229,17 @@
             "type": "boolean",
             "title": "Is Active",
             "default": true
+          },
+          "tax_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Id"
           }
         },
         "type": "object",
@@ -22749,6 +26247,98 @@
           "name"
         ],
         "title": "SupplierCreate"
+      },
+      "SupplierListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "SupplierListResponse"
+      },
+      "SupplierPatch": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "country_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country Code"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "tax_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Id"
+          }
+        },
+        "type": "object",
+        "title": "SupplierPatch"
       },
       "SupplierResponse": {
         "properties": {
@@ -22786,6 +26376,17 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "tax_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Id"
+          },
           "created_at": {
             "anyOf": [
               {
@@ -22797,6 +26398,18 @@
               }
             ],
             "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
           }
         },
         "type": "object",
@@ -22975,6 +26588,180 @@
           "results"
         ],
         "title": "UploadResponse"
+      },
+      "UserAdminOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "role_id": {
+            "type": "integer",
+            "title": "Role Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "last_login": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permissions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "role_id",
+          "is_active",
+          "permissions"
+        ],
+        "title": "UserAdminOut"
+      },
+      "UserCreateIn": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "role_id": {
+            "type": "integer",
+            "title": "Role Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "name",
+          "password",
+          "role_id"
+        ],
+        "title": "UserCreateIn"
+      },
+      "UserListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserAdminOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "UserListOut"
+      },
+      "UserPatchIn": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "role_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Id"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "UserPatchIn"
       },
       "UserResponse": {
         "properties": {

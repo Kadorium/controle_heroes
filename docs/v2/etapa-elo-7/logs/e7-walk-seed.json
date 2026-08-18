@@ -1,0 +1,81 @@
+{
+  "honesty": "order_products_provider_are_mock; fattura_lines_from_pdf_extract",
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-08-14T17:43:01.989086Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "025",
+    "alembic_expected": "025",
+    "schema_ok": true
+  },
+  "supplier_id": 1,
+  "order_id": 1,
+  "order_code": "E7-202-MOCK",
+  "order_total": null,
+  "item_count": 7,
+  "provider_id": 1,
+  "products": {
+    "8057628950936": 1,
+    "8057628953104": 2,
+    "8057628954194": 3,
+    "8057628953814": 4,
+    "8057628955191": 5,
+    "8057628955207": 6,
+    "8057628955214": 7
+  },
+  "lines": [
+    {
+      "sku": "8057628950936",
+      "qty": "150",
+      "unit_price": "6.50",
+      "unit": "PZ",
+      "description": "WASH B AG R E B E L - PUR PL E"
+    },
+    {
+      "sku": "8057628953104",
+      "qty": "150",
+      "unit_price": "6.50",
+      "unit": "PZ",
+      "description": "WASH B AG FIE R C E"
+    },
+    {
+      "sku": "8057628954194",
+      "qty": "200",
+      "unit_price": "6.50",
+      "unit": "PZ",
+      "description": "WASH B AG SH O W - L IGH T B L UE"
+    },
+    {
+      "sku": "8057628953814",
+      "qty": "200",
+      "unit_price": "6.50",
+      "unit": "PZ",
+      "description": "WASH B AG ST AR L IGH T - R E D"
+    },
+    {
+      "sku": "8057628955191",
+      "qty": "300",
+      "unit_price": "43.03",
+      "unit": "PZ",
+      "description": "T H UND E R AR IO N"
+    },
+    {
+      "sku": "8057628955207",
+      "qty": "300",
+      "unit_price": "35.93",
+      "unit": "PZ",
+      "description": "GR AVIT Y AR IO N"
+    },
+    {
+      "sku": "8057628955214",
+      "qty": "300",
+      "unit_price": "6.50",
+      "unit": "PZ",
+      "description": "WASH B AG AR IO N"
+    }
+  ]
+}

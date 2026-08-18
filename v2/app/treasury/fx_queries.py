@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.billing import public as billing_public
@@ -16,13 +17,14 @@ from app.treasury.fx_commands import (
     list_plan_history,
     quote_status,
 )
-from app.treasury.fx_models import FxAllocationValuation, FxExecutionAllocation
+from app.treasury.fx_models import FxAllocationValuation, FxExecution, FxExecutionAllocation
 from app.treasury.fx_money import (
     money2,
     online_result_vs_current,
     online_result_vs_initial,
     realized_result_vs_initial,
     to_brl,
+    weighted_rate,
 )
 from app.treasury.models import Payment, PaymentAllocation
 
@@ -31,6 +33,41 @@ def decimal_str(value: Decimal | None) -> str | None:
     if value is None:
         return None
     return format(value, "f")
+
+
+def payable_cost_brl(db: Session, payable_id: int) -> Decimal:
+    """Custo em BRL da obrigação = soma dos câmbios rateados nas alocações (não P&L)."""
+    alloc_ids = [
+        a.id
+        for a in db.query(PaymentAllocation).filter(PaymentAllocation.payable_id == payable_id).all()
+    ]
+    if not alloc_ids:
+        return money2(Decimal("0"))
+    raw = (
+        db.query(func.coalesce(func.sum(FxExecutionAllocation.brl_amount), 0))
+        .filter(FxExecutionAllocation.payment_allocation_id.in_(alloc_ids))
+        .scalar()
+    )
+    return money2(Decimal(str(raw)))
+
+
+def order_fx_cost(db: Session, order_id: int) -> dict:
+    """Custo BRL do pedido = soma de todas as FxExecution dos pagamentos REGISTERED."""
+    rows = (
+        db.query(FxExecution)
+        .join(Payment, Payment.id == FxExecution.payment_id)
+        .filter(Payment.order_id == order_id, Payment.status == "REGISTERED")
+        .all()
+    )
+    total_eur = money2(sum((r.foreign_amount for r in rows), Decimal("0")))
+    total_brl = money2(sum((r.brl_amount for r in rows), Decimal("0")))
+    avg = weighted_rate(total_eur, total_brl)
+    return {
+        "cost_eur": decimal_str(total_eur) or "0",
+        "cost_brl": decimal_str(total_brl) or "0",
+        "weighted_avg_rate": decimal_str(avg) if avg is not None else None,
+        "execution_count": len(rows),
+    }
 
 
 def payable_fx_view(db: Session, payable_id: int) -> dict:
@@ -70,6 +107,7 @@ def payable_fx_view(db: Session, payable_id: int) -> dict:
         )
     realized_vs_ref = money2(sum((v.realized_result_vs_reference for v in vals), Decimal("0"))) if vals else None
     realized_brl_sum = money2(sum((v.realized_brl for v in vals), Decimal("0"))) if vals else None
+    cost_brl = payable_cost_brl(db, payable_id)
     settled = money2(sum((v.foreign_amount_snapshot for v in vals), Decimal("0"))) if vals else Decimal("0")
     realized_vs_ini = None
     if vals and initial:
@@ -122,6 +160,7 @@ def payable_fx_view(db: Session, payable_id: int) -> dict:
         "online_result_vs_current": decimal_str(online_cur),
         "online_result_vs_initial": decimal_str(online_ini),
         "settled_foreign": decimal_str(settled) if vals else "0",
+        "cost_brl": decimal_str(cost_brl) or "0",
         "realized_brl": decimal_str(realized_brl_sum),
         "realized_result_vs_reference": decimal_str(realized_vs_ref) if vals else None,
         "realized_result_vs_initial": decimal_str(realized_vs_ini),

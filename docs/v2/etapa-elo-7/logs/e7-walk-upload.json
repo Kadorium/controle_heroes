@@ -1,0 +1,51 @@
+{
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-08-14T17:44:23.126269Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "025",
+    "alembic_expected": "025",
+    "schema_ok": true
+  },
+  "docs": {
+    "Fattura_202.pdf": {
+      "document_id": 1,
+      "adapter": "fattura_heroes_v1",
+      "doc_type": "FATTURA_VENDITA",
+      "row_count": 7,
+      "workspace": "http://127.0.0.1:5174/ingestion/1"
+    },
+    "PackingList_202.pdf": {
+      "document_id": 2,
+      "adapter": "packing_list_detail_v1",
+      "doc_type": "PACKING_LIST_DETAIL",
+      "row_count": 100,
+      "workspace": "http://127.0.0.1:5174/ingestion/2"
+    },
+    "FatturaDoganale_202.pdf": {
+      "document_id": 3,
+      "adapter": "fattura_doganale_v1",
+      "doc_type": "FATTURA_DOGANALE",
+      "row_count": 7,
+      "workspace": "http://127.0.0.1:5174/ingestion/3"
+    },
+    "PrintDeclaration_202.pdf": {
+      "document_id": 4,
+      "adapter": "print_declaration_v1",
+      "doc_type": "PRINT_DECLARATION",
+      "row_count": 1,
+      "workspace": "http://127.0.0.1:5174/ingestion/4"
+    },
+    "Solicitacao_Numerario.pdf": {
+      "document_id": 5,
+      "adapter": "solicitacao_numerario_v1",
+      "doc_type": "SOLICITACAO_NUMERARIO",
+      "row_count": 16,
+      "workspace": "http://127.0.0.1:5174/ingestion/5"
+    }
+  }
+}

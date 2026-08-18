@@ -15,9 +15,13 @@ def _uid() -> str:
     return uuid.uuid4().hex[:8]
 
 
-def _confirmed_order(client, *, tag: str, qty="10"):
-    s = client.post("/api/suppliers", json={"name": f"Sup-{tag}", "country_code": "IT"}).json()
-    p = client.post("/api/products", json={"sku": f"SKU-{tag}", "description": f"P {tag}"}).json()
+def _confirmed_order(client, *, tag: str, qty="10", product=None, supplier=None):
+    s = supplier if supplier is not None else client.post(
+        "/api/suppliers", json={"name": f"Sup-{tag}", "country_code": "IT"}
+    ).json()
+    p = product if product is not None else client.post(
+        "/api/products", json={"sku": f"SKU-{tag}", "description": f"P {tag}"}
+    ).json()
     o = client.post(
         "/api/orders",
         json={"code": f"ORD-{tag}", "supplier_id": s["id"], "currency": "EUR"},
@@ -116,8 +120,10 @@ def _advance_to_arrived(client, shipment):
     return sh
 
 
-def _submitted_process_with_alloc(client, *, tag: str, qty="10"):
-    _, product, order = _confirmed_order(client, tag=tag, qty=qty)
+def _submitted_process_with_alloc(client, *, tag: str, qty="10", product=None, supplier=None):
+    supplier, product, order = _confirmed_order(
+        client, tag=tag, qty=qty, product=product, supplier=supplier
+    )
     inv = _issued_invoice(client, order, number=f"INV-{tag}", qty=qty)
     sh = _shipment_with_item(client, order, tag=tag, qty=qty)
     p = client.post("/api/import-processes", json={"external_reference": f"DUIMP-{tag}"}).json()
@@ -160,6 +166,7 @@ def _submitted_process_with_alloc(client, *, tag: str, qty="10"):
         "shipment": sh,
         "invoice_item_id": inv_item_id,
         "shipment_item_id": shp_item_id,
+        "supplier": supplier,
     }
 
 
@@ -271,18 +278,180 @@ def test_domestic_requires_nationalization(admin_client):
             "lines": [{"product_id": product_id, "quantity": "3"}],
         },
     )
-    # may accept draft lines then fail on confirm
-    if r.status_code == 409:
-        assert r.json()["error"] == "nationalization_required"
-        return
+    assert r.status_code == 409, r.text
+    assert r.json()["error"] == "nationalization_required"
+
+
+def test_receipt_residuals_item_level_and_global_sku_position(admin_client):
+    """COVERAGE: mesmo Product em dois processos; residual é por item; SkuPosition é global."""
+    c = admin_client
+    tag = _uid()
+    ctx_a = _submitted_process_with_alloc(c, tag=f"{tag}a", qty="10")
+    product = ctx_a["product"]
+    product_id = product["id"]
+    ctx_b = _submitted_process_with_alloc(
+        c,
+        tag=f"{tag}b",
+        qty="10",
+        product=product,
+        supplier=ctx_a["supplier"],
+    )
+
+    nat_a = _nationalize(
+        c,
+        ctx_a["process"]["id"],
+        product_id=product_id,
+        qty="10",
+        shipment_item_id=ctx_a["shipment_item_id"],
+    )
+    nat_b = _nationalize(
+        c,
+        ctx_b["process"]["id"],
+        product_id=product_id,
+        qty="10",
+        shipment_item_id=ctx_b["shipment_item_id"],
+    )
+    item_a = nat_a["items"][0]["id"]
+    item_b = nat_b["items"][0]["id"]
+
+    r = c.post(
+        "/api/inventory/receipts",
+        json={
+            "location_code": "DOMESTIC-MAIN",
+            "process_id": ctx_a["process"]["id"],
+            "nationalization_id": nat_a["id"],
+            "receipt_type": "DOMESTIC_IN",
+        },
+    )
+    assert r.status_code == 201, r.text
+    receipt = r.json()
+    r = c.post(
+        f"/api/inventory/receipts/{receipt['id']}/lines",
+        json={
+            "expected_version": receipt["version"],
+            "lines": [
+                {
+                    "product_id": product_id,
+                    "quantity": "4",
+                    "nationalization_item_id": item_a,
+                }
+            ],
+        },
+    )
     assert r.status_code == 200, r.text
     receipt = r.json()
     r = c.post(
         f"/api/inventory/receipts/{receipt['id']}/confirm",
         json={"expected_version": receipt["version"]},
     )
-    assert r.status_code == 409, r.text
-    assert r.json()["error"] == "nationalization_required"
+    assert r.status_code == 200, r.text
+
+    res_a = c.get(
+        f"/api/inventory/processes/{ctx_a['process']['id']}/receipt-residuals"
+    )
+    assert res_a.status_code == 200, res_a.text
+    row_a = next(x for x in res_a.json() if x["nationalization_item_id"] == item_a)
+    assert Decimal(row_a["nationalized_qty"]) == Decimal("10")
+    assert Decimal(row_a["received_qty"]) == Decimal("4")
+    assert Decimal(row_a["residual_qty"]) == Decimal("6")
+    assert row_a["product_sku"] == product["sku"]
+
+    res_b = c.get(
+        f"/api/inventory/processes/{ctx_b['process']['id']}/receipt-residuals"
+    )
+    assert res_b.status_code == 200, res_b.text
+    row_b = next(x for x in res_b.json() if x["nationalization_item_id"] == item_b)
+    assert Decimal(row_b["received_qty"]) == Decimal("0")
+    assert Decimal(row_b["residual_qty"]) == Decimal("10")
+
+    pos = c.get(f"/api/inventory/sku/{product_id}/position").json()
+    assert Decimal(pos["cleared_not_received_qty"]) == Decimal("16")
+    assert Decimal(pos["available_qty"]) == Decimal("4")
+
+    other = c.post(
+        "/api/products", json={"sku": f"SKU-{tag}-B", "description": "other"}
+    ).json()
+    r = c.post(
+        "/api/inventory/receipts",
+        json={
+            "location_code": "DOMESTIC-MAIN",
+            "process_id": ctx_a["process"]["id"],
+            "receipt_type": "DOMESTIC_IN",
+        },
+    )
+    assert r.status_code == 201, r.text
+    mismatch = c.post(
+        f"/api/inventory/receipts/{r.json()['id']}/lines",
+        json={
+            "expected_version": r.json()["version"],
+            "lines": [
+                {
+                    "product_id": other["id"],
+                    "quantity": "1",
+                    "nationalization_item_id": item_a,
+                }
+            ],
+        },
+    )
+    assert mismatch.status_code == 422, mismatch.text
+    assert mismatch.json()["error"] == "product_mismatch"
+
+
+def test_receipt_residual_restored_after_reverse(admin_client):
+    c = admin_client
+    tag = _uid()
+    ctx = _submitted_process_with_alloc(c, tag=tag, qty="10")
+    product_id = ctx["product"]["id"]
+    nat = _nationalize(
+        c,
+        ctx["process"]["id"],
+        product_id=product_id,
+        qty="5",
+        shipment_item_id=ctx["shipment_item_id"],
+    )
+    item_id = nat["items"][0]["id"]
+    r = c.post(
+        "/api/inventory/receipts",
+        json={
+            "location_code": "DOMESTIC-MAIN",
+            "process_id": ctx["process"]["id"],
+            "receipt_type": "DOMESTIC_IN",
+        },
+    ).json()
+    r = c.post(
+        f"/api/inventory/receipts/{r['id']}/lines",
+        json={
+            "expected_version": r["version"],
+            "lines": [
+                {
+                    "product_id": product_id,
+                    "quantity": "5",
+                    "nationalization_item_id": item_id,
+                }
+            ],
+        },
+    ).json()
+    r = c.post(
+        f"/api/inventory/receipts/{r['id']}/confirm",
+        json={"expected_version": r["version"]},
+    ).json()
+    res = c.get(
+        f"/api/inventory/processes/{ctx['process']['id']}/receipt-residuals"
+    ).json()
+    row = next(x for x in res if x["nationalization_item_id"] == item_id)
+    assert Decimal(row["residual_qty"]) == Decimal("0")
+
+    rev = c.post(
+        f"/api/inventory/receipts/{r['id']}/reverse",
+        json={"expected_version": r["version"]},
+    )
+    assert rev.status_code == 200, rev.text
+    res = c.get(
+        f"/api/inventory/processes/{ctx['process']['id']}/receipt-residuals"
+    ).json()
+    row = next(x for x in res if x["nationalization_item_id"] == item_id)
+    assert Decimal(row["received_qty"]) == Decimal("0")
+    assert Decimal(row["residual_qty"]) == Decimal("5")
 
 
 def test_partial_nat_and_receipt_sc09(admin_client):

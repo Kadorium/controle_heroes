@@ -30,18 +30,26 @@ export function PayableOrderCreditPanel({ user, payable, onApplied }: Props) {
   const orderId = payable.order_id ?? null;
   const canAlloc = canAllocateTreasury(user);
   const [advances, setAdvances] = useState<OrderAdvance[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
     if (orderId == null) return;
     let cancelled = false;
+    setLoaded(false);
     void listOrderAdvances(orderId)
       .then((data) => {
-        if (!cancelled) setAdvances(data.advances ?? []);
+        if (!cancelled) {
+          setAdvances(data.advances ?? []);
+          setLoaded(true);
+        }
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Erro ao carregar créditos");
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : "Erro ao carregar créditos");
+          setLoaded(true);
+        }
       });
     return () => {
       cancelled = true;
@@ -91,7 +99,11 @@ export function PayableOrderCreditPanel({ user, payable, onApplied }: Props) {
           {error}
         </Notice>
       ) : null}
-      {open.length === 0 ? (
+      {!loaded ? (
+        <p className="muted" data-testid="payable-order-credit-loading">
+          Carregando créditos…
+        </p>
+      ) : open.length === 0 ? (
         <p className="muted" data-testid="payable-order-credit-empty">
           Nenhum crédito em aberto neste pedido.
         </p>
@@ -130,7 +142,8 @@ export function PayableOrderCreditPanel({ user, payable, onApplied }: Props) {
       ) : null}
       {Number(balance) > 0 ? (
         <p className="muted">
-          Custo BRL = soma das execuções de câmbio (adiantamento + saldo), não EUR × taxa média.
+          Custo BRL desta obrigação = soma dos câmbios rateados (adiantamento + saldo). Não é
+          EUR × taxa média.
         </p>
       ) : null}
     </SectionCard>

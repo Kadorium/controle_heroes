@@ -25,6 +25,7 @@ from app.inventory.queries import (
     get_sku_position,
     get_stock_balance,
     list_movements,
+    list_receipt_residuals,
     stock_balance_bulk,
 )
 from app.inventory.repository import (
@@ -60,6 +61,7 @@ __all__ = [
     "record_receipt",
     "record_adjustment",
     "list_movements",
+    "list_receipt_residuals",
     "get_stock_balance",
     "stock_balance",
     "stock_balance_bulk",

@@ -1,7 +1,8 @@
 /**
- * NumerarioCommitPanel — J3-I6 / J3-UIV
+ * NumerarioCommitPanel — Elo 7 / E7-TAX
+ * Registro tributário via PDF real. Sem colar IDs. Sem settlement.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { User } from "../auth/types";
 import { Button, Notice, SectionCard } from "../../ui";
@@ -30,17 +31,42 @@ function statusClass(status: string): string {
   return "status-muted";
 }
 
-export function NumerarioCommitPanel({ documentId }: Props) {
-  const [processIdsInput, setProcessIdsInput] = useState("");
+function canCommit(user?: User): boolean {
+  if (!user) return false;
+  const p = user.permissions ?? [];
+  return user.role === "admin" || (p.includes("ingestion:commit") && p.includes("customs:write"));
+}
+
+export function NumerarioCommitPanel({ documentId, user }: Props) {
+  const [pickedId, setPickedId] = useState("");
+  const [confirmedIds, setConfirmedIds] = useState<number[]>([]);
+  const [opKey, setOpKey] = useState(() => `ING-NUM-DOC-${documentId}-${Date.now()}`);
   const [preview, setPreview] = useState<NumerarioPreviewOut | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [pendingAttempts, setPendingAttempts] = useState<CommitAttemptOut[]>([]);
-
-  const [opKey] = useState(() => `ING-NUM-DOC-${documentId}-${Date.now()}`);
   const [commitResult, setCommitResult] = useState<NumerarioCommitResultOut | null>(null);
   const [commitLoading, setCommitLoading] = useState(false);
   const [commitError, setCommitError] = useState<string | null>(null);
+
+  const runPreview = useCallback(
+    async (pids: number[]) => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+      try {
+        setPreview(await fetchNumerarioPreview(documentId, pids));
+      } catch (e) {
+        setPreviewError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setPreviewLoading(false);
+      }
+    },
+    [documentId],
+  );
+
+  useEffect(() => {
+    void runPreview([]);
+  }, [runPreview]);
 
   useEffect(() => {
     void listDocumentCommitAttempts(documentId)
@@ -52,42 +78,22 @@ export function NumerarioCommitPanel({ documentId }: Props) {
       .catch(() => setPendingAttempts([]));
   }, [documentId, commitResult]);
 
-  function parseProcessIds(): number[] {
-    return processIdsInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(Number)
-      .filter((n) => !isNaN(n) && n > 0);
-  }
+  const already = Boolean(preview?.already_committed);
+  const candidates = preview?.process_candidates ?? [];
 
-  async function handlePreview() {
-    const pids = parseProcessIds();
-    if (!pids.length) {
-      setPreviewError("Informe ao menos um ID de processo (separados por vírgula).");
-      return;
-    }
-    setPreviewLoading(true);
-    setPreviewError(null);
-    setPreview(null);
-    setCommitResult(null);
-    try {
-      setPreview(await fetchNumerarioPreview(documentId, pids));
-    } catch (e) {
-      setPreviewError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setPreviewLoading(false);
-    }
-  }
-
-  async function handleCommit() {
-    if (!preview) return;
-    const pids = parseProcessIds();
-    if (!pids.length) return;
+  async function handleCommit(createProcess = false) {
+    if (!canCommit(user)) return;
     setCommitLoading(true);
     setCommitError(null);
     try {
-      setCommitResult(await commitNumerarioDocument(documentId, { operation_key: opKey, process_ids: pids }));
+      const result = await commitNumerarioDocument(documentId, {
+        operation_key: opKey,
+        process_ids: createProcess ? [] : confirmedIds,
+        create_process: createProcess,
+      });
+      setCommitResult(result);
+      setOpKey(`ING-NUM-DOC-${documentId}-${Date.now()}`);
+      await runPreview(confirmedIds);
     } catch (e) {
       setCommitError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -95,63 +101,115 @@ export function NumerarioCommitPanel({ documentId }: Props) {
     }
   }
 
+  const fundingId = commitResult?.operations.find(
+    (o) => o.entity_type === "customs_funding_request" && o.entity_id,
+  )?.entity_id;
+  const processFromCommit = commitResult?.operations.find(
+    (o) => o.entity_type === "import_process" && o.entity_id,
+  )?.entity_id;
+
   return (
-    <SectionCard title="Numerário — commit multi-owner" data-testid="numerario-commit-panel">
+    <SectionCard title="Numerário — registrar impostos (sem pagar)" data-testid="numerario-commit-panel">
       <Notice tone="warning" data-testid="numerario-no-payment-notice">
-        Cria <strong>FundingRequest DRAFT</strong> por processo. Nunca confirma automaticamente. Não cria
-        Payment nem liquida CUSTOMS_FUNDING — confirmação é ação humana separada no processo aduaneiro.
+        Registra bases, linhas de imposto e despesas num FundingRequest DRAFT. Confirmar o numerário
+        no processo nasce a obrigação (payable CUSTOMS_FUNDING em aberto). Este passo{" "}
+        <strong>não paga</strong> no tesouro.
       </Notice>
 
-      <label className="form-label">
-        IDs de ImportProcess (vírgula)
-        <input
-          type="text"
-          placeholder="Ex: 1, 2, 3"
-          value={processIdsInput}
-          onChange={(e) => setProcessIdsInput(e.target.value)}
-          data-testid="numerario-process-ids"
-          className="ds-input"
-        />
-      </label>
+      {already ? (
+        <Notice tone="info" data-testid="numerario-processed-banner">
+          Numerário já registrado a partir deste documento. Recarregar não duplica linhas nem payable.
+        </Notice>
+      ) : null}
 
-      <div className="ingestion-commit-actions">
-        <Button type="button" variant="ghost" disabled={previewLoading} onClick={() => void handlePreview()}>
-          {previewLoading ? "Carregando…" : "Preview"}
-        </Button>
-        {preview?.can_commit && !commitResult ? (
-          <Button type="button" disabled={commitLoading} onClick={() => void handleCommit()} data-testid="numerario-commit-submit">
-            {commitLoading ? "Commitando…" : "Commit (DRAFT)"}
-          </Button>
-        ) : null}
-      </div>
+      {previewError ? <Notice tone="danger">{previewError}</Notice> : null}
+      {commitError ? <Notice tone="danger">{commitError}</Notice> : null}
 
-      {previewError ? <p className="error-text">{previewError}</p> : null}
-      {commitError ? <p className="error-text">{commitError}</p> : null}
-
-      {preview ? (
-        <div data-testid="numerario-preview">
-          <p>
-            Pode commit: {preview.can_commit ? "sim" : `não (${preview.open_error_count} erro(s))`}
-          </p>
-          {preview.invoice_refs.length > 0 ? (
-            <p className="muted">Refs fatura: {preview.invoice_refs.join(", ")}</p>
+      {!already ? (
+        <>
+          {preview?.invoice_refs?.length ? (
+            preview.invoice_refs.length > 1 ? (
+              <Notice tone="warning" data-testid="numerario-invoice-refs">
+                Este documento cita várias faturas ({preview.invoice_refs.join(", ")}). Os tributos
+                são do Numerário (nível DUIMP), não só da fatura desta compra.
+              </Notice>
+            ) : (
+              <p className="muted" data-testid="numerario-invoice-refs">
+                Fatura no PDF: {preview.invoice_refs.join(", ")}
+              </p>
+            )
           ) : null}
-          <ul>
-            {preview.planned_operations.map((op) => (
-              <li key={op.op_key}>
-                [{op.entity_type ?? "—"}] {op.description}
-                {op.process_id ? (
-                  <>
-                    {" "}
-                    <Link to={`/customs/${op.process_id}`} data-testid={`numerario-process-link-${op.process_id}`}>
-                      Processo #{op.process_id}
-                    </Link>
-                  </>
-                ) : null}
-              </li>
+          {preview?.process_candidates_reason ? (
+            <p role="alert">{preview.process_candidates_reason}</p>
+          ) : null}
+
+          <div data-testid="numerario-process-candidates">
+            {candidates.map((c) => (
+              <label key={c.process_id} style={{ display: "block" }}>
+                <input
+                  type="radio"
+                  name="numerario-process"
+                  checked={pickedId === String(c.process_id)}
+                  onChange={() => setPickedId(String(c.process_id))}
+                  data-testid={`numerario-process-candidate-${c.process_id}`}
+                />{" "}
+                #{c.process_id} {c.code} · {c.status}
+                <span className="muted"> {c.evidence.join(" · ")}</span>
+              </label>
             ))}
-          </ul>
-        </div>
+          </div>
+
+          {candidates.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={!pickedId}
+              data-testid="numerario-process-confirm"
+              onClick={() => {
+                const ids = [Number(pickedId)];
+                setConfirmedIds(ids);
+                void runPreview(ids);
+              }}
+            >
+              Confirmar processo
+            </Button>
+          ) : null}
+
+          {previewLoading ? <p className="muted">Carregando preview…</p> : null}
+
+          {preview && confirmedIds.length > 0 ? (
+            <div data-testid="numerario-preview">
+              <p>Pode registrar: {preview.can_commit ? "sim" : "não"}</p>
+              <ul>
+                {preview.planned_operations.map((op) => (
+                  <li key={op.op_key}>{op.description}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {canCommit(user) && preview?.can_commit && confirmedIds.length > 0 ? (
+            <Button
+              type="button"
+              disabled={commitLoading}
+              data-testid="numerario-commit-submit"
+              onClick={() => void handleCommit(false)}
+            >
+              Registrar tributos no processo
+            </Button>
+          ) : null}
+
+          {canCommit(user) && preview?.can_create_process && candidates.length === 0 ? (
+            <Button
+              type="button"
+              disabled={commitLoading}
+              data-testid="numerario-create-process-submit"
+              onClick={() => void handleCommit(true)}
+            >
+              Criar processo rascunho e registrar tributos
+            </Button>
+          ) : null}
+        </>
       ) : null}
 
       {commitResult ? (
@@ -160,56 +218,22 @@ export function NumerarioCommitPanel({ documentId }: Props) {
             Status:{" "}
             <strong className={statusClass(commitResult.status)}>
               {STATUS_LABEL[commitResult.status] ?? commitResult.status}
-            </strong>{" "}
-            · attempt #{commitResult.attempt_id}
+            </strong>
           </p>
-          <table className="dense-table">
-            <thead>
-              <tr>
-                <th>Op</th>
-                <th>Status</th>
-                <th>Entidade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {commitResult.operations.map((op) => (
-                <tr key={op.op_key}>
-                  <td>
-                    <code>{op.op_key}</code>
-                  </td>
-                  <td className={statusClass(op.status)}>{STATUS_LABEL[op.status] ?? op.status}</td>
-                  <td>
-                    {op.entity_type === "funding_request" && op.entity_id ? (
-                      <Link
-                        to={`/customs/funding/${op.entity_id}`}
-                        data-testid={`numerario-funding-link-${op.entity_id}`}
-                      >
-                        FundingRequest #{op.entity_id}
-                      </Link>
-                    ) : op.entity_id ? (
-                      `#${op.entity_id}`
-                    ) : op.error_message ? (
-                      <span className="error-text">{op.error_message}</span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {commitResult.status === "PARTIAL" ? (
-            <Notice tone="warning">PARTIAL: verifique operações com falha acima. Sem rollback cross-owner.</Notice>
+          {processFromCommit ? (
+            <p>
+              Processo{" "}
+              <Link to={`/customs/${processFromCommit}`}>#{processFromCommit}</Link>
+              {" — "}abra o numerário e <strong>confirme</strong> para nascer a obrigação (sem pagar).
+            </p>
           ) : null}
-          {commitResult.status === "UNKNOWN" ? (
-            <Notice tone="info">UNKNOWN: estado indeterminado — consulte tentativas anteriores ou o ledger.</Notice>
-          ) : null}
+          {fundingId ? <p>FundingRequest #{fundingId}</p> : null}
         </div>
       ) : null}
 
       {pendingAttempts.length > 0 ? (
         <div data-testid="numerario-pending-attempts">
-          <h3 className="ingestion-subtitle">Tentativas pendentes / retomar</h3>
+          <h3 className="ingestion-subtitle">Tentativas pendentes</h3>
           <ul>
             {pendingAttempts.map((a) => (
               <li key={a.id}>

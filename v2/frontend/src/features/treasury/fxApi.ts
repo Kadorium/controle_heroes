@@ -22,6 +22,7 @@ export type PayableFxView = {
   online_result_vs_current: string | null;
   online_result_vs_initial: string | null;
   settled_foreign: string;
+  cost_brl?: string | null;
   realized_brl: string | null;
   realized_result_vs_reference: string | null;
   realized_result_vs_initial: string | null;

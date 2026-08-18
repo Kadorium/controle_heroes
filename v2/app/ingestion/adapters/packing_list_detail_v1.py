@@ -1,11 +1,12 @@
 """Adapter packing_list_detail_v1 — Packing List detalhado da Heroe's Srl.
 
-Corpus: corpus_202/PackingList_202.pdf (7 páginas, 100 cartons).
+Corpus: corpus_202/PackingList_202.pdf (7 páginas, 100 cartons);
+corpus_328/PackingList_328.pdf (5 cartons × 10).
 Estratégia:
-- pypdf DEFAULT mode → header + item rows
-- pypdf LAYOUT mode → origin annotation (chinaItaly glued)
-- Cada carton row = triplet: linha NCM-prefix / linha dados / linha NCM-suffix
-- Rows IR = per-carton (até 100); reconciler agrupa por produto para comparar
+- pypdf LAYOUT mode → carton rows (NCM na linha de dados + sufixo na linha seguinte)
+- pypdf DEFAULT mode → header + fallback de cartons (triplet legado)
+- LAYOUT também completa document_number quando o default fragmenta o cabeçalho
+- Rows IR = per-carton; SoT é o detalhe (DEC-C6-DETAIL-SOT)
 
 Separação de responsabilidades:
 - extract(bytes) → AdapterRawResult — puro, sem DB
@@ -42,23 +43,10 @@ _RE_CARTON = re.compile(
     r"([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)"
 )
 _RE_TOTALE = re.compile(r"Totale\s+([\d,\.]+)\s+([\d,\.]+)", re.IGNORECASE)
-_RE_NCM_FRAG = re.compile(r"^[\d\s]+$")
 
 
 def _compact(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
-
-
-def _strip_non_digit_prefix(s: str) -> str:
-    """Return only leading digits/spaces from a string."""
-    m = re.match(r"^[\d\s]+", s)
-    return m.group(0).strip() if m else ""
-
-
-def _strip_alpha_suffix(s: str) -> str:
-    """Return alphabetic/space tail of a string (after leading digits)."""
-    m = re.search(r"[A-Za-z].*$", s)
-    return m.group(0).strip() if m else ""
 
 
 # ---------------------------------------------------------------------------
@@ -161,15 +149,43 @@ def _extract_header(default_text: str) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _parse_carton_rows(default_text: str) -> list[RawCartonRow]:
-    """Parse per-carton rows from PL Detail default-mode text.
+_RE_LEADING_NCM = re.compile(r"^((?:\d+\s*)+)(.*)$")
 
-    Format (3-line triplet):
-      Line A: NCM_prefix [desc_prefix]   e.g. "4202 2210" or "4202 WASH BAG"
-      Line B: pallet carton items [desc] dimensions unit_net unit_gross total_net total_gross
-      Line C: NCM_suffix [desc_suffix]   e.g. "00" or "221000 STARLIGHT"
+
+def _split_ncm_desc(text: str) -> tuple[str, str]:
+    """Split a fragment that may start with HS/NCM digits then a description."""
+    s = _compact(text)
+    if not s:
+        return "", ""
+    m = _RE_LEADING_NCM.match(s)
+    if not m:
+        return "", s
+    ncm = re.sub(r"\s+", "", m.group(1))
+    desc = _compact(m.group(2))
+    return ncm, desc
+
+
+def _is_ncm_continuation(line: str) -> bool:
+    """True for layout suffix lines like '00' or '00 ( with box )' or '221000 STARLIGHT'."""
+    s = line.strip()
+    if not s:
+        return False
+    if _RE_CARTON.match(s) or _RE_DIMS.search(s):
+        return False
+    ncm, _desc = _split_ncm_desc(s)
+    return bool(ncm)
+
+
+def _parse_carton_rows(text: str) -> list[RawCartonRow]:
+    """Parse per-carton rows from PL Detail text.
+
+    Layout mode (Heroe's): NCM lives on the data line, suffix on the next line::
+      1  1  10  9506 99  RACCHETTA …  61,00x65,00x36,00  0,32  2,40  3,20  24,00
+                                         00  ( with box )
+
+    Default mode (legacy triplet): NCM prefix on the previous line, suffix on next.
     """
-    lines = [l.rstrip() for l in default_text.splitlines()]
+    lines = [l.rstrip() for l in text.splitlines()]
     rows: list[RawCartonRow] = []
     row_idx = 0
 
@@ -192,32 +208,29 @@ def _parse_carton_rows(default_text: str) -> list[RawCartonRow]:
         total_net = parse_it_number(m.group(8)) or Decimal("0")
         total_gross = parse_it_number(m.group(9)) or Decimal("0")
 
-        # --- Look at surrounding lines for NCM and extra description ---
-        ncm_digits = ""
-        desc_prefix = ""
-        desc_suffix = ""
+        ncm_digits, description = _split_ncm_desc(desc_in_line)
 
-        if i > 0:
+        if not ncm_digits and i > 0:
             prev = lines[i - 1].strip()
-            # NCM prefix: digits and spaces (whole line)
-            ncm_digits += re.sub(r"\s+", "", _strip_non_digit_prefix(prev))
-            desc_prefix = _strip_alpha_suffix(prev)
+            if not _RE_CARTON.match(prev):
+                prev_ncm, prev_desc = _split_ncm_desc(prev)
+                if prev_ncm:
+                    ncm_digits = prev_ncm
+                if prev_desc:
+                    description = _compact(f"{prev_desc} {description}")
 
-        if i + 1 < len(lines):
-            nxt = lines[i + 1].strip()
-            ncm_digits += re.sub(r"\s+", "", _strip_non_digit_prefix(nxt))
-            desc_suffix = _strip_alpha_suffix(nxt)
-
-        parts = [x for x in [desc_prefix, desc_in_line, desc_suffix] if x]
-        description = _compact(" ".join(parts))
-        ncm = ncm_digits if ncm_digits else None
+        if i + 1 < len(lines) and _is_ncm_continuation(lines[i + 1]):
+            nxt_ncm, nxt_desc = _split_ncm_desc(lines[i + 1])
+            ncm_digits += nxt_ncm
+            if nxt_desc:
+                description = _compact(f"{description} {nxt_desc}")
 
         rows.append(
             RawCartonRow(
                 pallet_no=pallet_no,
                 carton_no=carton_no,
                 items_per_ctn=items,
-                ncm=ncm,
+                ncm=ncm_digits or None,
                 description=description,
                 dimensions=dims,
                 unit_net_weight=unit_net,
@@ -337,6 +350,9 @@ def extract(pdf_bytes: bytes) -> AdapterRawResult:
     default_text = "\n".join(default_pages)
 
     header = _extract_header(default_text)
+    layout_header = _extract_header(layout_text)
+    for key, value in layout_header.items():
+        header.setdefault(key, value)
 
     document_date_iso: str | None = None
     document_date_needs_review = False
@@ -345,8 +361,12 @@ def extract(pdf_bytes: bytes) -> AdapterRawResult:
             header["document_date_raw"]
         )
 
-    carton_rows = _parse_carton_rows(default_text)
+    carton_rows = _parse_carton_rows(layout_text)
+    if not carton_rows:
+        carton_rows = _parse_carton_rows(default_text)
     total_net, total_gross = _extract_totals(default_text)
+    if total_net is None and total_gross is None:
+        total_net, total_gross = _extract_totals(layout_text)
     total_cartons = int(header.get("total_cartons_raw", len(carton_rows)))
 
     # Origin annotation from layout mode

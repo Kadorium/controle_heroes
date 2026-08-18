@@ -281,7 +281,11 @@ def test_f328_packing_list_detail_extract():
     from app.ingestion.adapters.packing_list_detail_v1 import extract
 
     raw = extract((CORPUS_328 / "PackingList_328.pdf").read_bytes())
-    assert raw is not None
+    assert raw.document_number == "328"
+    assert len(raw.carton_rows) == 5
+    assert sum(c.items_per_ctn for c in raw.carton_rows) == 50
+    assert {c.ncm for c in raw.carton_rows} == {"95069900"}
+    assert "RACCHETTA" in raw.carton_rows[0].description
 
 
 @pytest.mark.skipif(not CORPUS_328_AVAILABLE, reason="corpus_328 fixtures absent")
@@ -744,8 +748,8 @@ def test_i7_module_graph_suffixes():
     assert ".metrics_models" in INTERNAL_SUFFIXES
 
 
-def test_i7_migration_023_head():
-    """Head canônico da árvore = 023 (J4-FIN IBAN / terms_from_document)."""
+def test_i7_migration_head_includes_024_and_026():
+    """024 permanece na cadeia; head canônico = 026 (MDM-4)."""
     import subprocess
     import sys
 
@@ -755,14 +759,14 @@ def test_i7_migration_023_head():
         text=True,
         cwd=str(Path(__file__).parent.parent),
     )
-    assert "023" in result.stdout
+    assert "026" in result.stdout
     assert result.returncode == 0
 
 
 def test_expected_alembic_revision_matches_head():
     from app.foundation.schema_revision import EXPECTED_ALEMBIC_REVISION
 
-    assert EXPECTED_ALEMBIC_REVISION == "023"
+    assert EXPECTED_ALEMBIC_REVISION == "026"
 
 
 # ---------------------------------------------------------------------------

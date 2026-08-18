@@ -10,7 +10,7 @@ Ponto de entrada da documentação. O desenvolvimento ativo é a **V2**; a V1 é
 
 | Preciso saber | Documento | Autoridade | Ciclo de vida |
 |---|---|---|---|
-| Onde estamos, o que vem agora, gates, ADRs | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) | Canônico (estado/sequência) | Ativo — atualizar após mudança operacional material |
+| Onde estamos, o que vem agora, gates, ADRs | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) (Parte A = painel; Contrato = atualização A↔B; **Parte B = canônico**) | Canônico (estado/sequência = Parte B) | Ativo — checklist do Contrato após mudança operacional material |
 | Como o sistema deve funcionar (produto/arch/aceite) | [`BLUEPRINT_SISTEMA_EPIC_V2.md`](v2/BLUEPRINT_SISTEMA_EPIC_V2.md) | Canônico (produto) | Ativo — atualizar em mudança de domínio/arch |
 | Design de interface, Handoff, mockups | [Blueprint UI/UX](v2/blueprint%20UIUX/BLUEPRINT_UI_UX_EPIC_v3.md) · [Handoff](v2/blueprint%20UIUX/HANDOFF_UI_UX_EPIC_V2.md) · [MCK](v2/blueprint%20UIUX/mockups/) | Referência de design; autoridade e status de implementação definidos no Roadmap e nos próprios artefatos | Ativo / histórico conforme o artefato |
 | Regras operacionais do Cursor | [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) | Canônica (`alwaysApply`) | Ativo — método de trabalho |
@@ -55,6 +55,10 @@ O código evidencia o estado implementado na investigação. Divergências corri
 | J4-FIN FIN-3 + FIN-2 | Fattura AMOUNT+IBAN; Policy A order_id; crédito order-scoped | Roadmap **0.5.103** | [`J4_FIN23_ADVISOR_HANDOFF.md`](v2/etapa-j4-fin/J4_FIN23_ADVISOR_HANDOFF.md) |
 | J4-FIN FIN-3B | Fattura qty+preço do PDF; rastro divergência; 492 pytest | Roadmap **0.5.104** | [`J4_FIN3B_ADVISOR_HANDOFF.md`](v2/etapa-j4-fin/J4_FIN3B_ADVISOR_HANDOFF.md) |
 | ROADMAP-VIS | §0 visão de progresso (cadeia / costuras); sem código de produto | Roadmap **0.5.105** | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) §0 |
+| Cadeia elos 4–6 | Quitação + qty faturada + packing preenche embarque; hardening jornada 1→6 | Roadmap **0.5.118** · Blueprint 0.2.22 | [`CADEIA_46_ADVISOR_HANDOFF.md`](v2/etapa-cadeia-46/CADEIA_46_ADVISOR_HANDOFF.md) |
+| Elo 7 | Chegada + Doganale/Numerário PDF + nacionalização (mesma história 202); aceite UI **PASS**; barras 7/10 · 5/7 · 2/3 | Roadmap **0.5.120** · Blueprint 0.2.23 | [`E7_ADVISOR_HANDOFF.md`](v2/etapa-elo-7/E7_ADVISOR_HANDOFF.md) |
+| Elo 8 | Nacionalizado → estoque doméstico (residual item-level; produto no catálogo); 202 documental → estoque na UI; cadeia 8/10; Aduana 2/3; **ENCERRADO** (aceite advisor) | Roadmap **0.5.123** · Blueprint 0.2.24 | [`E8_ADVISOR_HANDOFF.md`](v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |
+| MDM-UX | Cadastros mestres: produtos, fornecedores, usuários; Alembic 026; barras inalteradas 8/10 | Roadmap **0.5.125** · Blueprint 0.2.25 | [`MDM_UX_ADVISOR_HANDOFF.md`](v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
 
 Estado e sequência atuais: consultar o Roadmap. Evidências concluídas ficam em `docs/v2/etapa-*`.
 
@@ -75,8 +79,8 @@ DOC_DELTA
 
 - **Updated** — arquivos alterados nesta entrega (ou `NONE`).
 - **Evidence** — paths em `docs/v2/etapa-*` / `docs/evidence/` quando houver execução material; senão `NONE`.
-- **Roadmap status** — `UNCHANGED` se o Roadmap não mudou; caso contrário descrever a mudança e a versão.
-- **Next TODO** — próxima ação confirmada **no Roadmap** (não inventar aqui).
+- **Roadmap status** — `UNCHANGED` se o Roadmap não mudou; caso contrário descrever a mudança e a versão. Incluir `A/B:` o que mudou em A, em B, ou `A inalterada`.
+- **Next TODO** — próxima ação confirmada **na Parte B do Roadmap** (não inventar aqui).
 - **Return to advisor** — paths que o advisor deve reler, ou `NONE`. Preferencialmente no máximo **dois** Markdown: `*_ADVISOR_HANDOFF.md` e, se necessário, `*_TECHNICAL_APPENDIX.md`. Evidência bruta permanece em `Evidence` / pasta `etapa-*` e **não** deve ser listada item a item (JSON, logs, fixtures, screenshots, scripts), salvo pedido explícito. Ver também [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) §6.1.
 
 Não criar pasta `etapa-*` só por edição documental de índice/regra/README.

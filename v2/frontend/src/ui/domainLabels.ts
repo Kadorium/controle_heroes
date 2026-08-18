@@ -123,6 +123,8 @@ export function auditActionLabel(action: string | null | undefined): string {
       return "Item adicionado";
     case "update":
       return "Atualização";
+    case "set_password":
+      return "Senha definida";
     case "issue":
       return "Emissão";
     case "cancel":
@@ -133,6 +135,76 @@ export function auditActionLabel(action: string | null | undefined): string {
       return "Registro";
     case "invoice_price_divergence":
       return "Preço da Fattura diferente do pedido";
+    case "shipment.create":
+      return "Embarque criado";
+    case "shipment.item.add":
+      return "Item adicionado ao embarque";
+    case "shipment.packages.add":
+      return "Volumes adicionados";
+    case "shipment.package.contents.set":
+      return "Conteúdo do volume definido";
+    case "shipment.reference.add":
+      return "Referência adicionada";
+    case "shipment.summary.upsert":
+      return "Totais documentais gravados";
+    case "shipment.update":
+      return "Embarque atualizado";
+    case "shipment.advance":
+      return "Status do embarque avançado";
+    case "shipment.annul":
+      return "Embarque anulado";
+    case "shipment.delete":
+      return "Embarque excluído";
+    case "import_process.create":
+      return "Processo criado";
+    case "import_process.update":
+      return "Processo atualizado";
+    case "import_process.submit":
+      return "Processo submetido";
+    case "import_process.cancel":
+      return "Processo cancelado";
+    case "import_process.link_invoice":
+      return "Fatura vinculada ao processo";
+    case "import_process.unlink_invoice":
+      return "Fatura desvinculada do processo";
+    case "import_process.link_shipment":
+      return "Embarque vinculado ao processo";
+    case "import_process.unlink_shipment":
+      return "Embarque desvinculado do processo";
+    case "import_process.allocate_invoice_item":
+      return "Item de fatura alocado";
+    case "import_process.deallocate_invoice_item":
+      return "Item de fatura desalocado";
+    case "import_process.allocate_shipment_item":
+      return "Item de embarque alocado";
+    case "import_process.deallocate_shipment_item":
+      return "Item de embarque desalocado";
+    case "funding.create":
+      return "Numerário criado";
+    case "funding.confirm":
+      return "Numerário confirmado (obrigação)";
+    case "funding.cancel":
+      return "Numerário cancelado";
+    case "funding.value_bases.replace":
+      return "Bases do Numerário alteradas";
+    case "nationalization.create":
+      return "Liberação criada";
+    case "nationalization.add_items":
+      return "Quantidades adicionadas à liberação";
+    case "nationalization.confirm":
+      return "Liberação confirmada";
+    case "nationalization.reverse":
+      return "Liberação revertida";
+    case "goods_receipt.create":
+      return "Recebimento criado";
+    case "goods_receipt.add_lines":
+      return "Linhas adicionadas ao recebimento";
+    case "goods_receipt.confirm":
+      return "Recebimento confirmado";
+    case "goods_receipt.reverse":
+      return "Recebimento estornado";
+    case "doganale.version.create":
+      return "Versão Doganale criada";
     default:
       return action?.trim() || "—";
   }

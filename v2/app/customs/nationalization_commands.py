@@ -12,6 +12,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.catalog import public as catalog_public
+from app.billing import public as billing_public
 from app.customs import repository as repo
 from app.customs.errors import (
     NationalizationConflict,
@@ -23,6 +24,7 @@ from app.customs.errors import (
     ProcessNotFound,
 )
 from app.customs.models import Nationalization, NationalizationItem
+from app.logistics import public as logistics_public
 
 
 def _now() -> datetime:
@@ -388,12 +390,41 @@ def clearance_residuals(db: Session, process_id: int) -> list[dict]:
                     "allocated_qty": str(cap),
                     "nationalized_qty": str(used),
                     "residual_qty": str(cap - used),
+                    "product_id": None,
+                    "product_sku": None,
+                    "product_name": None,
                 }
             )
+        for row in rows:
+            try:
+                facts = logistics_public.shipment_item_facts(db, row["shipment_item_id"])
+                row["product_id"] = facts.get("product_id")
+                row["product_sku"] = facts.get("sku")
+                row["product_name"] = facts.get("description")
+                row["shipped_qty"] = facts.get("quantity")
+            except Exception:
+                row["shipped_qty"] = row["allocated_qty"]
         return rows
     for a in process.invoice_items:
         used = repo.sum_confirmed_nationalized(db, invoice_item_id=a.invoice_item_id)
         cap = Decimal(str(a.allocated_qty))
+        sku = None
+        name = None
+        product_id = None
+        shipped = str(cap)
+        try:
+            # invoice item belongs to a linked invoice — sku_snapshot on billing item
+            for link in process.invoices:
+                inv = billing_public.get_invoice(db, link.invoice_id)
+                hit = next((it for it in inv.items if it.id == a.invoice_item_id), None)
+                if hit is not None:
+                    sku = hit.sku_snapshot
+                    name = hit.description_snapshot
+                    product_id = hit.product_id
+                    shipped = str(hit.quantity)
+                    break
+        except Exception:
+            pass
         rows.append(
             {
                 "source_kind": "invoice_item",
@@ -401,6 +432,10 @@ def clearance_residuals(db: Session, process_id: int) -> list[dict]:
                 "allocated_qty": str(cap),
                 "nationalized_qty": str(used),
                 "residual_qty": str(cap - used),
+                "product_id": product_id,
+                "product_sku": sku,
+                "product_name": name,
+                "shipped_qty": shipped,
             }
         )
     return rows

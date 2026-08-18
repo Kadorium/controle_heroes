@@ -25,6 +25,7 @@ export function PayableFxPage({ user }: Props) {
   const id = Number(payableId);
   const [row, setRow] = useState<Payable | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fxTick, setFxTick] = useState(0);
   const payablesReturn = buildReturnTo("/payables");
 
   useEffect(() => {
@@ -108,11 +109,12 @@ export function PayableFxPage({ user }: Props) {
           payable={row}
           onApplied={() => {
             void getPayable(id).then(setRow);
+            setFxTick((n) => n + 1);
           }}
         />
       ) : null}
       <div className="fx-shell">
-        <PayableFxPanel user={user} payableId={id} />
+        <PayableFxPanel user={user} payableId={id} reloadToken={fxTick} />
       </div>
     </section>
   );
