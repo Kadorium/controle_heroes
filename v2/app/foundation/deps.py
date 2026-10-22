@@ -29,6 +29,10 @@ def user_response(user: User) -> UserResponse:
     )
 
 
+def permission_set(user: User) -> set[str]:
+    return set(identity_public.permissions_for(user))
+
+
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     settings = get_settings()
     token = request.cookies.get(settings.session_cookie_name)

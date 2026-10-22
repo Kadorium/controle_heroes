@@ -24,7 +24,7 @@ INVOICE_STATUSES = ("DRAFT", "ISSUED", "CANCELLED")
 INVOICE_TYPES = ("FINAL", "PROFORMA")
 DISCOUNT_TYPES = ("NONE", "UNIT_AMOUNT", "PERCENT")
 TERMS_MODES = ("PERCENT", "AMOUNT")
-PAYABLE_STATUSES = ("OPEN", "CANCELLED")
+PAYABLE_STATUSES = ("OPEN", "PARTIALLY_PAID", "PAID", "CANCELLED")
 PAYABLE_SOURCE_TYPES = ("INVOICE", "CUSTOMS_FUNDING")
 
 
@@ -179,6 +179,7 @@ class Payable(Base):
     source_type: Mapped[str] = mapped_column(String(32), nullable=False, default="INVOICE", index=True)
     source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     payee_display_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    payee_tax_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     destination_iban: Mapped[str | None] = mapped_column(String(34), nullable=True)
     destination_bank: Mapped[str | None] = mapped_column(String(128), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

@@ -112,3 +112,69 @@ def staging_queue(
     if review_status:
         q = q.filter(IngestionDocument.review_status == review_status)
     return q.order_by(IngestionDocument.updated_at.desc()).limit(limit).all()
+
+
+def staging_queue_summary(db: Session) -> dict:
+    from datetime import datetime, timezone
+
+    from sqlalchemy import func
+
+    open_status = ("DRAFT", "IN_REVIEW")
+    rows = (
+        db.query(
+            IngestionDocument.doc_type,
+            func.count(IngestionDocument.id),
+            func.min(IngestionDocument.updated_at),
+        )
+        .filter(IngestionDocument.review_status.in_(open_status))
+        .group_by(IngestionDocument.doc_type)
+        .all()
+    )
+    now = datetime.now(timezone.utc)
+    families = []
+    total = 0
+    oldest = None
+    for doc_type, cnt, oldest_at in rows:
+        total += int(cnt or 0)
+        age_hours = None
+        if oldest_at is not None:
+            ts = oldest_at if oldest_at.tzinfo else oldest_at.replace(tzinfo=timezone.utc)
+            age_hours = max(0, int((now - ts).total_seconds() // 3600))
+            if oldest is None or ts < oldest:
+                oldest = ts
+        families.append(
+            {
+                "doc_type": doc_type,
+                "count": int(cnt or 0),
+                "oldest_updated_at": oldest_at.isoformat() if oldest_at else None,
+                "age_hours": age_hours,
+            }
+        )
+    return {
+        "total_open": total,
+        "families": sorted(families, key=lambda r: r["doc_type"]),
+        "oldest_updated_at": oldest.isoformat() if oldest else None,
+    }
+
+
+def review_exceptions(db: Session, *, limit: int = 20) -> list[dict]:
+    docs = staging_queue(db, review_status="IN_REVIEW", limit=limit)
+    if len(docs) < limit:
+        extra = staging_queue(db, review_status="DRAFT", limit=limit)
+        seen = {d.id for d in docs}
+        docs = list(docs) + [d for d in extra if d.id not in seen]
+    out = []
+    for doc in docs[:limit]:
+        out.append(
+            {
+                "kind": "ingestion_review",
+                "severity": "warning",
+                "title": f"{doc.doc_type} #{doc.id}",
+                "reason": "Documento aguardando revisão",
+                "entity_id": doc.id,
+                "href": f"/ingestion/documents/{doc.id}",
+                "since": doc.updated_at.isoformat() if doc.updated_at else None,
+                "module": "ingestion",
+            }
+        )
+    return out

@@ -209,7 +209,7 @@ test("adaptive-D details forms gaps", async ({ page }) => {
   await expect(page.getByTestId("payment-detail")).toBeVisible({ timeout: 15000 });
   await page.getByTestId("cancel-payment").click();
   await page.getByTestId("confirm-modal-ok").click();
-  await expect(page.getByText(/cancelado/i)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId("status-badge")).toHaveText(/cancelado/i, { timeout: 10000 });
 
   // D3 — cancel invoice DRAFT
   await page.goto(`/invoices/${seed.draftInvoiceId}`);
@@ -237,6 +237,7 @@ test("adaptive-D details forms gaps", async ({ page }) => {
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Partial Supp ${stamp}`);
   await page.getByTestId("line-sku").fill(`PSKU-${stamp}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${stamp}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("1");

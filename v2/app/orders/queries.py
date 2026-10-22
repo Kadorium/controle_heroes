@@ -129,3 +129,59 @@ def totals_as_strings(order: Order) -> dict[str, str | int | None]:
         "unpriced_item_count": t.unpriced_item_count,
         "commercial_total": decimal_str(t.commercial_total),
     }
+
+
+def order_status_counts(db: Session) -> dict[str, int]:
+    from sqlalchemy import func
+
+    rows = db.query(Order.status, func.count(Order.id)).group_by(Order.status).all()
+    out = {"DRAFT": 0, "CONFIRMED": 0, "CANCELLED": 0, "CLOSED": 0}
+    for status, cnt in rows:
+        out[str(status)] = int(cnt or 0)
+    return out
+
+
+def order_line_pendencies(db: Session) -> dict[str, int]:
+    from sqlalchemy import func
+
+    from app.orders.models import LINE_KIND_COMMITMENT
+
+    unpriced = (
+        db.query(func.count(OrderItem.id))
+        .join(Order, Order.id == OrderItem.order_id)
+        .filter(Order.status != "CANCELLED", OrderItem.unit_price.is_(None))
+        .scalar()
+    )
+    commitment = (
+        db.query(func.count(OrderItem.id))
+        .join(Order, Order.id == OrderItem.order_id)
+        .filter(Order.status != "CANCELLED", OrderItem.line_kind == LINE_KIND_COMMITMENT)
+        .scalar()
+    )
+    return {"unpriced_lines": int(unpriced or 0), "commitment_lines": int(commitment or 0)}
+
+
+def unpriced_exceptions(db: Session, *, limit: int = 20) -> list[dict]:
+    rows = (
+        db.query(OrderItem, Order)
+        .join(Order, Order.id == OrderItem.order_id)
+        .filter(Order.status != "CANCELLED", OrderItem.unit_price.is_(None))
+        .order_by(Order.updated_at.desc())
+        .limit(limit)
+        .all()
+    )
+    out = []
+    for item, order in rows:
+        out.append(
+            {
+                "kind": "order_unpriced",
+                "severity": "warning",
+                "title": f"{order.code} · {item.sku_snapshot}",
+                "reason": "Linha sem preço",
+                "entity_id": order.id,
+                "href": f"/orders/{order.id}",
+                "since": order.updated_at.isoformat() if order.updated_at else None,
+                "module": "orders",
+            }
+        )
+    return out

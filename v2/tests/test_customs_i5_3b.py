@@ -176,7 +176,7 @@ def test_cancel_confirmed_blocked_when_partially_paid(admin_client, db):
 
 
 def test_customs_payable_not_in_eligible_list(admin_client, db):
-    """Gap intencional I5-3B: INNER JOIN Invoice exclui CUSTOMS_FUNDING da alocação."""
+    """Invoice path (supplier_id) continua a excluir CUSTOMS_FUNDING; AP ainda mostra."""
     from app.billing import public as billing_public
 
     client = admin_client

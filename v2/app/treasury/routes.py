@@ -2,7 +2,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
@@ -28,9 +28,12 @@ def decimal_str(value) -> str | None:
 
 
 class PaymentCreate(BaseModel):
-    supplier_id: int
+    model_config = ConfigDict(extra="forbid")
+
+    supplier_id: int | None = None
+    payable_id: int | None = None
     amount: str
-    currency: str = "EUR"
+    currency: str | None = None
     payment_date: date
     external_reference: str | None = None
     idempotency_key: str | None = None
@@ -71,8 +74,10 @@ class DocumentBrief(BaseModel):
 
 class PaymentResponse(BaseModel):
     id: int
-    supplier_id: int
+    supplier_id: int | None = None
     supplier_name: str | None = None
+    payee_display_name: str | None = None
+    payee_tax_id: str | None = None
     order_id: int | None = None
     purpose: str | None = None
     amount: str
@@ -161,9 +166,9 @@ class AdvanceRegisterResponse(BaseModel):
 
 class EligiblePayable(BaseModel):
     id: int
-    invoice_id: int
+    invoice_id: int | None = None
     invoice_number: str | None = None
-    order_id: int
+    order_id: int | None = None
     order_code: str | None = None
     sequence: int
     due_date: date
@@ -173,6 +178,8 @@ class EligiblePayable(BaseModel):
     currency: str
     status: str
     version: int
+    source_type: str = "INVOICE"
+    payee_display_name: str | None = None
 
 
 def _map_error(exc: TreasuryError | billing_public.BillingError) -> AppError:
@@ -189,7 +196,9 @@ def _map_error(exc: TreasuryError | billing_public.BillingError) -> AppError:
     )
 
 
-def _supplier_name(suppliers: dict, supplier_id: int) -> str | None:
+def _supplier_name(suppliers: dict, supplier_id: int | None) -> str | None:
+    if supplier_id is None:
+        return None
     supplier = suppliers.get(supplier_id)
     return supplier.name if supplier is not None else None
 
@@ -200,13 +209,16 @@ def _payment_response(db: Session, payment, *, supplier_name: str | None = None)
         DocumentBrief(id=d.id, original_filename=d.original_filename)
         for d in documents_public.list_by_entity(db, "payment", str(payment.id))
     ]
-    if supplier_name is None:
+    if supplier_name is None and payment.supplier_id is not None:
         bulk = catalog_public.get_suppliers_bulk(db, {payment.supplier_id})
         supplier_name = _supplier_name(bulk, payment.supplier_id)
+    payee_name = getattr(payment, "payee_display_name", None) or supplier_name
     return PaymentResponse(
         id=payment.id,
         supplier_id=payment.supplier_id,
         supplier_name=supplier_name,
+        payee_display_name=payee_name,
+        payee_tax_id=getattr(payment, "payee_tax_id", None),
         order_id=payment.order_id,
         purpose=getattr(payment, "purpose", None),
         amount=decimal_str(payment.amount) or "0",
@@ -299,6 +311,7 @@ def create_payment(
             payment = treasury_public.register_payment(
                 uow.session,
                 supplier_id=payload.supplier_id,
+                payable_id=payload.payable_id,
                 amount=payload.amount,
                 currency=payload.currency,
                 payment_date=payload.payment_date,
@@ -331,9 +344,10 @@ def create_payment(
 
 @router.post("/payments/with-document", response_model=PaymentResponse)
 async def create_payment_with_document(
-    supplier_id: int = Form(...),
+    supplier_id: int | None = Form(None),
+    payable_id: int | None = Form(None),
     amount: str = Form(...),
-    currency: str = Form("EUR"),
+    currency: str | None = Form(None),
     payment_date: date = Form(...),
     external_reference: str | None = Form(None),
     idempotency_key: str | None = Form(None),
@@ -352,6 +366,7 @@ async def create_payment_with_document(
             payment = treasury_public.register_payment(
                 uow.session,
                 supplier_id=supplier_id,
+                payable_id=payable_id,
                 amount=amount,
                 currency=currency,
                 payment_date=payment_date,
@@ -420,7 +435,9 @@ def list_payments(
         limit=limit,
         offset=offset,
     )
-    suppliers = catalog_public.get_suppliers_bulk(db, {p.supplier_id for p in rows})
+    suppliers = catalog_public.get_suppliers_bulk(
+        db, {p.supplier_id for p in rows if p.supplier_id is not None}
+    )
     return [
         _payment_response(db, p, supplier_name=_supplier_name(suppliers, p.supplier_id))
         for p in rows
@@ -445,22 +462,31 @@ def eligible_payables(
     enforce_permission(user, "treasury:read")
     try:
         payment = treasury_public.get_payment(db, payment_id)
-        rows = billing_public.list_eligible_payables(
-            db,
-            supplier_id=payment.supplier_id,
-            currency=payment.currency,
-            order_id=payment.order_id,
-        )
+        if payment.supplier_id is not None:
+            rows = billing_public.list_eligible_payables(
+                db,
+                supplier_id=payment.supplier_id,
+                currency=payment.currency,
+                order_id=payment.order_id,
+            )
+        else:
+            rows = billing_public.list_eligible_payables(
+                db,
+                currency=payment.currency,
+                payee_display_name=getattr(payment, "payee_display_name", None),
+                payee_tax_id=getattr(payment, "payee_tax_id", None),
+                source_type="CUSTOMS_FUNDING",
+            )
         out = []
         for p in rows:
-            inv = billing_public.get_invoice(db, p.invoice_id)
+            inv = billing_public.get_invoice(db, p.invoice_id) if p.invoice_id is not None else None
             allocated = p.amount - p.balance
             out.append(
                 EligiblePayable(
                     id=p.id,
                     invoice_id=p.invoice_id,
-                    invoice_number=inv.invoice_number,
-                    order_id=inv.order_id,
+                    invoice_number=inv.invoice_number if inv is not None else None,
+                    order_id=inv.order_id if inv is not None else None,
                     order_code=None,
                     sequence=p.sequence,
                     due_date=p.due_date,
@@ -470,6 +496,8 @@ def eligible_payables(
                     currency=p.currency,
                     status=p.status,
                     version=p.version,
+                    source_type=getattr(p, "source_type", None) or "INVOICE",
+                    payee_display_name=getattr(p, "payee_display_name", None),
                 )
             )
         return out

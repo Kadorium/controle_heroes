@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import {
@@ -16,6 +16,7 @@ import {
   type InvoiceListItem,
   type OrderQtyRow,
 } from "./billingApi";
+import { OrderFatturaPdfPanel } from "./OrderFatturaPdfPanel";
 import {
   canIssueBilling,
   canIssueWithoutDoc,
@@ -57,6 +58,30 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function qtyPositive(raw: string | undefined | null): boolean {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0;
+}
+
+/** Notas/avisos da fatura para o operador — sem IR, policy, SKU=EAN nem índice 0. */
+function honestInvoiceNotes(notes: string): string {
+  let s = notes.replace(/\bSKU\s+(\d{8,14})\b/g, "código de barras $1");
+  s = s.replace(
+    /Criada via ingestão Fattura\s+(\S+)\s+\(IR doc=\d+, policy=[^)]+\)/gi,
+    "Criada a partir da fatura $1",
+  );
+  s = s.replace(/\s*\(IR doc=\d+, policy=[^)]+\)/g, "");
+  s = s.replace(
+    /Divergência de preço \(Fattura ≠ pedido; a fatura segue o documento\):/g,
+    "Preço da fatura diferente do pedido. Vale o preço da fatura:",
+  );
+  s = s.replace(/linha PDF (\d+):/g, (_, n: string) => `linha ${Number(n) + 1}:`);
+  s = s.replace(/\s*\(item pedido #\d+\)/g, "");
+  s = s.replace(/ · Fattura /g, " · fatura ");
+  s = s.replace(/Defina scadenze \(PERCENT ou AMOUNT\)/gi, "Defina o vencimento (valor ou percentual)");
+  return s.replace(/\s+\n/g, "\n").trim();
+}
+
 export function OrderInvoicesPanel({
   user,
   orderId,
@@ -69,6 +94,7 @@ export function OrderInvoicesPanel({
   const [loaded, setLoaded] = useState(false);
   const [number, setNumber] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(todayIso());
+  const [picked, setPicked] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const canWrite = canWriteBilling(user);
@@ -80,6 +106,11 @@ export function OrderInvoicesPanel({
     ]);
     setRows(nextRows);
     setQtys(nextQtys);
+    setPicked(
+      nextQtys
+        .filter((q) => Boolean(q.billable) && qtyPositive(q.available_qty))
+        .map((q) => q.order_item_id),
+    );
     setLoaded(true);
   }
 
@@ -98,6 +129,7 @@ export function OrderInvoicesPanel({
       const inv = await createInvoice(orderId, {
         invoice_number: number.trim(),
         invoice_date: invoiceDate || undefined,
+        order_item_ids: picked,
       });
       nav(`/invoices/${inv.id}`);
     } catch (e) {
@@ -108,7 +140,9 @@ export function OrderInvoicesPanel({
   }
 
   const hasBillable = qtys.some((q) => Boolean(q.billable));
+  const hasResidual = qtys.some((q) => Boolean(q.billable) && qtyPositive(q.available_qty));
   const hasUnbillable = qtys.some((q) => !q.billable);
+  const showPicker = orderStatus === "CONFIRMED" && canWrite && hasResidual;
 
   return (
     <SectionCard title="Faturas" data-testid="order-invoices">
@@ -131,6 +165,7 @@ export function OrderInvoicesPanel({
         <OperationalTable density="standard" data-testid="invoiced-qty">
           <thead>
             <tr>
+              {showPicker ? <th>Nesta fatura</th> : null}
               <th>Item</th>
               <th className="num">Pedida</th>
               <th className="num">Faturada</th>
@@ -140,9 +175,34 @@ export function OrderInvoicesPanel({
           <tbody>
             {qtys.map((q) => {
               const billable = Boolean(q.billable);
+              const residual = billable && qtyPositive(q.available_qty);
               const label = (q.description || "").trim() || `Item #${q.order_item_id}`;
               return (
                 <tr key={q.order_item_id}>
+                  {showPicker ? (
+                    <td>
+                      {residual ? (
+                        <input
+                          type="checkbox"
+                          data-testid={`invoice-residual-${q.order_item_id}`}
+                          aria-label={`Incluir ${label} nesta fatura`}
+                          checked={picked.includes(q.order_item_id)}
+                          onChange={(e) => {
+                            const on = e.target.checked;
+                            setPicked((prev) =>
+                              on
+                                ? prev.includes(q.order_item_id)
+                                  ? prev
+                                  : [...prev, q.order_item_id]
+                                : prev.filter((id) => id !== q.order_item_id),
+                            );
+                          }}
+                        />
+                      ) : (
+                        <span className="muted">—</span>
+                      )}
+                    </td>
+                  ) : null}
                   <td>
                     {label}
                     {!billable ? (
@@ -194,30 +254,43 @@ export function OrderInvoicesPanel({
         </OperationalTable>
       )}
 
+      {showPicker ? (
+        <>
+          <p className="muted" data-testid="invoice-residual-hint">
+            Marque as linhas desta fatura. A quantidade inicial é o que ainda falta faturar.
+          </p>
+          <div className="stack-row form-inline">
+            <TextInput
+              data-testid="new-invoice-number"
+              placeholder="Número da fatura"
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+            />
+            <DateInput
+              data-testid="new-invoice-date"
+              value={invoiceDate}
+              onChange={(e) => setInvoiceDate(e.target.value)}
+              aria-label="Data da fatura"
+            />
+            <Button
+              type="button"
+              data-testid="create-invoice"
+              busy={busy}
+              disabled={!number.trim() || picked.length === 0}
+              onClick={() => void onCreate()}
+            >
+              Criar fatura
+            </Button>
+          </div>
+        </>
+      ) : null}
+
       {orderStatus === "CONFIRMED" && canWrite && hasBillable ? (
-        <div className="stack-row form-inline">
-          <TextInput
-            data-testid="new-invoice-number"
-            placeholder="Número da fatura"
-            value={number}
-            onChange={(e) => setNumber(e.target.value)}
-          />
-          <DateInput
-            data-testid="new-invoice-date"
-            value={invoiceDate}
-            onChange={(e) => setInvoiceDate(e.target.value)}
-            aria-label="Data da fatura"
-          />
-          <Button
-            type="button"
-            data-testid="create-invoice"
-            busy={busy}
-            disabled={!number.trim()}
-            onClick={() => void onCreate()}
-          >
-            Criar fatura
-          </Button>
-        </div>
+        <OrderFatturaPdfPanel
+          user={user}
+          orderId={orderId}
+          onImported={(invoiceId) => nav(`/invoices/${invoiceId}`)}
+        />
       ) : null}
     </SectionCard>
   );
@@ -229,6 +302,7 @@ export function InvoiceDetailPage({ user }: Props) {
   const [inv, setInv] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formBusy, setFormBusy] = useState(false);
+  const opSeq = useRef(0);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [confirmIssue, setConfirmIssue] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -277,6 +351,7 @@ export function InvoiceDetailPage({ user }: Props) {
 
   async function saveItems() {
     if (!inv || formBusy) return;
+    const seq = ++opSeq.current;
     setFormBusy(true);
     setError(null);
     try {
@@ -297,6 +372,7 @@ export function InvoiceDetailPage({ user }: Props) {
         ...it,
         quantity: compactQuantityWire(it.quantity),
       }));
+      if (seq !== opSeq.current) return;
       setInv({ ...next, items });
     } catch (e) {
       const status = (e as Error & { status?: number }).status;
@@ -318,12 +394,13 @@ export function InvoiceDetailPage({ user }: Props) {
         setError(e instanceof Error ? e.message : "Erro");
       }
     } finally {
-      setFormBusy(false);
+      if (seq === opSeq.current) setFormBusy(false);
     }
   }
 
   async function saveTerms() {
     if (!inv || formBusy) return;
+    const seq = ++opSeq.current;
     setFormBusy(true);
     setError(null);
     try {
@@ -346,12 +423,14 @@ export function InvoiceDetailPage({ user }: Props) {
             : { due_date: t.due_date, amount: t.amount },
         ),
       );
+      if (seq !== opSeq.current) return;
       setInv(next);
     } catch (e) {
       const status = (e as Error & { status?: number }).status;
       if (status === 409) {
         try {
           const fresh = await getInvoice(id);
+          if (seq !== opSeq.current) return;
           setInv((prev) =>
             prev
               ? { ...prev, version: fresh.version, status: fresh.status, blockers: fresh.blockers }
@@ -367,7 +446,7 @@ export function InvoiceDetailPage({ user }: Props) {
         setError(e instanceof Error ? e.message : "Erro");
       }
     } finally {
-      setFormBusy(false);
+      if (seq === opSeq.current) setFormBusy(false);
     }
   }
 
@@ -395,6 +474,7 @@ export function InvoiceDetailPage({ user }: Props) {
       setError("Aguarde o upload do documento");
       return;
     }
+    const seq = ++opSeq.current;
     setFormBusy(true);
     setError(null);
     try {
@@ -402,28 +482,31 @@ export function InvoiceDetailPage({ user }: Props) {
         issue_without_document: issueWithoutDoc,
         reason_code: issueWithoutDoc ? withoutDocReason.trim() : undefined,
       });
+      if (seq !== opSeq.current) return;
       setInv(next);
       setConfirmIssue(false);
       setIssueWithoutDoc(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
     } finally {
-      setFormBusy(false);
+      if (seq === opSeq.current) setFormBusy(false);
     }
   }
 
   async function onCancelDraft() {
     if (!inv || formBusy) return;
+    const seq = ++opSeq.current;
     setFormBusy(true);
     setError(null);
     try {
       const next = await cancelInvoice(inv.id, inv.version, "INVOICE_CANCEL_UI");
+      if (seq !== opSeq.current) return;
       setInv(next);
       setConfirmCancel(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
     } finally {
-      setFormBusy(false);
+      if (seq === opSeq.current) setFormBusy(false);
     }
   }
 
@@ -494,7 +577,7 @@ export function InvoiceDetailPage({ user }: Props) {
               "—"
             )}
           </FormField>
-          <FormField label="Data da fatura" htmlFor="invoice-date-edit" hint="dd/mm/aaaa">
+          <FormField label="Data da fatura" htmlFor="invoice-date-edit" hint={headerDate ? undefined : "dd/mm/aaaa"}>
             {canWrite ? (
               <div className="stack-row form-inline">
                 <DateInput
@@ -510,6 +593,8 @@ export function InvoiceDetailPage({ user }: Props) {
                   busy={formBusy}
                   onClick={() => {
                     void (async () => {
+                      if (formBusy) return;
+                      const seq = ++opSeq.current;
                       setFormBusy(true);
                       setError(null);
                       try {
@@ -521,12 +606,13 @@ export function InvoiceDetailPage({ user }: Props) {
                           ...it,
                           quantity: compactQuantityWire(it.quantity),
                         }));
+                        if (seq !== opSeq.current) return;
                         setInv({ ...next, items });
                         setHeaderDate(next.invoice_date ?? "");
                       } catch (e) {
                         setError(e instanceof Error ? e.message : "Erro");
                       } finally {
-                        setFormBusy(false);
+                        if (seq === opSeq.current) setFormBusy(false);
                       }
                     })();
                   }}
@@ -548,7 +634,7 @@ export function InvoiceDetailPage({ user }: Props) {
 
       {readonly ? (
         <Notice tone="info" data-testid="invoice-readonly">
-          Fatura somente leitura.
+          Fatura emitida permanece no histórico. Não se apaga nem se altera o que já foi emitido.
         </Notice>
       ) : null}
 
@@ -562,7 +648,7 @@ export function InvoiceDetailPage({ user }: Props) {
         <Notice tone="warning" title="Pendências" data-testid="invoice-blockers">
           <ul className="notice-list">
             {inv.blockers.map((b) => (
-              <li key={b}>{b}</li>
+              <li key={b}>{honestInvoiceNotes(b)}</li>
             ))}
           </ul>
         </Notice>
@@ -570,11 +656,11 @@ export function InvoiceDetailPage({ user }: Props) {
 
       {inv.notes?.includes("Divergência de preço") ? (
         <Notice tone="warning" title="Divergência de preço" data-testid="invoice-price-divergence">
-          <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{inv.notes}</p>
+          <p style={{ whiteSpace: "pre-wrap", margin: 0 }}>{honestInvoiceNotes(inv.notes)}</p>
         </Notice>
       ) : inv.notes ? (
         <p className="muted" data-testid="invoice-notes">
-          {inv.notes}
+          {honestInvoiceNotes(inv.notes)}
         </p>
       ) : null}
 
@@ -590,7 +676,7 @@ export function InvoiceDetailPage({ user }: Props) {
       >
         {canWrite ? (
           <Notice tone="info" data-testid="invoice-unit-inheritance-hint">
-            Unidade documental: herdada do pedido na criação; override explícito ao editar e salvar.
+            A unidade vem do pedido. Se alterar aqui e salvar, vale a da fatura.
           </Notice>
         ) : null}
         <OperationalTable density="finance" className="invoice-items-table" data-testid="invoice-items-table">
@@ -618,7 +704,7 @@ export function InvoiceDetailPage({ user }: Props) {
               });
               return (
                 <tr key={item.id}>
-                  <td>{item.sku_snapshot}</td>
+                  <td data-testid={`invoice-item-sku-${idx}`}>{item.sku_snapshot}</td>
                   <td className="num">
                     {canWrite ? (
                       <TextInput
@@ -642,7 +728,7 @@ export function InvoiceDetailPage({ user }: Props) {
                         value={item.unit ?? ""}
                         placeholder="PZ"
                         maxLength={16}
-                        title="Unidade documental (snapshot). Em branco no create herda do pedido; override explícito ao salvar."
+                        title="Unidade. Em branco herda do pedido; se preencher e salvar, vale a da fatura."
                         onChange={(e) => {
                           const items = [...(inv.items ?? [])];
                           items[idx] = { ...item, unit: e.target.value || null };
@@ -685,7 +771,9 @@ export function InvoiceDetailPage({ user }: Props) {
                           setInv({ ...inv, items });
                         }}
                         options={[
-                          { value: "", label: "(incompleto)" },
+                          ...(!item.discount_type
+                            ? [{ value: "", label: "Definir" }]
+                            : []),
                           { value: "NONE", label: "Nenhum" },
                           { value: "UNIT_AMOUNT", label: "Valor/un" },
                           { value: "PERCENT", label: "%" },
@@ -818,8 +906,7 @@ export function InvoiceDetailPage({ user }: Props) {
         )}
         {inv.terms_from_document ? (
           <Notice tone="info" data-testid="terms-from-document">
-            Scadenze literais do documento (valores impressos). Percentual recalcularia e ignora
-            esses valores — bloqueado nesta fatura.
+            Vencimentos copiados do documento. Nesta fatura não dá para mudar para percentual.
           </Notice>
         ) : null}
 
@@ -993,6 +1080,7 @@ export function InvoiceDetailPage({ user }: Props) {
           setIssueWithoutDoc(false);
         }}
         onConfirm={() => void onIssue()}
+        initialFocusSelector='[data-testid="confirm-modal-ok"]'
       >
         <p>
           Após a emissão a fatura fica somente leitura e as obrigações são criadas. Confirma?

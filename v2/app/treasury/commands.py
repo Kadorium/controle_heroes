@@ -67,6 +67,101 @@ def amount_unallocated(db: Session, payment: Payment) -> Decimal:
     return money2(payment.amount - allocated_sum(db, payment.id))
 
 
+def unallocated_registered_bulk(db: Session) -> dict:
+    """Residual REGISTERED por moeda/purpose — uma query, sem N+1."""
+    alloc_sq = (
+        db.query(
+            PaymentAllocation.payment_id.label("payment_id"),
+            func.coalesce(func.sum(PaymentAllocation.amount), 0).label("allocated"),
+        )
+        .group_by(PaymentAllocation.payment_id)
+        .subquery()
+    )
+    residual = Payment.amount - func.coalesce(alloc_sq.c.allocated, 0)
+    rows = (
+        db.query(
+            Payment.currency,
+            Payment.purpose,
+            func.count(Payment.id),
+            func.coalesce(func.sum(residual), 0),
+        )
+        .outerjoin(alloc_sq, alloc_sq.c.payment_id == Payment.id)
+        .filter(Payment.status == "REGISTERED", residual > 0)
+        .group_by(Payment.currency, Payment.purpose)
+        .all()
+    )
+    by_currency: dict[str, dict] = {}
+    mixed = set()
+    for currency, purpose, cnt, amount in rows:
+        cur = str(currency or "")
+        mixed.add(cur)
+        entry = by_currency.setdefault(
+            cur, {"currency": cur, "count": 0, "amount": Decimal("0"), "by_purpose": []}
+        )
+        amt = money2(Decimal(str(amount or 0)))
+        entry["count"] += int(cnt or 0)
+        entry["amount"] += amt
+        entry["by_purpose"].append(
+            {
+                "purpose": purpose,
+                "count": int(cnt or 0),
+                "amount": f"{amt:.2f}",
+            }
+        )
+    items = []
+    for cur in sorted(by_currency):
+        e = by_currency[cur]
+        items.append(
+            {
+                "currency": cur,
+                "count": e["count"],
+                "amount": f"{money2(e['amount']):.2f}",
+                "by_purpose": e["by_purpose"],
+            }
+        )
+    return {"mixed_currency": len(mixed) > 1, "by_currency": items}
+
+
+def unallocated_registered_list(db: Session, *, limit: int = 20) -> list[dict]:
+    """Pagamentos REGISTERED com residual, com ids — sem filtrar depois do limit."""
+    alloc_sq = (
+        db.query(
+            PaymentAllocation.payment_id.label("payment_id"),
+            func.coalesce(func.sum(PaymentAllocation.amount), 0).label("allocated"),
+        )
+        .group_by(PaymentAllocation.payment_id)
+        .subquery()
+    )
+    residual = Payment.amount - func.coalesce(alloc_sq.c.allocated, 0)
+    rows = (
+        db.query(Payment, residual.label("residual"))
+        .outerjoin(alloc_sq, alloc_sq.c.payment_id == Payment.id)
+        .filter(Payment.status == "REGISTERED", residual > 0)
+        .order_by(Payment.payment_date.asc(), Payment.id.asc())
+        .limit(limit)
+        .all()
+    )
+    out = []
+    for payment, residual_amt in rows:
+        amt = money2(Decimal(str(residual_amt or 0)))
+        title = (payment.payee_display_name or payment.external_reference or f"Pagamento {payment.id}").strip()
+        out.append(
+            {
+                "kind": "unallocated_payment",
+                "severity": "warning",
+                "title": title,
+                "reason": f"Registrado sem aplicar · {payment.currency} {amt:.2f}",
+                "entity_id": payment.id,
+                "href": f"/payments/{payment.id}",
+                "since": payment.payment_date.isoformat() if payment.payment_date else None,
+                "module": "treasury",
+                "currency": payment.currency,
+                "amount": f"{amt:.2f}",
+            }
+        )
+    return out
+
+
 def bump_payment_version(db: Session, payment_id: int, expected_version: int) -> bool:
     result = db.execute(
         update(Payment)
@@ -96,11 +191,12 @@ def _payload_hash(allocations: list[dict]) -> str:
 def register_payment(
     db: Session,
     *,
-    supplier_id: int,
     amount: str | Decimal,
-    currency: str,
     payment_date: date,
     created_by_actor_id: str,
+    supplier_id: int | None = None,
+    payable_id: int | None = None,
+    currency: str | None = None,
     external_reference: str | None = None,
     idempotency_key: str | None = None,
     allow_without_document: bool = False,
@@ -113,30 +209,81 @@ def register_payment(
         if existing:
             return get_payment(db, existing.id)
 
-    catalog_public.get_supplier(db, supplier_id)
+    if purpose is not None and payable_id is not None:
+        raise PaymentValidationError("purpose é definido pelo servidor a partir da obrigação")
+
+    payee_display_name: str | None = None
+    payee_tax_id: str | None = None
+    resolved_supplier_id: int | None = supplier_id
+    resolved_order_id = order_id
+    resolved_purpose: str | None = None
+    cur = (currency or "").strip().upper() if currency else ""
+
+    if payable_id is not None:
+        if supplier_id is not None:
+            raise PaymentValidationError("payable_id não aceita supplier_id no corpo")
+        if order_id is not None:
+            raise PaymentValidationError("Pagamento de Numerário não aceita pedido")
+        try:
+            payable = billing_public.get_payable(db, int(payable_id))
+        except billing_public.BillingError as e:
+            raise PaymentValidationError(getattr(e, "message", str(e))) from e
+        if payable.source_type != "CUSTOMS_FUNDING" or payable.invoice_id is not None:
+            raise PaymentValidationError(
+                "Pagamento sem fornecedor somente a partir de Payable CUSTOMS_FUNDING elegível"
+            )
+        if payable.status in ("PAID", "CANCELLED"):
+            raise PaymentValidationError(
+                f"Payable #{payable.id} não aceita registro de pagamento (status {payable.status})"
+            )
+        payable_cur = (payable.currency or "").strip().upper()
+        if payable_cur != "BRL":
+            raise PaymentValidationError(
+                "Numerário em moeda estrangeira não é liquidável nesta versão"
+            )
+        if cur and cur != payable_cur:
+            raise PaymentValidationError(
+                f"Moeda do pagamento deve ser {payable_cur} (derivada da obrigação)"
+            )
+        name = (payable.payee_display_name or "").strip()
+        if not name:
+            raise PaymentValidationError("Obrigação de Numerário sem favorecido")
+        payee_display_name = name
+        payee_tax_id = (getattr(payable, "payee_tax_id", None) or "").strip() or None
+        cur = payable_cur
+        resolved_supplier_id = None
+        resolved_order_id = None
+        resolved_purpose = PURPOSE_SETTLEMENT
+    else:
+        if resolved_supplier_id is None:
+            raise PaymentValidationError("supplier_id obrigatório quando não há payable_id")
+        catalog_public.get_supplier(db, resolved_supplier_id)
+        if len(cur) < 3:
+            cur = "EUR"
+        supplier = catalog_public.get_supplier(db, resolved_supplier_id)
+        payee_display_name = supplier.name
+        if purpose is not None:
+            resolved_purpose = purpose.strip().upper()
+            if resolved_purpose not in (PURPOSE_ADVANCE, PURPOSE_SETTLEMENT):
+                raise PaymentValidationError("purpose do pagamento deve ser ADVANCE ou SETTLEMENT")
+        elif order_id is not None:
+            resolved_purpose = PURPOSE_SETTLEMENT
+
     amt = parse_decimal(amount)
     if amt is None or amt <= 0:
         raise PaymentValidationError("Valor do pagamento deve ser > 0")
     amt = money2(amt)
-    cur = (currency or "").strip().upper()
     if len(cur) < 3:
         raise PaymentValidationError("Moeda inválida")
     if not created_by_actor_id or not str(created_by_actor_id).strip():
         raise PaymentValidationError("Ator da criação é obrigatório")
 
-    resolved_purpose: str | None = None
-    if purpose is not None:
-        resolved_purpose = purpose.strip().upper()
-        if resolved_purpose not in (PURPOSE_ADVANCE, PURPOSE_SETTLEMENT):
-            raise PaymentValidationError("purpose do pagamento deve ser ADVANCE ou SETTLEMENT")
-    elif order_id is not None:
-        resolved_purpose = PURPOSE_SETTLEMENT
-
-    docs = []  # checked by caller after flush with known id — register creates first
     payment = Payment(
-        supplier_id=supplier_id,
-        order_id=order_id,
+        supplier_id=resolved_supplier_id,
+        order_id=resolved_order_id,
         purpose=resolved_purpose,
+        payee_display_name=payee_display_name,
+        payee_tax_id=payee_tax_id,
         amount=amt,
         currency=cur,
         payment_date=payment_date,
@@ -153,7 +300,6 @@ def register_payment(
     if not allow_without_document:
         docs = documents_public.list_by_entity(db, "payment", str(payment.id))
         if not docs:
-            # Caller must link doc in same UoW after create — flag for route validation
             payment.register_without_document = False
     return get_payment(db, payment.id)
 
@@ -213,32 +359,21 @@ def allocate_payment(
             f"Soma das alocações ({total_new}) excede residual do pagamento ({residual})"
         )
 
-    # Validate supplier/currency via eligible set
+    # Validate settlement party via Billing (Invoice vs CUSTOMS_FUNDING)
     for raw in allocations:
         pid = int(raw["payable_id"])
         try:
             payable = billing_public.get_payable(db, pid)
+            billing_public.assert_payable_matches_payment(
+                payable,
+                currency=payment.currency,
+                supplier_id=payment.supplier_id,
+                order_id=payment.order_id,
+                payee_display_name=getattr(payment, "payee_display_name", None),
+                payee_tax_id=getattr(payment, "payee_tax_id", None),
+            )
         except billing_public.BillingError as e:
             raise PaymentValidationError(getattr(e, "message", str(e))) from e
-        if payable.invoice_id is None:
-            raise PaymentValidationError(
-                f"Payable #{pid} sem fatura (origem Customs/outro) não é elegível "
-                "para alocação via Payment atual"
-            )
-        inv = billing_public.get_invoice(db, payable.invoice_id)
-        if inv.supplier_id != payment.supplier_id:
-            raise PaymentValidationError(
-                f"Payable #{pid} pertence a outro fornecedor"
-            )
-        if payable.currency != payment.currency:
-            raise PaymentValidationError(
-                f"Payable #{pid} está em moeda diferente ({payable.currency})"
-            )
-        if payment.order_id is not None and inv.order_id != payment.order_id:
-            raise PaymentValidationError(
-                f"Payable #{pid} pertence a outro pedido "
-                f"(crédito do pedido {payment.order_id}, obrigação do pedido {inv.order_id})"
-            )
 
 
     applications = [

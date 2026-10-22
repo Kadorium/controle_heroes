@@ -1,0 +1,10 @@
+# Specs estáveis — sem cat-pim + rux no mesmo prepare
+# npm run e2e:prof
+
+e2e/j7-dashboard.spec.ts
+e2e/j6-costing.spec.ts
+e2e/j5-acceptance.spec.ts
+e2e/i9-0-shell.spec.ts
+e2e/inc6-order-to-pay.spec.ts
+e2e/customs-funding-settlement.spec.ts
+e2e/mdm-ux-r.spec.ts

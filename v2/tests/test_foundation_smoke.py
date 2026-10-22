@@ -12,6 +12,25 @@ def test_login_and_me(admin_client):
     assert me.json()["email"] == "admin@epic.com.br"
 
 
+def test_dev_login_as_admin(client):
+    r = client.post("/api/auth/dev-login")
+    assert r.status_code == 200, r.text
+    assert r.json()["email"] == "admin@epic.com.br"
+    me = client.get("/api/auth/me")
+    assert me.status_code == 200
+    assert me.json()["email"] == "admin@epic.com.br"
+
+
+def test_dev_login_disabled_in_production(client, monkeypatch):
+    from app.foundation.settings import get_settings
+
+    monkeypatch.setattr(get_settings(), "app_env", "production")
+    r = client.post("/api/auth/dev-login")
+    assert r.status_code == 404
+    me = client.get("/api/auth/me")
+    assert me.status_code == 401
+
+
 def test_login_writes_audit(admin_client):
     rows = admin_client.get("/api/audit", params={"entity_type": "user", "entity_id": "1"})
     assert rows.status_code == 200

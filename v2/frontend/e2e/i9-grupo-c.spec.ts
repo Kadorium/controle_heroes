@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { clickNewOrder, loginAs, openOrdersList, PAYMENTS_NAV, allocateFirstEligible } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -12,15 +13,13 @@ const evidenceDir = path.resolve(
 test("I9-6…8 AP G02 Payment Allocation FX", async ({ page }) => {
   const code = `I9C-${Date.now()}`;
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-
-  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
+  await loginAs(page);
+  await openOrdersList(page);
+  await clickNewOrder(page);
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
   await page.getByTestId("line-sku").fill(`SKU-${code}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${code}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("10");
@@ -51,9 +50,13 @@ test("I9-6…8 AP G02 Payment Allocation FX", async ({ page }) => {
   await expect(page.getByTestId("payables-list")).toBeVisible({ timeout: 15000 });
 
   const payableId = await page.evaluate(async () => {
-    const r = await fetch("/api/payables?limit=5", { credentials: "include" });
+    const m = location.pathname.match(/\/invoices\/(\d+)/);
+    if (!m) throw new Error("sem invoice id na URL");
+    const r = await fetch(`/api/payables?invoice_id=${m[1]}&limit=20`, { credentials: "include" });
     const rows = await r.json();
-    return rows[0]?.id as number;
+    const list = Array.isArray(rows) ? rows : [];
+    if (!list[0]?.id) throw new Error("payable da fatura não encontrado");
+    return list[0].id as number;
   });
   const balanceBefore = await page.evaluate(async (pid) => {
     const r = await fetch(`/api/payables?limit=100`, { credentials: "include" });
@@ -90,13 +93,7 @@ test("I9-6…8 AP G02 Payment Allocation FX", async ({ page }) => {
   }, payableId);
   expect(balanceAfterCreate).toBe(balanceBefore);
 
-  const table = page.getByTestId("eligible-table");
-  const amt = table.locator("tbody tr").first().locator("input");
-  await amt.click();
-  await amt.fill("400");
-  await expect(page.getByTestId("alloc-preview")).toBeVisible();
-  await page.getByTestId("allocate-btn").click();
-  await page.getByTestId("confirm-modal-ok").click();
+  await allocateFirstEligible(page, "400");
   await expect(page.getByTestId("payment-residual")).toContainText(/EUR 600,00/i, { timeout: 10000 });
 
   const balanceAfterAlloc = await page.evaluate(async (pid) => {
@@ -118,7 +115,7 @@ test("I9-6…8 AP G02 Payment Allocation FX", async ({ page }) => {
   await page.screenshot({ path: path.join(evidenceDir, "i9-8-fx-1366.png"), fullPage: true });
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /^Pagamentos$/i }).click();
+  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: PAYMENTS_NAV }).click();
   await expect(page.getByTestId("payments-list")).toBeVisible();
   await page.screenshot({ path: path.join(evidenceDir, "i9-7-payments-1440.png"), fullPage: true });
 });

@@ -13,10 +13,10 @@ test("I5-5 customs list/detail + inventory nav smoke", async ({ page }) => {
   await page.waitForURL((u) => !u.pathname.includes("/login"));
 
   const nav = page.getByRole("navigation", { name: /módulos/i });
-  await expect(nav.getByRole("link", { name: /processos aduaneiros/i })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Processos$/i })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^estoque$/i })).toBeVisible();
 
-  await nav.getByRole("link", { name: /processos aduaneiros/i }).click();
+  await nav.getByRole("link", { name: /^Processos$/i }).click();
   await expect(page.getByTestId("customs-list-page")).toBeVisible();
   await expect(page.getByTestId("kpi-strip")).toBeVisible();
   await expect(page.getByTestId("breadcrumb")).toContainText(/processos/i);
@@ -34,6 +34,6 @@ test("I5-5 customs list/detail + inventory nav smoke", async ({ page }) => {
 
   await nav.getByRole("link", { name: /^estoque$/i }).click();
   await expect(page.getByTestId("inventory-movements-page")).toBeVisible();
-  await expect(page.getByLabel(/produto/i)).toBeVisible();
+  await expect(page.getByTestId("movements-product-filter")).toBeVisible();
   await expect(page.getByRole("button", { name: /filtrar/i })).toBeVisible();
 });

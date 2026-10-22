@@ -1,26 +1,18 @@
 import { test, expect } from "@playwright/test";
+import { fillAndConfirmOrder, loginAs } from "./helpers/orderCreate";
 
 test("Inc-4 FX three views canonical path", async ({ page }) => {
   const code = `FX-${Date.now()}`;
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-  await expect(page.getByRole("link", { name: /pedidos/i }).first()).toBeVisible({ timeout: 15000 });
-
-  // Order 10 x 100 = 1000
-  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
-  await page.getByTestId("order-code").fill(code);
-  await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
-  await page.getByTestId("line-sku").fill(`SKU-${code}`);
-  await page.getByRole("button", { name: /criar sku/i }).click();
-  await page.waitForTimeout(400);
-  await page.getByTestId("line-qty").fill("10");
-  await page.getByTestId("line-price").fill("100");
-  await page.getByRole("button", { name: /adicionar linha/i }).click();
-  await page.getByTestId("save-confirm").click();
-  await page.getByTestId("confirm-modal-ok").click();
-  await expect(page.getByTestId("order-cockpit")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  // Order 10 x 100 = 1000 (SKU + descrição obrigatória; linha na tbody)
+  await fillAndConfirmOrder(page, {
+    code,
+    supplierName: `Fornecedor ${code}`,
+    sku: `SKU-${code}`,
+    description: `Produto ${code}`,
+    qty: "10",
+    price: "100",
+  });
   await page.getByTestId("cockpit-commercial-link").click();
   await expect(page.getByTestId("order-detail")).toBeVisible({ timeout: 15000 });
 
@@ -57,21 +49,38 @@ test("Inc-4 FX three views canonical path", async ({ page }) => {
   await page.goto(`/payables/${payableId}/fx`);
   await expect(page.getByTestId("payable-fx-panel")).toBeVisible({ timeout: 10000 });
 
+  async function fillRate(testId: string, typed: string) {
+    const el = page.getByTestId(testId);
+    await el.click();
+    await page.waitForTimeout(80);
+    await el.fill("");
+    await el.pressSequentially(typed, { delay: 25 });
+    await el.blur();
+  }
+
   await page.getByTestId("fx-plan-kind").selectOption("INITIAL");
-  await page.getByTestId("fx-plan-rate").click();
-  await page.getByTestId("fx-plan-rate").fill("6.00");
-  await page.getByTestId("fx-plan-save").click();
+  await fillRate("fx-plan-rate", "6,00");
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("/fx-plan") && r.request().method() === "POST" && r.ok(),
+    ),
+    page.getByTestId("fx-plan-save").click(),
+  ]);
   await expect(page.getByTestId("payable-fx-panel")).toContainText("6,0000", { timeout: 8000 });
 
   await page.getByTestId("fx-plan-kind").selectOption("REFORECAST");
-  await page.getByTestId("fx-plan-rate").click();
-  await page.getByTestId("fx-plan-rate").fill("6.10");
+  await expect(page.getByTestId("fx-plan-reason")).toBeVisible();
+  await fillRate("fx-plan-rate", "6,10");
   await page.getByTestId("fx-plan-reason").fill("MARKET_UPDATE");
-  await page.getByTestId("fx-plan-save").click();
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("/fx-plan") && r.request().method() === "POST" && r.ok(),
+    ),
+    page.getByTestId("fx-plan-save").click(),
+  ]);
   await expect(page.getByTestId("payable-fx-panel")).toContainText("6,1000", { timeout: 8000 });
 
-  await page.getByTestId("fx-manual-rate").click();
-  await page.getByTestId("fx-manual-rate").fill("6.25");
+  await fillRate("fx-manual-rate", "6,25");
   await page.getByTestId("fx-manual-save").click();
   await expect(page.getByTestId("payable-fx-panel")).toContainText("6,2500", { timeout: 8000 });
 

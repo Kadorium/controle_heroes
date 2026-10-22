@@ -49,6 +49,11 @@ ADMIN_PERMISSIONS = [
     "ingestion:write",
     "ingestion:commit",
     "ingestion:purge",
+    "costing:read",
+    "costing:write",
+    "costing:publish",
+    "reconciliation:read",
+    "reconciliation:resolve",
 ]
 
 COMPRADOR_PERMISSIONS = [
@@ -73,6 +78,10 @@ COMPRADOR_PERMISSIONS = [
     "inventory:read",
     "ingestion:read",
     "ingestion:write",
+    "costing:read",
+    "costing:write",
+    "reconciliation:read",
+    "reporting:read",
 ]
 
 # Papel operacional Aduana (I5-5) — sem usuário seed em epic_v2.
@@ -83,6 +92,9 @@ ADUANA_PERMISSIONS = [
     "documents:read",
     "documents:write",
     "audit:read",
+    "costing:read",
+    "reconciliation:read",
+    "reporting:read",
 ]
 
 # Papel operacional Estoque (I5-5) — sem usuário seed em epic_v2.
@@ -92,6 +104,7 @@ ESTOQUE_PERMISSIONS = [
     "inventory:adjust",
     "documents:read",
     "audit:read",
+    "reporting:read",
 ]
 
 

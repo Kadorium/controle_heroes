@@ -181,7 +181,9 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     priority: 3,
     minWidth: "4.5rem",
     cell: (row) =>
-      row.source_type === "CUSTOMS_FUNDING" || row.currency === "BRL" ? null : (
+      row.source_type === "CUSTOMS_FUNDING" || row.currency === "BRL" ? (
+        <span className="muted">Não se aplica</span>
+      ) : (
         <RowAction to={`/payables/${row.id}/fx`} onClick={(e) => e.stopPropagation()}>
           Câmbio
         </RowAction>

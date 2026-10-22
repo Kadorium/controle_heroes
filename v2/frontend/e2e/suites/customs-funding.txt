@@ -1,0 +1,4 @@
+e2e/customs-funding-settlement.spec.ts
+e2e/inc3-treasury.spec.ts
+e2e/i9-0-shell.spec.ts
+e2e/i5-5-ux-smoke.spec.ts

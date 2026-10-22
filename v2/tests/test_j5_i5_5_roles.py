@@ -16,6 +16,9 @@ def test_aduana_estoque_permission_constants():
         "documents:read",
         "documents:write",
         "audit:read",
+        "costing:read",
+        "reconciliation:read",
+        "reporting:read",
     }
     assert set(identity_public.ESTOQUE_PERMISSIONS) == {
         "inventory:read",
@@ -23,6 +26,7 @@ def test_aduana_estoque_permission_constants():
         "inventory:adjust",
         "documents:read",
         "audit:read",
+        "reporting:read",
     }
     # Não diluir comprador com write operacional dedicado
     assert "customs:write" not in identity_public.COMPRADOR_PERMISSIONS

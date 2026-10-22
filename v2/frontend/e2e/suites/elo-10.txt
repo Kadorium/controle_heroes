@@ -1,0 +1,2 @@
+# Elo 10 — CONFIRMED → CLOSED → reopen
+e2e/elo-10-close-order.spec.ts

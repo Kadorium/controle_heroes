@@ -110,6 +110,8 @@ def test_patch_l006_and_tax_id(admin_client):
     assert r.status_code == 200
     ids = [x["id"] for x in r.json()["items"]]
     assert pid2 in ids
+    assert "summary" in r.json()
+    assert "incomplete" in r.json()["summary"]
 
     r = c.get("/api/catalog/product-attribute-values", params={"field": "size"})
     assert r.status_code == 200
@@ -137,3 +139,59 @@ def test_inactive_sku_still_unique(admin_client):
     assert r.status_code == 201
     r = c.post("/api/products", json={"sku": "UNIQUE-X", "description": "b", "is_active": True})
     assert r.status_code == 409
+
+
+def test_product_list_facets_summary_and_beyond_50(admin_client):
+    c = admin_client
+    for i in range(1, 56):
+        r = c.post(
+            "/api/products",
+            json={"sku": f"MASS-{i:03d}", "description": f"Massa visual {i}"},
+        )
+        assert r.status_code == 201, r.text
+    r = c.patch(
+        "/api/products/" + str(c.get("/api/catalog/product-list", params={"q": "MASS-001"}).json()["items"][0]["id"]),
+        json={"size": "M", "color": "Red", "country_of_origin": "IT", "ncm": "42029200", "ean": "7900000000001"},
+    )
+    assert r.status_code == 200, r.text
+    r = c.patch(
+        "/api/products/" + str(c.get("/api/catalog/product-list", params={"q": "MASS-002"}).json()["items"][0]["id"]),
+        json={"size": "L", "color": "Blue", "is_active": False},
+    )
+    assert r.status_code == 200
+
+    page = c.get("/api/catalog/product-list", params={"q": "MASS-", "limit": 50, "offset": 0})
+    assert page.status_code == 200
+    body = page.json()
+    assert body["total"] >= 55
+    assert body["summary"]["total"] >= 55
+    assert "MASS-055" not in [x["sku"] for x in body["items"]]
+
+    found = c.get("/api/catalog/product-list", params={"q": "MASS-055"})
+    assert found.status_code == 200
+    assert any(x["sku"] == "MASS-055" for x in found.json()["items"])
+
+    picker = c.get("/api/products", params={"q": "MASS-055", "active_only": True, "limit": 20})
+    assert picker.status_code == 200
+    assert any(x["sku"] == "MASS-055" for x in picker.json())
+
+    sizes = c.get("/api/catalog/product-attribute-values", params={"field": "country_of_origin"})
+    assert sizes.status_code == 200
+    assert "IT" in sizes.json()["values"]
+
+    origin = c.get("/api/catalog/product-list", params={"origin": "IT", "q": "MASS-"})
+    assert origin.status_code == 200
+    assert all(x["country_of_origin"] == "IT" for x in origin.json()["items"])
+
+    multi = c.get("/api/catalog/product-list", params={"size": "M,L", "q": "MASS-"})
+    assert multi.status_code == 200
+    assert {x["size"] for x in multi.json()["items"]} <= {"M", "L"}
+
+    inactive = c.get("/api/catalog/product-list", params={"is_active": False, "q": "MASS-"})
+    assert inactive.status_code == 200
+    assert all(x["is_active"] is False for x in inactive.json()["items"])
+
+    active_picker = c.get("/api/products", params={"q": "MASS-002", "active_only": True})
+    assert active_picker.status_code == 200
+    assert all(x["sku"] != "MASS-002" for x in active_picker.json())
+

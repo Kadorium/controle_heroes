@@ -5,8 +5,26 @@ export type UserAdmin = components["schemas"]["UserAdminOut"];
 export type RoleOut = components["schemas"]["RoleOut"];
 export type UserList = components["schemas"]["UserListOut"];
 
+/** AppError `{ message }` or FastAPI `{ detail: [{ loc, msg }] }` → human message. */
+export function formatIdentityError(error: unknown, fallback: string): string {
+  if (!error || typeof error !== "object") return fallback;
+  const rec = error as Record<string, unknown>;
+  if (typeof rec.message === "string" && rec.message.trim()) return rec.message;
+  if (typeof rec.detail === "string" && rec.detail.trim()) return rec.detail;
+  if (!Array.isArray(rec.detail) || rec.detail.length === 0) return fallback;
+  const first = rec.detail[0];
+  if (!first || typeof first !== "object") return fallback;
+  const item = first as { loc?: unknown; msg?: string };
+  const loc = Array.isArray(item.loc) ? item.loc.map(String).join(".") : "";
+  const msg = typeof item.msg === "string" ? item.msg : "";
+  if (loc.includes("email") || /email/i.test(msg)) {
+    return "E-mail inválido. Use o formato nome@dominio.";
+  }
+  return msg || fallback;
+}
+
 function errMsg(error: unknown, fallback: string) {
-  return (error as { message?: string } | undefined)?.message || fallback;
+  return formatIdentityError(error, fallback);
 }
 
 export async function listRoles() {
@@ -15,11 +33,19 @@ export async function listRoles() {
   return data ?? [];
 }
 
-export async function listUsers(query?: { q?: string; limit?: number; offset?: number }): Promise<UserList> {
+export async function listUsers(query?: {
+  q?: string;
+  isActive?: boolean | null;
+  role?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<UserList> {
   const { data, error } = await api.GET("/api/users", {
     params: {
       query: {
         q: query?.q || undefined,
+        is_active: query?.isActive ?? undefined,
+        role: query?.role || undefined,
         limit: query?.limit ?? 50,
         offset: query?.offset ?? 0,
       },

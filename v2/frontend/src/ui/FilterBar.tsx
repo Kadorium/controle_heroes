@@ -14,6 +14,8 @@ type Props = {
   primary?: ReactNode;
   /** Secundários — em compact vão para “Mais filtros”. */
   secondary?: ReactNode;
+  /** Força o popover “Mais filtros” mesmo em viewport largo (contrato MDM-UX-R). */
+  moreAlways?: boolean;
   /** Resumo de filtros ativos ≠ default (chips removíveis). */
   activeFilters?: readonly ActiveFilterChip[];
   onClearAll?: () => void;
@@ -25,7 +27,7 @@ type Props = {
  * FilterBar adaptativa (Onda A1).
  * Lógica de query permanece na feature; aqui só composição visual.
  */
-export function FilterBar({ primary, secondary, activeFilters, onClearAll, children }: Props) {
+export function FilterBar({ primary, secondary, moreAlways = false, activeFilters, onClearAll, children }: Props) {
   const [moreOpen, setMoreOpen] = useState(false);
   const panelId = useId();
   const trapRef = useFocusTrap(moreOpen, () => setMoreOpen(false));
@@ -41,7 +43,12 @@ export function FilterBar({ primary, secondary, activeFilters, onClearAll, child
   }
 
   return (
-    <div className="filter-bar filter-bar--adaptive" data-testid="filter-bar">
+    <div
+      className={["filter-bar filter-bar--adaptive", moreAlways ? "filter-bar--more-always" : null]
+        .filter(Boolean)
+        .join(" ")}
+      data-testid="filter-bar"
+    >
       <div className="filter-bar-primary" data-testid="filter-bar-primary">
         {primary}
       </div>
@@ -72,7 +79,7 @@ export function FilterBar({ primary, secondary, activeFilters, onClearAll, child
               data-testid="filter-bar-more-panel"
             >
               {secondary}
-              <Button type="button" variant="ghost" onClick={() => setMoreOpen(false)}>
+              <Button type="button" variant="ghost" data-testid="filter-bar-more-close" onClick={() => setMoreOpen(false)}>
                 Fechar
               </Button>
             </div>

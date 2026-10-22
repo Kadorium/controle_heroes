@@ -2,10 +2,14 @@ import { Link, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import {
+  addOrderItem,
   bindCommitmentProduct,
   cancelOrder,
+  closeOrder,
   confirmOrder,
   getOrder,
+  listOrders,
+  reopenOrder,
   updateOrder,
   updateOrderItem,
   uploadOrderDocument,
@@ -17,7 +21,11 @@ import { OrderInvoicesPanel } from "../billing/InvoiceDetailPage";
 import { invoicedQuantities, type OrderQtyRow } from "../billing/billingApi";
 import { OrderAdvancesPanel } from "../treasury/OrderAdvancesPanel";
 import { OrderPaymentSchedulePanel } from "./OrderPaymentSchedulePanel";
+import { fetchOrderSummary } from "../reporting/reportingApi";
 import { buildReturnTo } from "../../navigation/returnState";
+import { OrderPdfPanel } from "./OrderPdfPanel";
+import { canExtractOrdine, discardOrdineIntake, type OrdineIntakeSession } from "./ordinePdfIntake";
+import type { OrdineFormDraft } from "./mapOrdinePreviewToForm";
 import {
   Button,
   ConfirmationModal,
@@ -43,20 +51,31 @@ import {
 
 type Props = { user: User };
 
+function hasOpenPayableBalance(raw: string | null | undefined): boolean {
+  if (raw == null || raw === "") return false;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0;
+}
+
 export function OrderDetailPage({ user }: Props) {
   const { orderId } = useParams();
   const id = Number(orderId);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [closeReason, setCloseReason] = useState("");
+  const [reopenReason, setReopenReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [orderDate, setOrderDate] = useState("");
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
+  const [reopenOpen, setReopenOpen] = useState(false);
   const [qtys, setQtys] = useState<OrderQtyRow[]>([]);
   const [bindLine, setBindLine] = useState<BindProductLine | null>(null);
   const [bindBusy, setBindBusy] = useState(false);
+  const [openPayableBalance, setOpenPayableBalance] = useState<string | null>(null);
   const ordersReturn = buildReturnTo("/orders");
   const cockpitHref = `/orders/${id}`;
 
@@ -94,6 +113,24 @@ export function OrderDetailPage({ user }: Props) {
   }, [id]);
 
   useEffect(() => {
+    if (!order || (order.status !== "CONFIRMED" && order.status !== "CLOSED")) {
+      setOpenPayableBalance(null);
+      return;
+    }
+    let cancelled = false;
+    void fetchOrderSummary(order.id)
+      .then((summary) => {
+        if (!cancelled) setOpenPayableBalance(summary.kpis.balance ?? "0");
+      })
+      .catch(() => {
+        if (!cancelled) setOpenPayableBalance(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [order?.id, order?.status, order?.version]);
+
+  useEffect(() => {
     if (!order) return;
     if (window.location.hash === "#order-advances") {
       const el = document.getElementById("order-advances");
@@ -108,13 +145,25 @@ export function OrderDetailPage({ user }: Props) {
   const canCancel =
     (order.status === "DRAFT" && canWriteOrders(user)) ||
     (order.status === "CONFIRMED" && canCancelOrders(user));
-  const canUploadDocs = canWriteOrders(user) && order.status !== "CANCELLED";
+  const canUploadDocs =
+    canWriteOrders(user) && order.status !== "CANCELLED" && order.status !== "CLOSED";
   const canBind =
     order.status === "CONFIRMED" && canWriteOrders(user);
   const commitmentCount = (order.items ?? []).filter(
     (i) => String(i.line_kind ?? "").toUpperCase() === "COMMITMENT",
   ).length;
   const hasCommitmentLines = commitmentCount > 0;
+  const canClose =
+    order.status === "CONFIRMED" && canWriteOrders(user) && !hasCommitmentLines;
+  const canReopen = order.status === "CLOSED" && canWriteOrders(user);
+  const hasOpenAp = hasOpenPayableBalance(openPayableBalance);
+  const openApNotice = hasOpenAp && openPayableBalance ? (
+    <Notice tone="warning" data-testid="close-open-ap-notice">
+      {order.status === "CLOSED"
+        ? `Pedido encerrado com ${formatMoney(openPayableBalance, order.currency)} em contas a pagar em aberto. Encerrar o comercial não quita essas obrigações.`
+        : `Há ${formatMoney(openPayableBalance, order.currency)} em contas a pagar em aberto. Encerrar o pedido comercial não quita essas obrigações.`}
+    </Notice>
+  ) : null;
   const qtyByItem = new Map(qtys.map((q) => [q.order_item_id, q]));
 
   async function onBindConfirm(productId: number) {
@@ -189,6 +238,74 @@ export function OrderDetailPage({ user }: Props) {
           setError(
             "Conflito de versão — estado recarregado. Motivo do cancelamento preservado; tente de novo.",
           );
+        } catch {
+          setError(e instanceof Error ? e.message : "Erro");
+        }
+      } else {
+        setError(e instanceof Error ? e.message : "Erro");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onClose() {
+    if (busy) return;
+    const trimmed = closeReason.trim();
+    if (!trimmed) {
+      setError("Informe o motivo do encerramento");
+      return;
+    }
+    if (trimmed.length > 64) {
+      setError("Motivo do encerramento: máximo 64 caracteres");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      setOrder(await closeOrder(order!.id, order!.version, trimmed));
+      setCloseOpen(false);
+      setCloseReason("");
+    } catch (e) {
+      const status = (e as Error & { status?: number }).status;
+      if (status === 409) {
+        try {
+          await reload();
+          setError("Conflito de versão — estado recarregado. Tente encerrar de novo.");
+        } catch {
+          setError(e instanceof Error ? e.message : "Erro");
+        }
+      } else {
+        setError(e instanceof Error ? e.message : "Erro");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onReopen() {
+    if (busy) return;
+    const trimmed = reopenReason.trim();
+    if (!trimmed) {
+      setError("Informe o motivo da reabertura");
+      return;
+    }
+    if (trimmed.length > 64) {
+      setError("Motivo da reabertura: máximo 64 caracteres");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      setOrder(await reopenOrder(order!.id, order!.version, trimmed));
+      setReopenOpen(false);
+      setReopenReason("");
+    } catch (e) {
+      const status = (e as Error & { status?: number }).status;
+      if (status === 409) {
+        try {
+          await reload();
+          setError("Conflito de versão — estado recarregado. Tente reabrir de novo.");
         } catch {
           setError(e instanceof Error ? e.message : "Erro");
         }
@@ -302,6 +419,26 @@ export function OrderDetailPage({ user }: Props) {
                 </Button>
               </>
             ) : null}
+            {canClose ? (
+              <Button
+                variant="secondary"
+                busy={busy}
+                data-testid="close-order"
+                onClick={() => setCloseOpen(true)}
+              >
+                Encerrar pedido
+              </Button>
+            ) : null}
+            {canReopen ? (
+              <Button
+                variant="secondary"
+                busy={busy}
+                data-testid="reopen-order"
+                onClick={() => setReopenOpen(true)}
+              >
+                Reabrir
+              </Button>
+            ) : null}
           </div>
         }
       />
@@ -317,10 +454,86 @@ export function OrderDetailPage({ user }: Props) {
         </Notice>
       ) : null}
 
+      {order.status === "CLOSED" && order.close_reason_code ? (
+        <Notice tone="info" data-testid="close-reason-display">
+          Motivo do encerramento: {order.close_reason_code}
+        </Notice>
+      ) : null}
+
+      {order.status === "CONFIRMED" && hasCommitmentLines && canWriteOrders(user) ? (
+        <Notice tone="info" data-testid="close-blocked-commitment">
+          Vincule os compromissos a produtos do catálogo. Sem isso este pedido não fatura, não embarca
+          e não entra no estoque — e não pode ser encerrado.
+        </Notice>
+      ) : null}
+
+      {openApNotice}
+
       {error ? (
         <Notice tone="danger" className="error">
           {error}
         </Notice>
+      ) : null}
+
+      {editable && canExtractOrdine(user) ? (
+        <OrderPdfPanel
+          user={user}
+          mode="draft"
+          onFill={(draft: OrdineFormDraft, session: OrdineIntakeSession) => {
+            void (async () => {
+              setBusy(true);
+              setError(null);
+              try {
+                if ((order.items?.length ?? 0) > 0) {
+                  throw new Error(
+                    "Este rascunho já tem itens. Use um rascunho vazio ou crie um novo pedido.",
+                  );
+                }
+                const pdfCode = draft.code.trim();
+                if (pdfCode && pdfCode !== order.code) {
+                  const rows = await listOrders();
+                  const other = rows.find((r) => r.code === pdfCode && r.id !== order.id);
+                  if (other) {
+                    throw new Error(
+                      `Este PDF é o pedido ${pdfCode}, que já existe. Não preenche este rascunho.`,
+                    );
+                  }
+                }
+                let next = order;
+                for (const line of draft.lines) {
+                  if (line.line_kind === "COMMITMENT") {
+                    next = await addOrderItem(next.id, {
+                      expected_version: next.version,
+                      quantity: line.quantity,
+                      unit: line.unit || null,
+                      unit_price: line.unit_price === "" ? null : line.unit_price,
+                      line_kind: "COMMITMENT",
+                      external_code: line.sku,
+                      description: line.description || line.sku,
+                    });
+                  } else {
+                    next = await addOrderItem(next.id, {
+                      expected_version: next.version,
+                      product_id: line.product_id ?? undefined,
+                      quantity: line.quantity,
+                      unit: line.unit || null,
+                      unit_price: line.unit_price === "" ? null : line.unit_price,
+                      line_kind: "PRODUCT",
+                    });
+                  }
+                }
+                await uploadOrderDocument(next.id, session.file);
+                await discardOrdineIntake(session);
+                setOrder(next);
+                await reload();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Não foi possível preencher a partir do PDF.");
+              } finally {
+                setBusy(false);
+              }
+            })();
+          }}
+        />
       ) : null}
 
       {!editable && order.status !== "DRAFT" ? (
@@ -332,7 +545,7 @@ export function OrderDetailPage({ user }: Props) {
       <SectionCard title="Cabeçalho" data-testid="order-header">
         {editable ? (
           <div className="form-grid">
-            <FormField label="Data do pedido" htmlFor="detail-order-date" hint="dd/mm/aaaa">
+            <FormField label="Data do pedido" htmlFor="detail-order-date" hint={orderDate ? undefined : "dd/mm/aaaa"}>
               <DateInput
                 id="detail-order-date"
                 data-testid="detail-order-date"
@@ -574,6 +787,56 @@ export function OrderDetailPage({ user }: Props) {
       />
 
       <ConfirmationModal
+        open={closeOpen}
+        title="Encerrar pedido"
+        confirmLabel="Encerrar pedido"
+        busy={busy}
+        initialFocusSelector="[data-testid='close-reason']"
+        onCancel={() => setCloseOpen(false)}
+        onConfirm={() => void onClose()}
+      >
+        {hasOpenAp && openPayableBalance ? (
+          <Notice tone="warning" data-testid="close-open-ap-modal-notice">
+            Há {formatMoney(openPayableBalance, order.currency)} em contas a pagar em aberto.
+            Encerrar o pedido comercial não quita essas obrigações.
+          </Notice>
+        ) : null}
+        <FormField label="Motivo" htmlFor="close-reason" required>
+          <TextInput
+            id="close-reason"
+            data-testid="close-reason"
+            value={closeReason}
+            maxLength={64}
+            placeholder="Descreva o motivo"
+            onChange={(e) => setCloseReason(e.target.value)}
+            aria-label="Motivo do encerramento"
+          />
+        </FormField>
+      </ConfirmationModal>
+
+      <ConfirmationModal
+        open={reopenOpen}
+        title="Reabrir pedido"
+        confirmLabel="Reabrir"
+        busy={busy}
+        initialFocusSelector="[data-testid='reopen-reason']"
+        onCancel={() => setReopenOpen(false)}
+        onConfirm={() => void onReopen()}
+      >
+        <FormField label="Motivo" htmlFor="reopen-reason" required>
+          <TextInput
+            id="reopen-reason"
+            data-testid="reopen-reason"
+            value={reopenReason}
+            maxLength={64}
+            placeholder="Descreva o motivo"
+            onChange={(e) => setReopenReason(e.target.value)}
+            aria-label="Motivo da reabertura"
+          />
+        </FormField>
+      </ConfirmationModal>
+
+      <ConfirmationModal
         open={confirmOpen}
         title="Confirmar pedido"
         confirmLabel="Confirmar pedido"
@@ -584,8 +847,9 @@ export function OrderDetailPage({ user }: Props) {
         {hasCommitmentLines ? (
           <Notice tone="info" data-testid="confirm-commitment-warning">
             Este pedido tem {commitmentCount}{" "}
-            {commitmentCount === 1 ? "linha de compromisso" : "linhas de compromisso"}. Os produtos
-            reais ainda não estão definidos e virão pela fatura.
+            {commitmentCount === 1 ? "linha de compromisso" : "linhas de compromisso"}. Sem produto
+            no catálogo elas não faturam, não embarcam e não entram no estoque. Vincule depois de
+            confirmar.
           </Notice>
         ) : (
           <p>Confirmar este pedido? Depois da confirmação, ele deixa de ser editável como rascunho.</p>

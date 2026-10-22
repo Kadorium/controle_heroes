@@ -1,0 +1,3 @@
+# Inc-4 FX + Inc-5 AP/cockpit (pedido com SKU+descrição)
+e2e/inc4-fx.spec.ts
+e2e/inc5-ap-cockpit.spec.ts

@@ -27,6 +27,10 @@ from app.inventory.queries import (
     list_movements,
     list_receipt_residuals,
     stock_balance_bulk,
+    stock_overview_by_location_type,
+    stock_position_bulk,
+    cleared_not_received_bulk,
+    domestic_received_bulk,
 )
 from app.inventory.repository import (
     ensure_default_locations,
@@ -65,6 +69,10 @@ __all__ = [
     "get_stock_balance",
     "stock_balance",
     "stock_balance_bulk",
+    "stock_overview_by_location_type",
+    "stock_position_bulk",
+    "cleared_not_received_bulk",
+    "domestic_received_bulk",
     "get_sku_position",
     "rebuild_stock_balances",
     "list_locations",

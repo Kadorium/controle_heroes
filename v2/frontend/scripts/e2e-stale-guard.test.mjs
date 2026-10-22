@@ -31,6 +31,12 @@ describe("e2e stale-dist guard", () => {
     assert.match(e2eSrc, /risco de falso verde/);
   });
 
+  it("recusa porta ocupada e prova costing além de ingestion", () => {
+    assert.match(e2eSrc, /assertPortFree/);
+    assert.match(e2eSrc, /\/api\/costing\/queue/);
+    assert.match(e2eSrc, /\/api\/ingestion\/staging\/queue/);
+  });
+
   it("usa npm run build (sem watcher/daemon)", () => {
     assert.match(e2eSrc, /\["run", "build"\]/);
     assert.doesNotMatch(e2eSrc, /vite.*--watch|chokidar|nodemon/);

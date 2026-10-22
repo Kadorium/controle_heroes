@@ -304,6 +304,7 @@ def test_partial_invoicing_and_overbill(admin_client):
         f"/api/orders/{order['id']}/invoices",
         json={"invoice_number": "F-P2"},
     ).json()
+    assert inv2["items"][0]["quantity"].startswith("6")
     item = inv2["items"][0]
     inv2 = c.put(
         f"/api/invoices/{inv2['id']}/items",
@@ -461,3 +462,84 @@ def test_get_payable_by_id(admin_client):
 
     missing = c.get("/api/payables/999999001")
     assert missing.status_code == 404
+
+
+def test_b0_create_invoice_subset_and_residual(admin_client):
+    """B0: subset de linhas + quantidade inicial = residual após emitir."""
+    c = admin_client
+    s, p1 = _sup_prod(c, sku="B0-A")
+    p2 = c.post("/api/products", json={"sku": "B0-B", "description": "Item B"}).json()
+    assert "id" in p2, p2
+    o = c.post(
+        "/api/orders",
+        json={"code": f"ORD-B0-{_uid()}", "supplier_id": s["id"], "currency": "EUR"},
+    ).json()
+    o = c.post(
+        f"/api/orders/{o['id']}/items",
+        json={
+            "expected_version": o["version"],
+            "product_id": p1["id"],
+            "quantity": "10",
+            "unit_price": "8",
+        },
+    ).json()
+    o = c.post(
+        f"/api/orders/{o['id']}/items",
+        json={
+            "expected_version": o["version"],
+            "product_id": p2["id"],
+            "quantity": "5",
+            "unit_price": "12",
+        },
+    ).json()
+    o = c.post(
+        f"/api/orders/{o['id']}/confirm",
+        json={"expected_version": o["version"]},
+    ).json()
+    a_id, b_id = o["items"][0]["id"], o["items"][1]["id"]
+
+    inv1 = c.post(
+        f"/api/orders/{o['id']}/invoices",
+        json={"invoice_number": "F-B0-1", "order_item_ids": [a_id]},
+    ).json()
+    assert len(inv1["items"]) == 1
+    assert inv1["items"][0]["order_item_id"] == a_id
+    assert inv1["items"][0]["quantity"].startswith("10")
+
+    item = inv1["items"][0]
+    inv1 = c.put(
+        f"/api/invoices/{inv1['id']}/items",
+        json={
+            "expected_version": inv1["version"],
+            "items": [
+                {
+                    "order_item_id": item["order_item_id"],
+                    "quantity": item["quantity"],
+                    "unit_price_gross": item["unit_price_gross"],
+                    "discount_type": "NONE",
+                }
+            ],
+        },
+    ).json()
+    inv1 = _set_terms_percent(c, inv1, [("100", 0)])
+    _attach_doc(c, inv1["id"])
+    inv1 = c.post(
+        f"/api/invoices/{inv1['id']}/issue",
+        json={"expected_version": inv1["version"]},
+    ).json()
+    assert inv1["status"] == "ISSUED"
+
+    r = c.post(
+        f"/api/orders/{o['id']}/invoices",
+        json={"invoice_number": "F-B0-gone", "order_item_ids": [a_id]},
+    )
+    assert r.status_code == 400
+    assert "disponível" in r.json()["message"].lower()
+
+    inv2 = c.post(
+        f"/api/orders/{o['id']}/invoices",
+        json={"invoice_number": "F-B0-2"},
+    ).json()
+    assert len(inv2["items"]) == 1
+    assert inv2["items"][0]["order_item_id"] == b_id
+    assert inv2["items"][0]["quantity"].startswith("5")

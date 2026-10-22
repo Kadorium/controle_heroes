@@ -113,7 +113,9 @@ class PayableResponse(BaseModel):
     currency: str
     status: str
     source_type: str = "INVOICE"
+    source_id: int | None = None
     payee_display_name: str | None = None
+    payee_tax_id: str | None = None
     destination_iban: str | None = None
     destination_bank: str | None = None
     order_id: int | None = None
@@ -250,7 +252,9 @@ def _invoice_response(db: Session, inv: Invoice) -> InvoiceResponse:
             currency=p.currency,
             status=p.status,
             source_type=getattr(p, "source_type", None) or "INVOICE",
+            source_id=getattr(p, "source_id", None),
             payee_display_name=getattr(p, "payee_display_name", None),
+            payee_tax_id=getattr(p, "payee_tax_id", None),
             destination_iban=getattr(p, "destination_iban", None),
             destination_bank=getattr(p, "destination_bank", None),
             order_id=inv.order_id,
@@ -631,13 +635,75 @@ def _payable_response(p) -> PayableResponse:
         currency=p.currency,
         status=p.status,
         source_type=getattr(p, "source_type", None) or "INVOICE",
+        source_id=getattr(p, "source_id", None),
         payee_display_name=getattr(p, "payee_display_name", None),
+        payee_tax_id=getattr(p, "payee_tax_id", None),
         destination_iban=getattr(p, "destination_iban", None),
         destination_bank=getattr(p, "destination_bank", None),
         order_id=inv.order_id if inv is not None else None,
         supplier_id=inv.supplier_id if inv is not None else None,
         version=getattr(p, "version", 1),
     )
+
+
+class SettlementPayableRef(BaseModel):
+    id: int
+    status: str
+    amount: str
+    balance: str
+    currency: str
+    version: int = 1
+
+
+class SettlementAllocationRef(BaseModel):
+    allocation_id: int
+    payment_id: int
+    payable_id: int
+    amount: str
+
+
+class SettlementSummaryResponse(BaseModel):
+    source_type: str
+    source_id: int
+    amount: str
+    allocated: str
+    balance: str
+    currency: str | None = None
+    derived_status: str
+    derived_status_label: str
+    payable_statuses: list[str] = Field(default_factory=list)
+    payables: list[SettlementPayableRef] = Field(default_factory=list)
+    allocations: list[SettlementAllocationRef] = Field(default_factory=list)
+
+
+@router.get("/payables/settlement-summary", response_model=SettlementSummaryResponse)
+def get_settlement_summary(
+    source_type: str,
+    source_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Consulta canônica de saldo por origem — dono Billing."""
+    enforce_permission(user, "billing:read")
+    try:
+        raw = billing_public.settlement_summary_for_source(
+            db, source_type=source_type, source_id=source_id
+        )
+        return SettlementSummaryResponse(
+            source_type=raw["source_type"],
+            source_id=raw["source_id"],
+            amount=raw["amount"],
+            allocated=raw["allocated"],
+            balance=raw["balance"],
+            currency=raw.get("currency"),
+            derived_status=raw["derived_status"],
+            derived_status_label=raw["derived_status_label"],
+            payable_statuses=raw["payable_statuses"],
+            payables=[SettlementPayableRef(**p) for p in raw["payables"]],
+            allocations=[SettlementAllocationRef(**a) for a in raw["allocations"]],
+        )
+    except BillingError as e:
+        raise _map_error(e) from e
 
 
 @router.get("/payables", response_model=list[PayableResponse])

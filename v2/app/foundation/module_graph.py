@@ -45,6 +45,14 @@ INTERNAL_SUFFIXES = (
     ".metrics_commands",
     ".metrics_models",
     ".schedule",
+    ".facts",
+    ".synthesis",
+    ".gather",
+    ".allocate",
+    ".coverage",
+    ".fx_alloc",
+    ".recon_build",
+    ".pairs",
 )
 
 MODULE_PACKAGES = frozenset(
@@ -61,6 +69,8 @@ MODULE_PACKAGES = frozenset(
         "logistics",
         "customs",
         "inventory",
+        "costing",
+        "reconciliation",
     }
 )
 
@@ -74,7 +84,22 @@ ALLOWED_DEPS: dict[str, frozenset[str]] = {
     # J4-FIN FIN-1: orders (Payment.order_id / adiantamento ACCONTO)
     "treasury": frozenset({"billing", "catalog", "documents", "audit", "orders"}),
     # Reporting: arestas validadas pelo uso real em queries.py (públicas apenas)
-    "reporting": frozenset({"orders", "billing", "treasury", "catalog", "documents", "audit"}),
+    "reporting": frozenset(
+        {
+            "orders",
+            "billing",
+            "treasury",
+            "catalog",
+            "documents",
+            "audit",
+            "logistics",
+            "customs",
+            "inventory",
+            "costing",
+            "ingestion",
+            "reconciliation",
+        }
+    ),
     # J3-I3: documents (promote), orders (DRAFT), catalog (matching)
     # J3-I4: billing (Invoice DRAFT via create_invoice, set_terms)
     # J3-I5: logistics (Shipment PLANNED via PL commit), customs (ImportProcess DRAFT via Doganale commit)
@@ -83,6 +108,20 @@ ALLOWED_DEPS: dict[str, frozenset[str]] = {
     # J#5: Customs ↛ Treasury; Product opcional via catalog; Inventory ↛ Orders
     "customs": frozenset({"billing", "logistics", "documents", "audit", "catalog"}),
     "inventory": frozenset({"customs", "catalog", "logistics", "documents", "audit"}),
+    # J#6: Costing → Reconciliation (primitivos); Reconciliation não importa Costing (evita ciclo).
+    "costing": frozenset(
+        {
+            "orders",
+            "billing",
+            "customs",
+            "logistics",
+            "treasury",
+            "documents",
+            "audit",
+            "reconciliation",
+        }
+    ),
+    "reconciliation": frozenset({"documents", "audit"}),
 }
 
 # Arquivos de domínio que podem importar foundation (além de models→database)

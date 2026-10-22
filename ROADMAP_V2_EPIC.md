@@ -8,21 +8,21 @@
 
 | Campo | Valor |
 |---|---|
-| Atualizado em | 2026-08-18 |
-| Última entrega | Cadastro de produtos, fornecedores e usuários |
-| Próxima entrega | Pagar o numerário no tesouro |
+| Atualizado em | 2026-10-07 |
+| Última entrega | Na fatura na mão, escolher o que ainda falta faturar |
+| Próxima entrega | Aguardando autorização |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
 
 ```
-Cadeia ponta a ponta   ████████░░   80%  até estoque, se o produto já está no catálogo
+Cadeia ponta a ponta   ██████████  100%  a compra fecha no pedido
 Ciclo financeiro       ██████████  100%  adiantamento, quitação, fatura, câmbio, cronograma
-Ingestão               ███████░░░   71%  pipeline, pedido, packing, declaração e numerário do PDF
+Ingestão               ██████████  100%  pipeline, pedido, packing, declaração, numerário, fatura e planilha
 Logística              ██████████  100%  embarque na mão e packing preenche volumes
-Aduana / estoque       ███████░░░   67%  PDF preenche; numerário ainda não se paga
-Custo desembarcado     ░░░░░░░░░░    0%  ainda não existe
-Painel gerencial       ░░░░░░░░░░    0%  ainda não existe
+Aduana / estoque       ██████████  100%  PDF preenche; numerário se paga no tesouro
+Custo desembarcado     ██████████  100%  mercadoria, impostos e despesas numa compra real
+Painel gerencial       ██████████  100%  quanto pagar, o que oferecer e o que está atrasado
 ```
 
 A resposta a “quanto falta” é a barra da cadeia.
@@ -41,37 +41,37 @@ PRONTO = o dado atravessa · FRÁGIL = atravessa, mas o operador refaz parte · 
 | 6 | O faturado vira volumes / packing | PRONTO |
 | 7 | Chegada, declaração, impostos, nacionalização | PRONTO |
 | 8 | Nacionalizado vira estoque por produto | PRONTO |
-| 9 | Custo da raquete (tudo somado) | FALTA |
-| 10 | Encerrar o pedido | FALTA |
+| 9 | Custo da raquete (tudo somado) | PRONTO |
+| 10 | Encerrar o pedido | PRONTO |
 
-Hoje a etapa 8 atravessa quando o produto já está no catálogo. Pedido só compromisso ainda não chega ao estoque. O numerário ainda não se paga.
+Hoje a cadeia atravessa até encerrar numa compra real, com o câmbio do documento (não o do banco). Compromisso vira estoque depois de vincular ao catálogo.
 
 ## A.3 O que o sistema já faz
 
 - Importar pedido do PDF do fornecedor; sem catálogo vira compromisso
 - Montar pedido na mão com produto, confirmar e faturar
-- Vincular compromisso a produto do catálogo, com confirmação
+- Vincular compromisso a produto do catálogo, com confirmação; aviso no cockpit até vincular; depois a linha segue até o estoque
 - Registrar adiantamento em euro com câmbio; vira crédito do pedido
-- Importar fatura do PDF; o sistema sugere o pedido e o operador confirma
+- Importar fatura do PDF na tela do pedido confirmado ou na fila de arquivos; o operador confirma o pedido; o código de barras não vira o código interno
+- Importar pedido da planilha na tela de novo pedido; sem catálogo vira compromisso
 - Aplicar crédito daquele pedido na conta e pagar o saldo
-- Ver pedido / faturado / ainda disponível
+- Ver pedido / faturado / ainda disponível; na fatura digitada, marcar as linhas que ainda faltam
 - Packing detalhado do PDF preenche o embarque planejado; ao reabrir, o embarque permanece visível
 - Embarque e prestador também na mão; chegada registrada no embarque
-- PDF aduaneiro preenche o processo; PDF do numerário registra impostos (não paga)
+- PDF aduaneiro preenche o processo; PDF do numerário registra impostos; o tesouro registra o pagamento já feito e aplica na obrigação
 - Nacionalização parcial na tela; receber a quantidade liberada no estoque doméstico, sem digitar código interno
-- Filas a pagar, cockpit do pedido, câmbio; cadastro de produtos, fornecedores e usuários
+- Filas a pagar, cockpit do pedido, câmbio; cadastro de produtos (revisão geral, classificação e descrição), fornecedores e usuários
 - Cronograma de pagamento no pedido (previsão; não duplica antecipo)
+- Custo desembarcado bruto por produto numa compra real (tributos em valor cheio; várias faturas no mesmo processo; câmbio do documento de numerário, não o do banco)
+- Encerrar o pedido confirmado com motivo; reabrir com motivo (nada some sem rastro)
+- Fatura emitida permanece no histórico; não se apaga nem se altera
+- Ver o painel: quanto pagar, o que há para oferecer, o que está atrasado; ir à fila
 
 ## A.4 O que ainda falta
 
 | # | O que é | Por que importa | Tamanho |
 |---|---|---|---|
-| 1 | Pagar o numerário no tesouro | Importação para no caixa da aduana | MÉDIO |
-| 2 | Compromisso sem produto no catálogo | Esse pedido ainda não vira estoque | MÉDIO |
-| 3 | Custo desembarcado por produto | Não há custo unitário da raquete | GRANDE |
-| 4 | Aceite das outras famílias de PDF | Pedido, packing, declaração e numerário já têm aceite | GRANDE |
-| 5 | Painel gerencial | Sem visão executiva da operação | GRANDE |
-| 6 | Aceite final e arquivar o sistema antigo | Só depois da cadeia e do custo | GRANDE |
+| 1 | Enriquecer o cadastro de produtos (descrição, mídia) | O cadastro operacional já existe | GRANDE |
 
 ---
 
@@ -102,31 +102,36 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Barra | n/d | % | Feitos | Faltam |
 |---|---|---|---|---|
-| Cadeia | 8/10 | 80 | elos 1–8 (8 só com produto no catálogo — B.2) | 9,10 FALTA |
+| Cadeia | 10/10 | 100 | elos 1–10 (8 = produto no catálogo; compromisso só após vincular — B.2; 9 = revisado documental; 10 = encerrar) | — |
 | Financeiro | 5/5 | 100 | adiantamento; liquidar crédito; fatura→conta; custo BRL=soma câmbios; cronograma no pedido | — |
-| Ingestão | 5/7 | 71 | pipeline; aceite pedido PDF; aceite packing PDF; aceite Doganale PDF; aceite Numerário PDF | Fattura (A0 fechou elo 3, não este n); planilha |
+| Ingestão | 7/7 | 100 | pipeline; aceite pedido PDF; aceite packing PDF; aceite Doganale PDF; aceite Numerário PDF; aceite Fattura PDF; aceite planilha | — |
 | Logística | 2/2 | 100 | embarque manual; packing preenche volumes | — |
-| Aduana/estoque | 2/3 | 67 | módulo operável na mão; PDF preenche | numerário se paga |
-| Custo | 0/1 | 0 | — | custo por produto |
-| Painel | 0/1 | 0 | — | painel executivo |
+| Aduana/estoque | 3/3 | 100 | módulo operável na mão; PDF preenche; numerário se paga | — |
+| Custo | 1/1 | 100 | custo por produto numa compra real (REVISED documental; família 202) | — |
+| Painel | 1/1 | 100 | painel de leitura; três visões (executiva, comercial, controle) | — |
 
 ## B.1 Estado atual
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.125** — **MDM-UX DONE**; Elo 8 ENCERRADO; cadeia **8/10 = 80%**; Aduana **2/3**; Ingestão **5/7** |
+| Versão | **0.5.145** — **B0 DONE** (fatura na mão escolhe o residual; SKU ≠ EAN). Cadeia **10/10**. Ingestão **7/7**. Alembic **031** |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
-| Aduana + Inventory (J#5) | **DONE**; financeiro Customs **PARTIAL** — [`etapa-j5/`](docs/v2/etapa-j5/) |
-| Ingestão (J#3) | I1–I7 **ENTREGUE**; J3-RUX Ordine **CONCLUÍDA** — [`etapa-j3/`](docs/v2/etapa-j3/) |
+| Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
+| Ingestão (J#3) | I1–I7 **ENTREGUE**; J3-RUX Ordine **CONCLUÍDA**; famílias Fattura + planilha **ACEITAS** — [`etapa-j3/`](docs/v2/etapa-j3/) · [`ING_FAM_ADVISOR_HANDOFF.md`](docs/v2/etapa-ing-fam/ING_FAM_ADVISOR_HANDOFF.md) |
 | J4-FIN | FIN-0…FIN-4 **DONE**; **A0 DONE** — [`etapa-j4-fin/`](docs/v2/etapa-j4-fin/) |
 | Elo 7 (chegada / declaração / impostos / nacionalização) | **DONE** + aceite UI **PASS** — [`etapa-elo-7/`](docs/v2/etapa-elo-7/) |
 | Elo 8 (nacionalizado → estoque) | **DONE / ENCERRADO** — aceite advisor 2026-08-17 — [`etapa-elo-8/`](docs/v2/etapa-elo-8/) |
-| MDM-UX (cadastros mestres) | **DONE** — [`etapa-mdm-ux/`](docs/v2/etapa-mdm-ux/) |
-| J#5-REC · J#6 · J#7 · J#8 · Horizon B1 | **NOT_STARTED** / ADIADO |
-| Alembic head | `026_catalog_l006_tax_id` |
+| MDM-UX (cadastros mestres HTTP) | **DONE** — [`etapa-mdm-ux/`](docs/v2/etapa-mdm-ux/) |
+| MDM-UX-R (reconstrução visual) | **DONE** — proto = contrato visual; produção alinhada |
+| CAT-PIM (catálogo comercial) | **DONE** em `epic_v2` — 027 + 92 históricos; proto = North Star; Onda 2 **não** iniciada |
+| Costing / Reconciliation (J#6) | **DONE** — capacidade + Elo 9 PRONTO (REVISED documental) — [`E9_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-9/E9_ADVISOR_HANDOFF.md) |
+| J#7 | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** — [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
+| J#8 aceite UI | **DONE** — V1 arquivada — [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
+| J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
+| Alembic head | código **031**; `epic_v2_test` = 031; `epic_v2` = **031** |
 
-**Próxima ação:** **pagar numerário** (`Treasury settlement for CUSTOMS_FUNDING`). Fora: B0 / 3A / 020 / J#7 / J#8. **J#5-REC** permanece para compromisso sem Product. J#6 depois. MDM-UX **não** relançar.
+**Próxima ação:** STOP. Fora: Onda 2 / IA / mídia.
 
 Manutenção: fase DONE → status+evidência aqui, detalhe em `docs/v2/etapa-*` (não no snapshot). Checkpoint de fase nova nasce em `etapa-*` antes de executar. Teto do arquivo vivo ≤300 linhas.
 
@@ -141,11 +146,11 @@ Manutenção: fase DONE → status+evidência aqui, detalhe em `docs/v2/etapa-*`
 | 5. Qty faturada abate pedido | Sim — mesmo pedido; Fattura 328 ISSUED | Pedida/faturada/disponível; overbill bloqueia no emitir | **LIGADO** |
 | 6. Faturado → volumes | Sim — Packing List Detail 328 (PDF real); walk integral 1→6 2026-08-14 | 5 caixas × 10 = 50 no embarque planejado; modal nulo; Order confirmado (não nº do PDF); estado pós-commit visível ao recarregar; auditoria no embarque | **LIGADO** |
 | 7. Chegada / DUIMP / nacionalização | Sim — família 202 na **mesma** história, aceite **UI** 2026-08-14: catálogo na tela → 5 PDFs no input → ARRIVED → Doganale preenche → Print anexo → Numerário (tributos+despesas = declarado R$ 1.425.554,64; **não** a soma com bases) → AP CUSTOMS_FUNDING OPEN (zero Payment) → DUIMP de ensaio rotulado → nacionalização parcial → excesso bloqueado na UI. Tributos = PDF Numerário (nível DUIMP 181/202/…). | Chegada + declaração PDF + impostos PDF + nacionalização | **LIGADO** |
-| 8. Nacionalizado → estoque | Sim — walk operador W1–W8 (2026-08-17, código final) + **verificação final**: família 202 PDFs reais na **mesma** história UI de teste (pedido na tela → 5 PDFs no input → ARRIVED → Doganale/Print/Numerário **sem pagar** → DUIMP de ensaio rotulado → nacionalização parcial → residual recebível → entrada doméstica → saldo/posição; excesso bloqueado). **LIGADO para itens cujo produto já está no catálogo.** Compromisso sem Product **não** atravessa — depende **J#5-REC** (não apagar esta ressalva). DEC-E8-DOC: o recebimento **não** exige PDF novo. Elos 1–6 continuam na 328. | Nacionalização → GoodsReceipt DOMESTIC_IN → StockBalance / SkuPosition | **LIGADO** — condição catálogo; J#5-REC para compromisso |
-| 9. Custo da raquete | — | Fatura + frete + imposto + câmbio real | **NÃO EXISTE** |
-| 10. Encerrar pedido | — | CONFIRMED → CLOSED auditável | **NÃO EXISTE** (só cancelar) |
+| 8. Nacionalizado → estoque | Sim — walk operador W1–W8 (2026-08-17) + verificação 202 (PDFs → nacionalização → estoque). **LIGADO para itens com produto no catálogo.** Compromisso sem Product **não** atravessa; após vincular (J#5-REC **DONE**, SKU próprio ≠ código de barras / I.V.*) segue o mesmo caminho. DEC-E8-DOC: recebimento **não** exige PDF novo. Elos 1–6 na 328. | Nacionalização → GoodsReceipt DOMESTIC_IN → StockBalance / SkuPosition | **LIGADO** — catálogo; compromisso só após vincular |
+| 9. Custo da raquete | Sim — seis Fatturas reais da família 202 no mesmo processo (181, 202, 203, 244, 245, 246); FOB = soma das mercadorias; câmbio documental 5,9205 do Numerário; frete por papel (base CIF não vira componente). Publicado REVISED na UI; recarregar mantém. SKU ≠ EAN. Não é câmbio bancário. | Fatura + frete + imposto + câmbio documental no **mesmo** processo com cobertura 6/6 | **LIGADO** — REVISED documental |
+| 10. Encerrar pedido | Sim — família 202 na operação: pedido no catálogo 92; 6 Fatturas A0; REVISED documental; Encerrar na UI (`FAMILIA-202` CLOSED). Motivo + audit na mesma UoW; reabrir com motivo. Bloqueio local: linha COMMITMENT. Sem exigir payables/custo REALIZED/processo CLEARED. | CONFIRMED → CLOSED auditável; CLOSED → CONFIRMED | **LIGADO** |
 
-Elo composto na barra da cadeia: só é **PRONTO** quando os fatos forem **uma** história comercial/operacional, salvo exceção explicitamente aceita. Elos 1–6 e o elo 7 foram exercitados em compras de ensaio distintas (328 vs 202); isso é aceito — cada elo composto teve a sua história única. Elo 8: costura LIGADA na história 202 (PDFs do fornecedor → nacionalização → estoque na mesma UI); DEC-E8-DOC = sem PDF no receipt. J#5-REC permanece. **Não** rebaixa 8/10.
+Elo composto na barra da cadeia: só é **PRONTO** quando os fatos forem **uma** história comercial/operacional, salvo exceção explicitamente aceita. Elos 1–6 e o elo 7 foram exercitados em compras de ensaio distintas (328 vs 202); isso é aceito — cada elo composto teve a sua história única. Elo 8: costura LIGADA na história 202 (PDFs do fornecedor → nacionalização → estoque na mesma UI); DEC-E8-DOC = sem PDF no receipt. Elo 9: costura LIGADA na mesma família 202 (seis faturas + Numerário; câmbio documental ≠ bancário). Elo 10: costura LIGADA na operação (`FAMILIA-202` encerrado; 1 caso de custo publicado). J#5-REC **DONE** (compromisso atravessa após vincular). **Não** rebaixa 10/10.
 
 ## B.3 Decisões abertas e bloqueios
 
@@ -154,13 +159,16 @@ Elo composto na barra da cadeia: só é **PRONTO** quando os fatos forem **uma**
 | L-001 | Aberto | Conciliação / tolerâncias | Política final na Reconciliation |
 | DEC-SHIP-CANCEL | Aberto | Logistics BOOKED+ | Isolar ou resolver em incremento Logistics |
 | L-003 | Aberto | Credit / CC BR | Isolar na fase Treasury |
-| L-005 | Aberto | RBAC `reporting:read` | Validar matriz de papéis |
+| L-005 | **PARTIAL** | Matriz completa papéis × ações críticas | Chrome do painel = `reporting:read` (admin, comprador, aduana, estoque). Widget exige owner `*:read`. Sem papéis `financeiro`/`gestor` |
+| DEC-J7-MOBILE | **Fechada (J#7)** | Overlay do rail <1024 | Walk 390: rail 56px usável; overlay **não** nesta onda |
+| DEC-J7-EXEC-* | **Fechadas (J7-EXEC-UX)** | — | CASH; FX; COMPACT-MONEY; HUMAN-TITLE; PERIOD; CHROME; FLOW; MY-VIEW. Blueprint §8.2 |
+| DEC-UX2-* | **Fechadas (PAINEL-UX2)** | — | CHART (Recharts; revoga J7-CHART); TOKENS; THREE-VIEWS; SECTIONS; TOOLTIP; NO-DEMAND; FX-SERIES. Blueprint §8.0 / §8.2 / §12 |
 | DEC-ACCONTO-INVOICE | Pendente | Tipagem Fattura | Blueprint §5.7 |
 | DEC-ENDERECO | Aberto | Modelo de endereços | — |
-| DEC-CLOSE-ORDER | Provisória | Orders `CLOSED` | Até decisão explícita |
+| DEC-CLOSE-ORDER | **Fechada (Elo 10)** | — | CLOSED = lifecycle do pedido comercial; `orders:write`; bloqueio local COMMITMENT; reopen auditado. Não reutiliza `orders:cancel`. Blueprint §5.6 / §7.16 |
 | L-007 | **Fechada (Elo 7)** | — | DUIMP/DI: sem PDF no corpus; referência de ensaio digitada e rotulada (nunca extraída) |
 | E8-NAT-REVERSE-API | Aberto | Reverse nacionalização após GoodsReceipt pode duplicar saldo se chamado na API | UI oculta Reverter (DEC-E8-NAT-REVERSE = B). Não abrir `customs` → `inventory` (ciclo). Guard futuro sem ciclo |
-| Fechadas | DEC-DUIMP-MULTI-SHIP · DEC-SCONTO-ITEM · DEC-FX-SCOPE · DEC-A0-ORDER-CANDIDATES · DEC-A0-AMBIGUOUS · DEC-C6-IDENTITY · DEC-C6-INVOICE-OPTIONAL · DEC-C6-LINE-MATCH · DEC-C6-COMMITMENT · DEC-C6-PLANNED-ONLY · DEC-C6-DETAIL-SOT · DEC-C6-SHIPMENT-TARGET · DEC-E7-DOGANALE-FILL · DEC-E7-IDENTITY · DEC-E7-PROCESS-TARGET · DEC-E7-ARRIVAL · DEC-E7-PRINT · DEC-E7-FUNDING-SCOPE · DEC-E7-BOUNDARY · L-007 | — | Ver Blueprint |
+| Fechadas | DEC-DUIMP-MULTI-SHIP · DEC-SCONTO-ITEM · DEC-FX-SCOPE · DEC-A0-ORDER-CANDIDATES · DEC-A0-AMBIGUOUS · DEC-C6-IDENTITY · DEC-C6-INVOICE-OPTIONAL · DEC-C6-LINE-MATCH · DEC-C6-COMMITMENT · DEC-C6-PLANNED-ONLY · DEC-C6-DETAIL-SOT · DEC-C6-SHIPMENT-TARGET · DEC-E7-DOGANALE-FILL · DEC-E7-IDENTITY · DEC-E7-PROCESS-TARGET · DEC-E7-ARRIVAL · DEC-E7-PRINT · DEC-E7-FUNDING-SCOPE · DEC-E7-BOUNDARY · L-007 · **DEC-J7-MOBILE** · **DEC-J7-EXEC-*** · **DEC-UX2-*** · **DEC-J8-ARCHIVE** | — | V2 é o sistema em operação; `v1/` congelado (ADR-16); sem migração (ADR-10) |
 
 ## B.4 Fases e próximos passos
 
@@ -168,16 +176,21 @@ Elo composto na barra da cadeia: só é **PRONTO** quando os fatos forem **uma**
 |---|---|---|---|
 | 0B / Fundação / Order-to-Pay | DONE | — | snapshot · [`etapa-inc-6/`](docs/v2/etapa-inc-6/) |
 | Logística (J#4) | DONE | — | [`etapa-j4/`](docs/v2/etapa-j4/) |
-| Aduana + Inventory (J#5) | DONE | settlement CUSTOMS_FUNDING (backlog) | [`etapa-j5/`](docs/v2/etapa-j5/) |
-| Ingestão (J#3) | ENTREGUE + RUX Ordine | aceite outras famílias | [`etapa-j3/`](docs/v2/etapa-j3/) |
-| J4-FIN | FIN-4 **DONE**; **A0 DONE** | aguardando autorização (**não** B0) | [`etapa-j4-fin/`](docs/v2/etapa-j4-fin/) |
+| Aduana + Inventory (J#5) | DONE | — | [`etapa-j5/`](docs/v2/etapa-j5/) · [`CFUND_ADVISOR_HANDOFF.md`](docs/v2/etapa-customs-funding/CFUND_ADVISOR_HANDOFF.md) |
+| Ingestão (J#3) | **DONE** (Fattura + planilha na tela do pedido) | — | [`etapa-j3/`](docs/v2/etapa-j3/) · [`ING_FAM_ADVISOR_HANDOFF.md`](docs/v2/etapa-ing-fam/ING_FAM_ADVISOR_HANDOFF.md) |
+| J4-FIN | FIN-4 **DONE**; **A0 DONE**; **B0 DONE** | aguardando autorização (**não** Onda 2) | [`etapa-j4-fin/`](docs/v2/etapa-j4-fin/) · [`B0_ADVISOR_HANDOFF.md`](docs/v2/etapa-b0/B0_ADVISOR_HANDOFF.md) |
 | Cadeia elos 4–6 | **DONE** (hardening C46-HARDEN) | — | [`etapa-cadeia-46/`](docs/v2/etapa-cadeia-46/) |
 | Elo 7 | **DONE** + aceite UI **PASS** | — | [`E7_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-7/E7_ADVISOR_HANDOFF.md) |
-| Elo 8 | **DONE / ENCERRADO** (aceite advisor) | backlog: `E8-NAT-REVERSE-API`; J#5-REC; Caso A; `E7-ARRIVAL-GATE`; atritos B.6 — **não** corrigir nesta fase | [`E8_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |
-| MDM-UX | **DONE** | — | [`MDM_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
-| Costing (J#6) | ADIADO | Após aceite famílias / RUX | — |
-| Dashboard (J#7) | TODO | Após Costing | — |
-| Aceite final (J#8) | TODO | Após Dashboard | — |
+| Elo 8 | **DONE / ENCERRADO** (aceite advisor) | backlog: `E8-NAT-REVERSE-API`; Caso A; `E7-ARRIVAL-GATE`; atritos B.6 — **não** corrigir nesta fase | [`E8_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |
+| MDM-UX | **DONE** (HTTP) | — | [`MDM_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
+| MDM-UX-R | **DONE** | — | [`MDM_UX_R_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux-r/MDM_UX_R_ADVISOR_HANDOFF.md) |
+| CAT-PIM | **DONE** (Onda 1 em operação) | Onda 2 / IA / mídia **não** iniciadas | [`CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md) |
+| Costing (J#6) | **DONE** (capacidade + Elo 9 PRONTO) | — | [`COSTING_ADVISOR_HANDOFF.md`](docs/v2/etapa-costing/COSTING_ADVISOR_HANDOFF.md) · [`E9_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-9/E9_ADVISOR_HANDOFF.md) |
+| Elo 9 | **DONE** (REVISED documental; 6 Fatturas) | — | [`E9_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-9/E9_ADVISOR_HANDOFF.md) |
+| Dashboard (J#7) | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** | — | [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
+| Elo 10 | **DONE** (CONFIRMED→CLOSED na operação) | — | [`E10_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-10/E10_ADVISOR_HANDOFF.md) |
+| Aceite final (J#8) | **DONE** (V1 arquivada) | — | [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
+| J#5-REC | **DONE** (compromisso → vincular → estoque) | — | [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
 
 Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
@@ -206,8 +219,6 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Item | Destino | Observação |
 |---|---|---|
-| `Treasury settlement for CUSTOMS_FUNDING` | Treasury | Obrigação registrada; liquidação é a **próxima ação** (B.1) |
-| J#5-REC | Inventory / Catalog | Compromisso sem Product **não** atravessa ao estoque. **Não** nesta fase. |
 | Elo 8 Caso A (entreposto / BONDED_IN + RECLASS na UI) | Inventory UI | 2026-08-17 — select congelado `DOMESTIC_IN`; domínio/API intactos; **não** alargar nesta campanha |
 | Elo 8 atrito — qty proposta não reseta ao residual novo | Inventory UI | 2026-08-17 — walk W4; **não** polir nesta campanha |
 | Elo 8 atrito — auditoria coluna Quem mostra `1` | Audit / Identity | 2026-08-17 — walk W8; actor opaco na tabela do processo; **não** polir nesta campanha |
@@ -215,13 +226,33 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 | MINOR_BACKLOG UI Horizon A | UI sob pedido | Aceite fechado |
 | Backlog J#5 residual (seed aduana/estoque; stubs SkuPosition) | Identity / Reporting | [`UI_ACCEPTANCE_J5.md`](docs/v2/etapa-j5/UI_ACCEPTANCE_J5.md) |
 | SCR-028 hub FX | UI futuro | Sem rota `/fx` |
-| Horizon B1 | Externo | NOT_STARTED |
+| Horizon B1 | Externo | J#5-REC DONE; resto NOT_STARTED |
 
 ## B.7 Histórico recente
 
 | Rev | Resumo | Evidência |
 |---|---|---|
-| **0.5.125** | **MDM-UX DONE** (PATCH + list-report + 026 L-006/`tax_id` + Users UI; walk 61 SKUs); Alembic **026**; barras **inalteradas** 8/10; próxima = pagar numerário | [`MDM_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
+| **0.5.145** | **B0 DONE** (fatura na mão escolhe linhas e quantidade residual; SKU ≠ EAN). Cadeia **10/10**. Ingestão **7/7**. Alembic **031** | [`B0_ADVISOR_HANDOFF.md`](docs/v2/etapa-b0/B0_ADVISOR_HANDOFF.md) |
+| **0.5.144** | **ING-FAM DONE** (Fattura PDF na comercial + planilha no novo pedido; SKU ≠ EAN). Ingestão **7/7 = 100%** (d 7 inalterado; n 5→7). Cadeia **10/10**. Alembic **031** | [`ING_FAM_ADVISOR_HANDOFF.md`](docs/v2/etapa-ing-fam/ING_FAM_ADVISOR_HANDOFF.md) |
+| **0.5.143** | **J#5-REC DONE** (compromisso vinculado chega ao estoque; SKU ≠ EAN/I.V.*; cockpit + E2E UI). Cadeia **10/10**. Alembic **031** | [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
+| **0.5.142** | **J#8 DONE** (13 suítes E2E UI; SC-08/10/17; V1 arquivada). Cadeia **10/10**. Alembic **031** | [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
+| **0.5.141** | **J8-0 PASS** (12 suítes E2E UI isoladas; CTA `orders-new-cta`). Cadeia **10/10**. J#8 IN_PROGRESS; V1 não arquivada | [`J8_0_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_0_ADVISOR_HANDOFF.md) |
+| **0.5.140** | **Elo 10 PRONTO** (CONFIRMED→CLOSED na operação; família 202; Alembic **031**; 1 CostingCase REVISED). Cadeia **10/10**. `DEC-CLOSE-ORDER` fechada. Próxima = aceite (J#8) — STOP | [`E10_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-10/E10_ADVISOR_HANDOFF.md) |
+| **0.5.139** | **Elo 9 PASS** (custo REVISED documental; 6 Fatturas família 202; Alembic **030** inalterado; 0 CostingCase). Cadeia **9/10**. Custo **1/1**. Elo 10 **FALTA**. Próxima = Elo 10 / aceite (J#8) — STOP | [`E9_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-9/E9_ADVISOR_HANDOFF.md) |
+| **0.5.138** | **PAINEL-UX2 PASS** (três visões; Alembic **030** inalterado; 0 CostingCase). Cadeia **inalterada** 8/10. Custo **0/1**. Painel **1/1**. Elo 9 **FALTA**. Próxima = aceite (J#8) — STOP | [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
+| **0.5.137** | **J7-EXEC-UX PASS** (visão Executiva comercial; Alembic **030** inalterado; 0 CostingCase). Cadeia **inalterada** 8/10. Custo **0/1**. Painel **1/1**. Elo 9 **FALTA**. Próxima = aceite (J#8) — STOP | [`J7_EXEC_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-j7/J7_EXEC_UX_ADVISOR_HANDOFF.md) |
+| **0.5.136** | **J#7 DONE** (painel gerencial; Alembic **030** em `epic_v2`; 0 CostingCase). Cadeia **inalterada** 8/10. Custo **0/1**. Painel **1/1**. Elo 9 **FALTA**. Próxima = aceite (J#8) — STOP | [`J7_ADVISOR_HANDOFF.md`](docs/v2/etapa-j7/J7_ADVISOR_HANDOFF.md) |
+| **0.5.135** | **J6-UI-CLOSE PASS** (Expense + Compare na UI real; walk 9B sem mutação Costing pós-fixture). Alembic **029** inalterado. Cadeia **inalterada** 8/10. Custo **0/1**. Elo 9 **FALTA**. Próxima = painel (J#7) | [`COSTING_ADVISOR_HANDOFF.md`](docs/v2/etapa-costing/COSTING_ADVISOR_HANDOFF.md) |
+| **0.5.134** | **J#6 DONE** (custo desembarcado bruto; Alembic **029** em `epic_v2`; 0 casos na operação). Cadeia **inalterada** 8/10. Custo **0/1**. Elo 9 **FALTA**. Próxima = painel (J#7) | [`COSTING_ADVISOR_HANDOFF.md`](docs/v2/etapa-costing/COSTING_ADVISOR_HANDOFF.md) |
+| **0.5.133** | **CUSTOMS-FUNDING DONE** (Numerário BRL pago no tesouro; Alembic 028 em `epic_v2`). Aduana **3/3**. Cadeia **inalterada** 8/10. Pagamento do numerário **não** é elo 9 | [`CFUND_ADVISOR_HANDOFF.md`](docs/v2/etapa-customs-funding/CFUND_ADVISOR_HANDOFF.md) |
+| **0.5.132** | **CAT-PIM Onda 1 DONE em operação** (027 + 92 em `epic_v2`; import no-op; backup retido). Barras **inalteradas** 8/10. Próxima = numerário (`CUSTOMS_FUNDING`). Onda 2/IA/mídia não iniciadas | [`CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md) |
+| **0.5.131** | **CAT-PIM promotion readiness PASS** (review 40/13/38; import no-op; ensaio sobre cópia de `epic_v2`). Onda 1 **DONE** em teste. `epic_v2` **026** intocado. Barras **inalteradas** 8/10. Numerário pausado. Próxima = autorização de promoção | [`CAT_PIM_PROMOTION_READINESS_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_PROMOTION_READINESS_ADVISOR_HANDOFF.md) |
+| **0.5.130** | **CAT-PIM Onda 1 DONE** em `epic_v2_test` (027+taxonomia+92+UI). `epic_v2` **026** intocado. Barras **inalteradas** 8/10. Numerário pausado. Próxima = autorização de promoção | [`CAT_PIM_ONDA1_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_ONDA1_ADVISOR_HANDOFF.md) |
+| **0.5.129** | **CAT-PIM Onda 1 IN_PROGRESS** (gate proto APROVADO; execução em `epic_v2_test`). Barras **inalteradas** 8/10. Numerário pausado. **Não** promover `epic_v2` | [`CAT_PIM_PROTO_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_PROTO_ADVISOR_HANDOFF.md) |
+| **0.5.128** | **CAT-PIM proto IN_PROGRESS** (92 honestos; Comparar na Onda 1; XLSX de revisão; sem migration). Barras **inalteradas** 8/10. Numerário pausado | [`CAT_PIM_PROTO_ADVISOR_HANDOFF.md`](docs/v2/etapa-cat-pim/CAT_PIM_PROTO_ADVISOR_HANDOFF.md) |
+| **0.5.127** | **MDM-UX-R DONE** (Product List/ficha/Users/rail no V2 real; proto = contrato). Barras **inalteradas** 8/10. Próxima da cadeia = numerário (B.6) | [`MDM_UX_R_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux-r/MDM_UX_R_ADVISOR_HANDOFF.md) |
+| **0.5.126** | **MDM-UX-R IN_PROGRESS** (GATE VISUAL R0–R2.2 aprovado; R3–R6 autorizados). Barras **inalteradas** 8/10. Settlement numerário permanece B.6 | [`MDM_UX_R_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux-r/MDM_UX_R_ADVISOR_HANDOFF.md) |
+| **0.5.125** | **MDM-UX DONE** (PATCH + list-report + 026 L-006/`tax_id` + Users UI; walk 61 SKUs); Alembic **026**; barras **inalteradas** 8/10 | [`MDM_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
 | **0.5.124** | Campanha **MDM-UX** vira B.1; settlement numerário permanece B.6; barras **inalteradas** 8/10 | [`MDM_UX_ADVISOR_HANDOFF.md`](docs/v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
 | **0.5.123** | Elo 8 verificação final + **aceite advisor**: 202 documental → estoque; **ENCERRADO**; barras **inalteradas** 8/10; J#5-REC permanece | [`E8_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |
 | **0.5.122** | Elo 8: massa do walk = mock (`E8-202-MOCK`); atrito qty/Quem em B.6; barras **inalteradas** 8/10 | [`E8_ADVISOR_HANDOFF.md`](docs/v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |

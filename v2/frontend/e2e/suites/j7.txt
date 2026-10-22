@@ -1,0 +1,2 @@
+e2e/j7-dashboard.spec.ts
+e2e/i9-0-shell.spec.ts

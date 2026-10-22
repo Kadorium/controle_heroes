@@ -31,6 +31,7 @@ async function createConfirmedOrder(page: Page, tag: string) {
   await page.getByTestId("new-supplier-name").fill(supplierName);
 
   await page.getByTestId("line-sku").fill(`SKU-${tag}-A`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${tag} A`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("10");
@@ -39,6 +40,7 @@ async function createConfirmedOrder(page: Page, tag: string) {
   await page.getByRole("button", { name: /adicionar linha/i }).click();
 
   await page.getByTestId("line-sku").fill(`SKU-${tag}-B`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${tag} B`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("2");

@@ -2261,6 +2261,7 @@ def commit_document_xlsx(
                 actor_id=str(user.id),
                 operation_key=body.operation_key,
                 quarantine_path=Path(settings.quarantine_path),
+                attachments_path=Path(settings.attachments_path),
             )
             uow.commit()
             return XlsxCommitResultOut(

@@ -20,7 +20,7 @@ from app.ingestion.commit_queries import (
     list_commit_attempts_for_document,
 )
 from app.ingestion.parse_it import parse_it_date, parse_it_number
-from app.ingestion.queries import get_batch_with_occurrences, get_occurrence_detail
+from app.ingestion.queries import get_batch_with_occurrences, get_occurrence_detail, exceptions
 from app.ingestion.staging_commands import (
     add_document_to_set,
     add_row,
@@ -43,6 +43,8 @@ from app.ingestion.staging_queries import (
     list_documents_for_batch,
     list_review_changes,
     staging_queue,
+    staging_queue_summary,
+    review_exceptions,
 )
 
 __all__ = [
@@ -55,6 +57,7 @@ __all__ = [
     "plan_purge",
     "get_batch_with_occurrences",
     "get_occurrence_detail",
+    "exceptions",
     "seed_document_from_occurrence",
     "correct_field",
     "restore_field",
@@ -74,6 +77,8 @@ __all__ = [
     "list_review_changes",
     "get_document_set",
     "staging_queue",
+    "staging_queue_summary",
+    "review_exceptions",
     # J3-I3 commit ledger
     "preview_commit",
     "execute_commit",

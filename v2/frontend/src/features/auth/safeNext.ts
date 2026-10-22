@@ -32,3 +32,9 @@ export function loginUrlWithNext(pathname: string, search = ""): string {
   }
   return `/login?next=${encodeURIComponent(target)}`;
 }
+
+/** Login sem `?next=` cai na home (`/`) para o redirect por papel. Inválido continua `/orders`. */
+export function postLoginPath(raw: string | null | undefined): string {
+  if (raw == null || raw.trim() === "") return "/";
+  return sanitizeNextPath(raw);
+}

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loginAs, openOrdersList, PAYMENTS_NAV, allocateFirstEligible } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -13,11 +14,8 @@ const CODE = "V12-PEDIDO-CANON";
 const INV = "V12-FATURA-001";
 
 async function login(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-  await expect(page.getByTestId("orders-list-page")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  await openOrdersList(page);
 }
 
 async function shot(page: import("@playwright/test").Page, name: string, w: number, h: number) {
@@ -36,6 +34,7 @@ test("I9V V1+V2 eight surfaces", async ({ page }) => {
   await page.getByTestId("order-code").fill(CODE);
   await page.getByTestId("new-supplier-name").fill(SUPPLIER);
   await page.getByTestId("line-sku").fill("SKU-V12");
+  await page.getByTestId("line-sku-description").fill("Produto V12");
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("10");
@@ -108,14 +107,16 @@ test("I9V V1+V2 eight surfaces", async ({ page }) => {
   // SCR-008 AP
   await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /contas a pagar/i }).click();
   await expect(page.getByTestId("ap-queue-page")).toBeVisible();
-  await expect(page.getByText("Pagamentos com residual")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /contas a pagar/i })).toBeVisible();
+  await expect(page.getByText(/crédito em aberto/i).first()).toBeVisible();
   await expect(page.getByText(/unalloc/i)).toHaveCount(0);
   await expect(page.getByText("Payables")).toHaveCount(0);
-  await page.locator(`[data-testid^="ap-row-"]`).first().locator("td").nth(1).click();
+  const apRow = page.locator(`[data-testid^="ap-row-"]`).filter({ hasText: INV }).first();
+  await apRow.locator("td").nth(1).click();
   await expect(page.getByTestId("detail-drawer")).toBeVisible();
   await shot(page, "scr-008-ap", 1366, 768);
 
-  const payableId = await page.locator(`[data-testid^="ap-row-"]`).first().getAttribute("data-testid");
+  const payableId = await apRow.getAttribute("data-testid");
   const pid = payableId?.replace("ap-row-", "") ?? "";
 
   // SCR-009 FX
@@ -132,7 +133,7 @@ test("I9V V1+V2 eight surfaces", async ({ page }) => {
 
   // Payment via G02
   await page.goto("/payables");
-  await page.locator(`[data-testid^="ap-row-"]`).first().locator("td").nth(1).click();
+  await page.locator(`[data-testid^="ap-row-"]`).filter({ hasText: INV }).first().locator("td").nth(1).click();
   await page.getByTestId("ap-g02-new-payment").click();
   await expect(page.getByTestId("payment-create")).toBeVisible();
   await page.getByTestId("pay-doc").setInputFiles({
@@ -153,14 +154,11 @@ test("I9V V1+V2 eight surfaces", async ({ page }) => {
   await shot(page, "scr-012-payment", 1366, 768);
 
   // Allocate partial for residual semantics
-  const table = page.getByTestId("eligible-table");
-  await table.locator("tbody tr").first().locator("input").fill("100");
-  await page.getByTestId("allocate-btn").click();
-  await page.getByTestId("confirm-modal-ok").click();
+  await allocateFirstEligible(page, "100");
   await expect(page.getByTestId("payment-residual")).toContainText(/EUR 300/i, { timeout: 10000 });
 
   // SCR-010 Pagamentos
-  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /^Pagamentos$/i }).click();
+  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: PAYMENTS_NAV }).click();
   await expect(page.getByTestId("payments-table")).toBeVisible();
   const payRow = page.getByTestId("payments-table").getByRole("row").filter({ hasText: SUPPLIER });
   await expect(payRow.getByText(SUPPLIER)).toBeVisible();

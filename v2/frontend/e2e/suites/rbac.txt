@@ -1,0 +1,2 @@
+# Papéis operacionais — só epic_v2_test (e2e_prepare)
+e2e/rbac-roles.spec.ts

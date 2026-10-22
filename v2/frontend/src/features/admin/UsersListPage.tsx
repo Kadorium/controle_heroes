@@ -1,24 +1,27 @@
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { User } from "../auth/types";
-import { listUsers, type UserAdmin } from "./identityApi";
+import { listRoles, listUsers, type RoleOut, type UserAdmin } from "./identityApi";
 import { useListReturn } from "../../navigation/useListReturn";
 import { saveReturnState } from "../../navigation/returnState";
 import {
   EmptyState,
   ErrorState,
   FilterBar,
+  FilterChip,
   LoadingState,
   OperationalTable,
   PageHeader,
   PaginationSummary,
   TextInput,
+  formatDateTime,
   roleLabel,
   type OperationalColumnDef,
 } from "../../ui";
 
 type Props = { user: User };
 const PAGE = 50;
+const DEBOUNCE_MS = 280;
 
 function canRead(user: User) {
   return user.role === "admin" || (user.permissions ?? []).includes("users:read");
@@ -30,22 +33,50 @@ function canWrite(user: User) {
 
 export function UsersListPage({ user }: Props) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
+  const active = params.get("active") ?? "";
+  const role = params.get("role") ?? "";
   const offset = Number(params.get("offset") || "0") || 0;
   const [rows, setRows] = useState<UserAdmin[] | null>(null);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(params.get("row") || null);
   const [draftQ, setDraftQ] = useState(q);
+  const [roles, setRoles] = useState<RoleOut[]>([]);
 
   useListReturn("/admin/users", selectedId);
   useEffect(() => setDraftQ(q), [q]);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (draftQ.trim() === q) return;
+      const next = new URLSearchParams(params);
+      if (!draftQ.trim()) next.delete("q");
+      else next.set("q", draftQ.trim());
+      next.delete("offset");
+      setParams(next);
+    }, DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [draftQ]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    void listRoles()
+      .then(setRoles)
+      .catch(() => setRoles([]));
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     setRows(null);
-    void listUsers({ q: q || undefined, limit: PAGE, offset })
+    void listUsers({
+      q: q || undefined,
+      isActive: active === "1" ? true : active === "0" ? false : null,
+      role: role || undefined,
+      limit: PAGE,
+      offset,
+    })
       .then((data) => {
         if (!cancelled) {
           setRows(data.items);
@@ -58,7 +89,15 @@ export function UsersListPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [q, offset]);
+  }, [q, active, role, offset]);
+
+  function setParam(key: string, value: string) {
+    const next = new URLSearchParams(params);
+    if (!value) next.delete(key);
+    else next.set(key, value);
+    next.delete("offset");
+    setParams(next);
+  }
 
   const rememberRow = useCallback(
     (id: number) => {
@@ -82,11 +121,7 @@ export function UsersListPage({ user }: Props) {
         priority: 0,
         minWidth: "10rem",
         truncate: true,
-        cell: (row) => (
-          <Link to={`/admin/users/${row.id}`} state={{ returnTo }} onClick={() => rememberRow(row.id)}>
-            {row.name}
-          </Link>
-        ),
+        cell: (row) => row.name,
       },
       {
         id: "email",
@@ -107,14 +142,27 @@ export function UsersListPage({ user }: Props) {
       },
       {
         id: "active",
-        header: "Ativo",
+        header: "Situação",
         visibility: "always",
         priority: 0,
-        minWidth: "5rem",
-        cell: (row) => (row.is_active ? "Sim" : "Não"),
+        minWidth: "6rem",
+        cell: (row) =>
+          row.is_active ? (
+            <span className="status-badge status-ok">Ativo</span>
+          ) : (
+            <span className="status-badge status-neutral">Inativo</span>
+          ),
+      },
+      {
+        id: "last_login",
+        header: "Último acesso",
+        visibility: "standard",
+        priority: 1,
+        minWidth: "9rem",
+        cell: (row) => formatDateTime(row.last_login),
       },
     ],
-    [rememberRow, returnTo],
+    [],
   );
 
   if (!canRead(user)) {
@@ -123,46 +171,53 @@ export function UsersListPage({ user }: Props) {
   if (error) return <ErrorState message={error} />;
   if (rows === null) return <LoadingState message="Carregando usuários…" />;
 
+  const hasQuery = Boolean(q || active || role);
+
   return (
     <section className="panel dense" data-testid="users-list-page">
       <PageHeader
         title="Usuários"
-        subtitle="Acesso e papéis"
+        subtitle="Acesso e papéis · IAM-light"
         actions={
           canWrite(user) ? (
             <Link className="ui-button" to="/admin/users/new" data-testid="users-new-cta">
-              Novo usuário
+              + Novo usuário
             </Link>
           ) : null
         }
       />
       <FilterBar
         primary={
-          <form
-            className="stack-row"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const next = new URLSearchParams(params);
-              if (!draftQ.trim()) next.delete("q");
-              else next.set("q", draftQ.trim());
-              next.delete("offset");
-              setParams(next);
-            }}
-          >
+          <div className="stack-row" style={{ flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
             <TextInput
               data-testid="users-search"
               value={draftQ}
               onChange={(e) => setDraftQ(e.target.value)}
-              placeholder="Buscar nome ou e-mail"
+              placeholder="Buscar por nome ou e-mail"
               aria-label="Buscar usuários"
             />
-          </form>
+            <FilterChip pressed={active === "1"} onClick={() => setParam("active", active === "1" ? "" : "1")}>
+              Ativos
+            </FilterChip>
+            <FilterChip pressed={active === "0"} onClick={() => setParam("active", active === "0" ? "" : "0")}>
+              Inativos
+            </FilterChip>
+            {roles.map((r) => (
+              <FilterChip
+                key={r.name}
+                pressed={role === r.name}
+                onClick={() => setParam("role", role === r.name ? "" : r.name)}
+              >
+                {roleLabel(r.name)}
+              </FilterChip>
+            ))}
+          </div>
         }
       />
       {rows.length === 0 ? (
         <EmptyState
-          title={q ? "Nenhum resultado" : "Nenhum usuário"}
-          message={q ? "Nenhum usuário neste filtro" : "Crie o primeiro usuário."}
+          title={hasQuery ? "Nenhum resultado" : "Nenhum usuário"}
+          message={hasQuery ? "Nenhum usuário corresponde à busca ou aos filtros." : "Crie o primeiro usuário."}
         />
       ) : (
         <>
@@ -173,9 +228,42 @@ export function UsersListPage({ user }: Props) {
             rows={rows}
             getRowId={(row) => String(row.id)}
             selectedId={selectedId}
-            onRowClick={(row) => rememberRow(row.id)}
+            onRowClick={(row) => {
+              rememberRow(row.id);
+              navigate(`/admin/users/${row.id}`, { state: { returnTo } });
+            }}
           />
           <PaginationSummary offset={offset} limit={PAGE} total={total} loadedCount={rows.length} />
+          {total > PAGE ? (
+            <div className="page-btns">
+              <button
+                type="button"
+                className="ui-button ui-button--secondary"
+                disabled={offset === 0}
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  const off = Math.max(0, offset - PAGE);
+                  if (off <= 0) next.delete("offset");
+                  else next.set("offset", String(off));
+                  setParams(next);
+                }}
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                className="ui-button ui-button--secondary"
+                disabled={offset + PAGE >= total}
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  next.set("offset", String(offset + PAGE));
+                  setParams(next);
+                }}
+              >
+                Próxima
+              </button>
+            </div>
+          ) : null}
         </>
       )}
     </section>

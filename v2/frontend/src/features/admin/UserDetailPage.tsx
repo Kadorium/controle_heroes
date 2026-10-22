@@ -99,6 +99,10 @@ export function UserDetailPage({ user }: Props) {
 
   async function onSetPassword() {
     if (!row) return;
+    if (newPass.length < 8) {
+      setError("Senha deve ter pelo menos 8 caracteres");
+      return;
+    }
     if (newPass !== newPass2) {
       setError("As senhas não coincidem");
       return;

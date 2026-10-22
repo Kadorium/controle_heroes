@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loginAs, openOrdersList } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -11,16 +12,14 @@ const evidenceDir = path.resolve(
 test("I9-9 retorno contextual + Escape modal", async ({ page }) => {
   const code = `I9D-${Date.now()}`;
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-  await expect(page.getByTestId("orders-list-page")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  await openOrdersList(page);
 
   await page.getByTestId("orders-new-cta").click();
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
   await page.getByTestId("line-sku").fill(`SKU-${code}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${code}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(300);
   await page.getByTestId("line-qty").fill("1");

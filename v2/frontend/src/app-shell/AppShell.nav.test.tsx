@@ -20,17 +20,17 @@ const admin = {
 };
 
 const NAV_ITEMS: { name: string; href: string }[] = [
-  { name: "Produtos", href: "/catalog/products" },
-  { name: "Fornecedores", href: "/catalog/suppliers" },
+  { name: "Painel", href: "/dashboard" },
   { name: "Pedidos", href: "/orders" },
   { name: "Faturas", href: "/invoices" },
   { name: "Ingestão", href: "/ingestion" },
   { name: "Contas a pagar", href: "/payables" },
   { name: "Pagamentos realizados", href: "/payments" },
+  { name: "Custos de importação", href: "/costing" },
   { name: "Embarques", href: "/shipments" },
-  { name: "Prestadores", href: "/logistics-providers" },
-  { name: "Processos aduaneiros", href: "/customs" },
+  { name: "Processos", href: "/customs" },
   { name: "Estoque", href: "/inventory/movements" },
+  { name: "Produtos", href: "/catalog/products" },
   { name: "Usuários", href: "/admin/users" },
 ];
 
@@ -48,16 +48,24 @@ describe("AppShell nav icons", () => {
 
     const nav = within(screen.getByRole("navigation", { name: /módulos/i }));
     expect(nav.getAllByText(/^Produtos$/i).length).toBeGreaterThanOrEqual(1);
+    expect(nav.getByText(/^Visão$/i)).toBeInTheDocument();
     expect(nav.getByText(/^Compras$/i)).toBeInTheDocument();
     expect(nav.getByText(/^Financeiro$/i)).toBeInTheDocument();
+    expect(nav.getByText(/^Custos$/i)).toBeInTheDocument();
     expect(nav.getByText(/^Logística$/i)).toBeInTheDocument();
     expect(nav.getByText(/^Aduana$/i)).toBeInTheDocument();
+    expect(nav.getByText(/^Catálogo$/i)).toBeInTheDocument();
     expect(nav.getByText(/^Administração$/i)).toBeInTheDocument();
+    expect(nav.queryByRole("link", { name: "Fornecedores" })).toBeNull();
+    expect(nav.queryByRole("link", { name: "Prestadores" })).toBeNull();
+    expect(nav.queryByRole("link", { name: /logistics-providers/i })).toBeNull();
 
     const pathDs: string[] = [];
     for (const item of NAV_ITEMS) {
       const link = nav.getByRole("link", { name: item.name });
       expect(link).toHaveAttribute("href", item.href);
+      expect(link).toHaveAttribute("data-label", item.name);
+      expect(link).not.toHaveAttribute("title");
       const svg = link.querySelector("svg.shell-nav-icon");
       expect(svg).toBeTruthy();
       expect(svg).toHaveAttribute("width", "20");
@@ -88,5 +96,7 @@ describe("AppShell nav icons", () => {
     expect(nav.queryByText(/^Administração$/i)).toBeNull();
     expect(nav.queryByRole("link", { name: "Usuários" })).toBeNull();
     expect(nav.getByRole("link", { name: "Produtos" })).toBeInTheDocument();
+    expect(nav.queryByRole("link", { name: "Fornecedores" })).toBeNull();
+    expect(nav.queryByRole("link", { name: "Prestadores" })).toBeNull();
   });
 });

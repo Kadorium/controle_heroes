@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { User } from "../auth/types";
-import { createProduct, createSupplier, listProducts, type Supplier } from "../catalog/catalogApi";
+import {
+  createProduct,
+  createSupplier,
+  listProducts,
+  listSuppliers,
+  type Supplier,
+} from "../catalog/catalogApi";
+import { matchCatalogProduct, pickerCaption, SKU_IS_EAN_MESSAGE, skuLooksLikeGtin } from "../catalog/productIdentity";
 import { useProductSearch, useSupplierSearch } from "../catalog/useCatalogSearch";
-import { addOrderItem, confirmOrder, createOrder, getOrder } from "./ordersApi";
+import { addOrderItem, confirmOrder, createOrder, getOrder, uploadOrderDocument } from "./ordersApi";
 import { canWriteOrders, deriveLineTotal, summarizeLines } from "./orderTotals";
 import { buildReturnTo } from "../../navigation/returnState";
+import { OrderPdfPanel } from "./OrderPdfPanel";
+import { canExtractOrdine, discardOrdineIntake, type OrdineIntakeSession } from "./ordinePdfIntake";
+import type { OrdineDraftLine, OrdineFormDraft } from "./mapOrdinePreviewToForm";
 import {
   Button,
   ConfirmationModal,
@@ -24,13 +34,7 @@ import {
   formatQuantity,
 } from "../../ui";
 
-type DraftLine = {
-  sku: string;
-  product_id: number;
-  quantity: string;
-  unit_price: string;
-  unit: string;
-};
+type DraftLine = OrdineDraftLine;
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -59,6 +63,7 @@ export function OrderCreatePage({ user }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   /** Após createOrder OK — não recriar em retry. */
   const [persistedOrder, setPersistedOrder] = useState<{ id: number; code: string } | null>(null);
+  const [pdfSession, setPdfSession] = useState<OrdineIntakeSession | null>(null);
   const products = useProductSearch(sku, { activeOnly: true, limit: 20 });
   const searchedSuppliers = useSupplierSearch(supplierQ, { activeOnly: true, limit: 20 });
   const suppliers = selectedSupplier
@@ -70,11 +75,26 @@ export function OrderCreatePage({ user }: Props) {
   }
 
   const totals = summarizeLines(lines);
+  const hasSupplier = supplierId !== "" || newSupplierName.trim().length > 0;
+  const canConfirm = code.trim().length > 0 && hasSupplier && lines.length > 0;
+  const confirmBlockedHint = !canConfirm
+    ? "Preencha código, fornecedor e ao menos um item para confirmar."
+    : null;
 
   async function ensureSupplier(): Promise<number> {
     if (supplierId !== "") return Number(supplierId);
-    if (!newSupplierName.trim()) throw new Error("Informe ou crie um fornecedor");
-    const s = await createSupplier({ name: newSupplierName.trim() });
+    const name = newSupplierName.trim();
+    if (!name) throw new Error("Informe ou crie um fornecedor");
+    const existing = await listSuppliers(name, { activeOnly: true, limit: 50 });
+    const match = existing.find(
+      (s) => s.name.trim().toLowerCase() === name.toLowerCase(),
+    );
+    if (match) {
+      setSelectedSupplier(match);
+      setSupplierId(match.id);
+      return match.id;
+    }
+    const s = await createSupplier({ name });
     setSelectedSupplier(s);
     setSupplierId(s.id);
     return s.id;
@@ -83,10 +103,10 @@ export function OrderCreatePage({ user }: Props) {
   async function addLine() {
     setError(null);
     const wanted = sku.trim();
-    let match = products.find((p) => p.sku.toLowerCase() === wanted.toLowerCase());
+    let match = matchCatalogProduct(products, wanted);
     if (!match && wanted) {
       const rows = await listProducts(wanted, { activeOnly: true, limit: 20 });
-      match = rows.find((p) => p.sku.toLowerCase() === wanted.toLowerCase());
+      match = matchCatalogProduct(rows, wanted);
     }
     if (!match) {
       setError("SKU não encontrado — crie o produto abaixo ou escolha um existente");
@@ -104,6 +124,8 @@ export function OrderCreatePage({ user }: Props) {
         quantity: qty.trim(),
         unit: unit.trim() || "PZ",
         unit_price: price.trim() === "" ? "" : price.trim(),
+        line_kind: "PRODUCT",
+        description: match.description ?? skuDescription.trim(),
       },
     ]);
     setSku("");
@@ -122,6 +144,10 @@ export function OrderCreatePage({ user }: Props) {
     const desc = skuDescription.trim();
     if (!sku.trim()) {
       setError("Informe o SKU");
+      return;
+    }
+    if (skuLooksLikeGtin(sku)) {
+      setError(SKU_IS_EAN_MESSAGE);
       return;
     }
     if (!desc) {
@@ -165,13 +191,31 @@ export function OrderCreatePage({ user }: Props) {
 
       for (let i = startIdx; i < lines.length; i++) {
         const line = lines[i];
-        order = await addOrderItem(order.id, {
-          expected_version: order.version,
-          product_id: line.product_id,
-          quantity: line.quantity,
-          unit: line.unit || null,
-          unit_price: line.unit_price === "" ? null : line.unit_price,
-        });
+        if (line.line_kind === "COMMITMENT") {
+          order = await addOrderItem(order.id, {
+            expected_version: order.version,
+            quantity: line.quantity,
+            unit: line.unit || null,
+            unit_price: line.unit_price === "" ? null : line.unit_price,
+            line_kind: "COMMITMENT",
+            external_code: line.sku,
+            description: line.description || line.sku,
+          });
+        } else {
+          order = await addOrderItem(order.id, {
+            expected_version: order.version,
+            product_id: line.product_id ?? undefined,
+            quantity: line.quantity,
+            unit: line.unit || null,
+            unit_price: line.unit_price === "" ? null : line.unit_price,
+            line_kind: "PRODUCT",
+          });
+        }
+      }
+      if (pdfSession?.file) {
+        await uploadOrderDocument(order.id, pdfSession.file);
+        await discardOrdineIntake(pdfSession);
+        setPdfSession(null);
       }
       if (andConfirm) {
         order = await confirmOrder(order.id, order.version);
@@ -182,6 +226,7 @@ export function OrderCreatePage({ user }: Props) {
         navigate(`/orders/${order.id}/commercial`);
       }
     } catch (err) {
+      setConfirmOpen(false);
       const msg = err instanceof Error ? err.message : "Erro ao salvar";
       if (persistedOrder) {
         setError(
@@ -223,6 +268,30 @@ export function OrderCreatePage({ user }: Props) {
         <Notice tone="danger" className="error">
           {error}
         </Notice>
+      ) : null}
+
+      {canExtractOrdine(user) ? (
+        <OrderPdfPanel
+          user={user}
+          mode="create"
+          onFill={(draft: OrdineFormDraft, session: OrdineIntakeSession) => {
+            setCode(draft.code);
+            if (draft.orderDate) setOrderDate(draft.orderDate);
+            if (draft.supplierId !== "") {
+              setSupplierId(draft.supplierId);
+              setSelectedSupplier(null);
+              setNewSupplierName("");
+            } else {
+              setSupplierId("");
+              setSelectedSupplier(null);
+              setNewSupplierName(draft.newSupplierName);
+            }
+            setLines(draft.lines);
+            setPdfSession(session);
+            setError(null);
+          }}
+          onImported={(orderId) => navigate(`/orders/${orderId}/commercial`)}
+        />
       ) : null}
 
       <SectionCard title="Dados do pedido">
@@ -298,7 +367,7 @@ export function OrderCreatePage({ user }: Props) {
         <div className="line-row">
           <TextInput
             data-testid="line-sku"
-            placeholder="SKU"
+            placeholder="Nome ou SKU"
             value={sku}
             onChange={(e) => setSku(e.target.value)}
             list="sku-list"
@@ -306,7 +375,7 @@ export function OrderCreatePage({ user }: Props) {
           <datalist id="sku-list">
             {products.map((p) => (
               <option key={p.id} value={p.sku}>
-                {p.description}
+                {pickerCaption(p)}
               </option>
             ))}
           </datalist>
@@ -342,10 +411,12 @@ export function OrderCreatePage({ user }: Props) {
             Criar SKU
           </Button>
         </div>
-        <OperationalTable density="standard">
+        <OperationalTable density="standard" data-testid="order-lines-table">
           <thead>
             <tr>
-              <th>SKU</th>
+              <th>Tipo</th>
+              <th>SKU / código</th>
+              <th>Descrição</th>
               <th className="num">Qtd</th>
               <th>UM</th>
               <th className="num">Preço</th>
@@ -357,8 +428,10 @@ export function OrderCreatePage({ user }: Props) {
             {lines.map((l, i) => {
               const total = deriveLineTotal(l.quantity, l.unit_price === "" ? null : l.unit_price);
               return (
-                <tr key={`${l.sku}-${i}`}>
+                <tr key={`${l.sku}-${i}`} data-testid={`order-draft-line-${i}`}>
+                  <td>{l.line_kind === "COMMITMENT" ? "Compromisso" : "Produto"}</td>
                   <td>{l.sku}</td>
+                  <td>{l.description}</td>
                   <td className="num">{formatQuantity(l.quantity)}</td>
                   <td>{l.unit}</td>
                   <td className="num">
@@ -398,6 +471,11 @@ export function OrderCreatePage({ user }: Props) {
         </p>
       </SectionCard>
 
+      {confirmBlockedHint ? (
+        <Notice tone="info" data-testid="confirm-blocked-hint">
+          {confirmBlockedHint}
+        </Notice>
+      ) : null}
       <div className="actions">
         <Button
           type="button"
@@ -411,8 +489,12 @@ export function OrderCreatePage({ user }: Props) {
         <Button
           type="button"
           busy={busy}
+          disabled={!canConfirm}
           data-testid="save-confirm"
-          onClick={() => setConfirmOpen(true)}
+          onClick={() => {
+            if (!canConfirm) return;
+            setConfirmOpen(true);
+          }}
         >
           Salvar e confirmar
         </Button>

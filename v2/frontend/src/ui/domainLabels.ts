@@ -78,6 +78,10 @@ export function cockpitAlertLabel(code: string, fallback?: string | null): strin
       return "Há obrigações vencidas";
     case "MISSING_FX":
       return "Obrigação sem taxa projetada";
+    case "COMMITMENT_UNBOUND":
+      return (
+        "Há compromisso sem produto no catálogo. Não fatura, não embarca e não entra no estoque até vincular."
+      );
     case "UNALLOCATED_CANDIDATE":
       return (
         "Candidatos a alocação do mesmo fornecedor/moeda " +

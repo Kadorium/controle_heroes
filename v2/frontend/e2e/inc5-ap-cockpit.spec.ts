@@ -1,25 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { fillAndConfirmOrder, loginAs } from "./helpers/orderCreate";
 
 test("Inc-5 AP queue + order cockpit (Reporting)", async ({ page }) => {
   const code = `INC5-${Date.now()}`;
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-  await expect(page.getByRole("link", { name: /contas a pagar/i })).toBeVisible({ timeout: 15000 });
-
-  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
-  await page.getByTestId("order-code").fill(code);
-  await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
-  await page.getByTestId("line-sku").fill(`SKU-${code}`);
-  await page.getByRole("button", { name: /criar sku/i }).click();
-  await page.waitForTimeout(400);
-  await page.getByTestId("line-qty").fill("10");
-  await page.getByTestId("line-price").fill("100");
-  await page.getByRole("button", { name: /adicionar linha/i }).click();
-  await page.getByTestId("save-confirm").click();
-  await page.getByTestId("confirm-modal-ok").click();
-  await expect(page.getByTestId("order-cockpit")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  await fillAndConfirmOrder(page, {
+    code,
+    supplierName: `Fornecedor ${code}`,
+    sku: `SKU-${code}`,
+    description: `Produto ${code}`,
+    qty: "10",
+    price: "100",
+  });
   await expect(page.getByTestId("kpi-strip")).toBeVisible();
 
   const orderUrl = page.url();

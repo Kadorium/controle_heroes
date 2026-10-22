@@ -35,6 +35,9 @@ import app.ingestion.models  # noqa: F401
 import app.ingestion.ir_models  # noqa: F401
 import app.ingestion.commit_models  # noqa: F401
 import app.ingestion.metrics_models  # noqa: F401
+import app.costing.models  # noqa: F401
+import app.reconciliation.models  # noqa: F401
+import app.reporting.models  # noqa: F401
 
 get_settings.cache_clear()
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
@@ -58,8 +61,10 @@ def engine():
             name=settings.seed_admin_name,
         )
         from app.inventory.repository import ensure_default_locations
+        from app.catalog.taxonomy import ensure_taxonomy
 
         ensure_default_locations(db)
+        ensure_taxonomy(db)
         db.commit()
     finally:
         db.close()

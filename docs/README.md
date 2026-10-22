@@ -59,6 +59,23 @@ O código evidencia o estado implementado na investigação. Divergências corri
 | Elo 7 | Chegada + Doganale/Numerário PDF + nacionalização (mesma história 202); aceite UI **PASS**; barras 7/10 · 5/7 · 2/3 | Roadmap **0.5.120** · Blueprint 0.2.23 | [`E7_ADVISOR_HANDOFF.md`](v2/etapa-elo-7/E7_ADVISOR_HANDOFF.md) |
 | Elo 8 | Nacionalizado → estoque doméstico (residual item-level; produto no catálogo); 202 documental → estoque na UI; cadeia 8/10; Aduana 2/3; **ENCERRADO** (aceite advisor) | Roadmap **0.5.123** · Blueprint 0.2.24 | [`E8_ADVISOR_HANDOFF.md`](v2/etapa-elo-8/E8_ADVISOR_HANDOFF.md) |
 | MDM-UX | Cadastros mestres: produtos, fornecedores, usuários; Alembic 026; barras inalteradas 8/10 | Roadmap **0.5.125** · Blueprint 0.2.25 | [`MDM_UX_ADVISOR_HANDOFF.md`](v2/etapa-mdm-ux/MDM_UX_ADVISOR_HANDOFF.md) |
+| MDM-UX-R | Telas de cadastro alinhadas ao contrato visual; barras inalteradas 8/10 | Roadmap **0.5.127** · Blueprint 0.2.26 | [`MDM_UX_R_ADVISOR_HANDOFF.md`](v2/etapa-mdm-ux-r/MDM_UX_R_ADVISOR_HANDOFF.md) |
+| CAT-PIM proto | Catálogo comercial (92 honestos); gate visual pendente; sem migration | Roadmap **0.5.128** | [`CAT_PIM_PROTO_ADVISOR_HANDOFF.md`](v2/etapa-cat-pim/CAT_PIM_PROTO_ADVISOR_HANDOFF.md) |
+| CAT-PIM Onda 1 | Schema 027 + taxonomia + 92 em teste; UI North Star; STOP antes da operação | Roadmap **0.5.130** · Blueprint 0.2.27 | [`CAT_PIM_ONDA1_ADVISOR_HANDOFF.md`](v2/etapa-cat-pim/CAT_PIM_ONDA1_ADVISOR_HANDOFF.md) |
+| CAT-PIM promotion readiness | Review 40/13/38; import no-op; ensaio sobre cópia de operação; STOP antes de `epic_v2` | Roadmap **0.5.131** · Blueprint 0.2.28 | [`CAT_PIM_PROMOTION_READINESS_ADVISOR_HANDOFF.md`](v2/etapa-cat-pim/CAT_PIM_PROMOTION_READINESS_ADVISOR_HANDOFF.md) |
+| CAT-PIM Onda 1 operação | 027 + 92 em `epic_v2`; import no-op; backup retido; barras 8/10 | Roadmap **0.5.132** · Blueprint 0.2.28 | [`CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md`](v2/etapa-cat-pim/CAT_PIM_OPERATIONAL_COMPLETION_ADVISOR_HANDOFF.md) |
+| CUSTOMS-FUNDING | Numerário BRL pago no tesouro; Alembic 028; Aduana 3/3; cadeia 8/10 inalterada | Roadmap **0.5.133** · Blueprint 0.2.29 | [`CFUND_ADVISOR_HANDOFF.md`](v2/etapa-customs-funding/CFUND_ADVISOR_HANDOFF.md) |
+| J#6 Costing | Custo desembarcado bruto por produto; Expense+Compare UI; Alembic 029; cadeia 8/10; Custo 0/1; Elo 9 FALTA | Roadmap **0.5.135** · Blueprint 0.2.30 | [`COSTING_ADVISOR_HANDOFF.md`](v2/etapa-costing/COSTING_ADVISOR_HANDOFF.md) |
+| J#7 Painel | Painel gerencial de leitura; visões pessoais; Alembic 030; cadeia 8/10; Custo 0/1; Painel 1/1 | Roadmap **0.5.136** · Blueprint 0.2.31 | [`J7_ADVISOR_HANDOFF.md`](v2/etapa-j7/J7_ADVISOR_HANDOFF.md) |
+| J7-EXEC-UX | Visão Executiva comercial (caixa, exposição, mercadoria, decisão); Alembic 030 inalterado; Painel 1/1 | Roadmap **0.5.137** · Blueprint 0.2.32 | [`J7_EXEC_UX_ADVISOR_HANDOFF.md`](v2/etapa-j7/J7_EXEC_UX_ADVISOR_HANDOFF.md) |
+| PAINEL-UX2 | Painel em três visões (Executiva, Comercial, Controle); Alembic 030 inalterado; Painel 1/1 | Roadmap **0.5.138** · Blueprint 0.2.33 | [`PAINEL_UX2_ADVISOR_HANDOFF.md`](v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
+| Elo 9 | Custo desembarcado REVISED documental (6 Fatturas família 202); cadeia 9/10; Custo 1/1; Alembic 030 inalterado; 0 CostingCase operacional | Roadmap **0.5.139** · Blueprint 0.2.34 | [`E9_ADVISOR_HANDOFF.md`](v2/etapa-elo-9/E9_ADVISOR_HANDOFF.md) |
+| Elo 10 | Encerrar pedido CONFIRMED→CLOSED na operação (família 202); cadeia 10/10; Alembic 031; 1 CostingCase REVISED publicado | Roadmap **0.5.140** · Blueprint 0.2.35 | [`E10_ADVISOR_HANDOFF.md`](v2/etapa-elo-10/E10_ADVISOR_HANDOFF.md) |
+| J#8-0 aceite UI | 12 suítes E2E isoladas na tela; J#8 IN_PROGRESS; V1 não arquivada; cadeia 10/10 | Roadmap **0.5.141** | [`J8_0_ADVISOR_HANDOFF.md`](v2/etapa-j8/J8_0_ADVISOR_HANDOFF.md) |
+| J#8 aceite final | 13 suítes E2E UI; V1 arquivada; cadeia 10/10 | Roadmap **0.5.142** | [`J8_CLOSE_ADVISOR_HANDOFF.md`](v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
+| J#5-REC | Compromisso vinculado chega ao estoque (SKU próprio ≠ EAN/I.V.*); cadeia 10/10 | Roadmap **0.5.143** | [`J5_REC_ADVISOR_HANDOFF.md`](v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
+| ING-FAM | Fattura PDF na comercial + planilha no novo pedido; Ingestão 7/7; cadeia 10/10 | Roadmap **0.5.144** | [`ING_FAM_ADVISOR_HANDOFF.md`](v2/etapa-ing-fam/ING_FAM_ADVISOR_HANDOFF.md) |
+| B0 | Fatura na mão escolhe o residual (linhas + qtd ainda disponível); cadeia 10/10 | Roadmap **0.5.145** | [`B0_ADVISOR_HANDOFF.md`](v2/etapa-b0/B0_ADVISOR_HANDOFF.md) |
 
 Estado e sequência atuais: consultar o Roadmap. Evidências concluídas ficam em `docs/v2/etapa-*`.
 

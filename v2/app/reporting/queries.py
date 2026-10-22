@@ -56,9 +56,12 @@ def ap_queue(
     )
     items = core["items"]
     payable_ids = [int(r["id"]) for r in items]
-    supplier_ids = {int(r["supplier_id"]) for r in items if r.get("supplier_id") is not None}
-    # Uma operação bulk (não get_supplier por linha / por id)
-    suppliers = catalog_public.get_suppliers_bulk(db, supplier_ids)
+    missing_supplier_ids = {
+        int(r["supplier_id"])
+        for r in items
+        if r.get("supplier_id") is not None and not r.get("supplier_name")
+    }
+    suppliers = catalog_public.get_suppliers_bulk(db, missing_supplier_ids) if missing_supplier_ids else {}
 
     order_ids = {int(r["order_id"]) for r in items if r.get("order_id") is not None}
     orders = orders_public.get_orders_bulk(db, order_ids)
@@ -92,12 +95,17 @@ def ap_queue(
         oid = int(row["order_id"]) if row.get("order_id") is not None else None
         order = orders.get(oid) if oid is not None else None
         payee_display = row.get("payee_display_name")
-        supplier_name = supplier.name if supplier else (payee_display or None)
+        supplier_name = (
+            (supplier.name if supplier else None)
+            or row.get("supplier_name")
+            or payee_display
+            or None
+        )
         enriched.append(
             {
                 **row,
                 "supplier_name": supplier_name,
-                "supplier_resolved": supplier is not None,
+                "supplier_resolved": supplier is not None or bool(row.get("supplier_name")),
                 "payee_display_name": payee_display,
                 "source_type": row.get("source_type") or "INVOICE",
                 "order_code": order.code if order else None,
@@ -302,6 +310,18 @@ def order_cockpit(db: Session, order_id: int) -> dict[str, Any]:
     ]
 
     alerts: list[dict[str, str]] = []
+    commitment = orders_public.commitment_line_summary(order)
+    if commitment.get("has_commitment_lines"):
+        alerts.append(
+            {
+                "code": "COMMITMENT_UNBOUND",
+                "message": (
+                    "Há compromisso sem produto no catálogo. "
+                    "Não fatura, não embarca e não entra no estoque até vincular."
+                ),
+                "href": f"/orders/{order_id}/commercial",
+            }
+        )
     if any(p.status in ("OPEN", "PARTIALLY_PAID") and p.due_date < date.today() for p in payable_rows):
         alerts.append(
             {"code": "OVERDUE", "message": "Há obrigações vencidas", "href": f"/payables?order_id={order_id}"}

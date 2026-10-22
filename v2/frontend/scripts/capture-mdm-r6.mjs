@@ -1,0 +1,36 @@
+import { chromium } from "@playwright/test";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SHOT = path.resolve(__dirname, "../../../docs/v2/etapa-mdm-ux-r/screenshots");
+const base = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:8082";
+
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await page.goto(`${base}/login`);
+await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
+await page.getByLabel(/senha/i).fill("admin123");
+await page.getByRole("button", { name: /entrar/i }).click();
+await page.waitForURL((u) => !u.pathname.includes("/login"));
+await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /^Produtos$/i }).click();
+await page.getByTestId("product-list-page").waitFor();
+await page.screenshot({ path: path.join(SHOT, "r6-1440-product-list.png") });
+await page.getByTestId("catalog-overflow").click();
+await page.screenshot({ path: path.join(SHOT, "r6-1440-supplier-overflow.png") });
+await page.keyboard.press("Escape");
+await page.getByTestId("products-table").locator("tbody tr").first().click();
+await page.getByTestId("product-detail-page").waitFor();
+await page.screenshot({ path: path.join(SHOT, "r6-1440-product-detail.png") });
+await page.getByTestId("product-edit").click();
+await page.getByTestId("product-edit-page").waitFor();
+await page.screenshot({ path: path.join(SHOT, "r6-1440-product-edit.png") });
+await page.goto(`${base}/admin/users`);
+await page.getByTestId("users-list-page").waitFor();
+await page.screenshot({ path: path.join(SHOT, "r6-1440-users.png") });
+await page.setViewportSize({ width: 1366, height: 800 });
+await page.goto(`${base}/catalog/products`);
+await page.getByTestId("product-list-page").waitFor();
+await page.screenshot({ path: path.join(SHOT, "r6-1366-product-list.png") });
+await browser.close();
+console.log("shots ok", SHOT);

@@ -10,6 +10,7 @@
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
+import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -70,6 +71,20 @@ async function buildFrontendDist() {
   await run(npmCmd, ["run", "build"], { cwd: frontendRoot, shell: true });
 }
 
+function assertPortFree(port) {
+  return new Promise((resolve, reject) => {
+    const socket = net.createConnection({ port: Number(port), host: "127.0.0.1" }, () => {
+      socket.end();
+      reject(
+        new Error(
+          `Porta ${port} já em uso — mate o uvicorn stale em :${port} antes do E2E (senão o probe acerta o processo antigo).`,
+        ),
+      );
+    });
+    socket.on("error", () => resolve());
+  });
+}
+
 async function waitHealth(url, timeoutMs = 30000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -94,6 +109,7 @@ async function prepare() {
 
 async function runE2E() {
   assertTestDb(E2E_DB_URL);
+  await assertPortFree(E2E_PORT);
   await prepare();
   await buildFrontendDist();
 
@@ -162,16 +178,24 @@ async function runE2E() {
         `Porta ${E2E_PORT} já em uso — mate o processo stale antes do E2E.\n${bootError}`,
       );
     }
-    // Prove ingestion router is live (stale servers often 404 spa_fallback).
-    const q = await fetch(`${BASE_URL}/api/ingestion/staging/queue`, {
-      headers: { Accept: "application/json" },
-    });
-    if (q.status === 404) {
-      throw new Error(
-        `GET /api/ingestion/staging/queue → 404 (servidor em :${E2E_PORT} parece stale/sem ingestion). Mate o PID na porta e rode de novo.`,
-      );
+    // Prove routers are live (stale servers often 404 via spa_fallback).
+    const probes = [
+      "/api/ingestion/staging/queue",
+      "/api/costing/queue",
+    ];
+    const probeStatuses = [];
+    for (const path of probes) {
+      const q = await fetch(`${BASE_URL}${path}`, {
+        headers: { Accept: "application/json" },
+      });
+      probeStatuses.push(`${path}=${q.status}`);
+      if (q.status === 404) {
+        throw new Error(
+          `GET ${path} → 404 (servidor em :${E2E_PORT} parece stale). Mate o PID na porta e rode de novo.`,
+        );
+      }
     }
-    console.log(`[e2e] health ok ${BASE_URL} (ingestion probe status=${q.status})`);
+    console.log(`[e2e] health ok ${BASE_URL} (${probeStatuses.join(" ")})`);
 
     const specs = process.env.E2E_SPECS
       ? process.env.E2E_SPECS.split(",")

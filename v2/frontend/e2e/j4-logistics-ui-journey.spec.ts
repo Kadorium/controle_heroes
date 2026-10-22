@@ -6,6 +6,7 @@
 import { test, expect, type Page, type Request, type Response } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { createSkuAndAddLine } from "./helpers/orderCreate";
 
 const EVIDENCE_ROOT = path.resolve(
   process.cwd(),
@@ -72,12 +73,12 @@ async function createConfirmedOrderViaUi(page: Page, tag: string) {
   await page.getByTestId("order-code").fill(tag);
   await page.getByTestId("order-supplier").selectOption("");
   await page.getByTestId("new-supplier-name").fill(`Sup UI ${tag}`);
-  await page.getByTestId("line-sku").fill(`SKU-${tag}`);
-  await page.getByRole("button", { name: /criar sku/i }).click();
-  await page.getByTestId("line-qty").fill("20");
-  await page.getByTestId("line-price").fill("10");
-  await page.getByRole("button", { name: /^adicionar linha$/i }).click();
-  await expect(page.getByRole("table")).toContainText(`SKU-${tag}`);
+  await createSkuAndAddLine(page, {
+    sku: `SKU-${tag}`,
+    description: `Produto ${tag}`,
+    qty: "20",
+    price: "10",
+  });
   await page.getByTestId("save-confirm").click();
   await expect(page.getByTestId("confirmation-modal")).toBeVisible();
   await modalConfirm(page);

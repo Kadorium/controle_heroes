@@ -80,7 +80,10 @@ export function FxQuoteStrip({ user }: { user: User }) {
 
   const rateLabel = formatRate(quote?.rate ?? null, 4);
   const stale = quote?.stale ? " · desatualizado" : "";
-  const src = quote?.source ? ` · ${quote.source}` : "";
+  const titleBits = [
+    error || "Clique para atualizar cotação EUR/BRL",
+    quote?.source ? `Fonte: ${quote.source}` : null,
+  ].filter(Boolean);
 
   return (
     <button
@@ -88,12 +91,11 @@ export function FxQuoteStrip({ user }: { user: User }) {
       className="fx-quote-strip"
       data-testid="fx-quote-strip"
       disabled={busy || !canRefresh}
-      title={error || "Clique para atualizar cotação EUR/BRL"}
+      title={titleBits.join(" · ")}
       onClick={() => void doRefresh()}
     >
       EUR/BRL {rateLabel}
       {stale}
-      {src}
       {error ? ` · ${error}` : ""}
     </button>
   );

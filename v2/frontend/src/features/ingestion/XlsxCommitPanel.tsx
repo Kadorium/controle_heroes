@@ -65,10 +65,10 @@ export function XlsxCommitPanel({ documentId, doc, user }: Props) {
   const orderOp = result?.operations.find((o) => o.entity_type === "order" && o.entity_id);
 
   return (
-    <SectionCard title="Ordine XLSX — commit" data-testid="xlsx-commit-panel">
+    <SectionCard title="Planilha do pedido" data-testid="xlsx-commit-panel">
       <p className="muted">
-        Planilha: <strong>{sheetName}</strong> · pedido: <strong>{orderNumber}</strong> · células com
-        fórmula: <strong>{formulaCount}</strong>
+        Planilha: <strong>{sheetName}</strong> · pedido: <strong>{orderNumber}</strong>
+        {formulaCount && formulaCount !== "—" ? ` · células com fórmula: ${formulaCount}` : ""}
       </p>
       <NoticeReplay />
 
@@ -102,7 +102,7 @@ export function XlsxCommitPanel({ documentId, doc, user }: Props) {
           onClick={() => void onCommit()}
           data-testid="xlsx-commit-submit"
         >
-          {busy ? "Commitando…" : "Commit XLSX (Order DRAFT)"}
+          {busy ? "Criando pedido…" : "Criar pedido em rascunho"}
         </Button>
       ) : (
         <p className="muted">Requer ingestion:commit e orders:write</p>
@@ -128,7 +128,7 @@ export function XlsxCommitPanel({ documentId, doc, user }: Props) {
           </ul>
           {orderOp?.entity_id ? (
             <Link className="ui-button" to={`/orders/${orderOp.entity_id}`}>
-              Abrir Order DRAFT
+              Abrir pedido em rascunho
             </Link>
           ) : null}
         </div>

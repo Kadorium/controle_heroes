@@ -34,6 +34,7 @@ from app.logistics.queries import (
     get_logistics_provider,
     get_shipment,
     get_shipment_by_code,
+    item_physical_bases,
     list_logistics_providers,
     list_shipments,
     order_item_candidates,
@@ -41,7 +42,10 @@ from app.logistics.queries import (
     physical_totals_derived,
     residuals_for_order,
     shipped_qty_by_order_item,
+    shipment_counts_by_status,
     shipment_item_facts,
+    incoming_qty_by_product,
+    product_ids_for_shipment_items,
 )
 
 __all__ = [
@@ -73,13 +77,17 @@ __all__ = [
     "get_shipment",
     "get_shipment_by_code",
     "list_shipments",
+    "shipment_counts_by_status",
     "find_shipments_by_reference",
     "shipped_qty_by_order_item",
     "shipment_item_facts",
+    "incoming_qty_by_product",
+    "product_ids_for_shipment_items",
     "residuals_for_order",
     "physical_totals_derived",
     "declared_totals_by_document",
     "physical_divergences",
     "allocation_bases",
+    "item_physical_bases",
     "order_item_candidates",
 ]

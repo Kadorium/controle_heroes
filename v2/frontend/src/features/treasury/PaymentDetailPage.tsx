@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import {
   Button,
@@ -29,6 +29,7 @@ import {
   cancelPayment,
   eligiblePayables,
   getPayment,
+  paymentPayeeLabel,
   type EligiblePayable,
   type Payment,
 } from "./treasuryApi";
@@ -53,6 +54,10 @@ function allocFingerprint(
 export function PaymentDetailPage({ user }: Props) {
   const { paymentId } = useParams();
   const id = Number(paymentId);
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const contextPayableId = Number(params.get("payable_id") || "") || null;
+  const justRegistered = Boolean((location.state as { justRegistered?: boolean } | null)?.justRegistered);
   const [pay, setPay] = useState<Payment | null>(null);
   const [elig, setElig] = useState<EligiblePayable[]>([]);
   const [amounts, setAmounts] = useState<Record<number, string>>({});
@@ -66,7 +71,19 @@ export function PaymentDetailPage({ user }: Props) {
   async function reload() {
     const p = await getPayment(id);
     setPay(p);
-    setElig(await eligiblePayables(id));
+    const rows = await eligiblePayables(id);
+    setElig(rows);
+    setAmounts((prev) => {
+      const next = { ...prev };
+      if (contextPayableId && next[contextPayableId] == null) {
+        const target = rows.find((r) => r.id === contextPayableId);
+        if (target) {
+          const cap = Math.min(Number(p.amount_unallocated), Number(target.balance));
+          if (cap > 0) next[contextPayableId] = String(cap);
+        }
+      }
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -82,7 +99,7 @@ export function PaymentDetailPage({ user }: Props) {
           expected_version: e.version,
           balance: e.balance,
           currency: e.currency,
-          label: e.invoice_number || (e.due_date ? `Venc. ${e.due_date}` : "Obrigação"),
+          label: e.invoice_number || e.payee_display_name || (e.due_date ? `Venc. ${e.due_date}` : "Obrigação"),
         }))
         .filter((l) => l.amount && Number(l.amount) > 0),
     [elig, amounts],
@@ -185,10 +202,15 @@ export function PaymentDetailPage({ user }: Props) {
 
   const titleRef =
     pay.external_reference?.trim() ||
-    [pay.supplier_name?.trim(), formatDateOnly(pay.payment_date), formatMoney(pay.amount, pay.currency)]
+    [
+      paymentPayeeLabel(pay),
+      formatDateOnly(pay.payment_date),
+      formatMoney(pay.amount, pay.currency),
+    ]
       .filter(Boolean)
       .join(" · ") ||
     "Pagamento";
+  const payeeLabel = paymentPayeeLabel(pay);
 
   return (
     <section className="panel dense page-detail detail-shell" data-testid="payment-detail">
@@ -202,9 +224,9 @@ export function PaymentDetailPage({ user }: Props) {
       <PageHeader
         title={titleRef}
         subtitle={
-          pay.supplier_name?.trim()
-            ? `${pay.supplier_name} · ${pay.currency}`
-            : `Fornecedor não identificado · ${pay.currency}`
+          payeeLabel
+            ? `${payeeLabel} · ${pay.currency}`
+            : `Favorecido · ${pay.currency}`
         }
         actions={
           <div className="stack-row page-header-actions">
@@ -225,6 +247,11 @@ export function PaymentDetailPage({ user }: Props) {
           </div>
         }
       />
+      {justRegistered && Number(pay.amount_allocated) === 0 ? (
+        <Notice tone="warning" data-testid="payment-registered-notice">
+          Pagamento registrado — a obrigação ainda não foi reduzida. Confirme a aplicação.
+        </Notice>
+      ) : null}
       <div data-testid="payment-residual">
         <SummaryGrid
           items={[
@@ -299,7 +326,11 @@ export function PaymentDetailPage({ user }: Props) {
                 {pay.allocations.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <RowLink to={`/payables/${a.payable_id}/fx`}>Ver obrigação</RowLink>
+                      <RowLink
+                        to={pay.currency === "BRL" ? "/payables" : `/payables/${a.payable_id}/fx`}
+                      >
+                        Ver obrigação
+                      </RowLink>
                     </td>
                     <td className="num">
                       <MoneyDisplay amount={a.amount} currency={pay.currency} />
@@ -319,14 +350,14 @@ export function PaymentDetailPage({ user }: Props) {
           </Notice>
           {elig.length === 0 ? (
             <EmptyState
-              message="Sem Fattura emitida, não há Conta a pagar (obrigação) para alocar este crédito."
-              orientation="A alocação existe no sistema; falta a fatura gerar a obrigação."
+              message="Não há obrigação elegível para aplicar este pagamento."
+              orientation="A alocação existe no sistema; falta uma obrigação do mesmo favorecido e moeda."
             />
           ) : null}
           <OperationalTable density="finance" data-testid="eligible-table">
             <thead>
               <tr>
-                <th>Fatura</th>
+                <th>Obrigação</th>
                 <th>Pedido</th>
                 <th>Vencimento</th>
                 <th className="num">Saldo</th>
@@ -335,8 +366,15 @@ export function PaymentDetailPage({ user }: Props) {
             </thead>
             <tbody>
               {elig.map((e) => (
-                <tr key={e.id}>
-                  <td>{e.invoice_number?.trim() || "—"}</td>
+                <tr
+                  key={e.id}
+                  data-testid={e.id === contextPayableId ? "eligible-preselected" : undefined}
+                >
+                  <td>
+                    {e.invoice_number?.trim() ||
+                      e.payee_display_name?.trim() ||
+                      "Numerário"}
+                  </td>
                   <td>{e.order_code?.trim() || "—"}</td>
                   <td>{formatDateOnly(e.due_date)}</td>
                   <td className="num">
@@ -403,7 +441,11 @@ export function PaymentDetailPage({ user }: Props) {
         </p>
       </ConfirmationModal>
 
-      {pay.allocations.length > 0 || pay.currency !== "BRL" ? (
+      {pay.currency === "BRL" ? (
+        <Notice tone="info" data-testid="fx-not-applicable">
+          Câmbio: Não se aplica
+        </Notice>
+      ) : pay.allocations.length > 0 || pay.currency !== "BRL" ? (
         <PaymentFxPanel key={`${pay.id}-${pay.version}`} user={user} paymentId={pay.id} />
       ) : null}
     </section>

@@ -33,6 +33,86 @@ def shipment_item_facts(db: Session, shipment_item_id: int) -> dict:
     }
 
 
+def product_ids_for_shipment_items(
+    db: Session, shipment_item_ids: list[int] | set[int]
+) -> dict[int, int | None]:
+    ids = sorted({int(i) for i in shipment_item_ids})
+    if not ids:
+        return {}
+    items = repo.list_items_by_ids(db, ids)
+    order_item_ids = [it.order_item_id for it in items]
+    order_items = orders_public.get_order_items_bulk(db, order_item_ids)
+    out: dict[int, int | None] = {}
+    for it in items:
+        oi = order_items.get(it.order_item_id)
+        out[it.id] = getattr(oi, "product_id", None) if oi is not None else None
+    return out
+
+
+def incoming_qty_by_product(
+    db: Session,
+    *,
+    statuses: tuple[str, ...] = ("BOOKED", "IN_TRANSIT"),
+    product_ids: list[int] | set[int] | None = None,
+) -> dict[str, object]:
+    """Qty em trânsito por produto + próxima ETA. COMMITMENT (sem product_id) vai a unassigned."""
+    from datetime import date
+    from sqlalchemy import func
+
+    from app.logistics.models import Shipment, ShipmentItem
+
+    wanted = set(int(i) for i in product_ids) if product_ids is not None else None
+    rows = (
+        db.query(
+            ShipmentItem.order_item_id,
+            func.coalesce(func.sum(ShipmentItem.quantity), 0),
+            func.min(Shipment.planned_arrival),
+        )
+        .join(Shipment, Shipment.id == ShipmentItem.shipment_id)
+        .filter(
+            Shipment.status.in_(statuses),
+            Shipment.cancelled_at.is_(None),
+        )
+        .group_by(ShipmentItem.order_item_id)
+        .all()
+    )
+    oi_map = orders_public.get_order_items_bulk(db, [r[0] for r in rows])
+    by_product: dict[int, dict[str, object]] = {}
+    unassigned_qty = Decimal("0")
+    unassigned_eta: date | None = None
+    qty_acc: dict[int, Decimal] = {}
+    eta_acc: dict[int, date | None] = {}
+    for oi_id, qty, eta in rows:
+        q = Decimal(str(qty or 0))
+        if q <= 0:
+            continue
+        oi = oi_map.get(oi_id)
+        pid = getattr(oi, "product_id", None) if oi is not None else None
+        if pid is None:
+            unassigned_qty += q
+            if eta and (unassigned_eta is None or eta < unassigned_eta):
+                unassigned_eta = eta
+            continue
+        pid = int(pid)
+        if wanted is not None and pid not in wanted:
+            continue
+        qty_acc[pid] = qty_acc.get(pid, Decimal("0")) + q
+        prev = eta_acc.get(pid)
+        if eta and (prev is None or eta < prev):
+            eta_acc[pid] = eta
+    for pid, q in qty_acc.items():
+        eta = eta_acc.get(pid)
+        by_product[pid] = {
+            "qty": f"{q:.4f}".rstrip("0").rstrip(".") or "0",
+            "next_eta": eta.isoformat() if eta else None,
+        }
+    return {
+        "by_product": by_product,
+        "unassigned_qty": f"{unassigned_qty:.4f}".rstrip("0").rstrip(".") or "0",
+        "unassigned_eta": unassigned_eta.isoformat() if unassigned_eta else None,
+    }
+
+
 def get_shipment(db: Session, shipment_id: int) -> Shipment:
     s = repo.get_shipment(db, shipment_id)
     if not s:
@@ -101,6 +181,18 @@ def list_logistics_providers(
 
 def find_shipments_by_reference(db: Session, reference_type: str, reference_value: str) -> list[Shipment]:
     return repo.find_by_reference(db, reference_type, reference_value)
+
+
+def shipment_counts_by_status(db: Session) -> dict[str, int]:
+    from sqlalchemy import func
+
+    from app.logistics.models import SHIPMENT_STATUSES
+
+    rows = db.query(Shipment.status, func.count(Shipment.id)).group_by(Shipment.status).all()
+    out = {s: 0 for s in SHIPMENT_STATUSES}
+    for status, cnt in rows:
+        out[str(status)] = int(cnt or 0)
+    return out
 
 
 def shipped_qty_by_order_item(db: Session, order_item_id: int) -> Decimal:
@@ -221,6 +313,55 @@ def physical_divergences(db: Session, shipment_id: int) -> list[dict]:
                 "summary_id": row["id"],
                 "diffs": diffs,
                 "is_significant": any_sig,
+            }
+        )
+    return out
+
+
+def item_physical_bases(db: Session, shipment_item_ids: list[int]) -> list[dict]:
+    """Peso/volume por ShipmentItem a partir de ShipmentPackageContent. Ausência ≠ 0."""
+    from app.logistics.models import ShipmentItem, ShipmentPackageContent
+
+    if not shipment_item_ids:
+        return []
+    items = db.query(ShipmentItem).filter(ShipmentItem.id.in_(shipment_item_ids)).all()
+    contents = (
+        db.query(ShipmentPackageContent)
+        .filter(ShipmentPackageContent.shipment_item_id.in_(shipment_item_ids))
+        .all()
+    )
+    by_item: dict[int, list] = {i.id: [] for i in items}
+    for c in contents:
+        by_item.setdefault(c.shipment_item_id, []).append(c)
+    out = []
+    for item in items:
+        rows = by_item.get(item.id, [])
+        net = None
+        gross = None
+        for c in rows:
+            piece = c.source_total_net_weight_kg
+            if piece is None and c.unit_net_weight_kg is not None and c.contained_quantity is not None:
+                piece = c.unit_net_weight_kg * c.contained_quantity
+            if piece is not None:
+                net = (net or Decimal("0")) + Decimal(str(piece))
+            gpiece = c.source_total_gross_weight_kg
+            if gpiece is None and c.unit_gross_weight_kg is not None and c.contained_quantity is not None:
+                gpiece = c.unit_gross_weight_kg * c.contained_quantity
+            if gpiece is not None:
+                gross = (gross or Decimal("0")) + Decimal(str(gpiece))
+        facts = shipment_item_facts(db, item.id)
+        out.append(
+            {
+                "shipment_item_id": item.id,
+                "shipment_id": item.shipment_id,
+                "order_item_id": item.order_item_id,
+                "quantity": str(item.quantity),
+                "product_id": facts["product_id"],
+                "sku": facts["sku"],
+                "description": facts["description"],
+                "net_weight_kg": str(net) if net is not None else None,
+                "gross_weight_kg": str(gross) if gross is not None else None,
+                "volume_m3": None,
             }
         )
     return out

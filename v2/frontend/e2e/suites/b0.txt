@@ -1,0 +1,3 @@
+# B0 — picker residual da fatura digitada na comercial
+# Isolar: prepare fresco. Não misturar com cat-pim.
+e2e/b0-residual-invoice.spec.ts

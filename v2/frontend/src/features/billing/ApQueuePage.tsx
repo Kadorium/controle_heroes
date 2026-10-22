@@ -428,7 +428,7 @@ export function ApQueuePage({ user }: Props) {
                   placeholder="EUR"
                 />
               </FormField>
-              <FormField label="Pedido (ID)" htmlFor="ap-order" hint="Identificador numérico interno">
+              <FormField label="Pedido" htmlFor="ap-order" hint="Número interno do pedido">
                 <TextInput
                   id="ap-order"
                   data-testid="ap-filter-order"
@@ -589,15 +589,18 @@ export function ApQueuePage({ user }: Props) {
                 },
                 {
                   label: "Câmbio / BRL",
-                  value: (
-                    <span className="stack-tight">
-                      <FxDisplay rate={selected.fx_projected_rate as string | null} />
-                      <MoneyDisplay
-                        amount={selected.fx_projected_brl as string | null}
-                        currency="BRL"
-                      />
-                    </span>
-                  ),
+                  value:
+                    selected.source_type === "CUSTOMS_FUNDING" || selected.currency === "BRL" ? (
+                      <span data-testid="ap-fx-na">Não se aplica</span>
+                    ) : (
+                      <span className="stack-tight">
+                        <FxDisplay rate={selected.fx_projected_rate as string | null} />
+                        <MoneyDisplay
+                          amount={selected.fx_projected_brl as string | null}
+                          currency="BRL"
+                        />
+                      </span>
+                    ),
                 },
               ]}
             />
@@ -613,10 +616,23 @@ export function ApQueuePage({ user }: Props) {
                         Abrir Numerário / processo
                       </RowLink>
                     ) : null}
-                    <p className="muted" data-testid="ap-customs-settlement-notice">
-                      Obrigação registrada (Numerário) — liquidação via Payment não suportada
-                      nesta versão.
+                    <p className="muted" data-testid="ap-customs-fx-notice">
+                      Câmbio: Não se aplica
                     </p>
+                    {selected.currency !== "BRL" ? (
+                      <p className="muted">Numerário em moeda estrangeira não é liquidável nesta versão.</p>
+                    ) : Number(selected.balance) > 0 ? (
+                      <RowLink
+                        to={`/payments/new?${new URLSearchParams({
+                          payable_id: String(selected.id ?? ""),
+                          amount: String(selected.balance ?? ""),
+                          currency: String(selected.currency ?? "BRL"),
+                        }).toString()}`}
+                        data-testid="ap-g02-new-payment"
+                      >
+                        Registrar pagamento
+                      </RowLink>
+                    ) : null}
                   </>
                 ) : (
                   <>

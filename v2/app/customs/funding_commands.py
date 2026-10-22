@@ -411,6 +411,7 @@ def _ensure_customs_payable_link(db: Session, fr: CustomsFundingRequest) -> None
             amount=fr.declared_total,
             currency=fr.currency,
             payee_display_name=payee_name,
+            payee_tax_id=payee.tax_id if payee else None,
             idempotent=True,
         )
     except billing_public.BillingError as exc:

@@ -13,9 +13,18 @@ def get_user(db: Session, user_id: int) -> User:
 
 
 def list_users_page(
-    db: Session, *, q: str | None = None, limit: int = 50, offset: int = 0
+    db: Session,
+    *,
+    q: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    is_active: bool | None = None,
+    role: str | None = None,
 ) -> tuple[list[User], int]:
-    return repo.list_users(db, q=q, limit=limit, offset=offset), repo.count_users(db, q=q)
+    return (
+        repo.list_users(db, q=q, limit=limit, offset=offset, is_active=is_active, role=role),
+        repo.count_users(db, q=q, is_active=is_active, role=role),
+    )
 
 
 def list_roles(db: Session) -> list[Role]:

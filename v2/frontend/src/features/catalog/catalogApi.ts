@@ -4,9 +4,11 @@ import type { components } from "../../api/generated/schema";
 export type Supplier = components["schemas"]["SupplierResponse"];
 export type Product = components["schemas"]["ProductResponse"];
 export type ProductList = components["schemas"]["ProductListResponse"];
+export type ProductListSummary = components["schemas"]["ProductListSummary"];
 export type SupplierList = components["schemas"]["SupplierListResponse"];
 export type ProductPatch = components["schemas"]["ProductPatch"];
 export type SupplierPatch = components["schemas"]["SupplierPatch"];
+export type Taxonomy = components["schemas"]["TaxonomyResponse"];
 
 function errMsg(error: unknown, fallback: string) {
   return (error as { message?: string } | undefined)?.message || fallback;
@@ -106,10 +108,29 @@ export async function listProducts(q?: string, opts?: CatalogListOpts) {
 export async function fetchProductList(query: {
   q?: string;
   activeOnly?: boolean;
+  isActive?: boolean | null;
   incomplete?: boolean;
   missingNcm?: boolean;
-  size?: string;
+  missingImage?: boolean;
+  needsReview?: boolean;
+  needsClassificationReview?: boolean;
+  shortGeneric?: boolean;
+  qualityIncomplete?: boolean;
+  category?: string;
+  subcategory?: string;
+  productType?: string;
+  sport?: string;
+  collectionYear?: string;
   color?: string;
+  size?: string;
+  origin?: string;
+  unit?: string;
+  ean?: string;
+  supplierSku?: string;
+  model?: string;
+  garmentKind?: string;
+  gender?: string;
+  sourceKind?: string;
   sort?: string;
   limit?: number;
   offset?: number;
@@ -119,10 +140,29 @@ export async function fetchProductList(query: {
       query: {
         q: query.q || undefined,
         active_only: query.activeOnly ?? false,
+        is_active: query.isActive ?? undefined,
         incomplete: query.incomplete ?? false,
         missing_ncm: query.missingNcm ?? false,
-        size: query.size || undefined,
+        missing_image: query.missingImage ?? false,
+        needs_review: query.needsReview ?? false,
+        needs_classification_review: query.needsClassificationReview ?? false,
+        short_generic: query.shortGeneric ?? false,
+        quality_incomplete: query.qualityIncomplete ?? false,
+        category: query.category || undefined,
+        subcategory: query.subcategory || undefined,
+        product_type: query.productType || undefined,
+        sport: query.sport || undefined,
+        collection_year: query.collectionYear || undefined,
         color: query.color || undefined,
+        size: query.size || undefined,
+        origin: query.origin || undefined,
+        unit: query.unit || undefined,
+        ean: query.ean || undefined,
+        supplier_sku: query.supplierSku || undefined,
+        model: query.model || undefined,
+        garment_kind: query.garmentKind || undefined,
+        gender: query.gender || undefined,
+        source_kind: query.sourceKind || undefined,
         sort: query.sort || undefined,
         limit: query.limit ?? 50,
         offset: query.offset ?? 0,
@@ -130,7 +170,26 @@ export async function fetchProductList(query: {
     },
   });
   if (error) throw new Error(errMsg(error, "Erro ao listar produtos"));
-  return data ?? { items: [], total: 0, limit: query.limit ?? 50, offset: query.offset ?? 0 };
+  return (
+    data ?? {
+      items: [],
+      total: 0,
+      limit: query.limit ?? 50,
+      offset: query.offset ?? 0,
+      summary: {
+        total: 0,
+        incomplete: 0,
+        missing_ncm: 0,
+        needs_review: 0,
+        needs_product_review: 0,
+        needs_classification_review: 0,
+        short_generic: 0,
+        missing_image: 0,
+        quality_incomplete: 0,
+      },
+      facets: {},
+    }
+  );
 }
 
 export async function getProduct(id: number) {
@@ -158,10 +217,31 @@ export async function patchProduct(id: number, body: ProductPatch) {
   return data!;
 }
 
-export async function fetchProductAttributeValues(field: "size" | "color") {
+export async function fetchProductAttributeValues(
+  field:
+    | "size"
+    | "color"
+    | "country_of_origin"
+    | "unit"
+    | "subcategory"
+    | "ean"
+    | "supplier_sku"
+    | "sport"
+    | "model"
+    | "collection_year"
+    | "line"
+    | "garment_kind"
+    | "gender",
+) {
   const { data, error } = await api.GET("/api/catalog/product-attribute-values", {
     params: { query: { field } },
   });
   if (error) throw new Error(errMsg(error, "Erro ao listar valores"));
   return data?.values ?? [];
+}
+
+export async function fetchTaxonomy(): Promise<Taxonomy> {
+  const { data, error } = await api.GET("/api/catalog/taxonomy", {});
+  if (error) throw new Error(errMsg(error, "Erro ao carregar classificação"));
+  return data ?? { categories: [], product_types: [] };
 }

@@ -6,9 +6,12 @@ function errMsg(error: unknown, fallback: string) {
 
 export type Payment = {
   id: number;
-  supplier_id: number;
+  supplier_id: number | null;
   supplier_name?: string | null;
+  payee_display_name?: string | null;
+  payee_tax_id?: string | null;
   order_id?: number | null;
+  purpose?: string | null;
   amount: string;
   currency: string;
   payment_date: string;
@@ -23,9 +26,9 @@ export type Payment = {
 
 export type EligiblePayable = {
   id: number;
-  invoice_id: number;
+  invoice_id: number | null;
   invoice_number?: string | null;
-  order_id: number;
+  order_id: number | null;
   order_code?: string | null;
   due_date: string;
   amount: string;
@@ -34,7 +37,16 @@ export type EligiblePayable = {
   currency: string;
   status: string;
   version: number;
+  source_type?: string;
+  payee_display_name?: string | null;
 };
+
+export function paymentPayeeLabel(row: {
+  payee_display_name?: string | null;
+  supplier_name?: string | null;
+}) {
+  return row.payee_display_name?.trim() || row.supplier_name?.trim() || "";
+}
 
 export async function listPayments(opts?: { unallocated_only?: boolean }) {
   const q = new URLSearchParams({ limit: "100" });
@@ -51,9 +63,10 @@ export async function getPayment(id: number) {
 }
 
 export async function registerPaymentJson(body: {
-  supplier_id: number;
+  supplier_id?: number;
+  payable_id?: number;
   amount: string;
-  currency: string;
+  currency?: string;
   payment_date: string;
   external_reference?: string;
   register_without_document?: boolean;

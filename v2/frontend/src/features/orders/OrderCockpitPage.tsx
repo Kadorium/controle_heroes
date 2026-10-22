@@ -137,6 +137,24 @@ export function OrderCockpitPage({ user }: Props) {
                 Abrir comercial
               </Link>
             ) : null}
+            {canWriteOrders(user) && String(commercial.status) === "CONFIRMED" ? (
+              <Link
+                className="ui-button ui-button--secondary"
+                to={`/orders/${id}/commercial`}
+                data-testid="cockpit-close-link"
+              >
+                Encerrar pedido
+              </Link>
+            ) : null}
+            {canWriteOrders(user) && String(commercial.status) === "CLOSED" ? (
+              <Link
+                className="ui-button ui-button--secondary"
+                to={`/orders/${id}/commercial`}
+                data-testid="cockpit-reopen-link"
+              >
+                Reabrir
+              </Link>
+            ) : null}
           </div>
         }
       />
@@ -148,6 +166,14 @@ export function OrderCockpitPage({ user }: Props) {
             <StatusBadge status={String(commercial.status ?? "")} entity="order" />
             <span className="muted">Atualizado {formatDateTime(String(commercial.updated_at ?? ""))}</span>
           </div>
+          {Number(kpis.balance) > 0 &&
+          (String(commercial.status) === "CONFIRMED" || String(commercial.status) === "CLOSED") ? (
+            <Notice tone="warning" data-testid="close-open-ap-notice">
+              {String(commercial.status) === "CLOSED"
+                ? `Pedido encerrado com ${kpiValue(kpis.balance, currency)} em contas a pagar em aberto. Encerrar o comercial não quita essas obrigações.`
+                : `Há ${kpiValue(kpis.balance, currency)} em contas a pagar em aberto. Encerrar o pedido comercial não quita essas obrigações.`}
+            </Notice>
+          ) : null}
           <KpiStrip
             items={[
               { label: "Pedido", value: kpiValue(kpis.ordered, currency) },
@@ -243,7 +269,7 @@ export function OrderCockpitPage({ user }: Props) {
                 {data.alerts.map((a) => {
                   const label = cockpitAlertLabel(a.code, a.message);
                   return (
-                    <div key={a.code}>
+                    <div key={a.code} data-testid={`cockpit-alert-${a.code}`}>
                       {a.href ? <RowLink to={a.href}>{label}</RowLink> : label}
                     </div>
                   );

@@ -174,6 +174,7 @@ def payables_queue(
     from sqlalchemy.orm import joinedload
 
     day7 = today + timedelta(days=7)
+    day30 = today + timedelta(days=30)
     openish = Payable.status.in_(("OPEN", "PARTIALLY_PAID"))
     kpi_rows = (
         q.with_entities(
@@ -221,6 +222,20 @@ def payables_queue(
                 ),
                 0,
             ),
+            func.coalesce(
+                func.sum(
+                    case(
+                        (
+                            (Payable.due_date > today)
+                            & (Payable.due_date <= day30)
+                            & openish,
+                            Payable.balance,
+                        ),
+                        else_=0,
+                    )
+                ),
+                0,
+            ),
         )
         .group_by(Payable.currency)
         .all()
@@ -243,6 +258,7 @@ def payables_queue(
                 "overdue_count": od_cnt,
                 "due_today_balance": f"{money2(Decimal(str(row[5]))):.2f}",
                 "next_7d_balance": f"{money2(Decimal(str(row[6]))):.2f}",
+                "next_30d_balance": f"{money2(Decimal(str(row[7]))):.2f}",
             }
         )
     kpis = {
@@ -267,16 +283,24 @@ def payables_queue(
         .all()
     )
 
+    from app.catalog.public import get_suppliers_bulk
+
+    supplier_ids = {int(p.invoice.supplier_id) for p in rows if p.invoice and p.invoice.supplier_id}
+    suppliers = get_suppliers_bulk(db, supplier_ids) if supplier_ids else {}
+
     items = []
     for p in rows:
         inv = p.invoice
         allocated = money2(p.amount - p.balance)
+        sid = inv.supplier_id if inv else None
+        supplier_name = suppliers[sid].name if sid is not None and sid in suppliers else None
         items.append(
             {
                 "id": p.id,
                 "invoice_id": p.invoice_id,
                 "order_id": inv.order_id if inv else None,
-                "supplier_id": inv.supplier_id if inv else None,
+                "supplier_id": sid,
+                "supplier_name": supplier_name,
                 "sequence": p.sequence,
                 "due_date": p.due_date.isoformat(),
                 "amount": decimal_str(p.amount) or "0",
@@ -290,6 +314,7 @@ def payables_queue(
                 "source_type": p.source_type,
                 "source_id": p.source_id,
                 "payee_display_name": p.payee_display_name,
+                "payee_tax_id": getattr(p, "payee_tax_id", None),
                 "destination_iban": getattr(p, "destination_iban", None),
                 "destination_bank": getattr(p, "destination_bank", None),
                 "days_overdue": (today - p.due_date).days
@@ -319,6 +344,38 @@ def get_payable_for_update(db: Session, payable_id: int) -> Payable:
     if not row:
         raise PayableNotFound(payable_id)
     return row
+
+
+def costable_invoice_items(db: Session, invoice_item_ids: list[int]) -> list[dict]:
+    """Fatos costáveis da InvoiceItem (líquido, qty, snapshots). Vazio ≠ 0."""
+    if not invoice_item_ids:
+        return []
+    items = db.query(InvoiceItem).filter(InvoiceItem.id.in_(invoice_item_ids)).all()
+    by_id = {i.id: i for i in items}
+    out: list[dict] = []
+    for iid in invoice_item_ids:
+        item = by_id.get(iid)
+        if not item:
+            continue
+        inv = get_invoice(db, item.invoice_id)
+        amounts = item_amounts_as_strings(item)
+        out.append(
+            {
+                "invoice_item_id": item.id,
+                "invoice_id": item.invoice_id,
+                "invoice_number": inv.invoice_number,
+                "invoice_status": inv.status,
+                "order_item_id": item.order_item_id,
+                "product_id": item.product_id,
+                "sku_snapshot": item.sku_snapshot,
+                "description_snapshot": item.description_snapshot,
+                "quantity": decimal_str(item.quantity),
+                "currency": inv.currency,
+                "line_net_amount": amounts["line_net_amount"],
+                "line_gross_amount": amounts["line_gross_amount"],
+            }
+        )
+    return out
 
 
 def item_amounts_as_strings(item: InvoiceItem) -> dict[str, str | None]:
@@ -446,3 +503,240 @@ def order_qty_availability(db: Session, order_id: int) -> list[dict[str, str | i
             }
         )
     return rows
+
+
+def invoice_status_counts(db: Session) -> dict[str, int]:
+    from sqlalchemy import func
+
+    rows = db.query(Invoice.status, func.count(Invoice.id)).group_by(Invoice.status).all()
+    out = {"DRAFT": 0, "ISSUED": 0, "CANCELLED": 0}
+    for status, cnt in rows:
+        out[str(status)] = int(cnt or 0)
+    return out
+
+
+def qty_to_invoice_residual(db: Session) -> dict[str, str | int]:
+    """Residual de quantidade a faturar em pedidos CONFIRMED (SQL agregado)."""
+    from sqlalchemy import text
+
+    row = db.execute(
+        text(
+            """
+            WITH issued AS (
+              SELECT invoice_items.order_item_id AS order_item_id,
+                     coalesce(sum(invoice_items.quantity), 0) AS issued_qty
+              FROM invoice_items
+              JOIN invoices ON invoices.id = invoice_items.invoice_id
+              WHERE invoices.status = 'ISSUED'
+              GROUP BY invoice_items.order_item_id
+            )
+            SELECT coalesce(sum(order_items.quantity - coalesce(issued.issued_qty, 0)), 0) AS residual_qty,
+                   count(*) FILTER (
+                     WHERE order_items.quantity - coalesce(issued.issued_qty, 0) > 0
+                   ) AS line_count
+            FROM order_items
+            JOIN orders ON orders.id = order_items.order_id
+            LEFT JOIN issued ON issued.order_item_id = order_items.id
+            WHERE orders.status = 'CONFIRMED'
+            """
+        )
+    ).one()
+    qty = Decimal(str(row[0] or 0))
+    return {"residual_qty": f"{qty:.4f}".rstrip("0").rstrip(".") or "0", "line_count": int(row[1] or 0)}
+
+
+_MONTHS_PT = (
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+)
+
+
+def _add_months(day, months: int):
+    from datetime import date as date_cls
+
+    y = day.year + (day.month - 1 + months) // 12
+    m = (day.month - 1 + months) % 12 + 1
+    return date_cls(y, m, 1)
+
+
+def cash_committed_by_month(
+    db: Session,
+    *,
+    due_before=None,
+    currency: str | None = None,
+    supplier_id: int | None = None,
+) -> dict:
+    """Caixa comprometido: M0/M1/M2 civis + já vencido, por moeda. Não esconde overdue."""
+    from datetime import date as date_cls
+
+    from sqlalchemy import and_, case, func
+
+    from app.billing.models import Invoice, Payable
+
+    today = date_cls.today()
+    m0 = today.replace(day=1)
+    m1 = _add_months(m0, 1)
+    m2 = _add_months(m0, 2)
+    m3 = _add_months(m0, 3)
+
+    openish = Payable.status.in_(("OPEN", "PARTIALLY_PAID"))
+    q = db.query(Payable).outerjoin(Invoice, Invoice.id == Payable.invoice_id)
+    q = q.filter(openish, Payable.balance > 0)
+    if currency:
+        q = q.filter(Payable.currency == currency.upper())
+    if supplier_id is not None:
+        q = q.filter(Invoice.supplier_id == supplier_id)
+
+    def upcoming(lo, hi):
+        conds = [Payable.due_date >= lo, Payable.due_date < hi]
+        if due_before is not None:
+            conds.append(Payable.due_date <= due_before)
+        return and_(*conds)
+
+    rows = (
+        q.with_entities(
+            Payable.currency,
+            func.coalesce(func.sum(case((Payable.due_date < m0, Payable.balance), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m0, m1), Payable.balance), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m1, m2), Payable.balance), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m2, m3), Payable.balance), else_=0)), 0),
+            func.coalesce(func.sum(case((Payable.due_date < m0, 1), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m0, m1), 1), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m1, m2), 1), else_=0)), 0),
+            func.coalesce(func.sum(case((upcoming(m2, m3), 1), else_=0)), 0),
+        )
+        .group_by(Payable.currency)
+        .all()
+    )
+    labels = {
+        "overdue": "Já vencido",
+        "m0": _MONTHS_PT[m0.month - 1],
+        "m1": _MONTHS_PT[m1.month - 1],
+        "m2": _MONTHS_PT[m2.month - 1],
+    }
+    by_currency = []
+    for row in sorted(rows, key=lambda r: str(r[0] or "")):
+        buckets = {
+            "overdue": f"{money2(Decimal(str(row[1]))):.2f}",
+            "m0": f"{money2(Decimal(str(row[2]))):.2f}",
+            "m1": f"{money2(Decimal(str(row[3]))):.2f}",
+            "m2": f"{money2(Decimal(str(row[4]))):.2f}",
+        }
+        counts = {
+            "overdue": int(row[5] or 0),
+            "m0": int(row[6] or 0),
+            "m1": int(row[7] or 0),
+            "m2": int(row[8] or 0),
+        }
+        by_currency.append(
+            {
+                "currency": str(row[0] or ""),
+                "buckets": buckets,
+                "counts": counts,
+            }
+        )
+    return {
+        "as_of_month": m0.isoformat(),
+        "labels": labels,
+        "includes_overdue": True,
+        "by_currency": by_currency,
+        "mixed_currency": len(by_currency) > 1,
+    }
+
+
+def order_billing_progress_by_currency(db: Session) -> dict:
+    """Valor confirmado / faturado / residual por moeda (SQL agregado; não lista IDs)."""
+    from sqlalchemy import text
+
+    confirmed_rows = db.execute(
+        text(
+            """
+            SELECT orders.currency,
+                   coalesce(sum(order_items.quantity * order_items.unit_price), 0) AS confirmed_amount,
+                   count(distinct orders.id) AS order_count
+            FROM orders
+            JOIN order_items ON order_items.order_id = orders.id
+            WHERE orders.status = 'CONFIRMED'
+              AND order_items.unit_price IS NOT NULL
+            GROUP BY orders.currency
+            """
+        )
+    ).all()
+    issued_rows = db.execute(
+        text(
+            """
+            SELECT invoices.currency,
+                   coalesce(sum(payables.amount), 0) AS issued_amount
+            FROM payables
+            JOIN invoices ON invoices.id = payables.invoice_id
+            WHERE invoices.status = 'ISSUED'
+              AND payables.status <> 'CANCELLED'
+              AND payables.source_type = 'INVOICE'
+            GROUP BY invoices.currency
+            """
+        )
+    ).all()
+    unpriced = db.execute(
+        text(
+            """
+            SELECT count(*) FROM order_items
+            JOIN orders ON orders.id = order_items.order_id
+            WHERE orders.status = 'CONFIRMED' AND order_items.unit_price IS NULL
+            """
+        )
+    ).scalar()
+
+    by: dict[str, dict] = {}
+    for cur, amt, cnt in confirmed_rows:
+        c = str(cur)
+        conf = money2(Decimal(str(amt)))
+        by[c] = {
+            "currency": c,
+            "confirmed": f"{conf:.2f}",
+            "invoiced": "0.00",
+            "to_invoice": f"{conf:.2f}",
+            "order_count": int(cnt or 0),
+        }
+    for cur, amt in issued_rows:
+        c = str(cur)
+        inv = money2(Decimal(str(amt)))
+        row = by.setdefault(
+            c,
+            {
+                "currency": c,
+                "confirmed": "0.00",
+                "invoiced": "0.00",
+                "to_invoice": "0.00",
+                "order_count": 0,
+            },
+        )
+        conf = money2(Decimal(row["confirmed"]))
+        residual = conf - inv
+        if residual < 0:
+            residual = Decimal("0.00")
+        row["invoiced"] = f"{inv:.2f}"
+        row["to_invoice"] = f"{residual:.2f}"
+    return {
+        "by_currency": [by[k] for k in sorted(by)],
+        "mixed_currency": len(by) > 1,
+        "unpriced_lines": int(unpriced or 0),
+        "empty": len(by) == 0,
+    }
+
+
+def invoice_item_product_ids(db: Session, invoice_item_ids: list[int] | set[int]) -> dict[int, int]:
+    ids = sorted({int(i) for i in invoice_item_ids})
+    if not ids:
+        return {}
+    rows = db.query(InvoiceItem.id, InvoiceItem.product_id).filter(InvoiceItem.id.in_(ids)).all()
+    return {int(iid): int(pid) for iid, pid in rows if pid is not None}

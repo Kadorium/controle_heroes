@@ -17,6 +17,7 @@ async function login(page: import("@playwright/test").Page) {
   await expect(page.getByRole("link", { name: /pedidos/i }).first()).toBeVisible({
     timeout: 20000,
   });
+  await page.goto("/orders");
 }
 
 test.describe("A2 orders/billing document readiness", () => {
@@ -25,7 +26,7 @@ test.describe("A2 orders/billing document readiness", () => {
     const code = `A2-${Date.now()}`;
     await login(page);
 
-    await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
+    await page.getByTestId("orders-new-cta").click();
     await expect(page.getByTestId("order-create-page")).toBeVisible({ timeout: 15000 });
 
     await page.getByTestId("order-code").fill(code);
@@ -34,6 +35,7 @@ test.describe("A2 orders/billing document readiness", () => {
     await page.getByTestId("order-notes").fill("Notas documentais A2");
 
     await page.getByTestId("line-sku").fill(`SKU-${code}-A`);
+    await page.getByTestId("line-sku-description").fill(`Produto ${code} A`);
     await page.getByRole("button", { name: /criar sku/i }).click();
     await page.waitForTimeout(400);
     await page.getByTestId("line-qty").fill("10");
@@ -42,6 +44,7 @@ test.describe("A2 orders/billing document readiness", () => {
     await page.getByRole("button", { name: /adicionar linha/i }).click();
 
     await page.getByTestId("line-sku").fill(`SKU-${code}-B`);
+    await page.getByTestId("line-sku-description").fill(`Produto ${code} B`);
     await page.getByRole("button", { name: /criar sku/i }).click();
     await page.waitForTimeout(400);
     await page.getByTestId("line-qty").fill("2");

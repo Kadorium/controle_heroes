@@ -83,7 +83,7 @@ def main() -> int:
     sys.path.insert(0, root)
     from app.foundation.database import SessionLocal
     from app.foundation.settings import get_settings
-    from app.identity.seed import ensure_seed
+    from app.identity.seed import ensure_e2e_operator_users, ensure_seed
 
     get_settings.cache_clear()
     settings = get_settings()
@@ -95,8 +95,10 @@ def main() -> int:
             password=settings.seed_admin_password,
             name=settings.seed_admin_name,
         )
+        ensure_e2e_operator_users(db)
         db.commit()
         print(f"[e2e_prepare] seed ok email={settings.seed_admin_email}")
+        print("[e2e_prepare] e2e operators: comprador/aduana/estoque@epic.com.br")
     finally:
         db.close()
 

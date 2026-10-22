@@ -72,6 +72,11 @@ class CancelBody(BaseModel):
     reason_code: str | None = None
 
 
+class CloseBody(BaseModel):
+    expected_version: int
+    reason_code: str
+
+
 class ScheduleLineIn(BaseModel):
     due_date: date | None = None
     condition_text: str | None = None
@@ -146,6 +151,8 @@ class OrderResponse(BaseModel):
     version: int
     cancel_reason_code: str | None = None
     cancelled_at: datetime | None = None
+    close_reason_code: str | None = None
+    closed_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     items: list[OrderItemResponse] = Field(default_factory=list)
@@ -187,7 +194,7 @@ def _map_error(exc: OrdersError | CatalogError) -> AppError:
         status = 404
     elif code == "conflict":
         status = 409
-    elif code in ("order_not_draft", "invalid_transition"):
+    elif code in ("order_not_draft", "invalid_transition", "commitment_open"):
         status = 409
     return AppError(exc.message, code=code, status_code=status)
 
@@ -238,6 +245,8 @@ def _order_response(db: Session, order: Order, *, include_docs: bool = True) -> 
         version=order.version,
         cancel_reason_code=order.cancel_reason_code,
         cancelled_at=order.cancelled_at,
+        close_reason_code=order.close_reason_code,
+        closed_at=order.closed_at,
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=items,
@@ -588,6 +597,68 @@ def cancel_order(
                 entity_id=str(order.id),
                 action="cancel",
                 reason_code=payload.reason_code or "ORDER_CANCEL",
+            )
+            uow.commit()
+            order = orders_public.get_order(uow.session, order.id)
+            return _order_response(uow.session, order)
+    except (OrdersError, CatalogError) as e:
+        raise _map_error(e) from e
+
+
+@router.post("/orders/{order_id}/close", response_model=OrderResponse)
+def close_order(
+    order_id: int,
+    payload: CloseBody,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "orders:write")
+    try:
+        with UnitOfWork(db) as uow:
+            order = orders_public.close_order(
+                uow.session,
+                order_id,
+                expected_version=payload.expected_version,
+                reason_code=payload.reason_code,
+            )
+            audit_public.record_event(
+                uow.session,
+                actor_id=str(user.id),
+                entity_type="order",
+                entity_id=str(order.id),
+                action="close",
+                reason_code=payload.reason_code,
+            )
+            uow.commit()
+            order = orders_public.get_order(uow.session, order.id)
+            return _order_response(uow.session, order)
+    except (OrdersError, CatalogError) as e:
+        raise _map_error(e) from e
+
+
+@router.post("/orders/{order_id}/reopen", response_model=OrderResponse)
+def reopen_order(
+    order_id: int,
+    payload: CloseBody,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    enforce_permission(user, "orders:write")
+    try:
+        with UnitOfWork(db) as uow:
+            order = orders_public.reopen_order(
+                uow.session,
+                order_id,
+                expected_version=payload.expected_version,
+                reason_code=payload.reason_code,
+            )
+            audit_public.record_event(
+                uow.session,
+                actor_id=str(user.id),
+                entity_type="order",
+                entity_id=str(order.id),
+                action="reopen",
+                reason_code=payload.reason_code,
             )
             uow.commit()
             order = orders_public.get_order(uow.session, order.id)

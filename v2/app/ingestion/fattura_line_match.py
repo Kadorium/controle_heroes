@@ -20,6 +20,12 @@ from app.ingestion.ir_models import IngestionDocument, IngestionRow
 PRICE_DIVERGENCE_MARKER = "Divergência de preço"
 
 
+def _barcode_label(sku: str | None) -> str:
+    """Célula IR `sku` da Fattura é GTIN — não é Product.sku."""
+    s = (sku or "").strip()
+    return f"código de barras {s}" if s else "código de barras"
+
+
 def _row_cells(row: IngestionRow) -> dict:
     try:
         return json.loads(row.cells_json or "{}")
@@ -245,7 +251,7 @@ def plan_fattura_lines(
                     code="fattura_sku_not_on_order",
                     message=(
                         f"Linha {row.row_index} do PDF sem quantidade válida"
-                        + (f" (SKU {sku})" if sku else "")
+                        + (f" ({_barcode_label(sku)})" if sku else "")
                         + "."
                     ),
                     sku=sku or None,
@@ -256,7 +262,10 @@ def plan_fattura_lines(
             plan.blockers.append(
                 LineBlocker(
                     code="fattura_sku_not_on_order",
-                    message=f"Linha {row.row_index} do PDF sem SKU — não casa com o pedido.",
+                    message=(
+                        f"Linha {row.row_index} do PDF sem código de barras — "
+                        "não casa com o pedido."
+                    ),
                 )
             )
             continue
@@ -270,8 +279,8 @@ def plan_fattura_lines(
                 LineBlocker(
                     code="fattura_sku_not_on_order",
                     message=(
-                        f"SKU {sku or pdf_pid} do PDF não está no pedido. "
-                        "Selecione outro pedido, inclua a linha PRODUCT, ou rejeite o documento."
+                        f"{_barcode_label(sku) if sku else f'produto {pdf_pid}'} do PDF não está no pedido. "
+                        "Selecione outro pedido, inclua a linha de produto, ou rejeite o documento."
                     ),
                     sku=sku or str(pdf_pid),
                 )
@@ -317,7 +326,7 @@ def plan_fattura_lines(
                 LineBlocker(
                     code="fattura_qty_exceeds_remaining",
                     message=(
-                        f"SKU {sku}: quantidade do PDF ({qty}) excede o saldo a faturar "
+                        f"{_barcode_label(sku)}: quantidade do PDF ({qty}) excede o saldo a faturar "
                         f"no item #{best.id}: pedida={best.quantity}, já emitida={already}, "
                         f"nesta Fattura={qty}, restante={rem}."
                     ),
@@ -351,7 +360,7 @@ def plan_fattura_lines(
                     LineBlocker(
                         code="fattura_line_choice_invalid",
                         message=(
-                            f"Linha PDF {row.row_index} SKU {sku}: a escolha "
+                            f"Linha PDF {row.row_index} {_barcode_label(sku)}: a escolha "
                             f"item #{choice_id} não é o único candidato com saldo."
                         ),
                         sku=sku,
@@ -381,7 +390,7 @@ def plan_fattura_lines(
                     LineBlocker(
                         code="fattura_line_ambiguous",
                         message=(
-                            f"Linha PDF {row.row_index} SKU {sku}: "
+                            f"Linha PDF {row.row_index} {_barcode_label(sku)}: "
                             f"{len(fitting)} itens do pedido cabem a quantidade. "
                             "Escolha explicitamente a linha correta."
                         ),
@@ -412,7 +421,7 @@ def plan_fattura_lines(
                     LineBlocker(
                         code="fattura_line_choice_invalid",
                         message=(
-                            f"Linha PDF {row.row_index} SKU {sku}: item #{choice_id} "
+                            f"Linha PDF {row.row_index} {_barcode_label(sku)}: item #{choice_id} "
                             "não é um candidato válido com saldo para esta quantidade."
                         ),
                         sku=sku,
@@ -480,24 +489,24 @@ def plan_fattura_lines(
 
         if mismatch:
             plan.price_divergence_lines.append(
-                f"SKU {sku} linha PDF {row.row_index}: pedido {_dstr(chosen.unit_price)} "
-                f"· Fattura {_dstr(pdf_price)} (item pedido #{chosen.id})"
+                f"{_barcode_label(sku)} linha {row.row_index + 1}: "
+                f"pedido {_dstr(chosen.unit_price)} · fatura {_dstr(pdf_price)}"
             )
         if len(unique_same) > 1 and len(fitting) == 1:
             plan.warnings.append(
-                f"Linha PDF {row.row_index} SKU {sku}: {len(unique_same)} linhas no pedido; "
+                f"Linha PDF {row.row_index} {_barcode_label(sku)}: {len(unique_same)} linhas no pedido; "
                 f"só o item #{chosen.id} tem saldo para a quantidade."
             )
         if len(fitting) > 1 and choice_id is not None:
             plan.warnings.append(
-                f"Linha PDF {row.row_index} SKU {sku}: operador escolheu item #{chosen.id} "
+                f"Linha PDF {row.row_index} {_barcode_label(sku)}: operador escolheu item #{chosen.id} "
                 f"(posição {chosen.position}, preço {_dstr(chosen.unit_price)})."
             )
 
     if plan.price_divergence_lines:
         plan.warnings.append(
             PRICE_DIVERGENCE_MARKER
-            + " (Fattura ≠ pedido; a fatura segue o documento): "
+            + " (preço da fatura diferente do pedido; vale o da fatura): "
             + "; ".join(plan.price_divergence_lines)
         )
 
@@ -521,7 +530,7 @@ def notes_with_price_divergence(base_notes: str, plan: FatturaLinePlan) -> str:
     if not plan.price_divergence_lines:
         return base_notes
     block = (
-        f"{PRICE_DIVERGENCE_MARKER} (Fattura ≠ pedido; a fatura segue o documento):\n"
+        f"{PRICE_DIVERGENCE_MARKER} (preço da fatura diferente do pedido; vale o da fatura):\n"
         + "\n".join(plan.price_divergence_lines)
     )
     return f"{base_notes}\n\n{block}" if base_notes else block

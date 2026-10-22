@@ -1,0 +1,3 @@
+# J#8-CLOSE — SC-08 fatura emitida + SC-17 conciliação (UI)
+# Isolar: prepare fresco. SC-10 fica na suíte j5.
+e2e/j8-close-acceptance.spec.ts

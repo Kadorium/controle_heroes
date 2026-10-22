@@ -253,6 +253,23 @@ export interface paths {
         patch: operations["patch_supplier_api_suppliers__supplier_id__patch"];
         trace?: never;
     };
+    "/api/catalog/taxonomy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Taxonomy */
+        get: operations["get_taxonomy_api_catalog_taxonomy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products": {
         parameters: {
             query?: never;
@@ -445,6 +462,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/{order_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Order */
+        post: operations["close_order_api_orders__order_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/{order_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen Order */
+        post: operations["reopen_order_api_orders__order_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/{order_id}/payment-schedule": {
         parameters: {
             query?: never;
@@ -595,6 +646,26 @@ export interface paths {
         put?: never;
         /** Cancel Invoice */
         post: operations["cancel_invoice_api_invoices__invoice_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/payables/settlement-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Settlement Summary
+         * @description Consulta canônica de saldo por origem — dono Billing.
+         */
+        get: operations["get_settlement_summary_api_payables_settlement_summary_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1053,6 +1124,110 @@ export interface paths {
         get: operations["get_orders_list_api_reporting_orders_list_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/metric-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Metric Catalog */
+        get: operations["get_metric_catalog_api_reporting_metric_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/commercial-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Commercial Availability */
+        get: operations["get_commercial_availability_api_reporting_commercial_availability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dashboard */
+        get: operations["get_dashboard_api_reporting_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Dashboard Views */
+        get: operations["list_dashboard_views_api_reporting_views_get"];
+        put?: never;
+        /** Create Dashboard View */
+        post: operations["create_dashboard_view_api_reporting_views_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/views/{view_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Dashboard View */
+        delete: operations["delete_dashboard_view_api_reporting_views__view_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Dashboard View */
+        patch: operations["patch_dashboard_view_api_reporting_views__view_id__patch"];
+        trace?: never;
+    };
+    "/api/reporting/views/{view_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Dashboard View */
+        post: operations["restore_dashboard_view_api_reporting_views__view_id__restore_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3298,6 +3473,210 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/costing/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Queue */
+        get: operations["get_queue_api_costing_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Case */
+        post: operations["create_case_api_costing_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Case */
+        get: operations["get_case_api_costing_cases__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/cases/{case_id}/recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recalc */
+        post: operations["recalc_api_costing_cases__case_id__recalculate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/cases/{case_id}/freight-choice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Freight Choice */
+        post: operations["freight_choice_api_costing_cases__case_id__freight_choice_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/cases/{case_id}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Expense */
+        post: operations["create_expense_api_costing_cases__case_id__expenses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Version */
+        get: operations["get_version_api_costing_versions__version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/versions/{version_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish */
+        post: operations["publish_api_costing_versions__version_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/versions/{version_id}/revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise */
+        post: operations["revise_api_costing_versions__version_id__revise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/versions/{version_id}/compare/{other_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare */
+        get: operations["compare_api_costing_versions__version_id__compare__other_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reconciliation/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pairs */
+        get: operations["get_pairs_api_reconciliation_versions__version_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reconciliation/pairs/{pair_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve */
+        post: operations["resolve_api_reconciliation_pairs__pair_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{full_path}": {
         parameters: {
             query?: never;
@@ -3670,14 +4049,13 @@ export interface components {
         /** Body_create_payment_with_document_api_payments_with_document_post */
         Body_create_payment_with_document_api_payments_with_document_post: {
             /** Supplier Id */
-            supplier_id: number;
+            supplier_id?: number | null;
+            /** Payable Id */
+            payable_id?: number | null;
             /** Amount */
             amount: string;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
+            /** Currency */
+            currency?: string | null;
             /**
              * Payment Date
              * Format: date
@@ -3756,6 +4134,17 @@ export interface components {
             /** Residual Qty */
             residual_qty: string;
         };
+        /** CategoryResponse */
+        CategoryResponse: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Subcategories */
+            subcategories?: string[];
+        };
         /** ClassifyOut */
         ClassifyOut: {
             /** Occurrence Id */
@@ -3802,6 +4191,58 @@ export interface components {
             product_name?: string | null;
             /** Shipped Qty */
             shipped_qty?: string | null;
+        };
+        /** CloseBody */
+        CloseBody: {
+            /** Expected Version */
+            expected_version: number;
+            /** Reason Code */
+            reason_code: string;
+        };
+        /** CommercialAvailabilityOut */
+        CommercialAvailabilityOut: {
+            /** Rows */
+            rows: {
+                [key: string]: unknown;
+            }[];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Facets */
+            facets: {
+                [key: string]: unknown;
+            };
+            /** Totals */
+            totals: {
+                [key: string]: unknown;
+            };
+            /** By Regime */
+            by_regime?: {
+                [key: string]: unknown;
+            }[];
+            /** By Category */
+            by_category?: {
+                [key: string]: unknown;
+            }[];
+            /** Footer */
+            footer?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Empty
+             * @default false
+             */
+            empty: boolean;
+            /**
+             * State
+             * @default ok
+             */
+            state: string;
+        } & {
+            [key: string]: unknown;
         };
         /** CommitAttemptOut */
         CommitAttemptOut: {
@@ -3896,6 +4337,96 @@ export interface components {
             copy_from_current: boolean;
             /** Idempotency Key */
             idempotency_key?: string | null;
+        };
+        /** DashboardFiltersOut */
+        DashboardFiltersOut: {
+            /** Period */
+            period?: string | null;
+            /** Date From */
+            date_from?: string | null;
+            /** Date To */
+            date_to?: string | null;
+            /** As Of */
+            as_of?: string | null;
+            /** Currency */
+            currency?: string | null;
+            /** Supplier Id */
+            supplier_id?: number | null;
+        };
+        /** DashboardLaneOut */
+        DashboardLaneOut: {
+            /** Lane */
+            lane: string;
+            /** Includes Trial Mass */
+            includes_trial_mass: boolean;
+            /** Note */
+            note?: string | null;
+        };
+        /** DashboardSnapshotOut */
+        DashboardSnapshotOut: {
+            /** Generated At */
+            generated_at: string;
+            /** View Id */
+            view_id?: string | null;
+            /** View Name */
+            view_name?: string | null;
+            /** Base Preset */
+            base_preset: string;
+            filters: components["schemas"]["DashboardFiltersOut"];
+            lane: components["schemas"]["DashboardLaneOut"];
+            /** Widgets */
+            widgets: components["schemas"]["DashboardWidgetOut"][];
+            /** Home Ok */
+            home_ok: boolean;
+            /** Fallback Path */
+            fallback_path: string;
+            /** Default Preset */
+            default_preset: string;
+        };
+        /** DashboardWidgetOut */
+        DashboardWidgetOut: {
+            /** Widget Id */
+            widget_id: string;
+            /** Metric Id */
+            metric_id: string;
+            /** Label */
+            label: string;
+            /** Short Description */
+            short_description: string;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Limitation */
+            limitation?: string | null;
+            /** Display */
+            display: {
+                [key: string]: unknown;
+            };
+            /** Drill */
+            drill: string;
+            /** Currencies */
+            currencies?: string[];
+            /** Filters Applied */
+            filters_applied?: string[];
+            /** Filters Ignored */
+            filters_ignored?: string[];
+            /** Time Field */
+            time_field?: string | null;
+            /** Error */
+            error?: string | null;
+            /** Col */
+            col?: number | null;
+            /** Span */
+            span?: number | null;
+            /** Section */
+            section?: string | null;
+            /** Size */
+            size?: string | null;
+            /** Cta Label */
+            cta_label?: string | null;
+        } & {
+            [key: string]: unknown;
         };
         /** DeallocInvoiceItemBody */
         DeallocInvoiceItemBody: {
@@ -4428,11 +4959,11 @@ export interface components {
             /** Id */
             id: number;
             /** Invoice Id */
-            invoice_id: number;
+            invoice_id?: number | null;
             /** Invoice Number */
             invoice_number?: string | null;
             /** Order Id */
-            order_id: number;
+            order_id?: number | null;
             /** Order Code */
             order_code?: string | null;
             /** Sequence */
@@ -4454,6 +4985,18 @@ export interface components {
             status: string;
             /** Version */
             version: number;
+            /**
+             * Source Type
+             * @default INVOICE
+             */
+            source_type: string;
+            /** Payee Display Name */
+            payee_display_name?: string | null;
+        };
+        /** EnsureBody */
+        EnsureBody: {
+            /** Process Id */
+            process_id: number;
         };
         /** ExecutionBody */
         ExecutionBody: {
@@ -4479,6 +5022,40 @@ export interface components {
             reason_code?: string | null;
             /** Idempotency Key */
             idempotency_key?: string | null;
+        };
+        /** ExpenseBody */
+        ExpenseBody: {
+            /** Category */
+            category: string;
+            /** Description */
+            description: string;
+            /** Amount */
+            amount: string;
+            /**
+             * Currency
+             * @default BRL
+             */
+            currency: string;
+            /** Expense Date */
+            expense_date?: string | null;
+            /** Payee Snapshot */
+            payee_snapshot?: string | null;
+            /** Document Id */
+            document_id?: number | null;
+            /**
+             * Allocation Method
+             * @default VALUE
+             */
+            allocation_method: string;
+        };
+        /** FacetValue */
+        FacetValue: {
+            /** Value */
+            value: string;
+            /** Count */
+            count: number;
+            /** Label */
+            label?: string | null;
         };
         /** FatturaCommitIn */
         FatturaCommitIn: {
@@ -4691,6 +5268,13 @@ export interface components {
             /** Section Key */
             section_key?: string | null;
         };
+        /** FreightBody */
+        FreightBody: {
+            /** Choice */
+            choice: string;
+            /** Reason */
+            reason: string;
+        };
         /** FundingCreate */
         FundingCreate: {
             /** Payee Id */
@@ -4792,6 +5376,7 @@ export interface components {
              * @default []
              */
             payable_links: components["schemas"]["FundingPayableLinkOut"][];
+            settlement_summary?: components["schemas"]["SettlementSummaryOut"] | null;
         };
         /** FundingPayableLinkOut */
         FundingPayableLinkOut: {
@@ -4872,7 +5457,7 @@ export interface components {
             alembic_head?: string | null;
             /**
              * Alembic Expected
-             * @default 026
+             * @default 031
              */
             alembic_expected: string;
             /**
@@ -5257,6 +5842,56 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** MetricCatalogItem */
+        MetricCatalogItem: {
+            /** Metric Id */
+            metric_id: string;
+            /** Label */
+            label: string;
+            /** Unit Label */
+            unit_label: string;
+            /** Short Description */
+            short_description: string;
+            /** Definition */
+            definition: string;
+            /** Owner */
+            owner: string;
+            /** Permission */
+            permission: string;
+            /** Time Basis */
+            time_basis: string | null;
+            /** Delta Policy */
+            delta_policy: string;
+            /** Currency Policy */
+            currency_policy: string;
+            /** Null Policy */
+            null_policy: string;
+            /** Status */
+            status: string;
+            /** Limitation */
+            limitation: string | null;
+            /** Drill */
+            drill: string;
+            /** Filters */
+            filters: string[];
+            /** Ai Ready */
+            ai_ready: boolean;
+        };
+        /** MetricCatalogOut */
+        MetricCatalogOut: {
+            /** Generated At */
+            generated_at: string;
+            /** Metrics */
+            metrics: components["schemas"]["MetricCatalogItem"][];
+            /** Widgets */
+            widgets: components["schemas"]["WidgetCatalogItem"][];
+            /** Presets */
+            presets: components["schemas"]["PresetOut"][];
+            /** Attention Limit Default */
+            attention_limit_default: number;
+            /** Layout Schema Version */
+            layout_schema_version: number;
         };
         /** MetricEventOut */
         MetricEventOut: {
@@ -5664,6 +6299,10 @@ export interface components {
             cancel_reason_code?: string | null;
             /** Cancelled At */
             cancelled_at?: string | null;
+            /** Close Reason Code */
+            close_reason_code?: string | null;
+            /** Closed At */
+            closed_at?: string | null;
             /** Created At */
             created_at?: string | null;
             /** Updated At */
@@ -6137,8 +6776,12 @@ export interface components {
              * @default INVOICE
              */
             source_type: string;
+            /** Source Id */
+            source_id?: number | null;
             /** Payee Display Name */
             payee_display_name?: string | null;
+            /** Payee Tax Id */
+            payee_tax_id?: string | null;
             /** Destination Iban */
             destination_iban?: string | null;
             /** Destination Bank */
@@ -6211,14 +6854,13 @@ export interface components {
         /** PaymentCreate */
         PaymentCreate: {
             /** Supplier Id */
-            supplier_id: number;
+            supplier_id?: number | null;
+            /** Payable Id */
+            payable_id?: number | null;
             /** Amount */
             amount: string;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
+            /** Currency */
+            currency?: string | null;
             /**
              * Payment Date
              * Format: date
@@ -6243,9 +6885,13 @@ export interface components {
             /** Id */
             id: number;
             /** Supplier Id */
-            supplier_id: number;
+            supplier_id?: number | null;
             /** Supplier Name */
             supplier_name?: string | null;
+            /** Payee Display Name */
+            payee_display_name?: string | null;
+            /** Payee Tax Id */
+            payee_tax_id?: string | null;
             /** Order Id */
             order_id?: number | null;
             /** Purpose */
@@ -6307,6 +6953,22 @@ export interface components {
             idempotency_key?: string | null;
             /** Supersedes Id */
             supersedes_id?: number | null;
+        };
+        /** PresetOut */
+        PresetOut: {
+            /** Preset Id */
+            preset_id: string;
+            /** Label */
+            label: string;
+            /** Widget Ids */
+            widget_ids: string[];
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            /** Filters */
+            filters?: string[];
         };
         /** PreviewCommitOut */
         PreviewCommitOut: {
@@ -6514,11 +7176,63 @@ export interface components {
             limit: number;
             /** Offset */
             offset: number;
+            summary: components["schemas"]["ProductListSummary"];
+            /** Facets */
+            facets?: {
+                [key: string]: components["schemas"]["FacetValue"][];
+            };
+        };
+        /** ProductListSummary */
+        ProductListSummary: {
+            /** Total */
+            total: number;
+            /** Incomplete */
+            incomplete: number;
+            /** Missing Ncm */
+            missing_ncm: number;
+            /**
+             * Needs Review
+             * @default 0
+             */
+            needs_review: number;
+            /**
+             * Needs Product Review
+             * @default 0
+             */
+            needs_product_review: number;
+            /**
+             * Needs Classification Review
+             * @default 0
+             */
+            needs_classification_review: number;
+            /**
+             * Short Generic
+             * @default 0
+             */
+            short_generic: number;
+            /**
+             * Missing Image
+             * @default 0
+             */
+            missing_image: number;
+            /**
+             * Quality Incomplete
+             * @default 0
+             */
+            quality_incomplete: number;
         };
         /** ProductPatch */
         ProductPatch: {
             /** Description */
             description?: string | null;
+            /** Commercial Name */
+            commercial_name?: string | null;
+            /** Short Description */
+            short_description?: string | null;
+            /** Long Description */
+            long_description?: string | null;
+            /** Fiscal Description */
+            fiscal_description?: string | null;
             /** Is Active */
             is_active?: boolean | null;
             /** Ean */
@@ -6535,6 +7249,24 @@ export interface components {
             unit?: string | null;
             /** Net Weight Kg */
             net_weight_kg?: number | string | null;
+            /** Supplier Sku */
+            supplier_sku?: string | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** Product Type Id */
+            product_type_id?: number | null;
+            /** Subcategory */
+            subcategory?: string | null;
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            } | null;
+            /** Taxonomy Status */
+            taxonomy_status?: string | null;
+            /** Taxonomy Reason */
+            taxonomy_reason?: string | null;
+            /** Lifecycle Status */
+            lifecycle_status?: string | null;
         };
         /** ProductResponse */
         ProductResponse: {
@@ -6544,8 +7276,18 @@ export interface components {
             sku: string;
             /** Description */
             description: string;
+            /** Commercial Name */
+            commercial_name?: string | null;
+            /** Short Description */
+            short_description?: string | null;
+            /** Long Description */
+            long_description?: string | null;
+            /** Fiscal Description */
+            fiscal_description?: string | null;
             /** Is Active */
             is_active: boolean;
+            /** Lifecycle Status */
+            lifecycle_status?: string | null;
             /** Ean */
             ean?: string | null;
             /** Size */
@@ -6560,10 +7302,108 @@ export interface components {
             unit?: string | null;
             /** Net Weight Kg */
             net_weight_kg?: string | null;
+            /** Supplier Sku */
+            supplier_sku?: string | null;
+            /** Category Id */
+            category_id?: number | null;
+            /** Category Name */
+            category_name?: string | null;
+            /** Category Slug */
+            category_slug?: string | null;
+            /** Subcategory */
+            subcategory?: string | null;
+            /** Product Type Id */
+            product_type_id?: number | null;
+            /** Product Type Name */
+            product_type_name?: string | null;
+            /** Product Type Slug */
+            product_type_slug?: string | null;
+            /** Taxonomy Status */
+            taxonomy_status?: string | null;
+            /** Taxonomy Reason */
+            taxonomy_reason?: string | null;
+            /** Import Decision */
+            import_decision?: string | null;
+            /**
+             * Short Generic
+             * @default false
+             */
+            short_generic: boolean;
+            /**
+             * Needs Review
+             * @default false
+             */
+            needs_review: boolean;
+            /**
+             * Needs Product Review
+             * @default false
+             */
+            needs_product_review: boolean;
+            /**
+             * Needs Classification Review
+             * @default false
+             */
+            needs_classification_review: boolean;
+            /** Classification Note */
+            classification_note?: string | null;
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /** Sport */
+            sport?: string | null;
+            /** Line */
+            line?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Collection Year */
+            collection_year?: string | null;
+            /** Garment Kind */
+            garment_kind?: string | null;
+            /** Gender */
+            gender?: string | null;
+            /** Pack Qty */
+            pack_qty?: string | null;
+            /** Source Kind */
+            source_kind?: string | null;
+            /** Import Batch Id */
+            import_batch_id?: number | null;
+            /**
+             * Has Image
+             * @default false
+             */
+            has_image: boolean;
+            quality?: components["schemas"]["QualityPayload"] | null;
+            /** Provenance */
+            provenance?: components["schemas"]["ProvenanceEntry"][];
+            /** Notices */
+            notices?: string[];
             /** Created At */
             created_at?: string | null;
             /** Updated At */
             updated_at?: string | null;
+        };
+        /** ProductTypeResponse */
+        ProductTypeResponse: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** Recommended Attributes */
+            recommended_attributes?: string[];
+        };
+        /** ProvenanceEntry */
+        ProvenanceEntry: {
+            /** Field */
+            field: string;
+            /** Label */
+            label: string;
+            /** Source */
+            source: string;
+            /** Source Label */
+            source_label: string;
         };
         /** ProvenanceIn */
         ProvenanceIn: {
@@ -6654,6 +7494,16 @@ export interface components {
             /** Active */
             active?: boolean | null;
         };
+        /** PublishBody */
+        PublishBody: {
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Allow Partial
+             * @default false
+             */
+            allow_partial: boolean;
+        };
         /** PurgeBlobOut */
         PurgeBlobOut: {
             /** Blob Id */
@@ -6692,6 +7542,91 @@ export interface components {
             /** Marked Occurrence Ids */
             marked_occurrence_ids: number[];
         };
+        /** QualityItem */
+        QualityItem: {
+            /** Code */
+            code: string;
+            /** Layer */
+            layer: string;
+            /** Ok */
+            ok: boolean;
+            /** Label */
+            label: string;
+            /** Consequence */
+            consequence: string;
+        };
+        /** QualityPayload */
+        QualityPayload: {
+            /**
+             * Essential Ok
+             * @default false
+             */
+            essential_ok: boolean;
+            /**
+             * Operation Ok
+             * @default false
+             */
+            operation_ok: boolean;
+            /**
+             * Commercial Ok
+             * @default false
+             */
+            commercial_ok: boolean;
+            /**
+             * Pending Count
+             * @default 0
+             */
+            pending_count: number;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /** Items */
+            items?: components["schemas"]["QualityItem"][];
+            /** Traits */
+            traits?: string[];
+            /**
+             * Quality Incomplete
+             * @default false
+             */
+            quality_incomplete: boolean;
+            /**
+             * Needs Review
+             * @default false
+             */
+            needs_review: boolean;
+            /**
+             * Needs Product Review
+             * @default false
+             */
+            needs_product_review: boolean;
+            /**
+             * Needs Classification Review
+             * @default false
+             */
+            needs_classification_review: boolean;
+            /**
+             * Short Generic
+             * @default false
+             */
+            short_generic: boolean;
+            /**
+             * Missing Image
+             * @default true
+             */
+            missing_image: boolean;
+            /**
+             * Missing Ncm
+             * @default true
+             */
+            missing_ncm: boolean;
+            /**
+             * Incomplete Mdm
+             * @default true
+             */
+            incomplete_mdm: boolean;
+        };
         /** QuoteBody */
         QuoteBody: {
             /**
@@ -6718,6 +7653,26 @@ export interface components {
             planned_rate_id: number;
             /** Reason Code */
             reason_code: string;
+        };
+        /** RecalcBody */
+        RecalcBody: {
+            /**
+             * Kind
+             * @default ESTIMATED
+             */
+            kind: string;
+            /** Line Links */
+            line_links?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** Methods */
+            methods?: {
+                [key: string]: unknown;
+            } | null;
+            /** Manuals */
+            manuals?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** ReceiptAddLines */
         ReceiptAddLines: {
@@ -6900,6 +7855,16 @@ export interface components {
             /** Residual Qty */
             residual_qty: string;
         };
+        /** ResolveBody */
+        ResolveBody: {
+            /** Reason */
+            reason: string;
+            /**
+             * Resolution
+             * @default ACCEPTED
+             */
+            resolution: string;
+        };
         /** ReviewChangeOut */
         ReviewChangeOut: {
             /** Id */
@@ -6924,6 +7889,14 @@ export interface components {
             reason: string | null;
             /** Created At */
             created_at: string | null;
+        };
+        /** ReviseBody */
+        ReviseBody: {
+            /**
+             * Kind
+             * @default REVISED
+             */
+            kind: string;
         };
         /** RoleOut */
         RoleOut: {
@@ -7131,6 +8104,94 @@ export interface components {
         SetPasswordIn: {
             /** Password */
             password: string;
+        };
+        /** SettlementAllocationRef */
+        SettlementAllocationRef: {
+            /** Allocation Id */
+            allocation_id: number;
+            /** Payment Id */
+            payment_id: number;
+            /** Payable Id */
+            payable_id: number;
+            /** Amount */
+            amount: string;
+        };
+        /** SettlementPayableRef */
+        SettlementPayableRef: {
+            /** Id */
+            id: number;
+            /** Status */
+            status: string;
+            /** Amount */
+            amount: string;
+            /** Balance */
+            balance: string;
+            /** Currency */
+            currency: string;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+        };
+        /** SettlementSummaryOut */
+        SettlementSummaryOut: {
+            /** Source Type */
+            source_type: string;
+            /** Source Id */
+            source_id: number;
+            /** Amount */
+            amount: string;
+            /** Allocated */
+            allocated: string;
+            /** Balance */
+            balance: string;
+            /** Currency */
+            currency?: string | null;
+            /** Derived Status */
+            derived_status: string;
+            /** Derived Status Label */
+            derived_status_label: string;
+            /**
+             * Payable Statuses
+             * @default []
+             */
+            payable_statuses: string[];
+            /**
+             * Payables
+             * @default []
+             */
+            payables: components["schemas"]["SettlementPayableRef"][];
+            /**
+             * Allocations
+             * @default []
+             */
+            allocations: components["schemas"]["SettlementAllocationRef"][];
+        };
+        /** SettlementSummaryResponse */
+        SettlementSummaryResponse: {
+            /** Source Type */
+            source_type: string;
+            /** Source Id */
+            source_id: number;
+            /** Amount */
+            amount: string;
+            /** Allocated */
+            allocated: string;
+            /** Balance */
+            balance: string;
+            /** Currency */
+            currency?: string | null;
+            /** Derived Status */
+            derived_status: string;
+            /** Derived Status Label */
+            derived_status_label: string;
+            /** Payable Statuses */
+            payable_statuses?: string[];
+            /** Payables */
+            payables?: components["schemas"]["SettlementPayableRef"][];
+            /** Allocations */
+            allocations?: components["schemas"]["SettlementAllocationRef"][];
         };
         /** ShipmentCreate */
         ShipmentCreate: {
@@ -7417,6 +8478,13 @@ export interface components {
             /** Updated At */
             updated_at?: string | null;
         };
+        /** TaxonomyResponse */
+        TaxonomyResponse: {
+            /** Categories */
+            categories: components["schemas"]["CategoryResponse"][];
+            /** Product Types */
+            product_types: components["schemas"]["ProductTypeResponse"][];
+        };
         /** TermIn */
         TermIn: {
             /**
@@ -7570,6 +8638,117 @@ export interface components {
         VersionLockBody: {
             /** Expected Version */
             expected_version: number;
+        };
+        /** ViewCreateIn */
+        ViewCreateIn: {
+            /** Name */
+            name: string;
+            /** Base Preset */
+            base_preset: string;
+            /** Layout Json */
+            layout_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Filters Json */
+            filters_json?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+        };
+        /** ViewOut */
+        ViewOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Base Preset */
+            base_preset: string;
+            /** Layout Json */
+            layout_json: {
+                [key: string]: unknown;
+            };
+            /** Filters Json */
+            filters_json: {
+                [key: string]: unknown;
+            };
+            /** Is Default */
+            is_default: boolean;
+            /** Schema Version */
+            schema_version: number;
+            /** Version */
+            version: number;
+            /** Created At */
+            created_at?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+            /**
+             * System
+             * @default false
+             */
+            system: boolean;
+        };
+        /** ViewPatchIn */
+        ViewPatchIn: {
+            /** Version */
+            version: number;
+            /** Name */
+            name?: string | null;
+            /** Layout Json */
+            layout_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Filters Json */
+            filters_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Is Default */
+            is_default?: boolean | null;
+        };
+        /** ViewRestoreIn */
+        ViewRestoreIn: {
+            /** Version */
+            version: number;
+        };
+        /** WidgetCatalogItem */
+        WidgetCatalogItem: {
+            /** Widget Id */
+            widget_id: string;
+            /** Label */
+            label: string;
+            /** Short Description */
+            short_description: string;
+            /** Metric Ids */
+            metric_ids: string[];
+            /** Permissions */
+            permissions: string[];
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Limitation */
+            limitation: string | null;
+            /** Col */
+            col: number;
+            /** Span */
+            span: number;
+            /**
+             * Section
+             * @default detail
+             */
+            section: string;
+            /**
+             * Size
+             * @default panel
+             */
+            size: string;
+            /** Cta Label */
+            cta_label?: string | null;
+            /** Drill */
+            drill?: string | null;
         };
         /** XlsxCommitIn */
         XlsxCommitIn: {
@@ -7874,6 +9053,8 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string | null;
+                is_active?: boolean | null;
+                role?: string | null;
                 limit?: number;
                 offset?: number;
             };
@@ -8336,6 +9517,26 @@ export interface operations {
             };
         };
     };
+    get_taxonomy_api_catalog_taxonomy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxonomyResponse"];
+                };
+            };
+        };
+    };
     list_products_api_products_get: {
         parameters: {
             query?: {
@@ -8408,10 +9609,29 @@ export interface operations {
             query?: {
                 q?: string | null;
                 active_only?: boolean;
+                is_active?: boolean | null;
                 incomplete?: boolean;
                 missing_ncm?: boolean;
-                size?: string | null;
+                missing_image?: boolean;
+                needs_review?: boolean;
+                needs_classification_review?: boolean;
+                short_generic?: boolean;
+                quality_incomplete?: boolean;
+                category?: string | null;
+                subcategory?: string | null;
+                product_type?: string | null;
+                sport?: string | null;
+                collection_year?: string | null;
                 color?: string | null;
+                size?: string | null;
+                origin?: string | null;
+                unit?: string | null;
+                ean?: string | null;
+                supplier_sku?: string | null;
+                model?: string | null;
+                garment_kind?: string | null;
+                gender?: string | null;
+                source_kind?: string | null;
                 sort?: string | null;
                 limit?: number;
                 offset?: number;
@@ -8882,6 +10102,76 @@ export interface operations {
             };
         };
     };
+    close_order_api_orders__order_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reopen_order_api_orders__order_id__reopen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_payment_schedule_api_orders__order_id__payment_schedule_get: {
         parameters: {
             query?: never;
@@ -9272,6 +10562,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvoiceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settlement_summary_api_payables_settlement_summary_get: {
+        parameters: {
+            query: {
+                source_type: string;
+                source_id: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementSummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10275,6 +11597,254 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_metric_catalog_api_reporting_metric_catalog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricCatalogOut"];
+                };
+            };
+        };
+    };
+    get_commercial_availability_api_reporting_commercial_availability_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                category?: string | null;
+                product_type?: string | null;
+                status?: string | null;
+                sort?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialAvailabilityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dashboard_api_reporting_dashboard_get: {
+        parameters: {
+            query?: {
+                view?: string | null;
+                period?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                as_of?: string | null;
+                currency?: string | null;
+                supplier_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardSnapshotOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_dashboard_views_api_reporting_views_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewOut"][];
+                };
+            };
+        };
+    };
+    create_dashboard_view_api_reporting_views_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_dashboard_view_api_reporting_views__view_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                view_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_dashboard_view_api_reporting_views__view_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                view_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewPatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_dashboard_view_api_reporting_views__view_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                view_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewRestoreIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewOut"];
                 };
             };
             /** @description Validation Error */
@@ -15073,6 +16643,394 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetricEventOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_queue_api_costing_queue_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    create_case_api_costing_cases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnsureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_case_api_costing_cases__case_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recalc_api_costing_cases__case_id__recalculate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecalcBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    freight_choice_api_costing_cases__case_id__freight_choice_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FreightBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_expense_api_costing_cases__case_id__expenses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpenseBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_costing_versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_api_costing_versions__version_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revise_api_costing_versions__version_id__revise_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviseBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_api_costing_versions__version_id__compare__other_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: number;
+                other_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_pairs_api_reconciliation_versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                version_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_api_reconciliation_pairs__pair_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pair_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

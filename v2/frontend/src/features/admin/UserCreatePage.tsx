@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { User } from "../auth/types";
 import { createUser, listRoles, type RoleOut } from "./identityApi";
@@ -18,8 +18,15 @@ import {
 
 type Props = { user: User };
 
+/** Aligns with Identity `MIN_PASSWORD_LEN`. */
+const MIN_PASSWORD_LEN = 8;
+
 function canWrite(user: User) {
   return user.role === "admin" || (user.permissions ?? []).includes("users:write");
+}
+
+function looksLikeEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 export function UserCreatePage({ user }: Props) {
@@ -39,15 +46,25 @@ export function UserCreatePage({ user }: Props) {
       .then((rows) => {
         setRoles(rows);
         const comprador = rows.find((r) => r.name === "comprador");
-        if (comprador) setRoleId(String(comprador.id));
+        const fallback = comprador ?? rows[0];
+        if (fallback) setRoleId(String(fallback.id));
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Erro"));
   }, []);
 
   if (!canWrite(user)) return <ErrorState message="Sem permissão para criar usuários." />;
 
-  async function onSubmit() {
+  async function onSubmit(e?: FormEvent) {
+    e?.preventDefault();
     if (busy) return;
+    if (!looksLikeEmail(email)) {
+      setError("E-mail inválido. Use o formato nome@dominio.");
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LEN) {
+      setError(`Senha deve ter pelo menos ${MIN_PASSWORD_LEN} caracteres`);
+      return;
+    }
     if (password !== password2) {
       setError("As senhas não coincidem");
       return;
@@ -88,58 +105,69 @@ export function UserCreatePage({ user }: Props) {
         </Notice>
       ) : null}
       <SectionCard title="Dados">
-        <div className="form-grid">
-          <FormField label="Nome" htmlFor="u-name" required>
-            <TextInput id="u-name" data-testid="user-name" value={name} onChange={(e) => setName(e.target.value)} />
-          </FormField>
-          <FormField label="E-mail" htmlFor="u-email" required>
-            <TextInput
-              id="u-email"
-              data-testid="user-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </FormField>
-          <FormField label="Papel" htmlFor="u-role" required>
-            <SelectField
-              id="u-role"
-              data-testid="user-role"
-              value={roleId}
-              onChange={(e) => setRoleId(e.target.value)}
-              options={roles.map((r) => ({ value: String(r.id), label: roleLabel(r.name) }))}
-            />
-          </FormField>
-          <FormField label="Senha inicial" htmlFor="u-pass" required>
-            <TextInput
-              id="u-pass"
-              data-testid="user-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </FormField>
-          <FormField label="Confirmar senha" htmlFor="u-pass2" required>
-            <TextInput
-              id="u-pass2"
-              data-testid="user-password-confirm"
-              type="password"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-            />
-          </FormField>
-        </div>
-        <div className="actions">
-          <Button
-            type="button"
-            busy={busy}
-            data-testid="user-create-submit"
-            onClick={() => void onSubmit()}
-            disabled={!name.trim() || !email.trim() || !password || !roleId}
-          >
-            Criar
-          </Button>
-        </div>
+        <form onSubmit={(e) => void onSubmit(e)}>
+          <div className="form-grid">
+            <FormField label="Nome" htmlFor="u-name" required>
+              <TextInput id="u-name" data-testid="user-name" value={name} onChange={(e) => setName(e.target.value)} />
+            </FormField>
+            <FormField label="E-mail" htmlFor="u-email" required hint="ex.: nome@empresa.com">
+              <TextInput
+                id="u-email"
+                data-testid="user-email"
+                type="email"
+                autoComplete="off"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormField>
+            <FormField label="Papel" htmlFor="u-role" required>
+              <SelectField
+                id="u-role"
+                data-testid="user-role"
+                value={roleId}
+                onChange={(e) => setRoleId(e.target.value)}
+                options={roles.map((r) => ({ value: String(r.id), label: roleLabel(r.name) }))}
+              />
+            </FormField>
+            <FormField
+              label="Senha inicial"
+              htmlFor="u-pass"
+              required
+              hint={`mínimo ${MIN_PASSWORD_LEN} caracteres`}
+            >
+              <TextInput
+                id="u-pass"
+                data-testid="user-password"
+                type="password"
+                autoComplete="new-password"
+                minLength={MIN_PASSWORD_LEN}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </FormField>
+            <FormField label="Confirmar senha" htmlFor="u-pass2" required>
+              <TextInput
+                id="u-pass2"
+                data-testid="user-password-confirm"
+                type="password"
+                autoComplete="new-password"
+                minLength={MIN_PASSWORD_LEN}
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+              />
+            </FormField>
+          </div>
+          <div className="actions">
+            <Button
+              type="submit"
+              busy={busy}
+              data-testid="user-create-submit"
+              disabled={!name.trim() || !email.trim() || !password || !password2 || !roleId}
+            >
+              Criar
+            </Button>
+          </div>
+        </form>
       </SectionCard>
     </section>
   );

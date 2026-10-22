@@ -10,17 +10,58 @@ from app.audit import public as audit_public
 from app.foundation.database import get_db
 from app.foundation.deps import UserResponse, get_current_user, user_response
 from app.foundation.errors import AppError
-from app.foundation.settings import get_settings
+from app.foundation.settings import Settings, get_settings
 from app.foundation.uow import UnitOfWork
 from app.identity import public as identity_public
 from app.identity.models import User
 
 router = APIRouter(tags=["identity"])
 
+_DEV_LOGIN_ENVS = frozenset({"development", "test", "testing"})
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+
+def _dev_login_enabled(app_env: str) -> bool:
+    return (app_env or "").lower() in _DEV_LOGIN_ENVS
+
+
+def _complete_login(
+    uow: UnitOfWork,
+    user: User,
+    request: Request,
+    response: Response,
+    settings: Settings,
+) -> UserResponse:
+    raw, _session = identity_public.create_session(
+        uow.session,
+        user,
+        session_max_age_seconds=settings.session_max_age_seconds,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    audit_public.record_event(
+        uow.session,
+        actor_id=str(user.id),
+        entity_type="user",
+        entity_id=str(user.id),
+        action="login",
+        reason_code="AUTH_LOGIN",
+    )
+    uow.commit()
+    uow.session.refresh(user)
+    body = user_response(user)
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=raw,
+        httponly=True,
+        samesite="lax",
+        max_age=settings.session_max_age_seconds,
+    )
+    return body
 
 
 @router.post("/auth/login", response_model=UserResponse)
@@ -30,32 +71,22 @@ def login(payload: LoginRequest, request: Request, response: Response, db: Sessi
         user = identity_public.authenticate_user(uow.session, payload.email, payload.password)
         if not user:
             raise AppError("Credenciais inválidas", code="invalid_credentials", status_code=401)
-        raw, _session = identity_public.create_session(
-            uow.session,
-            user,
-            session_max_age_seconds=settings.session_max_age_seconds,
-            ip_address=request.client.host if request.client else None,
-            user_agent=request.headers.get("user-agent"),
+        return _complete_login(uow, user, request, response, settings)
+
+
+@router.post("/auth/dev-login", response_model=UserResponse, include_in_schema=False)
+def dev_login(request: Request, response: Response, db: Session = Depends(get_db)):
+    """Atalho de ensaio: entra como admin seed. Inerte quando APP_ENV=production."""
+    settings = get_settings()
+    if not _dev_login_enabled(settings.app_env):
+        raise AppError("Not found", code="not_found", status_code=404)
+    with UnitOfWork(db) as uow:
+        user = identity_public.authenticate_user(
+            uow.session, settings.seed_admin_email, settings.seed_admin_password
         )
-        audit_public.record_event(
-            uow.session,
-            actor_id=str(user.id),
-            entity_type="user",
-            entity_id=str(user.id),
-            action="login",
-            reason_code="AUTH_LOGIN",
-        )
-        uow.commit()
-        uow.session.refresh(user)
-        body = user_response(user)
-    response.set_cookie(
-        key=settings.session_cookie_name,
-        value=raw,
-        httponly=True,
-        samesite="lax",
-        max_age=settings.session_max_age_seconds,
-    )
-    return body
+        if not user:
+            raise AppError("Atalho de ensaio indisponível", code="dev_login_unavailable", status_code=401)
+        return _complete_login(uow, user, request, response, settings)
 
 
 @router.post("/auth/logout")

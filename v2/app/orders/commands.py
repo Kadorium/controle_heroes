@@ -324,6 +324,60 @@ def cancel_order(
     return _lock(db, order, expected_version)
 
 
+def close_order(
+    db: Session,
+    order_id: int,
+    *,
+    expected_version: int,
+    reason_code: str | None,
+) -> Order:
+    """CONFIRMED → CLOSED. Só vê o agregado Order (sem Billing/Treasury/…)."""
+    order = repo.get_order(db, order_id)
+    if not order:
+        raise OrderNotFound(order_id)
+    if order.status != "CONFIRMED":
+        raise InvalidTransition(f"Só CONFIRMED pode ser encerrado (status atual: {order.status})")
+    reason = (reason_code or "").strip()
+    if not reason:
+        raise OrderValidationError(
+            "reason_code obrigatório para encerrar pedido",
+            code="reason_required",
+        )
+    if any(i.line_kind == LINE_KIND_COMMITMENT for i in order.items):
+        raise OrderValidationError(
+            "Pedido com compromisso sem produto não pode ser encerrado",
+            code="commitment_open",
+        )
+    order.status = "CLOSED"
+    order.closed_at = datetime.now(timezone.utc)
+    order.close_reason_code = reason[:64]
+    return _lock(db, order, expected_version)
+
+
+def reopen_order(
+    db: Session,
+    order_id: int,
+    *,
+    expected_version: int,
+    reason_code: str | None,
+) -> Order:
+    """CLOSED → CONFIRMED. Motivo só no audit da UoW da rota; sem edição silenciosa."""
+    order = repo.get_order(db, order_id)
+    if not order:
+        raise OrderNotFound(order_id)
+    if order.status != "CLOSED":
+        raise InvalidTransition(f"Só CLOSED pode ser reaberto (status atual: {order.status})")
+    reason = (reason_code or "").strip()
+    if not reason:
+        raise OrderValidationError(
+            "reason_code obrigatório para reabrir pedido",
+            code="reason_required",
+        )
+    order.status = "CONFIRMED"
+    order.closed_at = None
+    return _lock(db, order, expected_version)
+
+
 def bind_commitment_product(
     db: Session,
     order_id: int,

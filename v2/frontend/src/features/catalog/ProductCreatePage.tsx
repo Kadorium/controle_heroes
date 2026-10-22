@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { User } from "../auth/types";
 import { createProduct } from "./catalogApi";
+import { SKU_IS_EAN_MESSAGE, skuLooksLikeGtin } from "./productIdentity";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
   Button,
@@ -35,6 +36,11 @@ export function ProductCreatePage({ user }: Props) {
     setBusy(true);
     setError(null);
     try {
+      if (skuLooksLikeGtin(sku)) {
+        setError(SKU_IS_EAN_MESSAGE);
+        setBusy(false);
+        return;
+      }
       const p = await createProduct({ sku: sku.trim(), description: description.trim() });
       nav(`/catalog/products/${p.id}`, { replace: true });
     } catch (e) {
@@ -67,7 +73,8 @@ export function ProductCreatePage({ user }: Props) {
         </Notice>
       ) : null}
       <SectionCard title="Essenciais">
-        <div className="form-grid">
+        <div className="object-sheet">
+          <div className="form-grid object-form">
           <FormField label="SKU" htmlFor="product-sku" required>
             <TextInput
               id="product-sku"
@@ -84,6 +91,7 @@ export function ProductCreatePage({ user }: Props) {
               onChange={(e) => setDescription(e.target.value)}
             />
           </FormField>
+        </div>
         </div>
         <div className="actions">
           <Button

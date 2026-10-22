@@ -483,6 +483,67 @@ def get_quote_for_date(
     )
 
 
+def fx_quote_series(
+    db: Session,
+    *,
+    foreign: str = "EUR",
+    base: str = "BRL",
+    days: int = 30,
+) -> dict:
+    """Última cotação de cada dia observado no recorte. Sem interpolar buracos."""
+    foreign, base = _validate_pair(foreign, base)
+    since = datetime.now(timezone.utc) - timedelta(days=max(1, int(days)))
+    day_col = func.date(FxMarketQuote.observed_at)
+    latest = (
+        db.query(
+            day_col.label("day"),
+            func.max(FxMarketQuote.retrieved_at).label("retrieved_at"),
+        )
+        .filter(
+            FxMarketQuote.foreign_currency == foreign,
+            FxMarketQuote.base_currency == base,
+            FxMarketQuote.observed_at >= since,
+        )
+        .group_by(day_col)
+        .subquery()
+    )
+    rows = (
+        db.query(FxMarketQuote)
+        .join(
+            latest,
+            (func.date(FxMarketQuote.observed_at) == latest.c.day)
+            & (FxMarketQuote.retrieved_at == latest.c.retrieved_at),
+        )
+        .filter(
+            FxMarketQuote.foreign_currency == foreign,
+            FxMarketQuote.base_currency == base,
+        )
+        .order_by(FxMarketQuote.observed_at.asc())
+        .all()
+    )
+    seen: set[str] = set()
+    points = []
+    for q in rows:
+        day = q.observed_at.date().isoformat()
+        if day in seen:
+            continue
+        seen.add(day)
+        points.append(
+            {
+                "date": day,
+                "rate": str(q.rate),
+                "source": q.source,
+            }
+        )
+    return {
+        "foreign": foreign,
+        "base": base,
+        "days": days,
+        "points": points,
+        "empty": len(points) == 0,
+    }
+
+
 def refresh_market_quote(
     db: Session,
     *,

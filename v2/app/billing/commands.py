@@ -115,20 +115,40 @@ def create_invoice(
     repo.add_invoice(db, inv)
 
     items_src = list(order.items)
-    if order_item_ids is not None:
+    explicit = order_item_ids is not None
+    if explicit:
         wanted = set(order_item_ids)
+        if not wanted:
+            raise InvoiceValidationError("Selecione ao menos um item da ordem")
         items_src = [i for i in items_src if i.id in wanted]
         if len(items_src) != len(wanted):
             raise InvoiceValidationError("Um ou mais order_item_ids não pertencem à ordem")
-    if not items_src:
-        raise InvoiceValidationError("Selecione ao menos um item da ordem")
 
-    # RUX-3B: só linhas com Product resolvido; nunca inventar Product
-    billable = [oi for oi in items_src if oi.product_id is not None]
-    if not billable:
+    issued = repo.issued_qty_by_order_item(db, order.id)
+    # RUX-3B: só linhas com Product resolvido; nunca inventar Product.
+    # B0: quantidade inicial = residual (pedida − emitida); compromisso e residual 0 ficam de fora.
+    lines: list[tuple] = []
+    rejected_explicit = False
+    for oi in items_src:
+        if oi.product_id is None:
+            if explicit:
+                rejected_explicit = True
+            continue
+        avail = oi.quantity - issued.get(oi.id, Decimal("0"))
+        if avail <= 0:
+            if explicit:
+                rejected_explicit = True
+            continue
+        lines.append((oi, avail))
+
+    if explicit and rejected_explicit:
+        raise InvoiceValidationError(
+            "Selecione só linhas com produto e quantidade ainda disponível"
+        )
+    if not lines:
         raise InvoiceValidationError("nenhuma linha faturável")
 
-    for pos, oi in enumerate(billable, start=1):
+    for pos, (oi, avail) in enumerate(lines, start=1):
         db.add(
             InvoiceItem(
                 invoice_id=inv.id,
@@ -136,7 +156,7 @@ def create_invoice(
                 product_id=oi.product_id,
                 sku_snapshot=oi.sku_snapshot,
                 description_snapshot=oi.description_snapshot,
-                quantity=oi.quantity,
+                quantity=avail,
                 unit=oi.unit,
                 unit_price_gross=oi.unit_price,
                 discount_type=None,

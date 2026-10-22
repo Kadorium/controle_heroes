@@ -1,0 +1,2 @@
+# Ordine PDF na tela de pedido (fila / novo / rascunho)
+e2e/ordine-on-order-ui.spec.ts

@@ -70,6 +70,9 @@ export async function addOrderItem(
     quantity: string;
     unit_price?: string | null;
     unit?: string | null;
+    line_kind?: "PRODUCT" | "COMMITMENT";
+    external_code?: string | null;
+    description?: string | null;
   },
 ) {
   const { data, error } = await api.POST("/api/orders/{order_id}/items", {
@@ -131,6 +134,32 @@ export async function cancelOrder(
     body: { expected_version, reason_code },
   });
   if (error) throwApi(error, response, "Erro ao cancelar");
+  return data!;
+}
+
+export async function closeOrder(
+  orderId: number,
+  expected_version: number,
+  reason_code: string,
+) {
+  const { data, error, response } = await api.POST("/api/orders/{order_id}/close", {
+    params: { path: { order_id: orderId } },
+    body: { expected_version, reason_code },
+  });
+  if (error) throwApi(error, response, "Erro ao encerrar");
+  return data!;
+}
+
+export async function reopenOrder(
+  orderId: number,
+  expected_version: number,
+  reason_code: string,
+) {
+  const { data, error, response } = await api.POST("/api/orders/{order_id}/reopen", {
+    params: { path: { order_id: orderId } },
+    body: { expected_version, reason_code },
+  });
+  if (error) throwApi(error, response, "Erro ao reabrir");
   return data!;
 }
 

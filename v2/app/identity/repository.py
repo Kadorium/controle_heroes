@@ -33,19 +33,31 @@ def list_roles(db: Session) -> list[Role]:
     return db.query(Role).filter(Role.name.in_(SEED_ROLE_NAMES)).order_by(Role.name).all()
 
 
-def list_users(db: Session, *, q: str | None, limit: int, offset: int) -> list[User]:
+def list_users(db: Session, *, q: str | None, limit: int, offset: int, is_active: bool | None = None, role: str | None = None) -> list[User]:
     query = db.query(User).options(joinedload(User.role))
     if q:
         like = f"%{q.strip()}%"
         query = query.filter((User.email.ilike(like)) | (User.name.ilike(like)))
+    if is_active is True:
+        query = query.filter(User.is_active.is_(True))
+    elif is_active is False:
+        query = query.filter(User.is_active.is_(False))
+    if role:
+        query = query.filter(User.role.has(Role.name == role.strip()))
     return query.order_by(User.name).offset(offset).limit(limit).all()
 
 
-def count_users(db: Session, *, q: str | None) -> int:
+def count_users(db: Session, *, q: str | None, is_active: bool | None = None, role: str | None = None) -> int:
     query = db.query(func.count(User.id))
     if q:
         like = f"%{q.strip()}%"
         query = query.filter((User.email.ilike(like)) | (User.name.ilike(like)))
+    if is_active is True:
+        query = query.filter(User.is_active.is_(True))
+    elif is_active is False:
+        query = query.filter(User.is_active.is_(False))
+    if role:
+        query = query.join(Role, User.role_id == Role.id).filter(Role.name == role.strip())
     return int(query.scalar() or 0)
 
 

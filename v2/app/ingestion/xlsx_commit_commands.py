@@ -157,7 +157,7 @@ def preview_commit_xlsx(db: Session, document_id: int) -> XlsxPreviewResult:
     ops.append(
         XlsxPreviewOperation(
             op_key="store_document",
-            description="Promover bytes da quarantine para Documents",
+            description="Anexar a planilha ao pedido",
             entity_type="document",
             params={"occurrence_id": doc.occurrence_id},
         )
@@ -168,36 +168,56 @@ def preview_commit_xlsx(db: Session, document_id: int) -> XlsxPreviewResult:
     order_number = _field_value(doc, "order_number")
     currency = _field_value(doc, "currency") or "EUR"
 
-    if supplier_id and order_number:
+    if order_number:
+        if not supplier_id:
+            ops.append(
+                XlsxPreviewOperation(
+                    op_key="create_supplier",
+                    description="Cadastrar fornecedor Heroe's Srl",
+                    entity_type="supplier",
+                    params={"name": "Heroe's Srl", "country_code": "IT"},
+                )
+            )
         ops.append(
             XlsxPreviewOperation(
                 op_key="create_order",
-                description=f"Criar Order DRAFT code={order_number} supplier_id={supplier_id}",
+                description=f"Criar pedido em rascunho {order_number}",
                 entity_type="order",
                 params={"code": order_number, "supplier_id": supplier_id, "currency": currency},
             )
         )
-        # Ship items as order items
-        ship_rows = [r for r in (doc.rows or []) if r.section_id is not None or True]
-        ship_rows_in_section = [r for r in (doc.rows or [])]
-        for row in ship_rows_in_section:
+        for row in doc.rows or []:
             cells = _row_cells(row)
             sku = _cell_value(cells, "sku")
             qty_str = _cell_value(cells, "quantity")
             invoice_price_str = _cell_value(cells, "invoice_price")
-            if sku and qty_str and invoice_price_str:
+            if sku and qty_str:
+                product_id_str = _cell_value(cells, "product_id_catalog")
+                kind = (
+                    "PRODUCT"
+                    if product_id_str and product_id_str.isdigit()
+                    else "COMMITMENT"
+                )
+                kind_label = "produto" if kind == "PRODUCT" else "compromisso"
                 ops.append(
                     XlsxPreviewOperation(
                         op_key=f"add_item_{row.row_index}",
-                        description=f"Adicionar item Order: sku={sku} qty={qty_str}",
+                        description=(
+                            f"Registrar {kind_label}: {sku} × {qty_str}"
+                        ),
                         entity_type="order_item",
-                        params={"sku": sku, "quantity": qty_str, "unit_price": invoice_price_str},
+                        params={
+                            "external_code": sku,
+                            "quantity": qty_str,
+                            "unit_price": invoice_price_str,
+                            "line_kind": kind,
+                        },
                     )
                 )
         ops.append(
             XlsxPreviewOperation(
                 op_key="link_document",
-                description="Vincular documento à Order via Documents module",
+                description="Vincular a planilha ao pedido",
                 entity_type="document_link",
             )
         )
@@ -207,7 +227,7 @@ def preview_commit_xlsx(db: Session, document_id: int) -> XlsxPreviewResult:
         fingerprint=fingerprint,
         operations=ops,
         open_error_count=open_errors,
-        can_commit=open_errors == 0,
+        can_commit=open_errors == 0 and bool(order_number),
     )
 
 
@@ -308,6 +328,7 @@ def commit_xlsx(
     actor_id: str,
     operation_key: str | None = None,
     quarantine_path: "Path | None" = None,  # noqa: F821
+    attachments_path: "Path | None" = None,  # noqa: F821
 ) -> XlsxCommitResult:
     """Commit XLSX ordine:
     1. store_document (promote bytes)
@@ -317,6 +338,14 @@ def commit_xlsx(
     Ledger idempotente por operation_key + fingerprint.
     """
     from pathlib import Path
+
+    from app.foundation.settings import get_settings
+    from app.ingestion.models import IngestionOccurrence
+
+    if attachments_path is None:
+        attachments_path = Path(get_settings().attachments_path)
+    if quarantine_path is None:
+        quarantine_path = Path(get_settings().quarantine_path)
 
     doc = get_document_detail(db, document_id)
 
@@ -367,98 +396,160 @@ def commit_xlsx(
     # 1. store_document
     promoted_doc_id: int | None = None
     try:
-        if quarantine_path:
-            occ = db.query(
-                __import__("app.ingestion.models", fromlist=["IngestionOccurrence"]).IngestionOccurrence
-            ).get(doc.occurrence_id)
-            if occ and occ.blob and occ.blob.storage_path:
-                path_obj = quarantine_storage.resolve_quarantine_path(
-                    quarantine_path, occ.blob.storage_path
-                )
-                if path_obj and path_obj.is_file():
-                    pdoc = documents_public.store_document(
-                        db,
-                        actor_id=actor_id,
-                        filename=occ.original_filename,
-                        content=path_obj.read_bytes(),
-                        mime_type=occ.detected_mime or "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        source_ref=f"ingestion_occurrence:{doc.occurrence_id}",
-                    )
-                    promoted_doc_id = pdoc.id
+        occ = db.get(IngestionOccurrence, doc.occurrence_id)
+        if occ is None or occ.blob is None or not occ.blob.storage_path:
+            raise ValueError("Arquivo da planilha não está na quarantine")
+        path_obj = quarantine_storage.resolve_quarantine_path(
+            quarantine_path, occ.blob.storage_path
+        )
+        if path_obj is None or not path_obj.is_file():
+            raise ValueError("Arquivo de quarantine não encontrado")
+        pdoc = documents_public.store_document(
+            db,
+            attachments_path=attachments_path,
+            actor_id=actor_id,
+            filename=occ.original_filename or f"ordine_{document_id}.xlsx",
+            content=path_obj.read_bytes(),
+            mime_type=occ.detected_mime
+            or "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        promoted_doc_id = pdoc.id
         _record_op(db, attempt, "store_document", "SUCCEEDED", "document", str(promoted_doc_id))
-        ops_out.append({"op_key": "store_document", "status": "SUCCEEDED", "entity_type": "document", "entity_id": str(promoted_doc_id)})
+        ops_out.append(
+            {
+                "op_key": "store_document",
+                "status": "SUCCEEDED",
+                "entity_type": "document",
+                "entity_id": str(promoted_doc_id),
+            }
+        )
     except Exception as exc:
         _record_op(db, attempt, "store_document", "FAILED", error_message=str(exc))
         ops_out.append({"op_key": "store_document", "status": "FAILED"})
-        # Non-critical — continue
+        overall_status = "PARTIAL"
 
-    # 2. create_order DRAFT
+    # 2. fornecedor (se a planilha não casou) + pedido DRAFT
     supplier_id_str = _field_value(doc, "supplier_id_catalog")
     supplier_id = int(supplier_id_str) if supplier_id_str and supplier_id_str.isdigit() else None
     order_number = _field_value(doc, "order_number")
     currency = _field_value(doc, "currency") or "EUR"
 
+    if supplier_id is None:
+        try:
+            found = catalog_public.list_suppliers(db, q="Heroe", limit=5)
+            if len(found) == 1:
+                supplier_id = found[0].id
+            elif len(found) == 0:
+                created = catalog_public.create_supplier(
+                    db,
+                    name="Heroe's Srl",
+                    country_code="IT",
+                )
+                supplier_id = created.id
+            _record_op(db, attempt, "create_supplier", "SUCCEEDED", "supplier", str(supplier_id))
+            ops_out.append(
+                {
+                    "op_key": "create_supplier",
+                    "status": "SUCCEEDED",
+                    "entity_type": "supplier",
+                    "entity_id": str(supplier_id),
+                }
+            )
+        except Exception as exc:
+            _record_op(db, attempt, "create_supplier", "FAILED", error_message=str(exc))
+            ops_out.append({"op_key": "create_supplier", "status": "FAILED"})
+            overall_status = "PARTIAL"
+
     order_id: int | None = None
+    order_version = 1
     if supplier_id and order_number:
         try:
             order = orders_public.create_order(
                 db,
-                actor_id=actor_id,
                 code=order_number,
                 supplier_id=supplier_id,
+                created_by_actor_id=actor_id,
                 currency=currency,
+                source_system="INGESTION",
             )
             order_id = order.id
+            order_version = order.version
             _record_op(db, attempt, "create_order", "SUCCEEDED", "order", str(order_id))
-            ops_out.append({"op_key": "create_order", "status": "SUCCEEDED", "entity_type": "order", "entity_id": str(order_id)})
+            ops_out.append(
+                {
+                    "op_key": "create_order",
+                    "status": "SUCCEEDED",
+                    "entity_type": "order",
+                    "entity_id": str(order_id),
+                }
+            )
         except Exception as exc:
             _record_op(db, attempt, "create_order", "FAILED", error_message=str(exc))
             ops_out.append({"op_key": "create_order", "status": "FAILED"})
             overall_status = "PARTIAL"
     else:
-        _record_op(db, attempt, "create_order", "SKIPPED", details={"reason": "missing_supplier_or_order_number"})
+        _record_op(
+            db,
+            attempt,
+            "create_order",
+            "SKIPPED",
+            details={"reason": "missing_supplier_or_order_number"},
+        )
         ops_out.append({"op_key": "create_order", "status": "SKIPPED"})
 
-    # 3. add_item(s) best-effort (only if order created)
+    # 3. linhas: Product se casou no catálogo; senão compromisso (nunca SKU=EAN)
     if order_id:
-        for row in (doc.rows or []):
-            cells = json.loads(row.cells_json or "{}")
+        for row in doc.rows or []:
+            cells = _row_cells(row)
             sku = _cell_value(cells, "sku")
             qty_str = _cell_value(cells, "quantity")
             price_str = _cell_value(cells, "invoice_price")
             if not sku or not qty_str:
                 continue
+            k = f"add_item_{row.row_index}"
             try:
                 qty = Decimal(qty_str)
                 unit_price = Decimal(price_str) if price_str else Decimal("0")
                 product_id_str = _cell_value(cells, "product_id_catalog")
-                product_id = int(product_id_str) if product_id_str and product_id_str.isdigit() else None
-                orders_public.add_order_item(
-                    db,
-                    actor_id=actor_id,
-                    order_id=order_id,
-                    product_id=product_id,
-                    sku=sku,
-                    description=sku,
-                    quantity=qty,
-                    unit_price=unit_price,
-                    currency=currency,
+                product_id = (
+                    int(product_id_str) if product_id_str and product_id_str.isdigit() else None
                 )
-                k = f"add_item_{row.row_index}"
+                current = orders_public.get_order(db, order_id)
+                if current is None:
+                    raise RuntimeError("pedido desapareceu durante o commit da planilha")
+                if product_id is not None:
+                    orders_public.add_item(
+                        db,
+                        order_id,
+                        expected_version=current.version,
+                        line_kind="PRODUCT",
+                        product_id=product_id,
+                        quantity=qty,
+                        unit_price=unit_price,
+                    )
+                else:
+                    orders_public.add_item(
+                        db,
+                        order_id,
+                        expected_version=current.version,
+                        line_kind="COMMITMENT",
+                        external_code=sku,
+                        description=sku,
+                        quantity=qty,
+                        unit_price=unit_price,
+                    )
                 _record_op(db, attempt, k, "SUCCEEDED", "order_item")
                 ops_out.append({"op_key": k, "status": "SUCCEEDED"})
             except Exception as exc:
-                k = f"add_item_{row.row_index}"
                 _record_op(db, attempt, k, "FAILED", error_message=str(exc))
                 ops_out.append({"op_key": k, "status": "FAILED"})
-                # best-effort — don't change overall status for item failures
+                overall_status = "PARTIAL"
 
     # 4. link_document
     if order_id and promoted_doc_id:
         try:
             documents_public.link_document(
                 db,
-                actor_id=actor_id,
                 document_id=promoted_doc_id,
                 entity_type="order",
                 entity_id=str(order_id),

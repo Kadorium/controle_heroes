@@ -110,13 +110,17 @@ def _role_out(role: Role) -> RoleOut:
 @router.get("/users", response_model=UserListOut)
 def http_list_users(
     q: str | None = None,
+    is_active: bool | None = Query(None),
+    role: str | None = None,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     enforce_permission(user, "users:read")
-    items, total = identity_public.list_users_page(db, q=q, limit=limit, offset=offset)
+    items, total = identity_public.list_users_page(
+        db, q=q, limit=limit, offset=offset, is_active=is_active, role=role
+    )
     return UserListOut(
         items=[_user_out(u) for u in items],
         total=total,

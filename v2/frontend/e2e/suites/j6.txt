@@ -1,0 +1,2 @@
+e2e/j6-costing.spec.ts
+e2e/i9-0-shell.spec.ts

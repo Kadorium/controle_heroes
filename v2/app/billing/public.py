@@ -13,7 +13,12 @@ from app.billing.customs_payables import (
     create_customs_payable_from_funding,
 )
 from app.billing.errors import BillingError
-from app.billing.liquidation import apply_payable_allocations, list_eligible_payables
+from app.billing.liquidation import (
+    apply_payable_allocations,
+    assert_payable_matches_payment,
+    list_eligible_payables,
+    settlement_summary_for_source,
+)
 from app.billing.queries import (
     get_invoice,
     get_payable,
@@ -21,6 +26,7 @@ from app.billing.queries import (
     invoice_totals_as_strings,
     issue_blockers,
     item_amounts_as_strings,
+    costable_invoice_items,
     find_invoices_by_number,
     list_invoices,
     list_payables,
@@ -31,6 +37,11 @@ from app.billing.queries import (
     payable_counts_by_invoice,
     payables_queue,
     preview_payables,
+    invoice_status_counts,
+    qty_to_invoice_residual,
+    cash_committed_by_month,
+    order_billing_progress_by_currency,
+    invoice_item_product_ids,
 )
 
 __all__ = [
@@ -48,7 +59,13 @@ __all__ = [
     "list_invoices",
     "list_payables",
     "payables_queue",
+    "invoice_status_counts",
+    "qty_to_invoice_residual",
+    "cash_committed_by_month",
+    "order_billing_progress_by_currency",
+    "invoice_item_product_ids",
     "item_amounts_as_strings",
+    "costable_invoice_items",
     "invoice_totals_as_strings",
     "preview_payables",
     "order_invoiced_quantities",
@@ -58,7 +75,9 @@ __all__ = [
     "payable_counts_by_invoice",
     "issue_blockers",
     "apply_payable_allocations",
+    "assert_payable_matches_payment",
     "list_eligible_payables",
+    "settlement_summary_for_source",
     "create_customs_payable_from_funding",
     "cancel_customs_payable",
 ]

@@ -1,13 +1,15 @@
-import { formatMoney, formatRate } from "./format";
+import { formatCompactMoney, formatMoney, formatRate } from "./format";
 
 export function MoneyDisplay({
   amount,
   currency,
+  compact = false,
 }: {
   amount: string | number | null | undefined;
   currency?: string | null;
+  compact?: boolean;
 }) {
-  const text = formatMoney(amount, currency);
+  const text = compact ? formatCompactMoney(amount, currency) : formatMoney(amount, currency);
   return (
     <span className="money" data-testid="money">
       {text}

@@ -53,7 +53,7 @@ export function OrderAdvancesPanel({ user, orderId, orderCurrency, orderStatus }
   const canWrite = canWriteTreasury(user) && canWriteFx(user);
   const canCancel = canCancelTreasury(user);
   const canWithoutDoc = canFxWithoutDoc(user);
-  const readonly = orderStatus === "CANCELLED" || !canWrite;
+  const readonly = orderStatus === "CANCELLED" || orderStatus === "CLOSED" || !canWrite;
 
   const [data, setData] = useState<OrderAdvancesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

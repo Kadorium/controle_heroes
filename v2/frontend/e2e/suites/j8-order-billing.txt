@@ -1,0 +1,6 @@
+# J#8 — criação manual + fatura + alocação (UI)
+# Isolar: prepare fresco. Não misturar com cat-pim.
+e2e/inc1-orders.spec.ts
+e2e/inc1-walkthrough.spec.ts
+e2e/inc2-billing.spec.ts
+e2e/inc3-treasury.spec.ts

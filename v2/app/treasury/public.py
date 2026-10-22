@@ -8,6 +8,8 @@ from app.treasury.commands import (
     get_payment,
     list_payments,
     register_payment,
+    unallocated_registered_bulk,
+    unallocated_registered_list,
 )
 from app.treasury import advance_commands as advances
 from app.treasury import fx_commands as fx
@@ -20,6 +22,8 @@ __all__ = [
     "get_payment",
     "list_payments",
     "amount_unallocated",
+    "unallocated_registered_bulk",
+    "unallocated_registered_list",
     "assert_payment_has_document",
     "advances",
     "fx",

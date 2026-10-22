@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { clickNewOrder, loginAs, openOrdersList } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -48,15 +49,13 @@ test("adaptive-B AP queue width matrix + adverse row", async ({ page }) => {
   const longInvoice = `INV-LONGA-REFERENCIA-COMERCIAL-${stamp}`;
 
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-
-  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
+  await loginAs(page);
+  await openOrdersList(page);
+  await clickNewOrder(page);
   await page.getByTestId("order-code").fill(longOrder);
   await page.getByTestId("new-supplier-name").fill(longSupplier);
   await page.getByTestId("line-sku").fill(`SKU-LONG-${stamp}`);
+  await page.getByTestId("line-sku-description").fill(`Produto LONG ${stamp}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("10");

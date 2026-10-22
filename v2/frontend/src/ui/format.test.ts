@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateOnly, formatDateTime, formatMoney, formatRate, compactQuantityWire, formatQuantity } from "./format";
+import { formatCompactMoney, formatDateOnly, formatDateTime, formatMoney, formatRate, compactQuantityWire, formatQuantity, parseDateToIso } from "./format";
 import { resolveStatus, statusLabel, statusSemantics } from "./statusLabels";
 
 describe("formatMoney", () => {
@@ -21,6 +21,25 @@ describe("formatMoney", () => {
     const text = formatMoney("400", "EUR");
     expect(text).not.toMatch(/€|\$/);
     expect(text).toBe("EUR 400,00");
+  });
+});
+
+describe("formatChartTick", () => {
+  it("usa milhar pt-BR no eixo", async () => {
+    const { formatChartTick } = await import("./format");
+    expect(formatChartTick(6500)).toBe("6.500");
+    expect(formatChartTick(24376)).toBe("24.376");
+    expect(formatChartTick(0)).toBe("0");
+    expect(formatChartTick(1_430_000)).toBe("1,4 mi");
+  });
+});
+
+describe("formatCompactMoney", () => {
+  it("usa símbolo e sufixo mil/mi", () => {
+    expect(formatCompactMoney("1430000", "BRL")).toBe("R$ 1,43 mi");
+    expect(formatCompactMoney("14970", "EUR")).toBe("€ 14,97 mil");
+    expect(formatCompactMoney("400", "EUR")).toBe("€ 400,00");
+    expect(formatCompactMoney(null, "EUR")).toBe("—");
   });
 });
 
@@ -48,10 +67,24 @@ describe("formatDateOnly", () => {
   });
 });
 
+describe("parseDateToIso", () => {
+  it("aceita ISO e dd/mm/aaaa", () => {
+    expect(parseDateToIso("2026-03-30")).toBe("2026-03-30");
+    expect(parseDateToIso("30/03/2026")).toBe("2026-03-30");
+    expect(parseDateToIso("3/3/2026")).toBe("2026-03-03");
+  });
+
+  it("rejeita incompleto e data inválida", () => {
+    expect(parseDateToIso("30/03")).toBeNull();
+    expect(parseDateToIso("32/03/2026")).toBeNull();
+    expect(parseDateToIso("")).toBeNull();
+  });
+});
+
 describe("formatDateTime", () => {
   it("exibe data/hora e timezone quando presente", () => {
     expect(formatDateTime("2026-07-29T16:46:40.332581-03:00")).toBe(
-      "29/07/2026 16:46:40 -03:00",
+      "29/07/2026 16:46:40 Brasília",
     );
     expect(formatDateTime("2026-07-29T16:46:40Z")).toBe("29/07/2026 16:46:40 UTC");
   });
@@ -72,6 +105,7 @@ describe("compactQuantityWire", () => {
 describe("statusLabels por entidade", () => {
   it("mapeia Order / Invoice / Payment / Payable", () => {
     expect(statusLabel("CONFIRMED", "order")).toBe("Confirmado");
+    expect(statusLabel("CLOSED", "order")).toBe("Encerrado");
     expect(statusLabel("ISSUED", "invoice")).toBe("Emitida");
     expect(statusLabel("CANCELLED", "invoice")).toBe("Cancelada");
     expect(statusLabel("REGISTERED", "payment")).toBe("Registrado");

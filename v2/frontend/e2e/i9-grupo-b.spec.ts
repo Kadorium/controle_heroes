@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loginAs, openOrdersList } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -15,12 +16,8 @@ const evidenceDir = path.resolve(
 test("I9-2…5 Pedidos Cockpit Faturas", async ({ page }) => {
   const code = `I9B-${Date.now()}`;
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-
-  await expect(page.getByTestId("orders-list-page")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  await openOrdersList(page);
   await expect(page.getByRole("heading", { name: /^Pedidos$/i })).toBeVisible();
   await page.screenshot({ path: path.join(evidenceDir, "i9-2-orders-1366.png"), fullPage: true });
 
@@ -29,6 +26,7 @@ test("I9-2…5 Pedidos Cockpit Faturas", async ({ page }) => {
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
   await page.getByTestId("line-sku").fill(`SKU-${code}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${code}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(400);
   await page.getByTestId("line-qty").fill("10");

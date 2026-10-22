@@ -36,7 +36,7 @@ const QUEUES = [
     pageTestId: "payments-list",
     tableTestId: "payments-table",
     slug: "scr-010-payments",
-    p0: ["Data", "Referência", "Fornecedor", "Residual", "Status"],
+    p0: ["Data", "Referência", "Fornecedor", "Aberto", "Estado"],
   },
 ] as const;
 

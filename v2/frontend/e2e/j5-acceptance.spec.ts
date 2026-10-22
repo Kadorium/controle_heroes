@@ -311,8 +311,7 @@ test("J#5 I5-6 comprehensive acceptance", async ({ page }) => {
   const customsRow = page.locator('[data-testid^="ap-row-"]').filter({ hasText: payeeName }).first();
   await customsRow.click();
   await expect(page.getByText(/Numerário \(Customs\)/i)).toBeVisible();
-  await expect(page.getByTestId("ap-customs-settlement-notice")).toBeVisible();
-  await expect(page.getByTestId("ap-g02-new-payment")).toHaveCount(0);
+  await expect(page.getByTestId("ap-g02-new-payment")).toBeVisible();
   await expect(page.getByRole("link", { name: "Abrir fatura" })).toHaveCount(0);
   await shot(page, "j5-10-customs-payable-ap.png");
 

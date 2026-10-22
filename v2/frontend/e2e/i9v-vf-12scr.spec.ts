@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loginAs, openOrdersList, PAYMENTS_NAV } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -11,11 +12,8 @@ const evidenceDir = path.resolve(
 const CODE = `VF-${Date.now()}`;
 
 async function login(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
-  await expect(page.getByTestId("orders-list-page")).toBeVisible({ timeout: 15000 });
+  await loginAs(page);
+  await openOrdersList(page);
 }
 
 async function shot(page: import("@playwright/test").Page, name: string, w: number, h: number) {
@@ -62,6 +60,7 @@ test("I9V-VF capture 12 SCR × 2 viewports", async ({ page }) => {
   await page.getByTestId("order-code").fill(CODE);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${CODE}`);
   await page.getByTestId("line-sku").fill(`SKU-${CODE}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${CODE}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(300);
   await page.getByTestId("line-qty").fill("2");
@@ -126,7 +125,7 @@ test("I9V-VF capture 12 SCR × 2 viewports", async ({ page }) => {
   await shot(page, "scr-009-fx", 1440, 900);
 
   // SCR-010 pagamentos
-  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /^Pagamentos$/i }).click();
+  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: PAYMENTS_NAV }).click();
   await expect(page.getByTestId("payments-list")).toBeVisible();
   await shot(page, "scr-010-payments", 1366, 768);
   await shot(page, "scr-010-payments", 1440, 900);
@@ -154,5 +153,5 @@ test("I9V-VF capture 12 SCR × 2 viewports", async ({ page }) => {
 
   // Nav ativa em rota aninhada
   const nav = page.getByRole("navigation", { name: /módulos/i });
-  await expect(nav.getByRole("link", { name: /^Pagamentos$/i })).toHaveClass(/active/);
+  await expect(nav.getByRole("link", { name: PAYMENTS_NAV })).toHaveClass(/active/);
 });

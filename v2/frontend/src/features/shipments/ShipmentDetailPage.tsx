@@ -976,7 +976,7 @@ export function ShipmentDetailPage({ user }: Props) {
               }))}
             />
           </FormField>
-          <FormField label="Saída prevista" htmlFor="detail-planned-departure" hint="dd/mm/aaaa">
+          <FormField label="Saída prevista" htmlFor="detail-planned-departure" hint={plannedDeparture ? undefined : "dd/mm/aaaa"}>
             <DateInput
               id="detail-planned-departure"
               value={plannedDeparture}
@@ -984,7 +984,7 @@ export function ShipmentDetailPage({ user }: Props) {
               onChange={(e) => setPlannedDeparture(e.target.value)}
             />
           </FormField>
-          <FormField label="Chegada prevista" htmlFor="detail-planned-arrival" hint="dd/mm/aaaa">
+          <FormField label="Chegada prevista" htmlFor="detail-planned-arrival" hint={plannedArrival ? undefined : "dd/mm/aaaa"}>
             <DateInput
               id="detail-planned-arrival"
               value={plannedArrival}

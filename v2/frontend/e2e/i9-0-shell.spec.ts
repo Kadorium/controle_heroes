@@ -15,16 +15,19 @@ test("I9-0 App Shell nav TARGET", async ({ page }) => {
   await expect(nav.getByText(/^Financeiro$/i)).toBeVisible();
 
   await expect(nav.getByRole("link", { name: /^Pedidos$/i })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Painel$/i })).toBeVisible();
   await expect(nav.getByRole("link", { name: /^Faturas$/i })).toBeVisible();
   await expect(nav.getByRole("link", { name: /contas a pagar/i })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /^Pagamentos$/i })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /pagamentos realizados/i })).toBeVisible();
 
   // Novo pedido NÃO é item de sidebar — CTA contextual na fila
   await expect(nav.getByRole("link", { name: /novo pedido/i })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /^\/fx$/ })).toHaveCount(0);
   await expect(nav.locator('a[href="/fx"]')).toHaveCount(0);
 
-  await expect(page.getByRole("main").getByRole("link", { name: /novo pedido/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard/);
+  await nav.getByRole("link", { name: /^Pedidos$/i }).click();
+  await expect(page.getByTestId("orders-new-cta")).toBeVisible();
 
   await nav.getByRole("link", { name: /^Faturas$/i }).click();
   await expect(page).toHaveURL(/\/invoices/);
@@ -32,7 +35,7 @@ test("I9-0 App Shell nav TARGET", async ({ page }) => {
   await nav.getByRole("link", { name: /contas a pagar/i }).click();
   await expect(page).toHaveURL(/\/payables/);
 
-  await nav.getByRole("link", { name: /^Pagamentos$/i }).click();
+  await nav.getByRole("link", { name: /pagamentos realizados/i }).click();
   await expect(page).toHaveURL(/\/payments/);
 
   await nav.getByRole("link", { name: /^Pedidos$/i }).click();

@@ -748,25 +748,35 @@ def test_i7_module_graph_suffixes():
     assert ".metrics_models" in INTERNAL_SUFFIXES
 
 
-def test_i7_migration_head_includes_024_and_026():
-    """024 permanece na cadeia; head canônico = 026 (MDM-4)."""
+def test_i7_migration_head_includes_024_and_028():
+    """024 e 028 permanecem na cadeia; head canônico = 031 (Elo 10)."""
     import subprocess
     import sys
 
-    result = subprocess.run(
+    cwd = str(Path(__file__).parent.parent)
+    heads = subprocess.run(
         [sys.executable, "-m", "alembic", "heads"],
         capture_output=True,
         text=True,
-        cwd=str(Path(__file__).parent.parent),
+        cwd=cwd,
     )
-    assert "026" in result.stdout
-    assert result.returncode == 0
+    history = subprocess.run(
+        [sys.executable, "-m", "alembic", "history"],
+        capture_output=True,
+        text=True,
+        cwd=cwd,
+    )
+    assert heads.returncode == 0
+    assert "031" in heads.stdout
+    assert "029" in history.stdout
+    assert "024" in history.stdout
+    assert "028" in history.stdout
 
 
 def test_expected_alembic_revision_matches_head():
     from app.foundation.schema_revision import EXPECTED_ALEMBIC_REVISION
 
-    assert EXPECTED_ALEMBIC_REVISION == "026"
+    assert EXPECTED_ALEMBIC_REVISION == "031"
 
 
 # ---------------------------------------------------------------------------
@@ -833,3 +843,54 @@ def test_xlsx_discount_divergence_info():
     # 100 * (1 - 5/100) = 95.00 == invoice_price 95.00 → no divergence
     codes = [i["code"] for i in issues]
     assert "XLSX_DISCOUNT_PRICE_DIVERGENCE" not in codes
+
+
+@pytest.mark.skipif(not XLSX_AVAILABLE, reason="xlsx fixtures absent")
+def test_xlsx_commit_creates_draft_with_commitment_lines(admin_client):
+    """Planilha cria pedido DRAFT com compromisso — SKU interno ≠ código da planilha."""
+    import uuid
+
+    r = admin_client.post("/api/ingestion/batches", json={"notes": "ING-FAM xlsx"})
+    batch_id = r.json()["id"]
+    upload = _upload_xlsx(admin_client, batch_id, XLSX_758)
+    occ_id = upload["results"][0]["id"]
+    r = admin_client.post(f"/api/ingestion/occurrences/{occ_id}/run-adapter-xlsx")
+    assert r.status_code == 201, r.text
+    doc_id = r.json()["document_id"]
+
+    doc = admin_client.get(f"/api/ingestion/documents/{doc_id}").json()
+    fields = {f["field_key"]: f for f in doc["fields"]}
+    on_field = fields["order_number"]
+    unique = f"XLSX-{uuid.uuid4().hex[:8]}"
+    r = admin_client.patch(
+        f"/api/ingestion/fields/{on_field['id']}",
+        json={
+            "corrected_value": unique,
+            "expected_version": on_field["version"],
+            "reason": "código único no ensaio",
+        },
+    )
+    assert r.status_code == 200, r.text
+
+    r = admin_client.post(
+        f"/api/ingestion/documents/{doc_id}/commit-xlsx",
+        json={"operation_key": f"ing_fam_xlsx_{doc_id}"},
+    )
+    assert r.status_code == 201, r.text
+    result = r.json()
+    assert result["status"] in ("SUCCEEDED", "PARTIAL"), result
+    order_ops = [o for o in result["operations"] if o.get("entity_type") == "order" and o.get("entity_id")]
+    assert order_ops, result["operations"]
+    order_id = int(order_ops[0]["entity_id"])
+    order = admin_client.get(f"/api/orders/{order_id}").json()
+    assert order["status"] == "DRAFT"
+    assert order["code"] == unique
+    items = order.get("items") or []
+    assert items, "planilha deve criar linhas"
+    assert order.get("documents"), "planilha deve vincular o arquivo ao pedido"
+    kinds = {i.get("line_kind") for i in items}
+    assert "COMMITMENT" in kinds or "PRODUCT" in kinds
+    for item in items:
+        sku = item.get("sku_snapshot") or ""
+        assert not sku.isdigit() or len(sku) < 8, sku
+        assert not sku.startswith("805"), sku

@@ -26,6 +26,7 @@ vi.mock("./identityApi", () => ({
     limit: 50,
     offset: 0,
   })),
+  listRoles: vi.fn(async () => [{ id: 1, name: "admin", description: null }]),
 }));
 
 describe("UsersListPage", () => {

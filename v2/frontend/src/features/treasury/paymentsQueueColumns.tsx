@@ -39,7 +39,10 @@ export const PAYMENTS_QUEUE_COLUMNS: OperationalColumnDef<Payment>[] = [
     minWidth: "10rem",
     truncate: true,
     cell: (row) => (
-      <EntityRef primary={row.supplier_name} missingLabel="Fornecedor não identificado" />
+      <EntityRef
+        primary={row.payee_display_name || row.supplier_name}
+        missingLabel="Favorecido não identificado"
+      />
     ),
   },
   {

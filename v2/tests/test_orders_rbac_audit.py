@@ -77,9 +77,55 @@ def test_rbac_cancel_confirmed_requires_cancel_perm(admin_client, client, db):
     assert r.status_code == 403
 
 
-def test_no_close_endpoint(admin_client):
-    r = admin_client.post("/api/orders/1/close", json={"expected_version": 1})
-    assert r.status_code in (404, 405)
+def test_close_uses_orders_write_not_cancel(admin_client, client, db):
+    a = admin_client
+    s = a.post("/api/suppliers", json={"name": "Close RBAC Sup", "is_active": True}).json()
+    p = a.post("/api/products", json={"sku": "CLOSE-RBAC-1", "description": "x", "is_active": True}).json()
+    o = a.post("/api/orders", json={"code": "CLOSE-RBAC-ORD", "supplier_id": s["id"], "currency": "EUR"}).json()
+    o = a.post(
+        f"/api/orders/{o['id']}/items",
+        json={"expected_version": o["version"], "product_id": p["id"], "quantity": "1", "unit_price": "1"},
+    ).json()
+    o = a.post(f"/api/orders/{o['id']}/confirm", json={"expected_version": o["version"]}).json()
+
+    _make_user(
+        db,
+        email="closer@example.com",
+        role_name="writer_no_cancel",
+        permissions=["orders:read", "orders:write", "catalog:read", "catalog:write"],
+    )
+    c = _login(client, "closer@example.com")
+    r = c.post(
+        f"/api/orders/{o['id']}/close",
+        json={"expected_version": o["version"], "reason_code": "STORY_COMPLETE"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "CLOSED"
+
+
+def test_close_forbidden_without_orders_write(admin_client, client, db):
+    a = admin_client
+    s = a.post("/api/suppliers", json={"name": "Close no-write Sup", "is_active": True}).json()
+    p = a.post("/api/products", json={"sku": "CLOSE-NW-1", "description": "x", "is_active": True}).json()
+    o = a.post("/api/orders", json={"code": "CLOSE-NW-ORD", "supplier_id": s["id"], "currency": "EUR"}).json()
+    o = a.post(
+        f"/api/orders/{o['id']}/items",
+        json={"expected_version": o["version"], "product_id": p["id"], "quantity": "1", "unit_price": "1"},
+    ).json()
+    o = a.post(f"/api/orders/{o['id']}/confirm", json={"expected_version": o["version"]}).json()
+
+    _make_user(
+        db,
+        email="canceller@example.com",
+        role_name="cancel_no_write",
+        permissions=["orders:read", "orders:cancel", "catalog:read"],
+    )
+    c = _login(client, "canceller@example.com")
+    r = c.post(
+        f"/api/orders/{o['id']}/close",
+        json={"expected_version": o["version"], "reason_code": "STORY_COMPLETE"},
+    )
+    assert r.status_code == 403
 
 
 def test_audit_rollback_prevents_order_persist(admin_client, monkeypatch):

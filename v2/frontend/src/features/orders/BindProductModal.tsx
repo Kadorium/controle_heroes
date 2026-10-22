@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createProduct, listProducts } from "../catalog/catalogApi";
+import { matchCatalogProduct, pickerCaption, SKU_IS_EAN_MESSAGE, skuLooksLikeGtin } from "../catalog/productIdentity";
 import { useProductSearch } from "../catalog/useCatalogSearch";
 import {
   Button,
@@ -74,11 +75,7 @@ export function BindProductModal({
     setLocalError(null);
   }, [open, line?.id]);
 
-  const match = useMemo(() => {
-    const q = skuQuery.trim().toLowerCase();
-    if (!q) return undefined;
-    return products.find((p) => p.sku.toLowerCase() === q && p.is_active);
-  }, [products, skuQuery]);
+  const match = useMemo(() => matchCatalogProduct(products.filter((p) => p.is_active), skuQuery), [products, skuQuery]);
 
   const showCreate = skuQuery.trim().length > 0 && !match && !isIvSku(skuQuery);
 
@@ -91,6 +88,10 @@ export function BindProductModal({
     }
     if (isIvSku(sku)) {
       setLocalError("SKU de catálogo não pode ser I.V.* — use um código de categoria próprio.");
+      return;
+    }
+    if (skuLooksLikeGtin(sku)) {
+      setLocalError(SKU_IS_EAN_MESSAGE);
       return;
     }
     const desc = newDescription.trim();
@@ -120,7 +121,7 @@ export function BindProductModal({
     let found = match;
     if (!found && sku) {
       const rows = await listProducts(sku, { activeOnly: true, limit: 20 });
-      found = rows.find((p) => p.sku.toLowerCase() === sku.toLowerCase() && p.is_active);
+      found = matchCatalogProduct(rows.filter((p) => p.is_active), sku);
     }
     if (!found) {
       setLocalError("Selecione um produto do catálogo ou crie um novo antes de confirmar.");
@@ -164,11 +165,11 @@ export function BindProductModal({
           </Notice>
         ) : null}
 
-        <FormField label="Produto do catálogo" htmlFor="bind-product-sku" hint="Busque pelo SKU">
+        <FormField label="Produto do catálogo" htmlFor="bind-product-sku" hint="Busque pelo nome comercial ou SKU">
           <TextInput
             id="bind-product-sku"
             data-testid="bind-product-sku"
-            placeholder="Buscar SKU no catálogo…"
+            placeholder="Buscar nome ou SKU no catálogo…"
             value={skuQuery}
             list="bind-product-sku-list"
             onChange={(e) => setSkuQuery(e.target.value)}
@@ -179,7 +180,7 @@ export function BindProductModal({
               .filter((p) => p.is_active)
               .map((p) => (
                 <option key={p.id} value={p.sku}>
-                  {p.description}
+                  {pickerCaption(p)}
                 </option>
               ))}
           </datalist>
@@ -187,7 +188,7 @@ export function BindProductModal({
 
         {match ? (
           <p data-testid="bind-product-match">
-            Selecionado: <strong>{match.sku}</strong> — {match.description}
+            Selecionado: <strong>{pickerCaption(match)}</strong> · {match.sku}
           </p>
         ) : null}
 

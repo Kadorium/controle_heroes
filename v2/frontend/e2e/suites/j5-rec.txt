@@ -1,0 +1,2 @@
+# J#5-REC — compromisso vinculado chega ao estoque (UI)
+e2e/j5-rec-stock.spec.ts

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loginAs, PAYMENTS_NAV } from "./helpers/orderCreate";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const evidenceDir = path.resolve(
@@ -17,10 +18,7 @@ const PAY_DATE = "2026-07-23";
  */
 test("I9V-V0 foundation shell + payments primitives", async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/login");
-  await page.getByLabel(/e-?mail/i).fill("admin@epic.com.br");
-  await page.getByLabel(/senha/i).fill("admin123");
-  await page.getByRole("button", { name: /entrar/i }).click();
+  await loginAs(page);
 
   const nav = page.getByRole("navigation", { name: /módulos/i });
   await expect(nav.getByText(/^Compras$/i)).toBeVisible({ timeout: 15000 });
@@ -66,7 +64,7 @@ test("I9V-V0 foundation shell + payments primitives", async ({ page }) => {
 
   expect(created.supplier_name).toBe(SUPPLIER);
 
-  await nav.getByRole("link", { name: /^Pagamentos$/i }).click();
+  await nav.getByRole("link", { name: PAYMENTS_NAV }).click();
   await expect(page).toHaveURL(/\/payments/);
   await expect(page.getByTestId("payments-list")).toBeVisible();
 
@@ -97,7 +95,7 @@ test("I9V-V0 foundation shell + payments primitives", async ({ page }) => {
     path: path.join(evidenceDir, "v0-shell-1440.png"),
     fullPage: true,
   });
-  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: /^Pagamentos$/i }).click();
+  await page.getByRole("navigation", { name: /módulos/i }).getByRole("link", { name: PAYMENTS_NAV }).click();
   await expect(page.getByTestId("payments-list")).toBeVisible();
   await page.screenshot({
     path: path.join(evidenceDir, "v0-payments-1440.png"),

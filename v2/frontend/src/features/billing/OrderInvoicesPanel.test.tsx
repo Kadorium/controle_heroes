@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OrderInvoicesPanel } from "./InvoiceDetailPage";
@@ -125,5 +125,78 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
     await waitFor(() => expect(screen.getByTestId("order-invoices")).toBeInTheDocument());
     expect(screen.queryByTestId("create-invoice")).not.toBeInTheDocument();
     expect(screen.queryByTestId("order-invoices-commitment-notice")).not.toBeInTheDocument();
+  });
+
+  it("residual picker: uncheck one line and create sends only checked ids", async () => {
+    vi.mocked(billingApi.invoicedQuantities).mockResolvedValue([
+      {
+        order_item_id: 10,
+        ordered_qty: "10.0000",
+        issued_qty: "0.0000",
+        available_qty: "10.0000",
+        line_kind: "PRODUCT",
+        description: "Bola residual",
+        billable: true,
+      },
+      {
+        order_item_id: 11,
+        ordered_qty: "5.0000",
+        issued_qty: "0.0000",
+        available_qty: "5.0000",
+        line_kind: "PRODUCT",
+        description: "Raquete residual",
+        billable: true,
+      },
+    ]);
+    vi.mocked(billingApi.createInvoice).mockResolvedValue({ id: 77 } as never);
+
+    render(
+      <MemoryRouter>
+        <OrderInvoicesPanel user={writer} orderId={99} orderStatus="CONFIRMED" />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("create-invoice")).toBeInTheDocument());
+    expect(screen.getByTestId("invoice-residual-hint")).toHaveTextContent(/ainda falta faturar/i);
+    expect(screen.getByTestId("invoice-residual-10")).toBeChecked();
+    expect(screen.getByTestId("invoice-residual-11")).toBeChecked();
+
+    fireEvent.click(screen.getByTestId("invoice-residual-11"));
+    fireEvent.change(screen.getByTestId("new-invoice-number"), { target: { value: "F-B0" } });
+    fireEvent.click(screen.getByTestId("create-invoice"));
+
+    await waitFor(() =>
+      expect(billingApi.createInvoice).toHaveBeenCalledWith(
+        99,
+        expect.objectContaining({
+          invoice_number: "F-B0",
+          order_item_ids: [10],
+        }),
+      ),
+    );
+  });
+
+  it("fully invoiced billable: no create form", async () => {
+    vi.mocked(billingApi.invoicedQuantities).mockResolvedValue([
+      {
+        order_item_id: 10,
+        ordered_qty: "10.0000",
+        issued_qty: "10.0000",
+        available_qty: "0.0000",
+        line_kind: "PRODUCT",
+        description: "Já faturado",
+        billable: true,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <OrderInvoicesPanel user={writer} orderId={1} orderStatus="CONFIRMED" />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId("order-invoices")).toBeInTheDocument());
+    expect(screen.queryByTestId("create-invoice")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("invoice-residual-10")).not.toBeInTheDocument();
   });
 });

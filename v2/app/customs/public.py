@@ -65,8 +65,13 @@ from app.customs.queries import (
     list_payees,
     list_process_divergences,
     list_process_provenances,
+    process_counts_by_status,
+    process_cost_facts,
     shipment_item_residuals,
     sum_nationalized_qty_by_product,
+    sum_nationalized_qty_bulk,
+    clearance_residuals_by_product,
+    blocked_exceptions,
 )
 
 __all__ = [
@@ -75,6 +80,7 @@ __all__ = [
     "update_import_process",
     "get_import_process",
     "list_import_processes",
+    "process_counts_by_status",
     "find_process_for_invoice",
     "find_process_for_shipment",
     "link_invoice",
@@ -89,6 +95,7 @@ __all__ = [
     "cancel_import_process",
     "invoice_item_residuals",
     "shipment_item_residuals",
+    "process_cost_facts",
     "ensure_doganale",
     "create_doganale_version",
     "replace_doganale_lines",
@@ -128,4 +135,7 @@ __all__ = [
     "list_nationalizations",
     "clearance_residuals",
     "sum_nationalized_qty_by_product",
+    "sum_nationalized_qty_bulk",
+    "clearance_residuals_by_product",
+    "blocked_exceptions",
 ]

@@ -1,5 +1,6 @@
 /**
  * RUX-3B-2b — jornada Ordine 589 com catálogo vazio (sem seed).
+ * Isolar: nunca no mesmo E2E_SPECS que cat-pim (prepare fresco, suíte rux-3b-2b).
  * Screenshots em docs/v2/etapa-j3/screenshots/rux-3b-2b/
  */
 import { test, expect } from "@playwright/test";

@@ -17,6 +17,7 @@ import {
 import { canWriteCustoms, conflictMessage } from "./customsPermissions";
 import { numerarioDisplayTotals } from "./numerarioDisplay";
 import { fundingStatusLabel } from "../inventory/inventoryLabels";
+import { canWriteTreasury } from "../treasury/treasuryApi";
 import {
   Button,
   EmptyState,
@@ -36,6 +37,7 @@ type Props = {
 
 export function NumerarioPanel({ user, processId }: Props) {
   const writable = canWriteCustoms(user);
+  const canPay = canWriteTreasury(user);
   const [fundings, setFundings] = useState<FundingRequest[] | undefined>(undefined);
   const [payees, setPayees] = useState<CustomsPayee[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +127,7 @@ export function NumerarioPanel({ user, processId }: Props) {
         )}
       </SectionCard>
 
-      {writable ? (
+      {writable && fundings && fundings.length === 0 ? (
         <SectionCard title="Novo favorecido / Numerário (ensaio — não substitui o PDF)">
           <p className="muted">
             Use só quando não houver Solicitação de Numerário no ingest. Valores digitados aqui não
@@ -341,6 +343,7 @@ export function NumerarioPanel({ user, processId }: Props) {
               · <Link to="/payables">Abrir AP</Link>
             </p>
           ) : null}
+          <NumerarioSettlement fr={selected} canPay={canPay} />
           <NumerarioLineGroups fr={selected} />
           {selected.status === "CONFIRMED" && writable ? (
             <Button
@@ -360,6 +363,72 @@ export function NumerarioPanel({ user, processId }: Props) {
             </Button>
           ) : null}
         </SectionCard>
+      ) : null}
+    </div>
+  );
+}
+
+function NumerarioSettlement({
+  fr,
+  canPay,
+}: {
+  fr: FundingRequest;
+  canPay: boolean;
+}) {
+  const summary = fr.settlement_summary ?? null;
+  const payableId = fr.payable_links?.[0]?.payable_id;
+  const residual = Number(summary?.balance ?? 0);
+  const brl = (summary?.currency || fr.currency) === "BRL";
+  const showPay = canPay && residual > 0 && brl && payableId != null && fr.status === "CONFIRMED";
+
+  if (!summary && fr.status === "DRAFT") return null;
+
+  return (
+    <div data-testid="numerario-settlement" className="stack">
+      {summary ? (
+        <>
+          <p data-testid="numerario-settlement-status">{summary.derived_status_label}</p>
+          <p data-testid="numerario-settlement-amount">
+            Obrigação {formatMoney(summary.amount, summary.currency || fr.currency)}
+          </p>
+          <p data-testid="numerario-settlement-allocated">
+            Pago {formatMoney(summary.allocated, summary.currency || fr.currency)}
+          </p>
+          <p data-testid="numerario-settlement-balance">
+            Saldo {formatMoney(summary.balance, summary.currency || fr.currency)}
+          </p>
+          {summary.allocations.length > 0 ? (
+            <ul data-testid="numerario-settlement-payments">
+              {summary.allocations.map((a) => (
+                <li key={a.allocation_id}>
+                  <Link to={`/payments/${a.payment_id}?payable_id=${a.payable_id}`}>
+                    Pagamento aplicado {formatMoney(a.amount, summary.currency || fr.currency)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">Nenhum pagamento aplicado ainda.</p>
+          )}
+        </>
+      ) : (
+        <p className="muted">Situação financeira indisponível.</p>
+      )}
+      {showPay && payableId != null ? (
+        <Link
+          className="ui-button ui-button--primary"
+          data-testid="numerario-register-payment"
+          to={`/payments/new?${new URLSearchParams({
+            payable_id: String(payableId),
+            amount: summary?.balance || "",
+            currency: summary?.currency || fr.currency,
+          }).toString()}`}
+        >
+          Registrar pagamento
+        </Link>
+      ) : null}
+      {!brl && fr.status === "CONFIRMED" ? (
+        <Notice tone="warning">Numerário em moeda estrangeira não é liquidável nesta versão.</Notice>
       ) : null}
     </div>
   );

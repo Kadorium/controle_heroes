@@ -124,8 +124,9 @@ test.describe("J3-UIV operational acceptance", () => {
     await openLink.click();
     await expect(page.getByTestId("ingestion-workspace-page")).toBeVisible();
     await expect(page.getByTestId("ingestion-pdf-viewer")).toBeVisible();
-    await expect(page.getByTestId("ingestion-fields-panel")).toBeVisible();
     await expect(page.getByTestId("ingestion-commit-panel")).toBeVisible();
+    await expect(page.getByTestId("commit-submit")).toBeVisible();
+    await expect(page.getByTestId("commit-submit")).toContainText(/Criar pedido em rascunho/i);
     await shot(page, afterDir, "uiv-a-workspace-ordine.png");
 
     // READY is derived — no Marcar READY button (RUX)

@@ -248,3 +248,112 @@ def get_sku_position(db: Session, product_id: int) -> dict[str, Any]:
             for bal in balances
         ],
     }
+
+
+def stock_overview_by_location_type(db: Session) -> dict:
+    """Rollup qty>0 por regime. Zero conhecido ≠ overview indisponível."""
+    from sqlalchemy import func
+
+    from app.inventory.models import LOCATION_TYPES, StockBalance, StockLocation
+
+    repo.ensure_default_locations(db)
+    rows = (
+        db.query(
+            StockLocation.location_type,
+            func.count(func.distinct(StockBalance.product_id)),
+            func.coalesce(func.sum(StockBalance.qty), 0),
+        )
+        .join(StockLocation, StockLocation.id == StockBalance.location_id)
+        .filter(StockBalance.qty > 0)
+        .group_by(StockLocation.location_type)
+        .all()
+    )
+    by_type = {t: {"location_type": t, "sku_count": 0, "qty": "0"} for t in LOCATION_TYPES}
+    for loc_type, sku_count, qty in rows:
+        key = str(loc_type)
+        if key not in by_type:
+            continue
+        q = Decimal(str(qty or 0))
+        by_type[key] = {
+            "location_type": key,
+            "sku_count": int(sku_count or 0),
+            "qty": f"{q:.4f}".rstrip("0").rstrip(".") or "0",
+        }
+    return {
+        "by_location_type": [by_type[t] for t in LOCATION_TYPES],
+        "sku_with_balance": sum(by_type[t]["sku_count"] for t in LOCATION_TYPES),
+    }
+
+
+def _qty_str(value: Decimal | int | str | None) -> str:
+    q = Decimal(str(value or 0))
+    return f"{q:.4f}".rstrip("0").rstrip(".") or "0"
+
+
+def stock_position_bulk(db: Session, product_ids: list[int] | set[int] | None = None) -> dict[int, dict[str, str]]:
+    """Qty por produto × regime numa query. Ausência de linha = 0 conhecido."""
+    from sqlalchemy import func
+
+    from app.inventory.models import LOCATION_TYPES, StockBalance, StockLocation
+
+    repo.ensure_default_locations(db)
+    q = (
+        db.query(
+            StockBalance.product_id,
+            StockLocation.location_type,
+            func.coalesce(func.sum(StockBalance.qty), 0),
+        )
+        .join(StockLocation, StockLocation.id == StockBalance.location_id)
+        .group_by(StockBalance.product_id, StockLocation.location_type)
+    )
+    ids = sorted({int(i) for i in product_ids}) if product_ids else None
+    if ids is not None:
+        if not ids:
+            return {}
+        q = q.filter(StockBalance.product_id.in_(ids))
+    out: dict[int, dict[str, str]] = {}
+    for pid, loc_type, qty in q.all():
+        row = out.setdefault(int(pid), {t: "0" for t in LOCATION_TYPES})
+        key = str(loc_type)
+        if key in row:
+            row[key] = _qty_str(qty)
+    if ids is not None:
+        for pid in ids:
+            out.setdefault(pid, {t: "0" for t in LOCATION_TYPES})
+    return out
+
+
+def domestic_received_bulk(db: Session, product_ids: list[int] | set[int]) -> dict[int, Decimal]:
+    from sqlalchemy import func
+
+    from app.inventory.models import GoodsReceipt, GoodsReceiptLine
+
+    ids = sorted({int(i) for i in product_ids})
+    if not ids:
+        return {}
+    rows = (
+        db.query(GoodsReceiptLine.product_id, func.coalesce(func.sum(GoodsReceiptLine.quantity), 0))
+        .join(GoodsReceipt, GoodsReceiptLine.receipt_id == GoodsReceipt.id)
+        .filter(
+            GoodsReceiptLine.product_id.in_(ids),
+            GoodsReceipt.status == "CONFIRMED",
+            GoodsReceipt.receipt_type.in_(("DOMESTIC_IN", "RECLASS")),
+        )
+        .group_by(GoodsReceiptLine.product_id)
+        .all()
+    )
+    return {int(pid): Decimal(str(qty or 0)) for pid, qty in rows}
+
+
+def cleared_not_received_bulk(db: Session, product_ids: list[int] | set[int]) -> dict[int, str]:
+    ids = sorted({int(i) for i in product_ids})
+    if not ids:
+        return {}
+    nat = customs_public.sum_nationalized_qty_bulk(db, ids)
+    rec = domestic_received_bulk(db, ids)
+    out: dict[int, str] = {}
+    for pid in ids:
+        cleared = Decimal(str(nat.get(pid) or 0))
+        received = rec.get(pid, Decimal("0"))
+        out[pid] = _qty_str(max(cleared - received, Decimal("0")))
+    return out

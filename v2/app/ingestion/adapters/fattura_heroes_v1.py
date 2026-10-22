@@ -524,13 +524,8 @@ def match_catalog(db: Session, raw: AdapterRawResult) -> tuple[MatchResult, list
     for line in raw.lines:
         sku = line.sku
         product_id: int | None = None
-
-        # Try exact SKU/EAN match first
-        try:
-            product = catalog_public.get_product_by_sku(db, sku)
-            product_id = product.id
-        except Exception:
-            product_id = None
+        product = catalog_public.lookup_product_by_sku_or_ean(db, sku)
+        product_id = product.id if product else None
 
         if product_id is None:
             try:

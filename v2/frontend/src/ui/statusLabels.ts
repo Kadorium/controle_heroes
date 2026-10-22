@@ -17,6 +17,7 @@ type StatusMeta = { label: string; semantics: StatusSemantics };
 const ORDER: Record<string, StatusMeta> = {
   DRAFT: { label: "Rascunho", semantics: "neutral" },
   CONFIRMED: { label: "Confirmado", semantics: "success" },
+  CLOSED: { label: "Encerrado", semantics: "information" },
   CANCELLED: { label: "Cancelado", semantics: "danger" },
 };
 

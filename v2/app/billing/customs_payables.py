@@ -27,6 +27,7 @@ def create_customs_payable_from_funding(
     amount: Decimal | str,
     currency: str,
     payee_display_name: str,
+    payee_tax_id: str | None = None,
     idempotent: bool = True,
 ) -> Payable:
     """Cria Payable origem CUSTOMS_FUNDING (invoice_id/payment_term_id nulos).
@@ -41,6 +42,10 @@ def create_customs_payable_from_funding(
         raise PayableValidationError("payee_display_name é obrigatório para payable Customs")
     if len(name) > 256:
         raise PayableValidationError("payee_display_name excede 256 caracteres")
+
+    tax = (payee_tax_id or "").strip() or None
+    if tax and len(tax) > 64:
+        raise PayableValidationError("payee_tax_id excede 64 caracteres")
 
     amt = parse_decimal(amount) if not isinstance(amount, Decimal) else amount
     if amt is None or amt <= 0:
@@ -80,6 +85,7 @@ def create_customs_payable_from_funding(
         source_type=SOURCE_CUSTOMS_FUNDING,
         source_id=src,
         payee_display_name=name,
+        payee_tax_id=tax,
         version=1,
     )
     db.add(row)
@@ -111,5 +117,6 @@ def cancel_customs_payable(db: Session, payable_id: int) -> Payable:
             f"Payable Customs #{payable_id} tem saldo diferente do valor — cancelamento bloqueado"
         )
     row.status = "CANCELLED"
+    row.version = int(row.version or 1) + 1
     db.flush()
     return row

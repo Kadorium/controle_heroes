@@ -23,6 +23,7 @@ const STATUS_CHIPS: { value: string; label: string }[] = [
   { value: "", label: "Todos" },
   { value: "DRAFT", label: "Rascunho" },
   { value: "CONFIRMED", label: "Confirmado" },
+  { value: "CLOSED", label: "Encerrado" },
   { value: "CANCELLED", label: "Cancelado" },
 ];
 
@@ -101,9 +102,14 @@ export function OrdersListPage({ user }: Props) {
         subtitle="Fila operacional de compras"
         actions={
           canWriteOrders(user) ? (
-            <Link className="ui-button" to="/orders/new" data-testid="orders-new-cta">
-              Novo pedido
-            </Link>
+            <>
+              <Link className="ui-button ui-button--secondary" to="/orders/new?pdf=1" data-testid="orders-import-ordine-cta">
+                Importar Ordine
+              </Link>
+              <Link className="ui-button" to="/orders/new" data-testid="orders-new-cta">
+                Novo pedido
+              </Link>
+            </>
           ) : null
         }
       />
@@ -134,8 +140,23 @@ export function OrdersListPage({ user }: Props) {
       </div>
       {rows.length === 0 ? (
         <EmptyState
-          message="Nenhum pedido neste filtro"
-          orientation="Ajuste o status ou crie um novo pedido."
+          message={
+            statusFilter
+              ? "Nenhum pedido neste filtro"
+              : "Nenhuma ordem — criar ou importar Ordine"
+          }
+          orientation={
+            statusFilter
+              ? "Ajuste o status ou crie um novo pedido."
+              : "Crie o pedido na tela ou preencha a partir de um PDF de Ordine."
+          }
+          action={
+            canWriteOrders(user) ? (
+              <Link className="ui-button" to="/orders/new?pdf=1" data-testid="orders-empty-import">
+                Importar Ordine
+              </Link>
+            ) : undefined
+          }
         />
       ) : (
         <>

@@ -130,7 +130,7 @@ class FatturaNoBillableLines(IngestionError):
 class FatturaSkuNotOnOrder(IngestionError):
     def __init__(self, messages: list[str]) -> None:
         super().__init__(
-            " ".join(messages) if messages else "SKU do PDF não está no pedido.",
+            " ".join(messages) if messages else "Código de barras do PDF não está no pedido.",
             code="fattura_sku_not_on_order",
         )
 
@@ -241,7 +241,7 @@ def _preview_ops_for_line_plan(plan: FatturaLinePlan) -> list[FatturaPreviewOper
                 FatturaPreviewOperation(
                     op_key="match_choice",
                     description=(
-                        f"Linha PDF {m.row_index} SKU {m.sku}: "
+                        f"Linha PDF {m.row_index} código de barras {m.sku}: "
                         f"operador escolheu item #{m.order_item_id} "
                         f"(preço pedido {m.order_unit_price}, saldo {m.remaining_before})"
                     ),
@@ -1261,10 +1261,7 @@ def execute_commit_fattura(
                 _raise_line_plan_blockers(line_plan)
             if not line_plan.items_payload:
                 raise FatturaNoBillableLines()
-            base_notes = (
-                f"Criada via ingestão Fattura {invoice_number} "
-                f"(IR doc={document_id}, policy={policy})"
-            )
+            base_notes = f"Criada a partir da fatura {invoice_number}"
             invoice = billing_public.create_invoice(
                 db,
                 order_id=target_order_id,

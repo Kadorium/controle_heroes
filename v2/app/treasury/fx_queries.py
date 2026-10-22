@@ -249,3 +249,38 @@ def payment_fx_view(db: Session, payment_id: int) -> dict:
         ],
         "allocations": lines,
     }
+
+
+def invoice_fx_facts(db: Session, invoice_id: int) -> dict:
+    """BRL canónico por Invoice comercial. Sem média global entre invoices."""
+    payables = billing_public.list_payables(db, invoice_id=invoice_id, limit=200)
+    realized_brl = money2(Decimal("0"))
+    open_foreign = money2(Decimal("0"))
+    initial_rate = None
+    current_rate = None
+    currency = None
+    payable_ids = []
+    for p in payables:
+        if p.status == "CANCELLED":
+            continue
+        payable_ids.append(p.id)
+        currency = p.currency
+        realized_brl += payable_cost_brl(db, p.id)
+        open_foreign += money2(p.balance)
+        ini = get_initial_plan(db, p.id)
+        cur = get_current_plan(db, p.id)
+        if ini is not None and initial_rate is None:
+            initial_rate = ini.rate
+        if cur is not None:
+            current_rate = cur.rate
+    return {
+        "invoice_id": invoice_id,
+        "payable_ids": payable_ids,
+        "currency": currency,
+        "realized_brl": decimal_str(realized_brl) if payable_ids else None,
+        "open_foreign": decimal_str(open_foreign) if payable_ids else None,
+        "initial_rate": decimal_str(initial_rate) if initial_rate is not None else None,
+        "current_rate": decimal_str(current_rate) if current_rate is not None else None,
+        "has_realized": bool(payable_ids) and realized_brl > 0,
+        "has_open": bool(payable_ids) and open_foreign > 0,
+    }

@@ -15,7 +15,7 @@ vi.mock("./billingApi", () => ({
     currency: "EUR",
     terms_mode: null,
     created_by_actor_id: "1",
-    notes: "Divergência de preço (Fattura ≠ pedido; a fatura segue o documento):\nSKU X pedido 50.00 · Fattura 55.00",
+    notes: "Criada via ingestão Fattura 202 (IR doc=1, policy=A)\n\nDivergência de preço (Fattura ≠ pedido; a fatura segue o documento):\nSKU 8057628955191 linha PDF 0: pedido 10.00 · Fattura 43.03 (item pedido #5)",
     version: 1,
     incomplete_line_count: 1,
     blockers: ["Há linhas com preço ou desconto incompletos", "Defina scadenze (PERCENT ou AMOUNT)"],
@@ -73,6 +73,10 @@ describe("InvoiceDetailPage", () => {
     expect(await screen.findByTestId("invoice-detail")).toBeInTheDocument();
     expect(screen.getByTestId("invoice-blockers")).toBeInTheDocument();
     expect(screen.getByTestId("invoice-price-divergence")).toBeInTheDocument();
+    expect(screen.getByTestId("invoice-price-divergence")).toHaveTextContent(/código de barras 8057628955191/);
+    expect(screen.getByTestId("invoice-price-divergence")).toHaveTextContent(/linha 1/);
+    expect(screen.getByTestId("invoice-price-divergence")).not.toHaveTextContent("IR doc");
+    expect(screen.getByTestId("invoice-price-divergence")).not.toHaveTextContent("policy=A");
     expect(screen.getByTestId("issue-invoice")).toBeDisabled();
     expect(screen.getByTestId("issue-blocked-reason")).toHaveTextContent(/bloqueado/i);
   });

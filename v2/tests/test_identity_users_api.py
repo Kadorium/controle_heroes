@@ -62,3 +62,32 @@ def test_users_forbidden_without_permission(admin_client):
     assert login.status_code == 200, login.text
     r = c.get("/api/users")
     assert r.status_code == 403
+
+
+def test_users_list_filters_status_and_role(admin_client):
+    c = admin_client
+    roles = {r["name"]: r["id"] for r in c.get("/api/roles").json()}
+    r = c.post(
+        "/api/users",
+        json={
+            "email": "filter.ops@epic.com.br",
+            "name": "Filtro Ops",
+            "password": "secret123",
+            "role_id": roles["comprador"],
+        },
+    )
+    assert r.status_code == 201, r.text
+    uid = r.json()["id"]
+    r = c.patch(f"/api/users/{uid}", json={"is_active": False})
+    assert r.status_code == 200
+
+    inactive = c.get("/api/users", params={"is_active": False, "q": "Filtro Ops"})
+    assert inactive.status_code == 200
+    assert inactive.json()["total"] >= 1
+    assert all(not x["is_active"] for x in inactive.json()["items"])
+
+    by_role = c.get("/api/users", params={"role": "comprador", "q": "Filtro Ops"})
+    assert by_role.status_code == 200
+    assert all(x["role"] == "comprador" for x in by_role.json()["items"])
+    assert "last_login" in by_role.json()["items"][0]
+

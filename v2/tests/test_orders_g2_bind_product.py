@@ -74,6 +74,24 @@ def _confirmed_commitment_order(client, *, external_code: str = "I.V. 2"):
     return r.json()
 
 
+def test_cockpit_alerts_commitment_until_bind(admin_client):
+    order = _confirmed_commitment_order(admin_client)
+    before = admin_client.get(f"/api/orders/{order['id']}/summary")
+    assert before.status_code == 200, before.text
+    codes = {a["code"] for a in before.json().get("alerts") or []}
+    assert "COMMITMENT_UNBOUND" in codes
+    item = order["items"][0]
+    product = _product(admin_client)
+    bound = admin_client.post(
+        f"/api/orders/{order['id']}/items/{item['id']}/bind-product",
+        json={"expected_version": order["version"], "product_id": product["id"]},
+    )
+    assert bound.status_code == 200, bound.text
+    after = admin_client.get(f"/api/orders/{order['id']}/summary").json()
+    codes_after = {a["code"] for a in after.get("alerts") or []}
+    assert "COMMITMENT_UNBOUND" not in codes_after
+
+
 def test_bind_confirmed_commitment_success_and_audit(admin_client, db):
     from app.audit import public as audit_public
 

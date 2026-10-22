@@ -75,7 +75,7 @@ export function InvoicesListPage({ user: _user }: Props) {
 
   return (
     <section className="panel dense" data-testid="invoices-list">
-      <PageHeader title="Faturas" subtitle="Uma fatura por pedido" />
+      <PageHeader title="Faturas" subtitle="Um pedido pode ter várias faturas" />
       <div className="queue-shell">
         <FilterBar
           primary={

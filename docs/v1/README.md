@@ -1,6 +1,8 @@
 STATUS: ARQUIVADO — REFERÊNCIA HISTÓRICA DA V1
 NÃO UTILIZAR COMO ESPECIFICAÇÃO OU DoD DA V2
 
+Arquivamento formal no aceite final da V2 (Roadmap 0.5.142). O sistema em operação é a V2. O código `v1/` permanece no repositório **congelado** (ADR-16); sem migração de dados (ADR-10).
+
 # Documentação V1 — referência histórica
 
 Índice do legado V1. **Não** usar como especificação ou DoD da V2.

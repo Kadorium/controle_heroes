@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginUrlWithNext, sanitizeNextPath } from "./safeNext";
+import { loginUrlWithNext, postLoginPath, sanitizeNextPath } from "./safeNext";
 
 describe("sanitizeNextPath", () => {
   it("fallback para ausente ou vazio", () => {
@@ -24,6 +24,19 @@ describe("sanitizeNextPath", () => {
   it("evita loop em /login", () => {
     expect(sanitizeNextPath("/login")).toBe("/orders");
     expect(sanitizeNextPath("/login?next=/orders")).toBe("/orders");
+  });
+});
+
+describe("postLoginPath", () => {
+  it("ausente ou vazio vai para a home", () => {
+    expect(postLoginPath(null)).toBe("/");
+    expect(postLoginPath("")).toBe("/");
+    expect(postLoginPath("   ")).toBe("/");
+  });
+
+  it("path interno válido é preservado; inválido cai no fallback", () => {
+    expect(postLoginPath("/payables")).toBe("/payables");
+    expect(postLoginPath("https://evil.example/phish")).toBe("/orders");
   });
 });
 

@@ -108,6 +108,13 @@ def get_item(db: Session, item_id: int) -> ShipmentItem | None:
     return db.query(ShipmentItem).filter(ShipmentItem.id == item_id).first()
 
 
+def list_items_by_ids(db: Session, item_ids: list[int] | set[int]) -> list[ShipmentItem]:
+    ids = sorted({int(i) for i in item_ids})
+    if not ids:
+        return []
+    return db.query(ShipmentItem).filter(ShipmentItem.id.in_(ids)).all()
+
+
 def get_item_by_order_item(db: Session, shipment_id: int, order_item_id: int) -> ShipmentItem | None:
     return (
         db.query(ShipmentItem)

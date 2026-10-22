@@ -7,11 +7,13 @@ test("Inc-1 order flow", async ({ page }) => {
   await page.getByLabel(/senha/i).fill("admin123");
   await page.getByRole("button", { name: /entrar/i }).click();
   await expect(page.getByRole("link", { name: /pedidos/i }).first()).toBeVisible({ timeout: 15000 });
+  await page.goto("/orders");
 
-  await page.getByRole("main").getByRole("link", { name: /novo pedido/i }).click();
+  await page.getByTestId("orders-new-cta").click();
   await page.getByTestId("order-code").fill(code);
   await page.getByTestId("new-supplier-name").fill(`Fornecedor ${code}`);
   await page.getByTestId("line-sku").fill(`SKU-${code}`);
+  await page.getByTestId("line-sku-description").fill(`Produto ${code}`);
   await page.getByRole("button", { name: /criar sku/i }).click();
   await page.waitForTimeout(500);
   await page.getByTestId("line-qty").fill("2");

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.audit import public as audit_public
+from app.billing import public as billing_public
 from app.customs import public as customs_public
 from app.customs.errors import CustomsError
 from app.customs.models import CustomsFundingRequest, CustomsPayee
@@ -133,6 +134,36 @@ class FundingVersionLockBody(BaseModel):
     expected_version: int
 
 
+class SettlementPayableRef(BaseModel):
+    id: int
+    status: str
+    amount: str
+    balance: str
+    currency: str
+    version: int = 1
+
+
+class SettlementAllocationRef(BaseModel):
+    allocation_id: int
+    payment_id: int
+    payable_id: int
+    amount: str
+
+
+class SettlementSummaryOut(BaseModel):
+    source_type: str
+    source_id: int
+    amount: str
+    allocated: str
+    balance: str
+    currency: str | None = None
+    derived_status: str
+    derived_status_label: str
+    payable_statuses: list[str] = []
+    payables: list[SettlementPayableRef] = []
+    allocations: list[SettlementAllocationRef] = []
+
+
 class FundingPayableLinkOut(BaseModel):
     id: int
     payable_id: int
@@ -164,6 +195,7 @@ class FundingOut(BaseModel):
     tax_lines: list[FundingLineOut]
     expense_lines: list[FundingLineOut]
     payable_links: list[FundingPayableLinkOut] = []
+    settlement_summary: SettlementSummaryOut | None = None
 
 
 def _payee_out(p: CustomsPayee) -> PayeeOut:
@@ -192,7 +224,28 @@ def _line_out(line) -> FundingLineOut:
     )
 
 
-def _funding_out(fr: CustomsFundingRequest) -> FundingOut:
+def _settlement_out(db: Session, fr: CustomsFundingRequest) -> SettlementSummaryOut | None:
+    if fr.status == "DRAFT":
+        return None
+    raw = billing_public.settlement_summary_for_source(
+        db, source_type="CUSTOMS_FUNDING", source_id=fr.id
+    )
+    return SettlementSummaryOut(
+        source_type=raw["source_type"],
+        source_id=raw["source_id"],
+        amount=raw["amount"],
+        allocated=raw["allocated"],
+        balance=raw["balance"],
+        currency=raw.get("currency"),
+        derived_status=raw["derived_status"],
+        derived_status_label=raw["derived_status_label"],
+        payable_statuses=raw["payable_statuses"],
+        payables=[SettlementPayableRef(**p) for p in raw["payables"]],
+        allocations=[SettlementAllocationRef(**a) for a in raw["allocations"]],
+    )
+
+
+def _funding_out(db: Session, fr: CustomsFundingRequest) -> FundingOut:
     st = customs_public.structured_total(fr)
     div = customs_public.funding_divergence(fr)
     links = sorted(fr.payable_links or [], key=lambda l: l.sequence)
@@ -230,6 +283,7 @@ def _funding_out(fr: CustomsFundingRequest) -> FundingOut:
             )
             for lnk in links
         ],
+        settlement_summary=_settlement_out(db, fr),
     )
 
 
@@ -339,7 +393,7 @@ def api_get_funding_by_id(
     enforce_permission(user, "customs:read")
     try:
         fr = customs_public.get_funding_request(db, funding_id)
-        return _funding_out(fr)
+        return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -358,7 +412,7 @@ def api_list_fundings(
 ):
     enforce_permission(user, "customs:read")
     try:
-        return [_funding_out(fr) for fr in customs_public.list_funding_requests(db, process_id)]
+        return [_funding_out(db, fr) for fr in customs_public.list_funding_requests(db, process_id)]
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -399,7 +453,7 @@ def api_create_funding(
             )
             uow.commit()
             full = customs_public.get_funding_request(uow.session, fr.id)
-            return _funding_out(full)
+            return _funding_out(uow.session, full)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -419,7 +473,7 @@ def api_get_funding(
         fr = customs_public.get_funding_request(db, funding_id)
         if fr.process_id != process_id:
             raise AppError("Funding não pertence ao processo", code="funding_mismatch", status_code=404)
-        return _funding_out(fr)
+        return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -464,7 +518,7 @@ def api_update_funding(
                 action="funding.update",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -501,7 +555,7 @@ def api_replace_value_bases(
                 action="funding.value_bases.replace",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -538,7 +592,7 @@ def api_replace_tax_lines(
                 action="funding.tax_lines.replace",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -575,7 +629,7 @@ def api_replace_expense_lines(
                 action="funding.expense_lines.replace",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -610,7 +664,7 @@ def api_confirm_funding(
                 details="payable_created_i5_3b",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc
 
@@ -644,6 +698,6 @@ def api_cancel_funding(
                 action="funding.cancel",
             )
             uow.commit()
-            return _funding_out(fr)
+            return _funding_out(db, fr)
     except CustomsError as exc:
         raise _map_error(exc) from exc

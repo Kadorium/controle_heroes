@@ -63,8 +63,8 @@ export function humanPreviewSteps(operations: PreviewOpLike[]): string[] {
     if (commitmentCount > 0) {
       parts.push(
         commitmentCount === 1
-          ? "Registrar 1 linha de compromisso (produtos reais virão pela fatura)"
-          : `Registrar ${commitmentCount} linhas de compromisso (produtos reais virão pela fatura)`,
+          ? "Registrar 1 linha de compromisso (vincule ao catálogo para faturar e entrar no estoque)"
+          : `Registrar ${commitmentCount} linhas de compromisso (vincule ao catálogo para faturar e entrar no estoque)`,
       );
     }
     if (productCount > 0) {

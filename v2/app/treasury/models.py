@@ -30,15 +30,24 @@ class Payment(Base):
             "purpose IS NULL OR purpose IN ('ADVANCE', 'SETTLEMENT')",
             name="ck_payments_purpose",
         ),
+        CheckConstraint(
+            "(supplier_id IS NOT NULL) OR "
+            "(payee_display_name IS NOT NULL AND btrim(payee_display_name) <> '')",
+            name="ck_payments_payee_identity",
+        ),
         UniqueConstraint("idempotency_key", name="uq_payments_idempotency_key"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"), nullable=False, index=True)
+    supplier_id: Mapped[int | None] = mapped_column(
+        ForeignKey("suppliers.id"), nullable=True, index=True
+    )
     order_id: Mapped[int | None] = mapped_column(
         ForeignKey("orders.id"), nullable=True, index=True
     )
     purpose: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
+    payee_display_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    payee_tax_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
     payment_date: Mapped[date] = mapped_column(Date, nullable=False)

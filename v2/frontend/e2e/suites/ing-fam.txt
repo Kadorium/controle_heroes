@@ -1,0 +1,3 @@
+# ING-FAM — Fattura na comercial + planilha no novo pedido
+e2e/ing-fam-fattura.spec.ts
+e2e/ing-fam-xlsx.spec.ts

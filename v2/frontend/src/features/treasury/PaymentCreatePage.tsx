@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
+import { getPayable, type Payable } from "../billing/billingApi";
 import { getSupplier } from "../catalog/catalogApi";
 import { useSupplierSearch } from "../catalog/useCatalogSearch";
 import { buildReturnTo } from "../../navigation/returnState";
@@ -12,6 +13,7 @@ import {
   ErrorState,
   FileUpload,
   FormField,
+  LoadingState,
   MoneyDisplay,
   MoneyInput,
   Notice,
@@ -29,7 +31,7 @@ import {
 
 type Props = { user: User };
 
-/** G02 — query contextual AP → Novo pagamento (TARGET). */
+/** G02 — query contextual AP/Numerário → Novo pagamento (TARGET). */
 export function PaymentCreatePage({ user }: Props) {
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -44,7 +46,12 @@ export function PaymentCreatePage({ user }: Props) {
     }),
     [params],
   );
+  const customsContext = Boolean(g02.payable_id && !g02.supplier_id);
   const hasG02 = Boolean(g02.supplier_id || g02.payable_id || g02.amount);
+
+  const [payable, setPayable] = useState<Payable | null>(null);
+  const [payableError, setPayableError] = useState<string | null>(null);
+  const [payableLoading, setPayableLoading] = useState(customsContext);
 
   const [suppliers, setSuppliers] = useState<{ id: number; name: string }[]>([]);
   const [supplierId, setSupplierId] = useState(g02.supplier_id);
@@ -82,12 +89,41 @@ export function PaymentCreatePage({ user }: Props) {
     if (g02.currency) setCurrency(g02.currency);
   }, [g02.supplier_id, g02.amount, g02.currency]);
 
+  useEffect(() => {
+    if (!customsContext) return;
+    const id = Number(g02.payable_id);
+    setPayableLoading(true);
+    setPayableError(null);
+    void getPayable(id)
+      .then((p) => {
+        setPayable(p);
+        setAmount(p.balance);
+        setCurrency(p.currency);
+      })
+      .catch((e) => setPayableError(e instanceof Error ? e.message : "Erro"))
+      .finally(() => setPayableLoading(false));
+  }, [customsContext, g02.payable_id]);
+
   if (!canWriteTreasury(user)) return <ErrorState message="Sem permissão para registrar pagamentos." />;
+  if (customsContext && payableLoading) return <LoadingState message="Carregando obrigação…" />;
+  if (customsContext && payableError) return <ErrorState message={payableError} />;
 
   const supplierName =
     suppliers.find((s) => String(s.id) === String(supplierId))?.name ||
     supplierOptions.find((s) => String(s.id) === String(supplierId))?.name ||
     (g02.supplier_id && suppliers.length === 0 ? "Fornecedor" : null);
+
+  const customsBlocked =
+    customsContext &&
+    payable &&
+    (payable.source_type !== "CUSTOMS_FUNDING" || payable.currency !== "BRL");
+
+  function afterSave(pay: { id: number }) {
+    const q = new URLSearchParams();
+    if (g02.payable_id) q.set("payable_id", g02.payable_id);
+    const suffix = q.toString() ? `?${q.toString()}` : "";
+    nav(`/payments/${pay.id}${suffix}`, { state: { justRegistered: true } });
+  }
 
   async function doRegister(opts: { withoutDocument: boolean }) {
     if (busy) return;
@@ -96,30 +132,44 @@ export function PaymentCreatePage({ user }: Props) {
     try {
       if (opts.withoutDocument) {
         if (!withoutDocReason.trim()) throw new Error("Informe o motivo do override sem documento");
-        const pay = await registerPaymentJson({
-          supplier_id: Number(supplierId),
-          amount,
-          currency: currency || "EUR",
-          payment_date: date,
-          external_reference: ref || undefined,
-          register_without_document: true,
-          reason_code: withoutDocReason.trim(),
-          order_id: g02.order_id ? Number(g02.order_id) : undefined,
-        });
-        nav(`/payments/${pay.id}`);
+        const body = customsContext
+          ? {
+              payable_id: Number(g02.payable_id),
+              amount,
+              payment_date: date,
+              external_reference: ref || undefined,
+              register_without_document: true,
+              reason_code: withoutDocReason.trim(),
+            }
+          : {
+              supplier_id: Number(supplierId),
+              amount,
+              currency: currency || "EUR",
+              payment_date: date,
+              external_reference: ref || undefined,
+              register_without_document: true,
+              reason_code: withoutDocReason.trim(),
+              order_id: g02.order_id ? Number(g02.order_id) : undefined,
+            };
+        const pay = await registerPaymentJson(body);
+        afterSave(pay);
         return;
       }
       if (!file) throw new Error("Anexe o comprovante");
       const form = new FormData();
-      form.append("supplier_id", supplierId);
       form.append("amount", amount);
-      form.append("currency", currency || "EUR");
       form.append("payment_date", date);
       if (ref) form.append("external_reference", ref);
-      if (g02.order_id) form.append("order_id", g02.order_id);
       form.append("file", file);
+      if (customsContext) {
+        form.append("payable_id", g02.payable_id);
+      } else {
+        form.append("supplier_id", supplierId);
+        form.append("currency", currency || "EUR");
+        if (g02.order_id) form.append("order_id", g02.order_id);
+      }
       const pay = await registerPaymentWithFile(form);
-      nav(`/payments/${pay.id}`);
+      afterSave(pay);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro");
     } finally {
@@ -156,7 +206,14 @@ export function PaymentCreatePage({ user }: Props) {
           </Link>
         }
       />
-      {hasG02 ? (
+      {customsContext && payable ? (
+        <Notice tone="info" data-testid="g02-banner">
+          Contexto do Numerário: {payable.payee_display_name || "favorecido"} · finalidade
+          liquidação · valor sugerido{" "}
+          <MoneyDisplay amount={payable.balance} currency={payable.currency} />. A obrigação
+          permanece intacta até confirmar a aplicação.
+        </Notice>
+      ) : hasG02 ? (
         <Notice tone="info" data-testid="g02-banner">
           Contexto da fila: {supplierName || "fornecedor"}
           {g02.payable_id ? " · obrigação selecionada" : ""}
@@ -169,6 +226,11 @@ export function PaymentCreatePage({ user }: Props) {
           Sem contexto da fila. Preencha manualmente.
         </Notice>
       )}
+      {customsBlocked ? (
+        <Notice tone="warning" data-testid="customs-fx-blocked">
+          Numerário em moeda estrangeira não é liquidável nesta versão.
+        </Notice>
+      ) : null}
       {error ? (
         <Notice tone="danger" className="error">
           {error}
@@ -177,37 +239,72 @@ export function PaymentCreatePage({ user }: Props) {
       <SectionCard title="Dados do pagamento">
         <form className="stack" onSubmit={(e) => void onSubmit(e)}>
           <div className="form-grid">
-            <FormField label="Fornecedor" htmlFor="pay-supplier-q">
-              <TextInput
-                id="pay-supplier-q"
-                data-testid="pay-supplier-search"
-                placeholder="Buscar fornecedor…"
-                value={supplierQ}
-                onChange={(e) => setSupplierQ(e.target.value)}
-              />
-            </FormField>
-            <FormField label="Fornecedor" htmlFor="pay-supplier" required>
-              <SelectField
-                id="pay-supplier"
-                data-testid="pay-supplier"
-                required
-                value={supplierId}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setSupplierId(next);
-                  const picked = supplierOptions.find((s) => String(s.id) === next);
-                  if (picked) {
-                    setSuppliers((prev) =>
-                      prev.some((p) => p.id === picked.id) ? prev : [...prev, picked],
-                    );
-                  }
-                }}
-                options={[
-                  { value: "", label: "Selecione" },
-                  ...supplierOptions.map((s) => ({ value: String(s.id), label: s.name })),
-                ]}
-              />
-            </FormField>
+            {customsContext && payable ? (
+              <>
+                <FormField label="Favorecido">
+                  <TextInput
+                    data-testid="pay-payee-readonly"
+                    value={payable.payee_display_name || ""}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="CNPJ / tax ID">
+                  <TextInput
+                    data-testid="pay-tax-readonly"
+                    value={payable.payee_tax_id || "—"}
+                    readOnly
+                  />
+                </FormField>
+                <FormField label="Finalidade">
+                  <TextInput data-testid="pay-purpose-readonly" value="Liquidação" readOnly />
+                </FormField>
+                <FormField label="Moeda">
+                  <TextInput data-testid="pay-currency" value={payable.currency} readOnly />
+                </FormField>
+              </>
+            ) : (
+              <>
+                <FormField label="Fornecedor" htmlFor="pay-supplier-q">
+                  <TextInput
+                    id="pay-supplier-q"
+                    data-testid="pay-supplier-search"
+                    placeholder="Buscar fornecedor…"
+                    value={supplierQ}
+                    onChange={(e) => setSupplierQ(e.target.value)}
+                  />
+                </FormField>
+                <FormField label="Fornecedor" htmlFor="pay-supplier" required>
+                  <SelectField
+                    id="pay-supplier"
+                    data-testid="pay-supplier"
+                    required
+                    value={supplierId}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSupplierId(next);
+                      const picked = supplierOptions.find((s) => String(s.id) === next);
+                      if (picked) {
+                        setSuppliers((prev) =>
+                          prev.some((p) => p.id === picked.id) ? prev : [...prev, picked],
+                        );
+                      }
+                    }}
+                    options={[
+                      { value: "", label: "Selecione" },
+                      ...supplierOptions.map((s) => ({ value: String(s.id), label: s.name })),
+                    ]}
+                  />
+                </FormField>
+                <FormField label="Moeda" htmlFor="pay-currency">
+                  <TextInput
+                    id="pay-currency"
+                    data-testid="pay-currency"
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                  />
+                </FormField>
+              </>
+            )}
             <FormField label="Data" htmlFor="pay-date" required>
               <DateInput
                 id="pay-date"
@@ -217,19 +314,11 @@ export function PaymentCreatePage({ user }: Props) {
                 required
               />
             </FormField>
-            <FormField label="Moeda" htmlFor="pay-currency">
-              <TextInput
-                id="pay-currency"
-                data-testid="pay-currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value.toUpperCase())}
-              />
-            </FormField>
             <FormField label="Valor" htmlFor="pay-amount" required>
               <MoneyInput
                 id="pay-amount"
                 data-testid="pay-amount"
-                currency={currency}
+                currency={customsContext && payable ? payable.currency : currency}
                 value={amount}
                 onValueChange={setAmount}
                 required
@@ -277,7 +366,7 @@ export function PaymentCreatePage({ user }: Props) {
               />
             </FormField>
           ) : null}
-          <Button type="submit" data-testid="save-payment" busy={busy}>
+          <Button type="submit" data-testid="save-payment" busy={busy} disabled={Boolean(customsBlocked)}>
             Registrar
           </Button>
         </form>

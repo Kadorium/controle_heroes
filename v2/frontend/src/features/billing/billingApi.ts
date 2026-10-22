@@ -160,6 +160,42 @@ export async function getPayable(payableId: number) {
   return data!;
 }
 
+export type SettlementSummary = {
+  source_type: string;
+  source_id: number;
+  amount: string;
+  allocated: string;
+  balance: string;
+  currency?: string | null;
+  derived_status: string;
+  derived_status_label: string;
+  payable_statuses: string[];
+  payables: {
+    id: number;
+    status: string;
+    amount: string;
+    balance: string;
+    currency: string;
+    version: number;
+  }[];
+  allocations: {
+    allocation_id: number;
+    payment_id: number;
+    payable_id: number;
+    amount: string;
+  }[];
+};
+
+export async function getSettlementSummary(sourceType: string, sourceId: number) {
+  const q = new URLSearchParams({
+    source_type: sourceType,
+    source_id: String(sourceId),
+  });
+  const res = await fetch(`/api/payables/settlement-summary?${q}`, { credentials: "include" });
+  if (!res.ok) throw new Error("Erro ao carregar situação da obrigação");
+  return (await res.json()) as SettlementSummary;
+}
+
 export async function invoicedQuantities(orderId: number) {
   const { data, error } = await api.GET("/api/orders/{order_id}/invoiced-quantities", {
     params: { path: { order_id: orderId } },

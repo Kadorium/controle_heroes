@@ -128,6 +128,10 @@ ENTITY_READ_PERMISSION: dict[str, str] = {
     "payable": "billing:read",
     "supplier": "catalog:read",
     "product": "catalog:read",
+    "costing_case": "costing:read",
+    "costing_version": "costing:read",
+    "costing_expense": "costing:read",
+    "reconciliation_case": "reconciliation:read",
 }
 
 

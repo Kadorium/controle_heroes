@@ -1,0 +1,6 @@
+# CAT-PIM importa 92 produtos no prepare — nunca no mesmo E2E_SPECS que rux-3b-2b
+# (rux exige catálogo vazio). Suíte própria: npm run e2e:cat-pim
+e2e/cat-pim.spec.ts
+e2e/mdm-ux-r.spec.ts
+e2e/i9-0-shell.spec.ts
+e2e/i5-5-ux-smoke.spec.ts

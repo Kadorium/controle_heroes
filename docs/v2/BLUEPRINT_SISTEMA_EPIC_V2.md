@@ -5,9 +5,9 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.25 |
+| **Versão** | 0.2.35 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
-| **Data** | 2026-08-18 |
+| **Data** | 2026-08-21 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
 
 ### 1.1 Documentos relacionados
@@ -136,7 +136,7 @@ ERP completo; contabilidade/fiscal/WMS completos; integração bancária automá
 
 ## 4. Personas e matriz de responsabilidades
 
-> Lacuna **L-005 / F0-009**: matriz completa papéis × ações críticas ainda pendente de validação operacional Epic. Abaixo = intent V2 a partir do as-built V1 + visão de produto.
+> Lacuna **L-005 / F0-009**: matriz completa papéis × ações críticas ainda pendente de validação operacional Epic. **PARTIAL (J#7):** chrome do painel = `reporting:read` em admin, comprador, aduana e estoque; cada widget exige também o `*:read` do dono. Papéis `financeiro` / `gestor` **não** existem nesta onda. Abaixo = intent V2 a partir do as-built + visão de produto.
 
 ### 4.1 Admin
 
@@ -311,14 +311,30 @@ Hipótese de pastas internas (`domain` / `application` / `infrastructure` / `api
 | Objetivo | Fornecedores e produtos/SKUs |
 | Owner | Comprador |
 | Entidades | Supplier, Product (**um SKU = um Product**; sem família/variante) |
-| Funcionalidades | CRUD mestre; busca; filtro incompleto (NCM ou EAN ausentes); List Report paginado. **Import CSV = FUTURO** |
-| Comandos | create_product, patch_product, create_supplier, patch_supplier — **não** há `upsert_*` |
-| Consultas | search_products; `GET /api/catalog/product-list` e `supplier-list` (`{items,total,limit,offset}`). `GET /api/products` e `/api/suppliers` permanecem **array** (sem `oneOf`) |
+| Funcionalidades | CRUD mestre; busca comercial (nome, SKU, EAN, tipo, esporte, modelo, coleção); filtro de qualidade (essencial/operação/comercial) **e** fila MDM `ncm OR ean`; List Report paginado. Import genérico CSV = **FUTURO**. Lote histórico pontual = planilha controlada (não é importador CSV genérico) |
+| Comandos | create_product, patch_product, create_supplier, patch_supplier — **não** há `upsert_*`; import do lote histórico só via CLI guardado |
+| Consultas | search_products; `GET /api/catalog/product-list` (facets, summary, qualidade); `supplier-list`. `GET /api/products` e `/api/suppliers` permanecem **array** (pickers) |
 | **Deps permitidas** | Documents, Audit |
-| Proibido | Quantidades de ordem/estoque aqui; importar Orders (normalização em `catalog.normalization`) |
-| UI | Grupo **Produtos**: Produtos + Fornecedores (`catalog:read`); fichas de objeto; pickers operacionais buscam com `q` |
-| L-006 | **PARTIAL** — ean, size, color, ncm (8 dígitos), country_of_origin, unit, net_weight_kg (`> 0`); Supplier.tax_id opcional (unique parcial país+id). CAP-006 (processo de qualidade) **não** implementado; incompleto **não** bloqueia pedido/estoque |
-| Match | Ingestion casa por `Product.sku`. Código de documento sem Product = COMMITMENT |
+| Proibido | Quantidades de ordem/estoque aqui; importar Orders (normalização em `catalog.normalization`); ProductFamily/Variant; EAV genérico; embeddings/LLM/mídia nesta onda |
+| UI | **Catálogo → Produtos** (`catalog:read`); Fornecedores **não** são item de rail (overflow `⋯` + pickers). Identidade humana = **nome comercial** (DEC-MDM-HUMAN-IDENTITY); SKU secundário. Lista rica única (sem toggle compacto). Ficha Object Page: qualidade compacta fechada; edição progressiva; Comparar 2–3 produtos existentes (sem similaridade). Create mínimo SKU+descrição |
+| L-006 | **PARTIAL** — ean, size, color, ncm (8 dígitos), country_of_origin, unit, net_weight_kg (`> 0`); Supplier.tax_id opcional (unique parcial país+id). NCM ausente = informação fiscal pendente (fila, **não** blocker de pedido/estoque). CAP-006 **não** implementado |
+| Match | Ingestion casa por `Product.sku` **ou** `Product.ean`. Código de documento sem Product = COMMITMENT. **SKU ≠ EAN:** o código de barras nunca é gravado em `Product.sku` |
+
+**DEC-MDM-HUMAN-IDENTITY.** A pessoa identifica o produto pelo **nome comercial** (campo próprio; `description` permanece o texto legado sincronizado). SKU/EAN/tamanho/cor são secundários. Se o nome é vazio, igual ao SKU ou genérico (`item`/`produto`/`sku`), o título é o SKU uma vez e o subtítulo é “Sem descrição comercial”.
+
+**DEC-MDM-NAV-CATALOG.** O grupo Catálogo expõe só Produtos. Supplier permanece entidade e API; acesso contextual (overflow em Produtos; nome/picker em Pedido e Fatura).
+
+**DEC-MDM-AI-READY.** Sem embeddings, vector DB, LLM, chat ou endpoint de IA nesta campanha. Uma IA futura localiza e seleciona Products reais do Catalog; nunca inventa SKU nem cria domínio paralelo. A UI operacional **não** expõe botão morto de análise.
+
+**DEC-CAT-PIM-TAXONOMY.** Category ≠ Product Type. Taxonomia-base: 3 categorias (Raquetes, Acessórios, Vestuário) e 8 tipos. Subcategoria só onde o corpus a sustenta. Classificação REVIEW permanece distinguível; não se força 100% automático.
+
+**DEC-CAT-PIM-REVIEW.** Três semânticas distintas, sem misturar: (1) revisão de classificação = Category/Subcategory/Product Type incertos (`taxonomy_status=REVIEW`); (2) revisão geral do produto = pendência comercial da planilha (`import_decision=REVISAR`); (3) descrição a enriquecer = curta genérica/ausente (`short_generic`). Descrição fraca com taxonomia segura não gera mensagem de classificação duvidosa. Os REVIEW de classificação não se promovem sozinhos.
+
+**DEC-CAT-PIM-QUALITY.** Qualidade humana em três camadas (Essencial / Operação / Comercial). NCM ausente = informação fiscal pendente (fila). Não reduz a `ncm OR ean`. Mudança de tipo avisa e **preserva** atributos que deixam de se aplicar.
+
+**DEC-CAT-PIM-MODEL.** Modelo, coleção e cor são campos independentes. Token `#MODELO AAAA` → model + collection_year. Token `#` que é colorway → só cor; model vazio. Sem `#` inequívoco → não persistir model. Sem LLM.
+
+**DEC-CAT-PIM-COMPARE.** Comparar 2–3 Products existentes pelos dados canónicos; diferenças em destaque; sem motor de similaridade.
 
 ### 5.6 Orders
 
@@ -328,14 +344,14 @@ Hipótese de pastas internas (`domain` / `application` / `infrastructure` / `api
 | Owner | Comprador |
 | Entidades | Order, OrderItem, OrderPaymentScheduleLine |
 | Funcionalidades | Criar/confirmar/cancelar/fechar ordem; itens; `order_date`/`notes`; upload Documents (`entity_type=order`); cronograma de pagamento (planejamento); bind COMMITMENT→PRODUCT |
-| Comandos | create_order, confirm_order, add_item, close_order, set_payment_schedule, bind_product |
+| Comandos | create_order, confirm_order, add_item, close_order, reopen_order, set_payment_schedule, bind_product |
 | Consultas | order_summary (comercial); payment_schedule_view; fila |
 | **Deps permitidas** | Catalog, Documents, Audit |
 | **Proibido depender de** | Billing, Treasury, Logistics, Customs, Costing, Identity (ator via API/app) |
 | Proibições | Persistir PARTIALLY_SHIPPED/SHIPPED na Order; campos fiscais italianos genéricos (N3.1/ART 8) em Orders; criar Payment/Payable/Allocation a partir do cronograma |
 | Alertas | Ordem sem itens; confirmada sem documento |
-| UI | Fila; nova ordem; cockpit (resumo + cronograma leitura); comercial com data/notes/docs/cronograma |
-| Persistência | orders, order_items, order_payment_schedule_lines |
+| UI | Fila; nova ordem; cockpit (resumo + cronograma leitura; Encerrar/Reabrir); comercial com data/notes/docs/cronograma |
+| Persistência | orders, order_items, order_payment_schedule_lines; `closed_at`, `close_reason_code` |
 | Transação | Use cases de Orders |
 
 **Snapshots documentais (Document Readiness A2):** `OrderItem.unit` (String≤16, opcional, normalizado UPPER — ex. PZ/SET/CTNS/UN) é snapshot da UM do documento, **não** módulo UoM de Catalog. `Order.order_date` (date, sem timezone) e `Order.notes` (texto; vazio→null) expostos na API/UI. Documentos oficiais do pedido via Documents + `DocumentLink` (`entity_type=order`). Dados fiscais do Ordine permanecem no PDF / domínio fiscal futuro — fronteira J#5/J#3 preservada.
@@ -452,12 +468,12 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | Objetivo | ImportProcess/DUIMP, Doganale canônica, Numerário, taxes, nacionalização, provenance para J#3 |
 | Owner | Aduana / despachante |
 | Entidades | ImportProcess; ImportProcessInvoice / InvoiceItem / Shipment / ShipmentItem (joins); CustomsDoganale + Version + Line; CustomsFundingRequest (Numerário); CustomsPayee; CustomsValueBasis; CustomsTaxLine; CustomsExpenseLine; FundingPayableLink; Nationalization (+ Item); CustomsDivergence; CustomsProvenance |
-| Funcionalidades | 1 DUIMP → N invoices; 1 DUIMP → N shipments; alocação por item; Doganale versionada **preenchida pelo PDF** (DEC-E7-DOGANALE-FILL); Numerário com cabeçalho **a partir do PDF que contém os tributos** (não da Doganale); Payee ≠ Supplier; nacionalização parcial; handoff de fatos a Billing (Payable CUSTOMS_FUNDING **OPEN** = registrar, não pagar); provenance para J#3 |
+| Funcionalidades | 1 DUIMP → N invoices; 1 DUIMP → N shipments; alocação por item; Doganale versionada **preenchida pelo PDF** (DEC-E7-DOGANALE-FILL); Numerário com cabeçalho **a partir do PDF que contém os tributos** (não da Doganale); Payee ≠ Supplier; nacionalização parcial; handoff de fatos a Billing (confirmar Numerário → Payable CUSTOMS_FUNDING **OPEN** = registrar, não pagar); liquidação BRL no Treasury (Payment + Allocation); provenance para J#3 |
 | Comandos | create_import_process; link/unlink invoice/shipment; allocate invoice_item/shipment_item; upsert_doganale_version; upsert_funding_request + bases/tax/expense; confirm_funding → payables (via Billing public); nationalize; register_divergence; attach_provenance |
 | Consultas | process_by_id/list; clearance_residuals; divergences; funding_by_process |
 | **Deps permitidas** | Billing, Logistics, Documents, Audit |
 | **Proibido** | Treasury (Customs ↛ Treasury); criar Payment/Allocation; rateio landed cost (J#6); staging de ingestão (J#3); derivar II/IPI/PIS/COFINS/AFRMM/ICMS da Fattura Doganale |
-| Pendências | L-007 **fechada** (referência DUIMP de ensaio digitada; sem PDF DI/DUIMP); settlement CUSTOMS_FUNDING (Treasury); E7-ARRIVAL-GATE (nacionalização sem exigir ARRIVED) |
+| Pendências | L-007 **fechada** (referência DUIMP de ensaio digitada; sem PDF DI/DUIMP); settlement CUSTOMS_FUNDING **fechado** (Treasury BRL; Create ≠ Allocate); E7-ARRIVAL-GATE (nacionalização sem exigir ARRIVED) |
 | UI | SCR-019 / SCR-022 (abas) |
 | **DEC-DUIMP-MULTI-SHIP** | **Fechada (I5-0):** ImportProcess **1:N** Shipment; `shipment_id` UNIQUE no join; alocação por ShipmentItem + residual. N:M shipment↔process fora de escopo. |
 | **DEC-E7 (pacote)** | Doganale preenche Customs existente (IDENTITY / PROCESS-TARGET 0/1/N; sem associação silenciosa). Print = Documents-only. Impostos só de documento que os contenha (Numerário). REGISTRAR (Elo 7) ≠ PAGAR (Treasury). Fronteira Elo 7 = liberação confirmada; Inventory = Elo 8. ARRIVED demonstrado, **não** gate de domínio. |
@@ -484,16 +500,16 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 
 | Campo | Conteúdo |
 |---|---|
-| Objetivo | Expenses + landed cost versionado por SKU |
+| Objetivo | Custo desembarcado **bruto por componentes**, versionado, por produto/SKU no **ImportProcess** |
 | Owner | Financeiro / gestor |
-| Entidades | Expense, LandedCostVersion, components |
-| Funcionalidades | Registrar despesa; ratear; versões estimado/revisado/realizado |
-| Comandos | add_expense, compute_landed_cost, publish_version |
-| Consultas | landed_cost_by_sku |
-| **Deps permitidas** | Orders, Billing, Customs, Logistics, Treasury, Documents, Audit |
-| **Proibido** | Reporting (escrita); ser dono de FX (só **lê** taxas públicas de Treasury) |
-| UI | Landed cost |
-| Justificativa | Logistics → bases de rateio (peso/volume/qty embarcada); Treasury → FX para conversão; Expense permanece em Costing |
+| Entidades | CostingCase (1:1 processo); CostingVersion; CostingLine; CostComponent; CostAllocation; CostingExpense |
+| Funcionalidades | Sintetizar linhas; converter FX; ratear; coverage de fonte; draft/publish/supersede; Expense só se não houver owner anterior; frete por papel semântico (base CIF ≠ componente) |
+| Comandos | ensure_case, recalculate, set_freight_choice, add_expense, publish_version, revise_from_published |
+| Consultas | queue; case/version; compare |
+| **Deps permitidas** | Orders, Billing, Customs, Logistics, Treasury, Documents, Audit, **Reconciliation** (escreve pares via primitivos) |
+| **Proibido** | Catalog (snapshots na linha; DEC-J6-BOUNDARY); Inventory; Reporting (escrita); dono de FX (só lê Treasury); Payment/FOB/CIF/`structured_total` como custo; postar unit cost no estoque |
+| UI | «Custo desembarcado por produto»; subtítulo de tributos brutos obrigatório |
+| Justificativa | Costing calcula; fatos vêm de APIs públicas. **Reconciliation não importa Costing** (grafo invertido vs rascunho anterior — evita ciclo). |
 
 ### 5.14 Reconciliation
 
@@ -505,8 +521,8 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | Funcionalidades | Abrir caso; resolver; bloquear fechamento se aberto |
 | Comandos | open_case, resolve_case |
 | Consultas | open_divergences |
-| **Deps permitidas** | Leitura das APIs públicas de Orders, Billing, Treasury, Logistics, Customs, Costing, Inventory; Documents; Audit |
-| Proibido | Escrever entidades de domínio alheias |
+| **Deps permitidas** | Documents, Audit. Pares nascem de **primitivos** (Costing chama `reconciliation.public`). **Não** importa Costing nem outros donos de fato |
+| Proibido | Escrever entidades de domínio alheias; importar Costing (ciclo) |
 | Lacuna | **L-001** tolerâncias — não inventar política definitiva |
 | UI | Conciliação |
 
@@ -517,13 +533,13 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | Objetivo | Read models, dashboard, exportações |
 | Owner | Gestor |
 | Entidades | Projeções / materializações de leitura |
-| Funcionalidades | KPIs; filas; exports; **order cockpit**; **AP queue enriquecida** |
-| Comandos | — (não escreve domínio) |
-| Consultas | `order_cockpit`; `ap_queue`; (futuro) dashboard |
-| **Deps permitidas (Inc-5 atual)** | APIs públicas de **Orders, Billing, Treasury, Catalog, Documents, Audit** — só as arestas usadas no código; Logistics/Customs/Inventory/Costing entram quando houver seções reais |
-| Proibido | Escrever em tabelas de domínio; N+1 de FX (usar bulk); tratar payment unallocated como relação ordem↔pagamento |
-| HTTP | `GET /api/reporting/ap-queue`; `GET /api/orders/{id}/summary` (**handler em `reporting/routes`**, path UX sob `/orders`) |
-| UI | Contas a pagar; cockpit da ordem; Dashboard (fase tardia) |
+| Funcionalidades | KPIs; filas; **order cockpit**; **AP queue enriquecida**; **painel gerencial** (registry + snapshot + visões pessoais; três visões: Executiva / Comercial / Controle; caixa por mês civil; tendência EUR/BRL com fato; disponibilidade comercial paginada; exceções merged dos donos). Export CSV/XLSX = capacidade futura (§12), **não** desta onda |
+| Comandos | — (não escreve domínio; visões pessoais não são fato de negócio) |
+| Consultas | `order_cockpit`; `ap_queue`; `metric_catalog`; `dashboard_snapshot`; `commercial_availability`; `control_exceptions`; visões pessoais |
+| **Deps permitidas** | APIs públicas de **Orders, Billing, Treasury, Catalog, Documents, Audit, Logistics, Customs, Inventory, Costing, Ingestion, Reconciliation** — só agregados públicos; sem internals |
+| Proibido | Escrever em tabelas de domínio; N+1 em listas paginadas para KPI; somar moedas misturadas; tratar ausência como R$ 0; tratar payment unallocated como relação ordem↔pagamento; inventar demanda/venda; inventar `0` em entrada prevista |
+| HTTP | `GET /api/reporting/ap-queue`; `GET /api/orders/{id}/summary` (**handler em `reporting/routes`**, path UX sob `/orders`); `GET /api/reporting/metric-catalog`; `GET /api/reporting/dashboard`; `GET /api/reporting/commercial-availability`; `GET/POST/PATCH/DELETE /api/reporting/views` |
+| UI | Contas a pagar; cockpit da ordem; **Painel** (`/dashboard`) |
 
 ### 5.16 Grafo canônico de dependências
 
@@ -577,6 +593,9 @@ flowchart LR
   Costing --> Treasury
   Costing --> Documents
   Costing --> Audit
+  Costing --> Reconciliation
+  Reconciliation --> Documents
+  Reconciliation --> Audit
   Ingestion --> Catalog
   Ingestion --> Orders
   Ingestion --> Billing
@@ -590,14 +609,16 @@ flowchart LR
   Reporting --> Catalog
   Reporting --> Documents
   Reporting --> Audit
-  Reporting -.-> Logistics
-  Reporting -.-> Customs
-  Reporting -.-> Inventory
-  Reporting -.-> Costing
+  Reporting --> Logistics
+  Reporting --> Customs
+  Reporting --> Inventory
+  Reporting --> Costing
+  Reporting --> Ingestion
+  Reporting --> Reconciliation
 ```
 
-Arestas **sólidas** = Inc-5 implementadas. Arestas **tracejadas** = destino quando o módulo existir / seção do cockpit for ligada.  
-Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reporting + Documents + Audit; **sem escrita** em domínio alheio.
+Arestas **sólidas** = implementadas (Inc-5 + J#7 no Reporting).  
+Reconciliation no diagrama: **Costing → Reconciliation** (escrita de pares) e **Reporting → Reconciliation** (leitura pública). Reconciliation **não** lê Costing (primitivos na fachada). Sem escrita em domínio alheio. L-001 continua provisório.
 
 **Proibido no grafo:** qualquer aresta inversa às listadas; ciclos; V2→V1.
 
@@ -622,7 +643,8 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 | FundingPayableLink | Elo FundingRequest → Payable (Billing) | Customs (link) + Billing (Payable) |
 | Nationalization (+ Item) | Liberação aduaneira de qty | Customs |
 | CustomsProvenance | Origem documental/adapter para handoff J#3 | Customs |
-| Expense / LandedCostVersion | Custo e rateio | Costing |
+| CostingCase / CostingVersion / CostingLine / CostComponent / CostingExpense | Custo desembarcado bruto versionado; Expense adicional | Costing |
+| ReconciliationCase / ReconciliationPair | Pares que protegem publicação (coverage, frete, L-001) | Reconciliation |
 | StockLocation | Local com regime BONDED / DOMESTIC / QUARANTINE | Inventory |
 | InventoryMovement / GoodsReceipt | Movimento / recebimento físico | Inventory |
 | StockBalance | Saldo **derivado** por (product, location) | Inventory (read) |
@@ -642,6 +664,8 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 - ImportProcess **1:N** Shipment (`shipment_id` UNIQUE no join; **DEC-DUIMP-MULTI-SHIP**) + alocação por **ShipmentItem** (`UNIQUE(process_id, shipment_item_id)`; Σ ≤ qty embarcada)  
 - ImportProcess **1:1** CustomsDoganale lógico → **1:N** CustomsDoganaleVersion (`is_current`; retificação = supersede)  
 - ImportProcess **1:N** CustomsFundingRequest → **1:N** ValueBasis / TaxLine / ExpenseLine  
+- ImportProcess **1:1** CostingCase → **1:N** CostingVersion (kind ⊥ status); Version **1:N** CostingLine / CostComponent  
+- CostingVersion **1:N** ReconciliationPair (primitivos; Reconciliation ↛ Costing)  
 - CustomsFundingRequest **N:M** Payable via FundingPayableLink (agrupamento default por payee/due_date/currency + `sequence`)  
 - CustomsPayee **1:N** CustomsFundingRequest  
 - Nationalization **1:N** NationalizationItem; GoodsReceiptLine pode referenciar NationalizationItem  
@@ -652,7 +676,7 @@ Reconciliation (omitido no diagrama por densidade): mesmas leituras que Reportin
 **Payable.** `PaymentAllocation` liquida somente Payable. Saldo da Invoice = Σ saldos dos Payables. Antecipo **não alocado** não reduz saldo. O cronograma do pedido **não** é Payable e **não** entra na unidade de liquidação.  
 Payables de origem Customs nascem de `CustomsFundingRequest` confirmado (via Billing public + `FundingPayableLink`), **não** de linhas órfãs de imposto/despesa. Uniqueness de origem customs: `UNIQUE(source_type, source_id, sequence)` — **não** `UNIQUE(source_type, source_id)` sozinho. Payables comerciais de scadenze permanecem `UNIQUE(invoice_id, sequence)`.
 
-**Payable `CUSTOMS_FUNDING` (DEC-J5-CLOSE-ALT-B):** obrigação **registrada** a partir do Numerário. **Não** é liquidável pelo módulo Treasury atual (`Payment`/`Allocation` exigem Invoice/Supplier; `list_eligible_payables` exclui origem Customs). Liquidação Customs é backlog explícito **`Treasury settlement for CUSTOMS_FUNDING`**. Navegação AP→Numerário resolve via `source_id` + GET público Customs (`/api/customs/funding-requests/{id}`) — Billing/Reporting **não** importam Customs.
+**Payable `CUSTOMS_FUNDING` (DEC-J5-CLOSE-ALT-B, atualizado CUSTOMS-FUNDING):** obrigação **registrada** ao confirmar o Numerário (não cria Payment). **É** liquidável no Treasury em BRL: `Payment` com `supplier_id` nulo + snapshot de favorecido **estampado pelo servidor** a partir do Payable (`payable_id` no create); `PaymentAllocation` reduz o saldo. Identidade exata (tax ID normalizado se ambos têm; nome exato se nenhum tem; sem match se só um tem tax ID). Moeda estrangeira no Numerário permanece não liquidável nesta versão. Situação financeira = consulta Billing `settlement_summary_for_source` (não status persistido no FundingRequest). Navegação AP→Numerário via `source_id` + GET público Customs. Grafo inalterado: Customs ↛ Treasury, Treasury ↛ Customs, Billing ↛ Treasury.
 
 ### 6.4 Estados persistidos vs derivados
 
@@ -661,7 +685,7 @@ Payables de origem Customs nascem de `CustomsFundingRequest` confirmado (via Bil
 | Order | DRAFT → CONFIRMED → CLOSED / CANCELLED | PARTIALLY_SHIPPED, SHIPPED, PAID… |
 | Shipment | PLANNED → BOOKED → IN_TRANSIT → ARRIVED | CLEARED |
 | ImportProcess | DRAFT → SUBMITTED → IN_CLEARANCE → PARTIALLY_CLEARED → CLEARED → CLOSED; CANCELLED | progresso fino de liberação/recebimento se residual derivado for suficiente |
-| CustomsFundingRequest | DRAFT → ISSUED → CONFIRMED → PARTIALLY_SETTLED → SETTLED; CANCELLED | — |
+| CustomsFundingRequest | DRAFT → CONFIRMED → CANCELLED | ISSUED / PARTIALLY_SETTLED / SETTLED = **visão derivada** de Billing `settlement_summary_for_source` (rótulos A pagar / Parcialmente pago / Pago). Não persistir. |
 | CustomsDoganaleVersion | DRAFT / ACTIVE / SUPERSEDED / CANCELLED (`is_current`) | — |
 | Invoice / Payable / Payment | conforme máquina do domínio | “status global da importação” |
 | Reconciliation / Closure | estados próprios | — |
@@ -774,12 +798,12 @@ Cada fluxo: pré-condições → passos → regras → exceções → resultado.
 - **Regras:** não editar StockBalance; conservação física só na dimensão física (`available + bonded + quarantine` = Σ StockBalance); SkuPosition separa dimensões (física / aduaneira / logística) e **não** soma entre dimensões; stubs (`in_clearance`, `in_transit`, `future_order`) não se apresentam como medição zero. **PATH:** a jornada de operador após nacionalização é `DOMESTIC_IN` (entreposto na UI = decisão futura, não mistura neste fluxo). **BIND:** candidatos e qty do residual **item-level** da liberação confirmada; sem IDs crus; sem auto-confirm. **COVERAGE:** `nationalization_item_id` obrigatório no confirm doméstico; `product_id` da linha = item da liberação; sem fallback global-por-produto no caminho operador. **STUBS:** `cleared_not_received` é agregado do produto em **todos** os processos (verificação, não elegibilidade do receipt).  
 - **Resultado:** saldo = Σ movimentos por (product, location); reclass não infla o total físico.
 
-### 7.12 Landed cost por SKU
+### 7.12 Custo desembarcado por produto
 
-- **Pré:** Expenses + Taxes + itens.  
-- **Passos:** rateio → LandedCostVersion.  
-- **Regras:** versões estimado/revisado/realizado; Expense em Costing.  
-- **Resultado:** custo por SKU auditável.
+- **Pré:** processo com alocações; fatos Billing/Customs/Logistics/Treasury.  
+- **Passos:** sintetizar CostingLine → FX Invoice→SKU → componentes → coverage → pares → draft; publicar se não houver blocker.  
+- **Regras:** bruto (tributos não nettados); vazio ≠ 0; publicado imutável; Numerário que cobre faturas fora do processo **não** entra no total completo; frete por papel (ValueBasis FRETE = base CIF, nunca componente; FRETE INTERNACIONAL = componente; REMOÇÃO/ENTREGA = logística doméstica). Conflito de frete só se coexistirem **dois** internacionais. REVISED usa câmbio **documental** (não se rotula «custo final» nem «câmbio realizado»).  
+- **Resultado:** versão ESTIMATED/REVISED/REALIZED auditável por produto/SKU.
 
 ### 7.13 Retificação de invoice
 
@@ -802,12 +826,13 @@ Cada fluxo: pré-condições → passos → regras → exceções → resultado.
 - **Regras:** L-001 — tolerâncias provisórias isoladas; sem sumir divergência.  
 - **Resultado:** caso resolvido ou bloqueio de fechamento.
 
-### 7.16 Fechamento e reabertura
+### 7.16 Fechamento e reabertura do pedido
 
-- **Pré:** permissões; sem divergências bloqueantes.  
-- **Passos:** close snapshot → reopen com reason + permissão.  
-- **Regras:** reabertura auditada; não edição silenciosa.  
-- **Resultado:** CLOSED ou REOPENED controlado.
+- **Pré:** Order CONFIRMED; orders:write; motivo obrigatório. Sem linha COMMITMENT (sem Product). Não exige payables pagos, custo REALIZED nem processo CLEARED (outros agregados). Cockpit mostra faturado/pago como contexto.
+- **Passos:** close_order → CLOSED (closed_at, close_reason_code) + audit na mesma UoW. reopen_order → CONFIRMED com motivo no audit.
+eopen_order → CONFIRMED com motivo no audit.
+- **Regras:** só CONFIRMED→CLOSED e CLOSED→CONFIRMED. orders:cancel não se reutiliza (cancelar ≠ encerrar). Orders não importa Billing/Treasury/Logistics/Customs/Costing/Reconciliation. Sem edição silenciosa.
+- **Resultado:** pedido encerrado ou reaberto de forma auditada.
 
 ### 7.17 Cronograma de pagamento no pedido
 
@@ -843,12 +868,12 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 | Campo | Conteúdo |
 |---|---|
 | Propósito | Continuidade operacional: shell, navegação, estados e composição de telas Order-to-Pay |
-| Shell | Sidebar agrupada (**Produtos** · **Compras** · **Financeiro** · **Logística** · **Aduana** · **Administração**); permission-aware (Administração só com `users:read` — omitir, nunca 403); brand + usuário; strip FX de mercado |
-| Foundation UI | Componentes lean reutilizados: PageHeader, breadcrumb, KpiStrip, StatusBadge, Money/FxDisplay, Empty/Error/Loading, FilterBar, DetailDrawer — **sem** DataTable genérico excessivo |
+| Shell | Sidebar agrupada (**Visão → Painel** · **Compras** · **Financeiro** · **Logística** · **Aduana** · **Catálogo → Produtos** · **Administração → Usuários**); permission-aware (Administração só com `users:read` — omitir, nunca 403); brand + usuário; strip FX de mercado. **Fornecedores** fora do rail (overflow em Produtos + pickers nos fluxos). **Prestadores** fora do rail (CTA em Embarques). Viewport ≤1100: rail 56px, labels ocultos (`display:none`), tooltip `data-label`, expandir 220px reversível. Home autenticada = `/dashboard` se `reporting:read` e o preset do papel tiver widget AVAILABLE após ACL |
+| Foundation UI | Componentes lean reutilizados: PageHeader, breadcrumb, KpiStrip, StatusBadge, Money/FxDisplay, Empty/Error/Loading, FilterBar, DetailDrawer, **charts temáticos (Recharts lendo tokens)**. Superfície do painel: totais compactos + 2 casas no detalhe; taxa na cara do card = 2 casas; precisão Numeric 18,6 + fonte/`observed_at` no explainer. Tokens globais (`--space-*`, `--shadow-card`, `--radius-card`, `--color-data-*`) — telas fora do painel herdam e **não** foram reescritas. Strip do shell permanece FxDisplay (4 casas) |
 | Tipos de tela | Fila (lista+KPI+filtro URL); Cockpit (resumo+drill); Formulário/detalhe de domínio; Drawer de contexto |
 | Navegação | Deep link preserva filtros na URL; item sem permissão omitido; API 403 + UI gated |
 | Tema | Dark operacional densificado (contraste/legibilidade); **validável** — não irrevogável |
-| Permissões | **Produto-alvo:** financeiro/gestor com `reporting:read`. **Implementação atual:** admin only até validação **L-005**. Demais módulos por `*:read`/`*:write` |
+| Permissões | Chrome do painel: `reporting:read` (admin, comprador, aduana, estoque — **L-005 PARTIAL**). Widget: interseção com owner `*:read`. Papéis `financeiro`/`gestor` não existem nesta onda. Demais módulos por `*:read`/`*:write` |
 | Aceite | Shell não escreve domínio; Reporting não vira `order_central`; FE só consome HTTP público |
 
 ### 8.1 Login
@@ -869,20 +894,21 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 
 | Campo | Conteúdo |
 |---|---|
-| Propósito | Visão executiva e filas derivadas dos fluxos |
-| Usuário | Gestor (e perfis com leitura) |
-| Header | Período; atalhos para filas críticas |
-| KPIs | Exposição FX; total a pagar; ordens com pendência; shipments em trânsito; divergências abertas; unallocated |
-| Filtros | Período; fornecedor; responsável |
-| Agrupamentos | Por domínio (financeiro / logística / aduana / ingestão) |
-| Tabela | Top N itens por fila (ordem, payable, shipment, caso) |
-| Ações | Navegar para fila/cockpit; export resumido |
+| Propósito | Superfície de decisão: resume fatos, explica pendência, navega ao dono. Não escreve domínio. Três visões: **Executiva** (quanto pagar / câmbio / mercadoria / decidir), **Comercial** (o que oferecer / o que chega / o que pede atenção), **Controle** (exceções acionáveis) |
+| Usuário | Quem tem `reporting:read` (visão padrão por papel: admin→executiva, comprador→comercial, aduana/estoque→controle; personalização = cópia de preset) |
+| Header | Título da visão; subtítulo comercial; seletor **Minha visão** + Executiva/Comercial/Controle + pessoais (presets antigos `hidden`, URL ainda resolve); período relativo só onde o preset declara `period`; `generated_at` relativo; moeda se mixed; atualizar; personalizar/restaurar |
+| KPIs | Só métricas AVAILABLE após ACL. Tamanho por tipo (`stat`/`panel`/`list`/`wide`); altura do tipo, não do conteúdo. Executiva: vencido, a vencer, exposição EUR, a faturar; caixa empilhado; tendência EUR/BRL 30 dias (só fato); inbox; pedidos/faturamento; mercadoria em movimento (≠ funil). Comercial: SKUs/unidades/chegando/pendência + tabela por produto. Controle: gravidade + módulo + lista. PARTIAL não ocupa card. Ausência ≠ R$ 0. Entrada prevista sem fato = `—`, nunca `0` |
+| Filtros | Declarados por visão. `view`, `period?`, `date_from?`, `date_to?`, `as_of?`, `currency?`, `supplier_id?` — browser e HTTP usam os mesmos params. Comercial: q/categoria/tipo/situação. Controle: gravidade/módulo. Sem cross-filter automático |
+| Agrupamentos | Presets visíveis: Executiva, Comercial, Controle. Ocultos (URL): Financeiro, Compras, Operação, Aduana, Estoque, Produtos, Custos |
+| Tabela | Comercial: produto, categoria, disponível, regimes, liberado não recebido, entrada prevista. Controle: lista de exceções com drill por item. Inbox Executiva: título humano; id interno nunca é título |
+| Ações | Ícone info (`aria-label` do label) + um CTA no rodapé (`cta_label` do registry). Explainer (dialog). Sem CSV. Sem dnd/resize |
 | Inline | Não |
-| Drill-down | Widget → fila ou entidade |
-| Alertas | Filas acima de limiar; casos L-001 |
-| Empty | “Sem pendências no período” |
-| Permissões | reporting:read |
-| Aceite | Somente leitura; dados de Reporting; **última** fatia de UI; não grava domínio |
+| Drill-down | Widget → fila/entidade visível; linha Comercial → ficha; item Controle → dono; back preserva a visão |
+| Alertas | Inbox composta (não score opaco). Empty **não** diz “Sem pendências” se algum dono falhou |
+| Empty | Copy honesta (`Nada a vencer neste recorte` / `Sem saldo em moeda estrangeira` / `Nada precisa da sua decisão agora` / `Nenhum produto neste recorte`) |
+| Permissões | Chrome `reporting:read`; widget exige owner `*:read`; segmento de fluxo omite-se sem `*:read` |
+| Aceite | Somente leitura; labels do registry (nunca `metric_id`); compacto; títulos humanos; período relativo; chrome ⓘ/CTA; Recharts via tokens; grade 1440/1366/1100/1024; três visões; entrada prevista honesta |
+| DECs | DEC-UX2-CHART · TOKENS · THREE-VIEWS · SECTIONS · TOOLTIP · NO-DEMAND · FX-SERIES (além DEC-J7 OWNER/GRAPH/MOCK/ABSENCE/MOBILE/EXEC-*; **DEC-J7-CHART revogada**) |
 
 ### 8.3 Fila de ordens
 
@@ -944,7 +970,7 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 
 ### 8.6 Produtos / 8.7 Fornecedores
 
-Cadastro mestre Catalog. Lista via List Report (paginação 50; total no envelope); busca; filtros ativo / dados incompletos / sem NCM (produto) ou sem identificador fiscal (fornecedor). Ficha de objeto com PATCH (L-006 PARTIAL + `tax_id`). Sem qty operacional. Permissões `catalog:read`/`catalog:write`. CSV **FUTURO**. Incompleto é fila, não bloqueio de processo.
+Cadastro mestre Catalog. **Produtos:** lista rica (placeholder profissional, nome comercial, categoria › subcategoria, características do tipo, qualidade, situação; SKU secundário; NCM fora da linha principal). Busca live sem botão Buscar; chips de categoria e de trabalho; facets só com valores; Mais filtros (NCM/origem/unidade/EAN); URL preserva contexto. Ficha Object Page (~760px): qualidade compacta fechada («Ver pendências»); Origem da informação; Histórico. Edição progressiva; SKU readonly; create mínimo SKU+descrição. Comparar 2–3. Picker: nome → contexto → SKU; `active_only` onde já existia. Incompleto fiscal (NCM) é fila, não bloqueio. **Fornecedores:** API/rotas permanecem; **não** no rail; overflow em Produtos + pickers. Permissões `catalog:read`/`catalog:write`. CSV genérico **FUTURO**; lote histórico = XLSX controlada fora da UI.
 
 ### 8.8 Central financeira
 
@@ -970,7 +996,7 @@ Cadastro mestre Catalog. Lista via List Report (paginação 50; total no envelop
 | Campo | Conteúdo |
 |---|---|
 | Propósito | Trabalhar Payables (unidade de liquidação) com projeção FX |
-| Usuário | Financeiro; gestor (**produto-alvo** com `reporting:read`; **implementação atual** admin only até L-005) |
+| Usuário | Quem tem `reporting:read` + `billing:read` (admin e comprador nesta onda; **L-005 PARTIAL**) |
 | Header | Título; atualizar; filtros na **URL**; contexto de fornecedor **uma vez** se a página for mono-supplier (ex. Heroes) |
 | KPIs | Do **conjunto filtrado** (não da página): vencido; hoje; próx. 7d; saldo aberto; candidatos unallocated |
 | Filtros | Status; pendência; moeda; ordem; invoice; vencimento (server-side). Filtro `supplier_id` permanece na **API**; **não** é eixo principal da UX com um único fornecedor operacional |
@@ -1123,24 +1149,24 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 | Permissões | inventory:\* |
 | Aceite | StockBalance read-only; Inventory→Catalog+Customs |
 
-### 8.18 Landed cost
+### 8.18 Custo desembarcado por produto
 
 | Campo | Conteúdo |
 |---|---|
-| Propósito | Expenses + versões LC por SKU |
-| Usuário | Financeiro; gestor |
-| Header | Seleção ordem/processo; versão |
-| KPIs | Estimado; revisado; realizado; delta |
-| Filtros | Versão; SKU; componente |
-| Agrupamentos | Por SKU |
-| Colunas | SKU; bases rateio; mercadoria; frete; seguro; tax; outros; total unit |
-| Ações | Add expense; recalcular; publicar versão |
+| Propósito | Custo desembarcado bruto por componentes, por produto no processo |
+| Usuário | Financeiro; gestor; comprador (rascunho) |
+| Header | Processo; versão; cobertura |
+| KPIs | Incluído BRL; bruto; cobertura completa/incompleta |
+| Filtros | Situação da fila; versão |
+| Agrupamentos | Por produto/SKU |
+| Colunas | SKU; qty; mercadoria; tributos; despesas; frete; total; unitário |
+| Ações | Iniciar caso; recalcular; escolher frete só se conflito internacional; publicar (completo ou parcial rotulado; REVISED = «custo revisado») |
 | Inline | Não em totais publicados |
-| Drill-down | Expense; tax; shipment bases |
-| Alertas | Sem base de rateio; FX ausente |
-| Empty | CTA despesas/taxes |
-| Permissões | costing:\* |
-| Aceite | Expense∈Costing; lê Logistics+Treasury; SC-12 |
+| Drill-down | Componente; par de conciliação |
+| Alertas | Cobertura incompleta; conflito de frete; FX ausente |
+| Empty | CTA ir aos processos |
+| Permissões | costing:read/write; costing:publish (admin); reconciliation:read/resolve |
+| Aceite | Expense∈Costing; lê fatos públicos; SC-12; subtítulo de tributos brutos; SKU ≠ EAN; FX documental ≠ bancário na UI da versão REVISED |
 
 ### 8.19 Conciliação
 
@@ -1167,7 +1193,7 @@ Biblioteca + links; supersede; filtro por entidade; aceite histórico de versõe
 
 ### 8.21 Usuários e permissões
 
-CRUD Identity via Foundation HTTP (`users:read`/`users:write`). Admin define senha. Sem editor de `permissions_json`, sem auto-desativar, último admin ativo protegido. Audit na mesma UoW. Aceite: pacote Identity não depende de Documents.
+CRUD Identity via Foundation HTTP (`users:read`/`users:write`). Lista com busca live, chips de situação e papel reais (`admin`/`comprador`/`aduana`/`estoque`), coluna `last_login`. Admin define senha. Sem editor de `permissions_json`, sem auto-desativar, último admin ativo protegido. Audit na mesma UoW. Aceite: pacote Identity não depende de Documents. Não é IAM completo.
 
 ### 8.22 Auditoria
 
@@ -1212,9 +1238,9 @@ Positivo = favorável. Cotação ausente → `null` (nunca zero). Reforecast **n
 
 Pedida (OrderItem) → faturada (InvoiceItem) → embarcada (Σ ShipmentItem) → nacionalizada → disponível (movimentos). Divergência → Reconciliation.
 
-### 9.5 Landed cost e rateio
+### 9.5 Custo desembarcado e rateio
 
-Critérios de rateio documentados por versão; componentes rastreáveis.
+Custo **bruto por componentes**. Rateio por componente com base explícita; residual na última linha estável. Coverage de fonte bloqueia publicação completa. Frete: papéis semânticos (base CIF / internacional / remoção / entrega); escolha humana só se dois internacionais coexistirem. Payment prova caixa, não custo. Câmbio documental do Numerário ≠ câmbio bancário realizado.
 
 ### 9.6 Divergências, tolerâncias, fechamento
 
@@ -1251,7 +1277,7 @@ Critérios de rateio documentados por versão; componentes rastreáveis.
 
 admin, gestor, financeiro, comprador, operador/logistica — refinar com L-005.
 
-**Reporting (`reporting:read`):** produto-alvo = financeiro e gestor. **Estado implementado** = admin only até validar matriz L-005. Não ampliar automaticamente.
+**Reporting (`reporting:read`):** chrome do painel em admin, comprador, aduana e estoque (**L-005 PARTIAL**). Widget só com owner `*:read`. Produto-alvo financeiro/gestor permanece no intent; esses papéis **não** foram criados nesta onda.
 
 ### 11.2 Ações críticas (exigem permissão + audit ± documento ± reason)
 
@@ -1271,13 +1297,13 @@ AuditLog append-only; consulta por entidade; fechamento/reabertura com snapshot.
 
 | Tipo | Exemplos |
 |---|---|
-| Executivo | Exposição FX; total em aberto; ordens bloqueadas |
-| Operacional | Filas staging; scadenze; shipments em trânsito; DUIMP pendente |
-| Alertas | Unallocated; divergência; doc faltante; qty residual |
-| Exportações | CSV/XLSX de filas e LC (Excel = export, não base) |
+| Executivo | Caixa comprometido (meses civis); exposição EUR nomeada ±1%; tendência EUR/BRL 30 dias (só fato); mercadoria em movimento (contagens independentes); inbox de decisão |
+| Operacional | Filas staging; scadenze; shipments em trânsito; DUIMP pendente; **Comercial** (disponibilidade por produto); **Controle** (exceções por gravidade/módulo) |
+| Alertas | Unallocated; divergência; doc faltante; qty residual; ingestão FAILED ≠ revisão |
+| Exportações | CSV/XLSX de filas e LC (Excel = export, não base) — **futuro**; o painel **não** exporta |
 | Por entidade | Ordem, Invoice, Shipment, DUIMP, SKU |
 
-Dashboard = Reporting; não grava domínio.
+Dashboard = Reporting; não grava domínio. Gráficos = Recharts lendo tokens; nenhuma cor literal.
 
 ---
 
@@ -1356,7 +1382,7 @@ Mapeamento dos cenários canônicos deste Blueprint e dos fluxos da §7. **Sem s
 | SC-09 | Nacionalização parcial | Qty parcial + movimento |
 | SC-10 | Entrada/consumo entreposto | Saldo derivado |
 | SC-11 | Crédito origem ≠ uso | Audit + documento |
-| SC-12 | Landed cost por SKU | Expenses+Taxes rateados; versões |
+| SC-12 | Custo desembarcado por produto | Componentes brutos rateados; versões; coverage |
 | SC-13 | Documento supersedido | Versão atual + histórico |
 | SC-14 | Fechamento e reabertura | Permissão + reason + audit |
 | SC-15 | Criação manual de ordem | §7.1 |
@@ -1386,7 +1412,7 @@ Mapeamento dos cenários canônicos deste Blueprint e dos fluxos da §7. **Sem s
 | **Numerário** | Solicitação de numerário ao despachante — agregado `CustomsFundingRequest` |
 | **CustomsPayee** | Favorecido de liquidação Customs (snapshot + refs opcionais; não forçar Supplier) |
 | **Fattura Doganale** | Declaração canônica em Customs (versionada); ≠ snapshot Logistics |
-| **Landed cost** | Custo landed versionado por SKU |
+| **Custo desembarcado** | Custo bruto versionado por produto/SKU no processo (tributos em valor bruto) |
 | **Entreposto** | Regime/estoque intermediário (location BONDED) |
 | **SkuPosition** | Read model de posição por SKU (não é StockBalance) |
 | **CustomsProvenance** | Rastreio de origem de valores/linhas para J#3 |
@@ -1426,10 +1452,10 @@ A coluna **ID fase** preserva o identificador histórico (J# / fase). A **ordem 
 | REQ-V2-CUS-001 | Customs | 5.11, 7.9–7.10, 8.16 | 5 (J#5) | **4** | DUIMP 1:N invoices |
 | REQ-V2-INV-001 | Inventory | 5.12, 7.11, 8.17 | 5 (J#5) | **4** | Saldo derivado |
 | REQ-V2-ING-001 | Ingestion | 5.9, 7.2, 8.14, 10 | 3 (J#3) | **5** | Commit idempotente + golden |
-| REQ-V2-CST-001 | Costing | 5.13, 7.12, 8.18 | 6 | 6 | LC por SKU + Expense |
+| REQ-V2-CST-001 | Costing | 5.13, 7.12, 8.18 | 6 | 6 | Custo desembarcado bruto por produto + Expense; coverage |
 | REQ-V2-REC-001 | Reconciliation | 5.14, 7.15, 8.19 | 6 | 6 | Casos; L-001 isolado |
 | REQ-V2-REP-001 | Reporting | 5.15, 8.0, 8.4, 8.9 | 2 | 2 | Reporting operacional — AP queue + order cockpit (read-only) |
-| REQ-V2-REP-002 | Reporting | 5.15, 8.2, 12 | 7 | 7 | Dashboard executivo read-only |
+| REQ-V2-REP-002 | Reporting | 5.15, 8.2, 12 | 7 | 7 | Painel gerencial read-only (três visões; registry PT-BR; snapshot isolado; visões pessoais; drill; Recharts via tokens; sem CSV/IA nesta onda) |
 | REQ-V2-MOD-001 | Transversal | 3.2–3.3, 5.16, 13.4–13.5 | 1 | 1 | Arch test + revisão manual; sem ciclos; V2↛V1; regra Cursor |
 | REQ-V2-ACC-001 | Aceite | 15 | 8 | 8 | SC-01…SC-17 + equivalência cálculos |
 
@@ -1478,6 +1504,16 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 
 | Versão | Data | Notas |
 |---|---|---|
+| 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |
+| 0.2.34 | 2026-08-21 | Elo 9: frete por papel; SKU ≠ EAN; REVISED documental (nunca «custo final»/«câmbio realizado»); §5.5 / §5.13 / §7.12 / §8.18 / §9.5 |
+| 0.2.33 | 2026-08-21 | PAINEL-UX2: três visões (Executiva/Comercial/Controle); tokens + Recharts; disponibilidade comercial; exceptions() por dono; tendência FX; §5.15 / §8.0 / §8.2 / §12 |
+| 0.2.32 | 2026-08-21 | J7-EXEC-UX: Executiva comercial (caixa M0/M1/M2, exposição EUR, fluxo ≠ funil, títulos humanos, período relativo, compacto, Minha visão); §5.15 / §8.0 / §8.2 / §12 |
+| 0.2.31 | 2026-08-21 | J#7: painel gerencial; Reporting → Logistics/Customs/Inventory/Costing/Ingestion/Reconciliation; L-005 PARTIAL; §5.15 / §5.16 / §8.0 / §8.2 / §11.1 / §12 |
+| 0.2.30 | 2026-08-20 | J#6: custo desembarcado bruto; Costing → Reconciliation (sem ciclo); Catalog/Inventory fora; §5.13–5.14 / §5.16 / §7.12 / §8.18 |
+| 0.2.29 | 2026-08-20 | CUSTOMS-FUNDING: Payable CUSTOMS_FUNDING liquidável no Treasury (BRL); payee snapshot no Payment; lifecycle Funding derivado; §6.3 / §6.4 |
+| 0.2.28 | 2026-08-19 | CAT-PIM: DEC-CAT-PIM-REVIEW — classificação ≠ revisão geral ≠ descrição a enriquecer |
+| 0.2.27 | 2026-08-19 | CAT-PIM Onda 1: nome comercial; taxonomia 3×8; qualidade 3 camadas; Comparar 2–3; modelo/coleção/cor; lote histórico via XLSX; §5.5 / §8.6–8.7 |
+| 0.2.26 | 2026-08-18 | MDM-UX-R: HUMAN-IDENTITY; NAV Catálogo=Produtos; Fornecedores/Prestadores fora do rail; AI-READY sem embeddings; §5.5 / §8.0 / §8.6–8.7 / §8.21 |
 | 0.2.25 | 2026-08-18 | MDM-UX: PATCH Catalog (sem upsert); List Report; L-006 PARTIAL + tax_id; FLAT/NAV/MIN-CREATE/MATCH-SKU/LIST-CONTRACT; Users HTTP Foundation; CSV FUTURO; §5.2 / §5.5 / §8.0 / §8.6–8.7 / §8.21 |
 | 0.2.24 | 2026-08-17 | Elo 8: PATH `DOMESTIC_IN` na jornada operador; BIND residual item-level; COVERAGE sem fallback global; STUBS/`cleared_not_received` agregado; §5.12 / §7.11 |
 | 0.2.23 | 2026-08-14 | Elo 7: Doganale PDF preenche Customs; tributos só do Numerário; L-007 digitado; REGISTRAR≠PAGAR; E7-ARRIVAL-GATE; fronteira Elo 7/8; §5.11 / §10 |

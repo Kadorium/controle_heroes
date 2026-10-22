@@ -338,7 +338,7 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
                       : undefined,
                 }}
               >
-                Linha {m.row_index} SKU {m.sku} · qty {m.pdf_qty} @ {m.pdf_unit_price ?? "—"} ·{" "}
+                Linha {m.row_index} código de barras {m.sku} · qtd {m.pdf_qty} @ {m.pdf_unit_price ?? "—"} ·{" "}
                 {m.status === "matched"
                   ? `item #${m.order_item_id}`
                   : m.status === "ambiguous"
@@ -463,7 +463,7 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
                     <ul data-testid="fattura-preview-line-plan">
                       {(lines as Array<Record<string, unknown>>).map((ln, j) => (
                         <li key={j}>
-                          SKU {String(ln.sku)} · qty PDF {String(ln.pdf_qty)} @{" "}
+                          Código de barras {String(ln.sku)} · qtd PDF {String(ln.pdf_qty)} @{" "}
                           {String(ln.pdf_unit_price ?? "—")} → item #{String(ln.order_item_id)}{" "}
                           (pedido {String(ln.order_unit_price ?? "—")}, saldo{" "}
                           {String(ln.remaining_before ?? "—")})
@@ -487,7 +487,7 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
             data-testid="fattura-commit-submit"
             style={{ marginTop: "0.5rem" }}
           >
-            {commitBusy ? "Executando…" : "Commit Fattura"}
+            {commitBusy ? "Criando fatura…" : "Criar fatura em rascunho"}
           </Button>
           {commitError ? (
             <p className="error-text" role="alert">
@@ -546,7 +546,7 @@ export function FatturaCommitPanel({ documentId, user }: Props) {
               to={`/invoices/${invoiceId}`}
               data-testid="fattura-invoice-cta"
             >
-              Abrir Invoice DRAFT
+              Abrir fatura em rascunho
             </Link>
           ) : ordIdFromAttempt ? (
             <Link

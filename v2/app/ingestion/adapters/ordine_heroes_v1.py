@@ -641,7 +641,7 @@ def match_catalog(db: Session, raw: AdapterRawResult) -> tuple[MatchResult, list
                     "code": "UNMATCHED_SKU",
                     "message": (
                         f"Código de classe '{sku}' — linha de compromisso; "
-                        "produtos reais virão pela fatura."
+                        "vincule ao catálogo para faturar e entrar no estoque."
                     ),
                     "target_type": "ROW",
                     "target_id": line.row_index,
@@ -653,11 +653,8 @@ def match_catalog(db: Session, raw: AdapterRawResult) -> tuple[MatchResult, list
 
         from app.catalog.public import CatalogError
 
-        try:
-            product = catalog_public.get_product_by_sku(db, sku)
-            product_id = product.id
-        except CatalogError:
-            product_id = None
+        product = catalog_public.lookup_product_by_sku_or_ean(db, sku)
+        product_id = product.id if product else None
 
         if product_id is None:
             results = catalog_public.list_products(db, q=sku, limit=5)

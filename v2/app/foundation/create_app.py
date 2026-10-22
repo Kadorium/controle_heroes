@@ -15,6 +15,7 @@ from app.foundation.auth_routes import router as auth_router
 from app.foundation.database import SessionLocal
 from app.foundation.document_routes import router as document_router
 from app.foundation.errors import AppError, app_error_handler, http_error_handler
+from app.reporting.errors import ReportingError
 from app.foundation.health import router as health_router
 from app.foundation.logging import configure_logging
 from app.foundation.settings import ensure_runtime_dirs, get_settings
@@ -33,6 +34,8 @@ from app.customs.nationalization_routes import router as customs_nationalization
 from app.customs.routes import router as customs_router
 from app.inventory.routes import router as inventory_router
 from app.ingestion.routes import router as ingestion_router
+from app.costing.routes import router as costing_router
+from app.reconciliation.routes import router as reconciliation_router
 
 
 @asynccontextmanager
@@ -58,11 +61,19 @@ async def lifespan(_app: FastAPI):
     yield
 
 
+async def _reporting_error_handler(request, exc: ReportingError):
+    return await app_error_handler(
+        request,
+        AppError(exc.message, code=exc.code, status_code=exc.status_code, details=exc.details),
+    )
+
+
 def create_app() -> FastAPI:
     configure_logging()
     settings = get_settings()
     application = FastAPI(title=settings.app_name, lifespan=lifespan)
     application.add_exception_handler(AppError, app_error_handler)
+    application.add_exception_handler(ReportingError, _reporting_error_handler)
     application.add_exception_handler(HTTPException, http_error_handler)
 
     application.include_router(health_router, prefix="/api")
@@ -83,6 +94,8 @@ def create_app() -> FastAPI:
     application.include_router(customs_nationalization_router, prefix="/api")
     application.include_router(inventory_router, prefix="/api")
     application.include_router(ingestion_router, prefix="/api")
+    application.include_router(costing_router, prefix="/api")
+    application.include_router(reconciliation_router, prefix="/api")
     dist = settings.frontend_dist_path
     if dist.exists():
         assets = dist / "assets"

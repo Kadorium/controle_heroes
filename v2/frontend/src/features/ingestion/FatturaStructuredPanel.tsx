@@ -117,7 +117,7 @@ export function FatturaStructuredPanel({ doc }: Props) {
             <thead>
               <tr>
                 <th>#</th>
-                <th>SKU</th>
+                <th>Código de barras</th>
                 <th>Descrição</th>
                 <th>Qtd</th>
                 <th>Preço</th>
@@ -170,9 +170,9 @@ export function FatturaStructuredPanel({ doc }: Props) {
       </div>
 
       <div className="fattura-structured-scadenze" data-testid="fattura-scadenze">
-        <h3 className="ingestion-subtitle">Scadenze ({scadenze.length})</h3>
+        <h3 className="ingestion-subtitle">Vencimentos ({scadenze.length})</h3>
         {scadenze.length === 0 ? (
-          <p className="muted">Nenhuma scadenza extraída</p>
+          <p className="muted">Nenhum vencimento extraído</p>
         ) : (
           <ul>
             {scadenze.map((s, idx) => (

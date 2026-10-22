@@ -144,18 +144,24 @@ def test_no_cycles_in_allowed_graph():
         dfs(n)
 
 
-def test_billing_reporting_do_not_depend_on_customs():
+def test_billing_does_not_depend_on_customs():
     """J5-C1 Opção B: AP não resolve process via join Customs (H-CLOSE-2)."""
     assert "customs" not in ALLOWED_DEPS.get("billing", frozenset())
-    assert "customs" not in ALLOWED_DEPS.get("reporting", frozenset())
     violations = []
-    for mod in ("billing", "reporting"):
-        root = APP_ROOT / mod
-        for path in _iter_py_files(root):
-            for name in _imports(path):
-                if name == "app.customs" or name.startswith("app.customs."):
-                    violations.append(f"{path}: {name}")
+    root = APP_ROOT / "billing"
+    for path in _iter_py_files(root):
+        for name in _imports(path):
+            if name == "app.customs" or name.startswith("app.customs."):
+                violations.append(f"{path}: {name}")
     assert not violations, "\n".join(violations)
+
+
+def test_reporting_may_depend_on_customs_public():
+    assert "customs" in ALLOWED_DEPS.get("reporting", frozenset())
+    assert "costing" in ALLOWED_DEPS.get("reporting", frozenset())
+    assert "inventory" in ALLOWED_DEPS.get("reporting", frozenset())
+    assert "logistics" in ALLOWED_DEPS.get("reporting", frozenset())
+    assert "ingestion" in ALLOWED_DEPS.get("reporting", frozenset())
 
 
 def test_customs_public_funding_lookup_route_exists():
