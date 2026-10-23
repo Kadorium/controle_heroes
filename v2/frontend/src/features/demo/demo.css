@@ -1,6 +1,10 @@
 .demo-entry { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; margin:0 0 14px; font-size:12px; color:var(--text-muted,#586578); }
 .demo-entry details { margin-left:auto; max-width:600px; }
 .demo-entry summary,.demo-panel summary { cursor:pointer; }
+.demo-entry { margin-bottom:8px; gap:8px; }
+.demo-entry>.ui-button { min-height:28px; padding:4px 9px; font-size:12px; }
+.demo-entry details { position:relative; }
+.demo-entry details[open]>p { position:absolute; z-index:40; right:0; width:300px; background:white; border:1px solid #dfe4ec; padding:10px; border-radius:8px; }
 body.demo-active .demo-entry { display:none; }
 .demo-panel { position:fixed; top:16px; left:var(--demo-panel-left,244px); width:var(--demo-panel-width,calc(100vw - 268px)); max-height:calc(100vh - 32px); overflow:auto; box-sizing:border-box; z-index:45; padding:10px 12px; margin:0 0 12px; border:1px solid #c3d3e2; border-radius:8px; background:#f7f9fc; color:#182b46; font-size:14px; line-height:1.4; display:grid; grid-template-columns:1fr auto; gap:4px 14px; }
 .demo-spacer { height:var(--demo-panel-offset,120px); }

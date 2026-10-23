@@ -202,11 +202,11 @@ export function NationalizationPanel({
             {rows.map((n) => (
               <li key={n.id} data-testid={`nationalization-item-${n.id}`}>
                 #{n.id} · {nationalizationStatusLabel(n.status)} · v{n.version} · {n.items.length}{" "}
-                itens
+                {n.items.length===1?'item':'itens'}
                 {n.items.map((it) => (
                   <span key={it.id}>
                     {" "}
-                    [{it.product_id ? `produto` : "item"} qty={formatQuantity(it.quantity)}]
+                    · {formatQuantity(it.quantity)} {Number(it.quantity)===1?'unidade':'unidades'}
                   </span>
                 ))}
                 {writable && n.status === "CONFIRMED" && !natHasReceivedStock(n.id) ? (

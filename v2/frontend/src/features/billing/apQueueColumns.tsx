@@ -77,7 +77,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
       if (invText === "—") return "—";
       return (
         <RowLink to={`/invoices/${row.invoice_id}`} onClick={(e) => e.stopPropagation()}>
-          {invText}
+          <span className="ap-reference" title={invText}>{invText}</span>
         </RowLink>
       );
     },
@@ -114,7 +114,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
       if (ordText === "—") return "—";
       return (
         <RowLink to={`/orders/${row.order_id}`} onClick={(e) => e.stopPropagation()}>
-          {ordText}
+          <span className="ap-reference" title={ordText}>{ordText}</span>
         </RowLink>
       );
     },

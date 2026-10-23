@@ -12,3 +12,20 @@
 .ap-refined .operational-table-wrap { border: 1px solid #e0e7ef; border-radius: 12px; background: #fff; }
 .ap-refined .ap-balance { font-weight: 650; font-variant-numeric: tabular-nums; }
 .ap-refined [data-column-id="invoice"], .ap-refined [data-column-id="order"] { overflow-wrap: anywhere; }
+.panel.dense.ap-refined { display:block; }
+.ap-refined .page-header { margin:0 0 12px; padding:0; }
+.ap-summary { margin:0 0 12px; border-block:1px solid #e2e6ec; padding:6px 0; }
+.ap-summary-heading,.ap-summary-row { display:grid; grid-template-columns:56px repeat(5,minmax(0,1fr)); gap:10px; align-items:center; }
+.ap-summary-heading { color:#5a6471; font-size:12px; padding:4px 0; }
+.ap-summary-heading small { font-size:11px; }
+.ap-summary-row { min-height:36px; }
+.ap-summary-row button { text-align:left; background:transparent; border:0; border-radius:5px; padding:6px 0; font-size:16px; color:#1f2d41; font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; }
+.ap-summary-row button:hover { background:#f0f4fa; }
+.ap-summary-row button:focus-visible { outline:3px solid #647fe8; outline-offset:2px; }
+.ap-summary-help { font-size:12px; color:#586476; margin-top:2px; }
+.ap-summary-help summary { cursor:pointer; }
+.ap-summary-help p { margin:5px 0; }
+.ap-refined .filter-bar { margin:8px 0; }
+.ap-refined .operational-table td { padding-block:8px; }
+.ap-reference { display:block; max-width:165px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:1100px) { .ap-summary-heading,.ap-summary-row { gap:6px; grid-template-columns:42px repeat(5,minmax(0,1fr)); } .ap-summary-row button { font-size:14px; overflow-wrap:anywhere; } }

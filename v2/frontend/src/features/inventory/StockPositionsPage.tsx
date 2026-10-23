@@ -57,7 +57,7 @@ export function StockPositionsPage({user}:{user:User}) {
       <dl className="experience-stats">{Object.entries(regimes).map(([k,label])=><div key={k}><dt>{label}</dt><dd>{number(row.quantities[k as keyof typeof regimes])} <small>{row.unit||"unidade não informada"}</small></dd></div>)}</dl>
       {row.balances.some(b=>Number(b.qty)!==0) && <p className="muted">{row.balances.filter(b=>Number(b.qty)!==0).map(b=>`${b.name} · ${number(b.qty)} ${row.unit||""}`).join(" / ")}</p>}
       <Link className="experience-link" to={`/inventory/movements?product_id=${productId}`} state={{stockReturn:location.pathname+location.search}}>Ver movimentos</Link>
-      <StockValueDetail productId={productId} user={user} onOrigin={(caseId,versionId)=>go({case:String(caseId),version:String(versionId)})}/>
+      <StockValueDetail productId={productId} user={user} priceListId={Number(params.get("price_list_id"))||undefined} onOrigin={(caseId,versionId)=>go({case:String(caseId),version:String(versionId)})}/>
       <section className="experience-cost"><div className="experience-cost-header"><h2>Custo por compra</h2>{selectedCase && <button onClick={()=>go({case:null,version:null})}>Escolher outra compra</button>}</div>
         {!can("costing:read") ? <p className="muted">Custo não disponível para este acesso. A posição de estoque permanece disponível.</p> : <>{state(sources)}
           {sources.data?.total===0 && <p className="muted">Nenhum custo vinculado a este produto.</p>}
@@ -79,5 +79,5 @@ export function StockPositionsPage({user}:{user:User}) {
       <details className="experience-source"><summary>Referência cambial e cobertura</summary><p>{currentCost.fx.kind==="documental"?"Conversão documental; não representa câmbio bancário realizado.":"Consulte a natureza cambial desta versão."} {currentCost.fx.documentary_rate?`Taxa documental: ${number(currentCost.fx.documentary_rate)}.`:"Taxa documental não informada."}</p><p>{currentCost.partial_coverage?"Publicação com cobertura parcial.":"Cobertura informada pela versão: "+(currentCost.coverage.coverage||"não informada")}</p></details>
     </>}{docId>0 && currentCost && (doc ? <div className="experience-document" data-testid="stock-source-document"><PdfViewerPanel key={doc.id} contentUrl={`/api/documents/${doc.id}/content`} activeLocator={null} compactChrome /></div>:<p role="alert">Documento não disponível nesta versão ou para seu acesso.</p>)}</>}
   </section>;
-  return <StockExplorer user={user} onOpen={id=>go({product:String(id)})} />;
+  return <StockExplorer user={user} onOpen={(id,priceListId)=>go({product:String(id),price_list_id:priceListId?String(priceListId):null})} />;
 }

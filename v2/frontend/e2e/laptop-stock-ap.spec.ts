@@ -1,0 +1,19 @@
+import {test,expect,type Page} from '@playwright/test';
+import {writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+const out=resolve('../../../audit-lab/stock-executive-20261023/laptop');
+async function ready(page:Page){await expect(page.locator('.stock-numbers')).toBeVisible();await expect(page.getByText('Consultando estoque…',{exact:true})).toHaveCount(0);}
+test('compact stock composition persisted, measures independent, second page and saved context',async({page})=>{
+ await page.request.post('/api/auth/dev-login');await page.setViewportSize({width:1366,height:681});await page.goto('/inventory/positions?modality_ids=bt&group_by=item_kind');await ready(page);
+ const original=await page.locator('.stock-numbers').innerText();const toggle=page.getByRole('button',{name:'Ver composição'});await toggle.click();await expect(page.getByLabel('Composição do estoque')).toBeVisible();await page.reload();await ready(page);await expect(page.getByLabel('Composição do estoque')).toBeVisible();await page.getByRole('button',{name:'Ocultar composição'}).click();await page.reload();await ready(page);await expect(page.getByLabel('Composição do estoque')).toHaveCount(0);
+ await page.getByText('Exibir',{exact:true}).click();const measures=page.getByRole('group',{name:'Medidas',exact:true});await measures.getByLabel('Margem potencial').uncheck();await expect(page.locator('.stock-numbers')).not.toContainText('Margem potencial');await measures.getByLabel('Margem potencial').check();await page.getByText('Exibir',{exact:true}).click();expect(await page.locator('.stock-numbers').innerText()).toBe(original);
+ await page.getByRole('button',{name:'Próxima',exact:true}).click();await ready(page);expect(await page.locator('.stock-numbers').innerText()).toBe(original);const context=page.url();const first=page.locator('.stock-result .product-name').first(),id=await first.getAttribute('id');await first.click();await expect(page.getByTestId('stock-product-context')).toBeVisible();await page.goBack();await ready(page);expect(page.url()).toBe(context);await expect(page.locator('#'+id)).toBeFocused();await page.reload();await ready(page);expect(page.url()).toBe(context);expect(await page.locator('.stock-numbers').innerText()).toBe(original);
+});
+test('AP currency summaries reconcile filtered obligations; drawer Escape and payment balance unchanged',async({page})=>{
+ await page.request.post('/api/auth/dev-login');await page.setViewportSize({width:1366,height:681});await page.goto('/payables');await expect(page.getByTestId('ap-table')).toBeVisible();
+ const initial=await(await page.request.get('/api/reporting/ap-queue?pending=OPEN_BALANCE&limit=100')).json();
+ for(const k of initial.kpis.kpis_by_currency){const total=initial.items.filter((r:any)=>r.currency===k.currency).reduce((n:number,r:any)=>n+Number(r.balance),0);expect(Number.isFinite(total)).toBe(true);expect(total).toBeCloseTo(Number(k.open_balance),2);await expect(page.getByTestId('kpi-open-balance-'+k.currency)).toContainText(Number(k.open_balance).toLocaleString('pt-BR',{minimumFractionDigits:2}));}
+ await page.getByTestId('kpi-overdue-EUR').click();await expect(page.getByTestId('ap-table')).toBeVisible();await expect(page.getByTestId('ap-filter-currency')).toHaveValue('EUR');await expect(page.getByTestId('ap-table')).toContainText('2.000,00');await page.reload();await expect(page.getByTestId('ap-table')).toContainText('2.000,00');
+ const row=page.getByTestId('ap-table').locator('tbody tr').first();await row.click();await expect(page.getByRole('dialog')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+ const payable=await(await page.request.get('/api/payables/2')).json();expect(Number(payable.balance)).toBe(2000);writeFileSync(resolve(out,'ap-reconciliation.json'),JSON.stringify({executor:'UI filters + technical reconciliation',initial,payable},null,2));
+});

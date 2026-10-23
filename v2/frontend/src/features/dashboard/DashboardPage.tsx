@@ -14,7 +14,8 @@ import {
   Skeleton,
   TextInput,
 } from "../../ui";
-import { formatUpdatedAgo, formatRate, formatDateTime, formatDateOnly } from "../../ui/format";
+import { formatUpdatedAgo, formatRate, formatDateOnly } from "../../ui/format";
+import {formatDateTime} from './localDateTime';
 import { ExecutiveOverview } from "./ExecutiveOverview";
 import { isSystemExecutive } from "./executiveDisplay";
 import { useListReturn } from "../../navigation/useListReturn";
@@ -312,7 +313,6 @@ export function DashboardPage({ user: _user }: Props) {
         }
       />
       {executive && <div className="exec-context">
-        {snap?.lane.includes_trial_mass && <span>Ambiente de demonstração / teste</span>}
         <span>{loading ? "Consultando…" : error ? "Leitura não atualizada" : "Leitura"}{snap ? ` · ${formatDateTime(snap.generated_at)}` : ""}</span>
         <span>Vencimentos {snap?.filters.date_from ? `de ${formatDateOnly(snap.filters.date_from)} ` : ""}{snap?.filters.date_to ? `até ${formatDateOnly(snap.filters.date_to)}` : "sem limite"}</span>
       </div>}

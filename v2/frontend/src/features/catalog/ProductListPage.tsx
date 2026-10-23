@@ -416,6 +416,7 @@ export function ProductListPage({ user }: Props) {
         subtitle="Catálogo comercial · busca por nome, características, SKU ou EAN"
         actions={
           <div className="header-actions">
+            {(user.role === "admin" || user.permissions.includes("catalog:prices_write")) && <Link className="ui-button ui-button--secondary" to="/catalog/prices/import">Importar preços</Link>}
             {picked.length >= 2 ? (
               <Link
                 className="ui-button ui-button--secondary"

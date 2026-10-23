@@ -14,6 +14,8 @@ class StockQuery(BaseModel):
     group_by:list[Literal['item_kind','model','modality']]=Field(default_factory=list,max_length=2)
     measures:list[Literal['quantity','cost','sale','margin']]=Field(default_factory=lambda:['quantity','cost','sale','margin'])
     composition_measure:Literal['quantity','cost','sale','margin']='cost'
+    composition_open:bool=False
+    secondary_open:bool=False
     visible_filters:list[Literal['modality_ids','item_kind_ids','model_ids','position_ids','location_ids']]=Field(default_factory=lambda:['modality_ids','item_kind_ids'])
     columns:list[Literal['quantity','unit_cost','cost','price','sale','margin']]=Field(default_factory=lambda:['quantity','unit_cost','cost','price','sale','margin'])
     sort:Literal['name','-name','quantity','-quantity','cost','-cost','sale','-sale']='name'

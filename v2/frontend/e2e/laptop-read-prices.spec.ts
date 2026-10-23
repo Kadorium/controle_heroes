@@ -1,0 +1,11 @@
+import {test,expect} from '@playwright/test';
+import {readFileSync,mkdirSync} from 'node:fs';import {resolve} from 'node:path';
+const out=process.env.LAPTOP_EVIDENCE||resolve('../../../audit-lab/stock-executive-20261023/laptop/final');mkdirSync(out,{recursive:true});
+const fixture=JSON.parse(readFileSync(resolve('../../../audit-lab/stock-executive-20261023/laptop/fixtures.json'),'utf8'));
+test('price history, future interval and current CSV preview after reload, no business writes',async({page})=>{
+ await page.setViewportSize({width:1366,height:681});await page.request.post('/api/auth/dev-login');const p=fixture.products[0];await page.goto(`/catalog/products/${p.id}`);const prices=page.getByTestId('sales-prices');await expect(prices).toContainText('Futuro');await expect(prices).toContainText('Substituído');await prices.scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,'prices-history.png')});
+ await prices.getByRole('link',{name:'Importar CSV'}).click();await page.getByLabel('Tabela da importação').selectOption(String(fixture.tables[1].id));const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo'}).format(new Date());const csv=`sku;preco;unidade;inicio;fim;acao\n${p.sku};1700;UN;${today};;substituir\n${fixture.products[1].sku};600;UN;${today};;substituir`;
+ await page.getByLabel('Arquivo de preços').setInputFiles({name:'demonstracao-substituir.csv',mimeType:'text/csv',buffer:Buffer.from(csv)});await page.getByRole('button',{name:'Conferir prévia'}).click();await expect(page.getByRole('status')).toContainText('2 para substituir');await page.getByLabel('Motivo da importação').fill('Prévia de demonstração · sem confirmar');await expect(page.getByRole('button',{name:'Confirmar importação'})).toBeEnabled();await page.screenshot({path:resolve(out,'prices-preview.png')});
+ // Compare the selected QA table throughout the stock detail, not the default Heroes table.
+ await page.goto(`/inventory/positions?modality_ids=bt&q=FIERCE26&price_list_id=${fixture.tables[0].id}`);await expect(page.locator('.stock-result')).toContainText('1.300,00');await page.locator('#stock-product-'+p.id).click();await expect(page.getByTestId('stock-value-detail')).toContainText('QA laptop · individual');await expect(page.getByTestId('stock-value-detail')).toContainText('1.300,00');
+});

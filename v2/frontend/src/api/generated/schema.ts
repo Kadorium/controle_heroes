@@ -375,6 +375,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/catalog/sales-prices/{price_id}/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change */
+        post: operations["change_api_catalog_sales_prices__price_id__change_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/sales-prices/{price_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_catalog_sales_prices__price_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/price-import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview */
+        post: operations["preview_api_catalog_price_import_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/price-import/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_api_catalog_price_import_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders": {
         parameters: {
             query?: never;
@@ -4266,6 +4334,28 @@ export interface components {
             /** Subcategories */
             subcategories?: string[];
         };
+        /** ChangeIn */
+        ChangeIn: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "replace" | "close";
+            /** Expected Token */
+            expected_token: string;
+            /** Amount */
+            amount?: number | string | null;
+            /** Unit */
+            unit?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Reason */
+            reason: string;
+            /** Request Key */
+            request_key: string;
+        };
         /** ClassifyOut */
         ClassifyOut: {
             /** Occurrence Id */
@@ -4412,6 +4502,19 @@ export interface components {
         CompleteValuationBody: {
             /** Payment Allocation Id */
             payment_allocation_id: number;
+        };
+        /** ConfirmIn */
+        ConfirmIn: {
+            /** List Id */
+            list_id: number;
+            /** Csv Text */
+            csv_text: string;
+            /** Preview Token */
+            preview_token: string;
+            /** Request Key */
+            request_key: string;
+            /** Reason */
+            reason: string;
         };
         /** ContentIn */
         ContentIn: {
@@ -5578,7 +5681,7 @@ export interface components {
             alembic_head?: string | null;
             /**
              * Alembic Expected
-             * @default 032
+             * @default 033
              */
             alembic_expected: string;
             /**
@@ -7148,6 +7251,13 @@ export interface components {
              * @default false
              */
             readiness_derived: boolean;
+        };
+        /** PreviewIn */
+        PreviewIn: {
+            /** List Id */
+            list_id: number;
+            /** Csv Text */
+            csv_text: string;
         };
         /** PreviewOperationOut */
         PreviewOperationOut: {
@@ -8722,6 +8832,16 @@ export interface components {
              * @enum {string}
              */
             composition_measure: "quantity" | "cost" | "sale" | "margin";
+            /**
+             * Composition Open
+             * @default false
+             */
+            composition_open: boolean;
+            /**
+             * Secondary Open
+             * @default false
+             */
+            secondary_open: boolean;
             /** Visible Filters */
             visible_filters?: ("modality_ids" | "item_kind_ids" | "model_ids" | "position_ids" | "location_ids")[];
             /** Columns */
@@ -10257,6 +10377,138 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PriceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_api_catalog_sales_prices__price_id__change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                price_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_api_catalog_sales_prices__price_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                price_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_catalog_price_import_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_api_catalog_price_import_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmIn"];
             };
         };
         responses: {

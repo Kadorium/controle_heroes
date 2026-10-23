@@ -5,10 +5,13 @@ from sqlalchemy import or_
 from app.catalog.models import Product, SalesPriceEntry, SalesPriceList
 from app.catalog.errors import CatalogValidationError
 from app.audit import public as audit
+import hashlib,json
 
 def price_dict(p):
-    return {"id":p.id,"list_id":p.list_id,"product_id":p.product_id,"amount":str(p.amount),"unit":p.unit,
-        "valid_from":p.valid_from.isoformat(),"valid_to":p.valid_to.isoformat() if p.valid_to else None,"reason":p.reason}
+    value={"id":p.id,"list_id":p.list_id,"product_id":p.product_id,"amount":str(p.amount),"unit":p.unit,
+        "valid_from":p.valid_from.isoformat(),"valid_to":p.valid_to.isoformat() if p.valid_to else None,"reason":p.reason,"cancelled":bool(p.cancelled)}
+    value['revision_token']=hashlib.sha256(json.dumps({**value,'amount':format(p.amount,'.4f')},sort_keys=True).encode()).hexdigest()
+    return value
 
 def list_prices(db, product_id=None):
     q=db.query(SalesPriceEntry)
@@ -19,7 +22,7 @@ def price_lists(db):
     return [{"id":p.id,"code":p.code,"name":p.name,"channel":p.channel,"currency":p.currency,"nature":p.nature} for p in db.query(SalesPriceList).order_by(SalesPriceList.id).all()]
 
 def current_prices(db, list_id, on_date):
-    rows=db.query(SalesPriceEntry).filter(SalesPriceEntry.list_id==list_id,SalesPriceEntry.valid_from<=on_date,
+    rows=db.query(SalesPriceEntry).filter(SalesPriceEntry.cancelled.is_(False),SalesPriceEntry.list_id==list_id,SalesPriceEntry.valid_from<=on_date,
         or_(SalesPriceEntry.valid_to.is_(None),SalesPriceEntry.valid_to>=on_date)).all()
     return {p.product_id:price_dict(p) for p in rows}
 
@@ -34,7 +37,9 @@ def ensure_price_list(db, *, code, name, channel, currency='BRL', nature='GROSS'
 def add_price(db, *, actor_id, product_id, list_id, amount, unit, valid_from, valid_to=None, request_key, reason):
     p=db.query(Product).filter(Product.id==product_id).with_for_update().first()
     if not p:raise CatalogValidationError("Produto não encontrado")
-    if not db.get(SalesPriceList,list_id):raise CatalogValidationError("Tabela não encontrada")
+    table=db.get(SalesPriceList,list_id)
+    if not table:raise CatalogValidationError("Tabela não encontrada")
+    if table.currency!='BRL' or table.nature not in ('GROSS','GROSS_LIST') or not table.channel.strip():raise CatalogValidationError('Tabela deve ter canal definido e preço bruto em BRL')
     value=Decimal(str(amount))
     if not value.is_finite() or value<=0 or (valid_to and valid_to<valid_from):raise CatalogValidationError("Confira preço e vigência")
     if not p.unit or unit != p.unit:raise CatalogValidationError("Unidade de venda deve corresponder à unidade cadastrada")
@@ -43,7 +48,7 @@ def add_price(db, *, actor_id, product_id, list_id, amount, unit, valid_from, va
     if previous:
         if (previous.product_id,previous.list_id,previous.amount,previous.unit,previous.valid_from,previous.valid_to)!=(product_id,list_id,value,unit,valid_from,valid_to):raise CatalogValidationError("Identificador já utilizado com outros valores")
         return previous
-    overlap=db.query(SalesPriceEntry).filter(SalesPriceEntry.product_id==product_id,SalesPriceEntry.list_id==list_id,
+    overlap=db.query(SalesPriceEntry).filter(SalesPriceEntry.cancelled.is_(False),SalesPriceEntry.product_id==product_id,SalesPriceEntry.list_id==list_id,
         SalesPriceEntry.valid_from<=(valid_to or date.max),or_(SalesPriceEntry.valid_to.is_(None),SalesPriceEntry.valid_to>=valid_from)).first()
     if overlap:raise CatalogValidationError("Já existe preço nessa vigência. Escolha um intervalo sem sobreposição.")
     row=SalesPriceEntry(product_id=product_id,list_id=list_id,amount=value,unit=unit,valid_from=valid_from,valid_to=valid_to,

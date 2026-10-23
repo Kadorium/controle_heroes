@@ -7,6 +7,11 @@
 .exec-context { display:flex; align-items:center; flex-wrap:wrap; gap:6px 20px; margin:0 0 12px; font-size:12px; color:var(--text-muted,#5b6b7c); }
 .exec-context details { margin-left:auto; max-width:720px; }
 .exec-context summary,.exec-details summary { cursor:pointer; color:var(--accent,#1f4e79); }
+.dashboard-page--executive .page-header { margin-bottom:8px; }
+.dashboard-page--executive .exec-context { margin-bottom:6px; }
+.dashboard-page--executive .exec-kpi { padding-block:10px; }
+.dashboard-page--executive .exec-caption { margin:5px 0; }
+.dashboard-page--executive .exec-summary { margin-bottom:8px; }
 .exec-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); background:#fff; border:1px solid #d5dce5; border-radius:8px; margin-bottom:18px; }
 .exec-kpi { padding:14px 16px; min-width:0; }
 .exec-kpi + .exec-kpi { border-left:1px solid #e6ebf1; }

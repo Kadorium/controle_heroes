@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { MoneyDisplay, TrendLine } from "../../ui";
-import { formatDateOnly, formatDateTime, formatMoney, formatRate } from "../../ui/format";
+import { formatDateOnly, formatMoney, formatRate } from "../../ui/format";
+import {formatDateTime} from './localDateTime';
 import type { DashboardSnapshot, DashboardWidget } from "./dashboardApi";
 import { amount, fields, hasFailure, incomplete, monthRange, rows, text } from "./executiveDisplay";
 import { OperationalPriorities } from "./OperationalPriorities";
@@ -35,7 +36,7 @@ export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, c
       {kpis.map(w => {
         const d = w.display, quote = fields(d.quote), currencies = rows(d.by_currency);
         const fx = w.widget_id === "treasury.fx_exposure";
-        const title = fx ? "Saldo em euro · referência em reais" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
+        const title = fx ? "Exposição em EUR · referência BRL" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
         return <Block key={w.widget_id} widget={w} title={title} summary onExplain={onExplain} caption={w.widget_id === "orders.to_invoice" ? "Pedidos confirmados · posição atual" : w.widget_id === "ap.cash_due" ? "Saldo nos meses civis indicados" : undefined}>
           {fx ? <>
             <div className="exec-value">{d.hero_brl != null && quote.rate != null ? <Money value={d.hero_brl} currency="BRL" /> : <span className="exec-word">{d.empty === true ? "Sem saldo estrangeiro" : quote.rate == null ? "Cotação indisponível" : "Equivalente indisponível"}</span>}</div>

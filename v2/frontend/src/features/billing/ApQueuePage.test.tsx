@@ -38,13 +38,14 @@ it("does not fabricate zero during loading, failure or absent KPI", async () => 
   expect(screen.queryByText("Nenhuma obrigação neste filtro")).toBeNull();
   cleanup();
   vi.mocked(fetchApQueue).mockResolvedValue({ ...data, kpis: {}, total: 0 }); mount();
-  expect(await screen.findByTestId("kpi-total-count")).toHaveTextContent("—");
+  expect(await screen.findByText("Nenhum saldo por moeda informado.")).toBeVisible();
+  expect(screen.queryByTestId("kpi-open-balance-EUR")).toBeNull();
 });
 it("ignores an old response after the user changes filters", async () => {
   let finish!: (v: ApQueueResponse) => void;
   vi.mocked(fetchApQueue).mockReturnValueOnce(new Promise(resolve => { finish = resolve; })).mockResolvedValue({ ...data, kpis: { total_count: 0 } });
   mount(); fireEvent.change(screen.getByTestId("ap-filter-due"), { target: { value: "today" } });
-  expect(await screen.findByTestId("kpi-total-count")).toHaveTextContent("0");
+  expect(await screen.findByText("Nenhum saldo por moeda informado.")).toBeVisible();
   finish(data);
   await waitFor(() => expect(screen.queryByTestId("kpi-open-balance-EUR")).toBeNull());
 });

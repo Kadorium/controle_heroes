@@ -188,4 +188,15 @@ class SalesPriceEntry(Base):
     request_key: Mapped[str] = mapped_column(String(128))
     actor_id: Mapped[str] = mapped_column(String(64))
     reason: Mapped[str] = mapped_column(String(512))
+    cancelled: Mapped[bool] = mapped_column(Boolean,default=False,server_default=text('false'))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SalesPriceOperation(Base):
+    __tablename__='sales_price_operations'
+    id: Mapped[int] = mapped_column(Integer,primary_key=True)
+    request_key: Mapped[str] = mapped_column(String(128),unique=True)
+    actor_id: Mapped[str] = mapped_column(String(64))
+    payload_hash: Mapped[str] = mapped_column(String(64))
+    result: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now())

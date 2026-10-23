@@ -36,6 +36,7 @@ import { ProductListPage } from "./features/catalog/ProductListPage";
 import { ProductCreatePage } from "./features/catalog/ProductCreatePage";
 import { ProductDetailPage } from "./features/catalog/ProductDetailPage";
 import { ProductComparePage } from "./features/catalog/ProductComparePage";
+import { PriceImportPage } from "./features/catalog/PriceImportPage";
 import { SupplierListPage } from "./features/catalog/SupplierListPage";
 import { SupplierCreatePage } from "./features/catalog/SupplierCreatePage";
 import { SupplierDetailPage } from "./features/catalog/SupplierDetailPage";
@@ -113,6 +114,7 @@ export function App() {
         <Route index element={<HomeRedirect user={user!} />} />
         <Route path="dashboard" element={<DashboardPage user={user!} />} />
         <Route path="catalog/products" element={<ProductListPage user={user!} />} />
+        <Route path="catalog/prices/import" element={<PriceImportPage user={user!} />} />
         <Route path="catalog/products/new" element={<ProductCreatePage user={user!} />} />
         <Route path="catalog/products/compare" element={<ProductComparePage user={user!} />} />
         <Route path="catalog/products/:productId/edit" element={<ProductDetailPage user={user!} editing />} />

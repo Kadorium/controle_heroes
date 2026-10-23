@@ -50,6 +50,8 @@ def aggregate(rows,*,can_cost=True,can_price=True):
     return {'sku_count':len(rows),'estimated':any(r['estimated'] for r in rows),'quantities':units,'cost_total':sum(cost,ZERO) if can_cost and (cost or not rows) else None,
         'sale_total':sum(sale,ZERO) if can_price and (sale or not rows) else None,'margin':(cs-cc)/cs*100 if cs and can_cost and can_price else None,
         'comparable_cost':cc if can_cost and can_price else None,'comparable_sale':cs if can_cost and can_price else None,
+        'comparable_skus':sum(1 for r in rows if r['comparable_quantity']>0) if can_cost and can_price else None,
+        'comparable_partial':any(r['quantity']>r['comparable_quantity'] for r in rows) if can_cost and can_price else None,
         'cost_skus':sum(1 for r in rows if r['quantity']>0 and r['cost_quantity']==r['quantity']) if can_cost else None,
         'price_skus':sum(1 for r in rows if r['eligible_quantity']>0 and r['price_quantity']==r['eligible_quantity']) if can_price else None,
         'cost_coverage':covered if can_cost else None,'price_coverage':priced if can_price else None,'comparable_coverage':comparable if can_cost and can_price else None}

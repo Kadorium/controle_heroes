@@ -2,7 +2,7 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.11
+Versão: 3.12
 Data: 2026-10-23
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
@@ -15,7 +15,13 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
 
-### Ajuste local 3.11 — experiência executiva r2 e consulta de estoque
+### Ajuste local 3.12 — densidade no laptop e gestão de preços
+
+Estoque mantém busca/seleções visíveis, resumo em linha e barra Agrupar/Exibir/Ordenar. Composição e filtros secundários recolhíveis guardam preferência na consulta/visão pessoal, com fallback local por usuário. Tabela preserva texto operacional de 14 px; densidade por espaçamento, não zoom. Margem informa SKUs comparáveis e cobertura parcial; ajuda secundária preserva qualificadores. Detalhe usa a tabela de preço selecionada na consulta.
+
+Contas a pagar apresenta uma linha por moeda com aberto/vencido/hoje/próximos sete dias/por alocar; moedas não são somadas e a fila completa de pagamentos é indicada. Preços oferecem Novo, Substituir, Encerrar e Histórico. CSV tem prévia por linha, ação e valor anterior/novo, erros e confirmação explícita; histórico não é apagado. Datas instantâneas são exibidas no fuso do usuário. O resumo financeiro executivo identifica sua população EUR convertida por referência, não todas as obrigações.
+
+### Baseline preservado 3.11 — experiência executiva r2 e consulta de estoque
 
 O baseline histórico abaixo não descreve sozinho o runtime atual. Preservar o shell r2 por tarefas, Estoque visível, todas as rotas/permissões e as visões pessoais anteriores. No preset Executiva, período rotulado **Vencimentos financeiros**; posição de estoque independente. Números antes de controles secundários; referência cambial, data, stale e cobertura permanecem explícitos. A composição comercial compartilha a consulta com o estoque completo.
 

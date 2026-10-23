@@ -5,7 +5,6 @@ import { getSupplier } from "../catalog/catalogApi";
 import { useSupplierSearch } from "../catalog/useCatalogSearch";
 import {
   Button,
-  ContextBreadcrumb,
   DetailDrawer,
   EmptyState,
   EntityRef,
@@ -14,7 +13,6 @@ import {
   FilterChip,
   FormField,
   FxDisplay,
-  KpiStrip,
   LoadingState,
   MoneyDisplay,
   OperationalTable,
@@ -27,7 +25,6 @@ import {
   SummaryGrid,
   TextInput,
   formatDateOnly,
-  formatMoney,
   formatPendencies,
 } from "../../ui";
 import { fetchApQueue, type ApQueueResponse } from "../reporting/reportingApi";
@@ -35,18 +32,13 @@ import { useListReturn } from "../../navigation/useListReturn";
 import { saveReturnState } from "../../navigation/returnState";
 import { AP_QUEUE_COLUMNS, type ApQueueRow } from "./apQueueColumns";
 import "./apQueue.css";
+import {ApCompactSummary} from './ApCompactSummary';
 
 type Props = { user: User };
 
 function canReadReporting(user: User) {
   if (user.role === "admin") return true;
   return (user.permissions ?? []).includes("reporting:read");
-}
-
-function kpiMoney(value: string | number | null | undefined, currency: string) {
-  if (value === null || value === undefined || value === "" || value === "—") return "—";
-  if (!currency) return "—";
-  return formatMoney(value, currency);
 }
 
 function localDateISO(d = new Date()) {
@@ -307,13 +299,12 @@ export function ApQueuePage({ user }: Props) {
 
   return (
     <section className="panel dense ap-refined" data-testid="ap-queue-page">
-      <ContextBreadcrumb items={[{ label: "Financeiro" }, { label: "Contas a pagar" }]} />
       <PageHeader
         title={params.get("purpose") === "fx" ? "Câmbio · escolha a obrigação" : "Contas a pagar"}
         subtitle={
           singleSupplierContext
-            ? `Fila operacional · ${singleSupplierContext} · vencidos primeiro`
-            : "Fila operacional · vencidos primeiro"
+            ? singleSupplierContext
+            : undefined
         }
         actions={
           <Button type="button" variant="secondary" onClick={load} data-testid="ap-refresh">
@@ -322,72 +313,7 @@ export function ApQueuePage({ user }: Props) {
         }
       />
       {error ? <ErrorState message={error} onRetry={load} /> : null}
-      <p className="ap-context">Posição atual · indicadores por moeda, conforme os filtros da fila. Créditos abrem a fila completa de pagamentos com saldo disponível.</p>
-      {!loading && !error && data && (byCurrency.length === 0 ? (
-        <KpiStrip
-          items={[
-            {
-              label: "Títulos",
-              value: kpis.total_count == null ? "—" : String(kpis.total_count),
-              "data-testid": "kpi-total-count",
-            },
-          ]}
-        />
-      ) : (
-        byCurrency.map((entry) => (
-          <KpiStrip
-            key={entry.currency}
-            items={[
-              {
-                label: `Saldo aberto (${entry.currency})`,
-                value: kpiMoney(entry.open_balance, entry.currency),
-                "data-testid": `kpi-open-balance-${entry.currency}`,
-                onClick: () => setSaldo("OPEN_BALANCE", entry.currency),
-              },
-              {
-                label: `Vencido (${entry.currency})`,
-                value: kpiMoney(entry.overdue_balance, entry.currency),
-                hint: `${entry.overdue_count ?? 0} títulos`,
-                "data-testid": `kpi-overdue-${entry.currency}`,
-                onClick: () => {
-                  setDuePreset("overdue", entry.currency);
-                },
-              },
-              {
-                label: `Hoje (${entry.currency})`,
-                value: kpiMoney(entry.due_today_balance, entry.currency),
-                "data-testid": `kpi-today-${entry.currency}`,
-                onClick: () => {
-                  setDuePreset("today", entry.currency);
-                },
-              },
-              {
-                label: `Próx. 7d (${entry.currency})`,
-                value: kpiMoney(entry.next_7d_balance, entry.currency),
-                "data-testid": `kpi-next7-${entry.currency}`,
-                onClick: () => {
-                  setDuePreset("next7", entry.currency);
-                },
-              },
-              ...(unallocByCurrency
-                .filter((u) => u.currency === entry.currency)
-                .map((u) => ({
-                  label: `Crédito em aberto (${u.currency})`,
-                  value: kpiMoney(u.unallocated_candidates_total, u.currency),
-                  hint: "Abre Pagamentos realizados com crédito em aberto",
-                  "data-testid": `kpi-unallocated-${u.currency}`,
-                  onClick: () => navigate("/payments?unallocated_only=1"),
-                })) as Array<{
-                  label: string;
-                  value: string;
-                  hint?: string;
-                  "data-testid"?: string;
-                  onClick?: () => void;
-                }>),
-            ]}
-          />
-        ))
-      ))}
+      {!loading && !error && data && <ApCompactSummary currencies={byCurrency} credits={unallocByCurrency} onOpen={c=>setSaldo('OPEN_BALANCE',c)} onDue={setDuePreset} onCredit={()=>navigate('/payments?unallocated_only=1')}/>}
       <div className="queue-shell">
         <FilterBar
           moreAlways

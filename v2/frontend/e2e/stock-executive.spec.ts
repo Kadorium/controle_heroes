@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 const lab=resolve('../../../audit-lab/stock-executive-20261023'),manifest=JSON.parse(readFileSync(resolve(lab,'scenario/manifest.json'),'utf8'));
 const show=manifest.products[0],a=manifest.stories[0];
 const evidence=resolve(lab,'evidence');mkdirSync(evidence,{recursive:true});
-async function login(page:Page){expect(new URL(test.info().project.use.baseURL!).port).toBe('8088');const h=await(await page.request.get('/api/health')).json();expect(h.alembic_head).toBe('032');await page.request.post('/api/auth/dev-login');}
+async function login(page:Page){expect(new URL(test.info().project.use.baseURL!).port).toBe('8088');const h=await(await page.request.get('/api/health')).json();expect(h.alembic_head).toBe('033');await page.request.post('/api/auth/dev-login');}
 async function ready(page:Page){await expect(page.locator('.stock-numbers')).toBeVisible();await expect(page.getByText('Consultando estoque…',{exact:true})).toHaveCount(0);}
 for(const viewport of [{width:1366,height:681},{width:1366,height:768},{width:1920,height:1080},{width:1024,height:768}])test(`G2 stock journey ${viewport.width}x${viewport.height}`,async({page})=>{
  await page.setViewportSize(viewport);await login(page);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));

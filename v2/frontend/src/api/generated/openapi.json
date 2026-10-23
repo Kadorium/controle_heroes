@@ -1752,6 +1752,174 @@
         }
       }
     },
+    "/api/catalog/sales-prices/{price_id}/change": {
+      "post": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Change",
+        "operationId": "change_api_catalog_sales_prices__price_id__change_post",
+        "parameters": [
+          {
+            "name": "price_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Price Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/sales-prices/{price_id}/history": {
+      "get": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "History",
+        "operationId": "history_api_catalog_sales_prices__price_id__history_get",
+        "parameters": [
+          {
+            "name": "price_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Price Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/price-import/preview": {
+      "post": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Preview",
+        "operationId": "preview_api_catalog_price_import_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/price-import/confirm": {
+      "post": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Confirm",
+        "operationId": "confirm_api_catalog_price_import_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/orders": {
       "post": {
         "tags": [
@@ -15358,6 +15526,96 @@
         ],
         "title": "CategoryResponse"
       },
+      "ChangeIn": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "replace",
+              "close"
+            ],
+            "title": "Action"
+          },
+          "expected_token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Expected Token"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "request_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Request Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "expected_token",
+          "reason",
+          "request_key"
+        ],
+        "title": "ChangeIn"
+      },
       "ClassifyOut": {
         "properties": {
           "occurrence_id": {
@@ -15802,6 +16060,47 @@
           "payment_allocation_id"
         ],
         "title": "CompleteValuationBody"
+      },
+      "ConfirmIn": {
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "title": "List Id"
+          },
+          "csv_text": {
+            "type": "string",
+            "maxLength": 1000000,
+            "minLength": 1,
+            "title": "Csv Text"
+          },
+          "preview_token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Preview Token"
+          },
+          "request_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Request Key"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "list_id",
+          "csv_text",
+          "preview_token",
+          "request_key",
+          "reason"
+        ],
+        "title": "ConfirmIn"
       },
       "ContentIn": {
         "properties": {
@@ -19992,7 +20291,7 @@
           "alembic_expected": {
             "type": "string",
             "title": "Alembic Expected",
-            "default": "032"
+            "default": "033"
           },
           "schema_ok": {
             "type": "boolean",
@@ -25595,6 +25894,26 @@
         ],
         "title": "PreviewCommitOut"
       },
+      "PreviewIn": {
+        "properties": {
+          "list_id": {
+            "type": "integer",
+            "title": "List Id"
+          },
+          "csv_text": {
+            "type": "string",
+            "maxLength": 1000000,
+            "minLength": 1,
+            "title": "Csv Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "list_id",
+          "csv_text"
+        ],
+        "title": "PreviewIn"
+      },
       "PreviewOperationOut": {
         "properties": {
           "op_key": {
@@ -30806,6 +31125,16 @@
             ],
             "title": "Composition Measure",
             "default": "cost"
+          },
+          "composition_open": {
+            "type": "boolean",
+            "title": "Composition Open",
+            "default": false
+          },
+          "secondary_open": {
+            "type": "boolean",
+            "title": "Secondary Open",
+            "default": false
           },
           "visible_filters": {
             "items": {

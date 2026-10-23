@@ -160,8 +160,8 @@ export function DemoTour() {
   return <>
     <div className="demo-entry">
       <button className="ui-button" ref={startButton} onClick={() => void start()} disabled={active} data-testid="demo-start">Iniciar demonstração</button>
-      <span>Ambiente de demonstração · tour de leitura</span>
-      <details><summary>Informações técnicas</summary><p>Revisão {import.meta.env.VITE_BUILD_ID || "local"}. O tour não executa operações de negócio. O administrador continua podendo operar manualmente.</p></details>
+      <span>Demonstração · teste</span>
+      <details><summary>Sobre o tour</summary><p>Tour de leitura. Revisão {import.meta.env.VITE_BUILD_ID || "local"}. O administrador pode operar manualmente.</p></details>
     </div>
     {active && <aside ref={panelRef} className={`demo-panel${collapsed ? " demo-panel--collapsed" : ""}`} aria-label="Demonstração executiva" data-testid="demo-panel" data-phase={phase} data-step={index + 1}>
       <div className="demo-panel-top"><strong>Tour de leitura · {index + 1}/8</strong><button className="ui-button ui-button--ghost" aria-expanded={!collapsed} onClick={() => setCollapsed(v => !v)}>{collapsed ? "Expandir" : "Recolher"}</button></div>

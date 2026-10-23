@@ -47,7 +47,7 @@ describe("Executive composition: factual states and boundaries", () => {
   });
   it("limits the BRL reference to EUR and marks other currencies outside coverage", async () => {
     overview([widget("treasury.fx_exposure", {hero_brl:"50", quote:{rate:"5"}, foreign:[{currency:"EUR",open_balance:"10"},{currency:"USD",open_balance:"20"}]} )]);
-    expect(screen.getByText("Saldo em euro · referência em reais")).toBeInTheDocument();
+    expect(screen.getByText("Exposição em EUR · referência BRL")).toBeInTheDocument();
     expect(screen.getByText(/USD: sem conversão neste indicador/)).toBeInTheDocument();
     await screen.findByText("Nenhuma exceção nas áreas consultadas.");
   });

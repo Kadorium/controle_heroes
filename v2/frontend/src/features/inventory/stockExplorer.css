@@ -2,3 +2,24 @@
 .stock-explorer .stock-numbers{padding:12px 0;margin:8px 0 14px}.stock-explorer .stock-presentation{margin-bottom:8px}.stock-explorer .stock-composition{margin:8px 0 12px;gap:10px}.stock-explorer .stock-composition>div{gap:2px;padding:0 10px}.stock-explorer .stock-result td{padding:8px 10px;height:auto}.stock-explorer .stock-result th{padding:9px 10px}.experience-shell .stock-result .product-name{white-space:normal}.stock-explorer .stock-numbers strong{font-size:22px}.executive-overview>.exec-summary>.exec-priorities{padding:14px}.experience-shell .exec-summary--experience{align-items:start}.stock-explorer--compact{padding:10px 0 20px}
 .stock-explorer--compact{display:flex;flex-direction:column}.stock-explorer--compact>*{order:5}.stock-explorer--compact>.stock-title{order:0;margin-bottom:4px}.stock-explorer--compact>.stock-numbers{order:1}.stock-explorer--compact>.stock-view-editor{order:2}.stock-explorer--compact>.stock-controls{order:3}.stock-explorer--compact>.stock-chips{order:4}
 .stock-explorer .stock-result button.product-name{min-height:0;padding:0;line-height:20px}.stock-explorer .stock-result td small{line-height:16px}
+.stock-explorer .stock-title { margin-bottom:10px; gap:10px; }
+.stock-explorer .stock-title h1 { font-size:26px; line-height:32px; }
+.stock-explorer .stock-title-actions { gap:8px; }
+.stock-explorer .stock-title-actions select { max-width:228px; }
+.stock-explorer .stock-chips { margin:4px 0 6px; min-height:26px; gap:6px; }
+.stock-explorer .stock-numbers { padding:8px 0; margin:6px 0 8px; gap:14px; }
+.stock-explorer .stock-numbers>div { gap:2px; }
+.stock-explorer .stock-presentation { gap:10px; align-items:center; margin:0 0 4px; }
+.stock-explorer .stock-presentation>label { flex-direction:row; align-items:center; gap:6px; }
+.stock-explorer .stock-presentation select { max-width:158px; }
+.stock-explorer .stock-presentation>label:has([aria-label="Medida da composição"]) { display:none; }
+.stock-explorer:has(.stock-composition) .stock-presentation>label:has([aria-label="Medida da composição"]) { display:flex; }
+.stock-explorer .stock-composition-toggle>button { border:0; background:transparent; padding:3px 0; min-height:26px; font-size:13px; }
+.stock-explorer .stock-composition-toggle { margin:0 0 5px; }
+.stock-explorer .stock-result th { padding-block:7px; }
+.stock-explorer .stock-result td { padding-block:6px; }
+.stock-explorer .stock-help summary { padding:4px; }
+.stock-explorer .stock-help>p { margin:0; }
+.stock-explorer--compact .stock-composition-toggle { order:6; }
+@media(min-width:1151px) { .stock-explorer .stock-presentation button,.stock-explorer .stock-presentation select { min-height:32px; } }
+.stock-controls>.stock-secondary[open]{flex-basis:100%}.stock-secondary[open]>summary{display:inline-block}.stock-controls>.stock-secondary[open]>div{position:static;display:flex;align-items:flex-start;flex-wrap:wrap;gap:14px;max-height:none;margin-top:8px;box-shadow:none}.stock-secondary fieldset{margin:0;border:0;padding:0}.stock-secondary fieldset label{display:inline-flex;margin-right:12px}

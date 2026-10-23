@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.38 |
+| **Versão** | 0.2.39 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
 | **Data** | 2026-10-23 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
@@ -1171,7 +1171,9 @@ Catalog mantém tabela/canal/moeda/natureza e histórico de preço com unidade, 
 
 **Política econômica de demonstração, não contábil definitiva:** habilitada apenas em `APP_ENV=test` com `STOCK_ECONOMICS_POLICY=DEMO_ORIGIN_FIFO_V1`. Origem explícita prevalece; saída genérica usa PEPS gerencial marcado estimado. Custo do saldo soma remanescentes × custo publicado por origem; não usa última compra nem custo médio arredondado como base. Venda potencial considera saldo doméstico elegível × preço bruto vigente/compatível. Margem usa somas da população comparável, antes de despesas de venda. Quarentena/entreposto não são disponíveis para venda. Unidades distintas permanecem separadas; ausência é nula, cobertura parcial explícita. Não aprova política de produção, reservas, avaliação contábil, conversão implícita de embalagens ou margem realizada.
 
-Migration aditiva 032: tabelas de preço e consultas pessoais. Importador genérico de preços, editor de tabelas/canais, reservas comerciais e margem realizada continuam fora desta entrega. A UI inicial de preço permite registrar intervalos não sobrepostos e consultar histórico; não encerra automaticamente uma vigência anterior.
+Migration 032 estabelece tabelas de preço e consultas pessoais. A migration aditiva 033 mantém preços substituídos no histórico e registra operações idempotentes. Substituição e encerramento exigem motivo, token da versão lida e auditoria antes/depois na mesma transação. Datas são inclusivas; substituir na mesma data marca o registro anterior como substituído, sem apagá-lo. Encerrar informa o último dia válido. Não há alteração silenciosa de preços futuros ou das regras de custo.
+
+Importação CSV em tabela/canal existente: UTF-8, até 500 linhas/1 MB, SKU, preço, unidade, início/fim e ação criar/substituir. Prévia sem escrita, erros por linha, confirmação explícita e atômica; lock de produto, token de prévia e chave de operação previnem sobreposição, confirmação desatualizada e duplicação por retry. Preço bruto em BRL, unidade compatível e intervalos válidos. Editor de tabelas/canais, reservas e margem realizada permanecem fora deste recorte. Políticas econômicas continuam restritas à demonstração/teste.
 
 ### 8.18 Custo desembarcado por produto
 
@@ -1534,6 +1536,7 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 |---|---|---|
 | 0.2.37 | 2026-10-23 | Integração r2: shell por tarefas; posição paginada owner Inventory/ACL própria; índice de fontes por produto owner Costing, versão/composição/PDF sem escrita; resumo Comercial por população filtrada e unidade. §§8.0/8.2/8.17/8.18; sem migration ou política financeira nova |
 | 0.2.38 | 2026-10-23 | Consulta comercial/econômica de estoque, preço vigente e visões pessoais; contratos públicos e ACL próprios; migration 032. Política PEPS/origem/preço/margem restrita a demonstração/teste, sem ratificação contábil de produção. §8.17.1 |
+| 0.2.39 | 2026-10-23 | Histórico de substituição/encerramento e CSV com prévia e confirmação idempotente; migration 033; sem mudança de regra financeira/ACL. §8.17.1 |
 | 0.2.36 | 2026-10-22 | Refinamento executivo autorizado: composição local do preset de sistema, escopo temporal explícito, Controle por contrato existente, tour responsivo de leitura; hierarquia AP/Custo. Sem alteração financeira, migrations ou promoção de fase; §§8.2/8.9/8.18 |
 | 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |
 | 0.2.34 | 2026-08-21 | Elo 9: frete por papel; SKU ≠ EAN; REVISED documental (nunca «custo final»/«câmbio realizado»); §5.5 / §5.13 / §7.12 / §8.18 / §9.5 |
