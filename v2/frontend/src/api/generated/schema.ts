@@ -2617,6 +2617,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/receiving": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Queue */
+        get: operations["queue_api_inventory_receiving_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/receiving/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_api_inventory_receiving_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingestion/batches": {
         parameters: {
             query?: never;
@@ -5681,7 +5715,7 @@ export interface components {
             alembic_head?: string | null;
             /**
              * Alembic Expected
-             * @default 033
+             * @default 034
              */
             alembic_expected: string;
             /**
@@ -8178,6 +8212,83 @@ export interface components {
             expected_version: number;
             /** Reason */
             reason?: string | null;
+        };
+        /** ReceiveIn */
+        ReceiveIn: {
+            /** Request Key */
+            request_key: string;
+            /** Item Id */
+            item_id: number;
+            /** Quantity */
+            quantity: string;
+            /** Unit */
+            unit: string;
+            /** Location Code */
+            location_code: string;
+        };
+        /** ReceiveResult */
+        ReceiveResult: {
+            /** Receipt Id */
+            receipt_id: number;
+            /** Status */
+            status: string;
+            /** Product Id */
+            product_id: number;
+            /** Item Id */
+            item_id: number;
+            /** Quantity */
+            quantity: string;
+            /** Location Code */
+            location_code: string;
+            /** Received At */
+            received_at: string | null;
+        };
+        /** ReceivingPage */
+        ReceivingPage: {
+            /** Rows */
+            rows: components["schemas"]["ReceivingRow"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ReceivingRow */
+        ReceivingRow: {
+            /** Item Id */
+            item_id: number;
+            /** Nationalization Id */
+            nationalization_id: number;
+            /** Process Id */
+            process_id: number;
+            /** Process Code */
+            process_code: string;
+            /** Process Reference */
+            process_reference: string | null;
+            /** Release Reference */
+            release_reference: string | null;
+            /** Product Id */
+            product_id: number | null;
+            /** Sku */
+            sku: string | null;
+            /** Product Name */
+            product_name: string | null;
+            /** Unit */
+            unit: string | null;
+            /** Released Qty */
+            released_qty: string;
+            /** Received Qty */
+            received_qty: string;
+            /** Pending Qty */
+            pending_qty: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "complete" | "blocked";
+            /** Block Reason */
+            block_reason: string | null;
         };
         /** ReconciliationIssueOut */
         ReconciliationIssueOut: {
@@ -15751,6 +15862,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    queue_api_inventory_receiving_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                state?: "pending" | "complete" | "blocked" | "all";
+                limit?: number;
+                offset?: number;
+                item_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceivingPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_api_inventory_receiving_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReceiveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiveResult"];
                 };
             };
             /** @description Validation Error */

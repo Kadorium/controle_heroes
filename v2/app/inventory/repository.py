@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, joinedload
 
 from app.inventory.models import (
@@ -46,6 +47,7 @@ def get_receipt(db: Session, receipt_id: int) -> GoodsReceipt | None:
         db.query(GoodsReceipt)
         .options(joinedload(GoodsReceipt.lines), joinedload(GoodsReceipt.location))
         .filter(GoodsReceipt.id == receipt_id)
+        .populate_existing()
         .first()
     )
 
@@ -120,16 +122,12 @@ def list_balances_for_product(db: Session, product_id: int) -> list[StockBalance
 def apply_balance_delta(
     db: Session, *, location_id: int, product_id: int, delta: Decimal
 ) -> StockBalance:
-    bal = get_balance(db, location_id=location_id, product_id=product_id)
-    if bal is None:
-        bal = StockBalance(
-            location_id=location_id, product_id=product_id, qty=Decimal("0")
-        )
-        db.add(bal)
-        db.flush()
-    bal.qty = Decimal(str(bal.qty)) + Decimal(str(delta))
+    # Atomic increment also covers two different releases for one SKU/location.
+    db.execute(insert(StockBalance).values(location_id=location_id, product_id=product_id, qty=delta)
+        .on_conflict_do_update(index_elements=['location_id','product_id'], set_={'qty':StockBalance.qty + delta}))
     db.flush()
-    return bal
+    return db.query(StockBalance).filter(StockBalance.location_id==location_id,
+        StockBalance.product_id==product_id).populate_existing().one()
 
 
 def sum_movements(db: Session, *, location_id: int, product_id: int) -> Decimal:

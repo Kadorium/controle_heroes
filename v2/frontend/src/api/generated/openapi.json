@@ -10680,6 +10680,146 @@
         }
       }
     },
+    "/api/inventory/receiving": {
+      "get": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Queue",
+        "operationId": "queue_api_inventory_receiving_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "complete",
+                "blocked",
+                "all"
+              ],
+              "type": "string",
+              "default": "pending",
+              "title": "State"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceivingPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/receiving/confirm": {
+      "post": {
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Confirm",
+        "operationId": "confirm_api_inventory_receiving_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiveResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ingestion/batches": {
       "post": {
         "tags": [
@@ -20291,7 +20431,7 @@
           "alembic_expected": {
             "type": "string",
             "title": "Alembic Expected",
-            "default": "033"
+            "default": "034"
           },
           "schema_ok": {
             "type": "boolean",
@@ -28897,6 +29037,268 @@
           "expected_version"
         ],
         "title": "ReceiptVersionBody"
+      },
+      "ReceiveIn": {
+        "properties": {
+          "request_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 16,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "title": "Request Key"
+          },
+          "item_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Item Id"
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^\\d{1,14}(\\.\\d{1,4})?$",
+            "title": "Quantity"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Unit"
+          },
+          "location_code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Location Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_key",
+          "item_id",
+          "quantity",
+          "unit",
+          "location_code"
+        ],
+        "title": "ReceiveIn"
+      },
+      "ReceiveResult": {
+        "properties": {
+          "receipt_id": {
+            "type": "integer",
+            "title": "Receipt Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "item_id": {
+            "type": "integer",
+            "title": "Item Id"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "location_code": {
+            "type": "string",
+            "title": "Location Code"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "receipt_id",
+          "status",
+          "product_id",
+          "item_id",
+          "quantity",
+          "location_code",
+          "received_at"
+        ],
+        "title": "ReceiveResult"
+      },
+      "ReceivingPage": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ReceivingRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rows",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "ReceivingPage"
+      },
+      "ReceivingRow": {
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "title": "Item Id"
+          },
+          "nationalization_id": {
+            "type": "integer",
+            "title": "Nationalization Id"
+          },
+          "process_id": {
+            "type": "integer",
+            "title": "Process Id"
+          },
+          "process_code": {
+            "type": "string",
+            "title": "Process Code"
+          },
+          "process_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Reference"
+          },
+          "release_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Release Reference"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sku"
+          },
+          "product_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Name"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "released_qty": {
+            "type": "string",
+            "title": "Released Qty"
+          },
+          "received_qty": {
+            "type": "string",
+            "title": "Received Qty"
+          },
+          "pending_qty": {
+            "type": "string",
+            "title": "Pending Qty"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "complete",
+              "blocked"
+            ],
+            "title": "State"
+          },
+          "block_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item_id",
+          "nationalization_id",
+          "process_id",
+          "process_code",
+          "process_reference",
+          "release_reference",
+          "product_id",
+          "sku",
+          "product_name",
+          "unit",
+          "released_qty",
+          "received_qty",
+          "pending_qty",
+          "state",
+          "block_reason"
+        ],
+        "title": "ReceivingRow"
       },
       "ReconciliationIssueOut": {
         "properties": {

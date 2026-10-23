@@ -36,8 +36,9 @@ export function AppShell({ user, onLogout }: { user: User; onLogout: () => Promi
       <nav className="shell-side-nav" aria-label="Módulos">
         {link("/dashboard", "Visão geral", "reporting:read", "home", "nav-dashboard")}
         {link("/inventory/positions", "Estoque atual", "inventory:read", "stock", "nav-stock")}
+        {link("/inventory/receiving", "Recebimentos", "inventory:read", "stock", "nav-receiving")}
         {link("/catalog/products", "Produtos", "catalog:read", "product")}
-        {link("/payables", "Contas a pagar", can("reporting:read") ? "reporting:read" : "billing:read", "money")}
+        {link("/payables", "Contas a pagar", "billing:read", "money")}
         {link("/customs", "Operações", "customs:read", "operation")}
         {group("Compras e documentos", <>{link("/orders", "Pedidos", "orders:read")}{link("/invoices", "Faturas", "billing:read")}{link("/ingestion", "Conferir documentos", "ingestion:read", "operation", "nav-ingestion")}</>, can("orders:read") || can("billing:read") || can("ingestion:read"))}
         {group("Financeiro", <>{link("/payments", "Pagamentos", "treasury:read", "money")}{link("/payables?purpose=fx", "Câmbio por obrigação", "treasury:fx_read", "money")}{link("/costing", "Custos de importação", "costing:read", "money", "nav-costing")}</>, can("treasury:read") || can("treasury:fx_read") || can("costing:read"))}

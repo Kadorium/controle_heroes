@@ -9,8 +9,8 @@
 | Campo | Valor |
 |---|---|
 | Atualizado em | 2026-10-23 |
-| Última entrega | Mais linhas úteis no estoque e em contas a pagar; preços com substituição, histórico e importação conferida antes de gravar |
-| Próxima entrega | Conferir no laptop, resolver o acesso do estoquista ao recebimento e ratificar as regras econômicas antes do uso operacional |
+| Última entrega | Estoquista recebe pela navegação de estoque, com conferência, saldo pendente e histórico, sem acesso amplo à Aduana |
+| Próxima entrega | Conferir no laptop e ratificar as regras econômicas antes do uso operacional |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -71,7 +71,7 @@ Hoje a cadeia atravessa até encerrar numa compra real, com o câmbio do documen
 
 | # | O que é | Por que importa | Tamanho |
 |---|---|---|---|
-| 1 | Levar a consulta econômica da demonstração ao uso operacional | Regras definitivas, acesso do estoquista ao recebimento e conferência no laptop ainda pendentes | MÉDIO |
+| 1 | Levar a consulta econômica da demonstração ao uso operacional | Regras definitivas e conferência no laptop ainda pendentes | MÉDIO |
 | 2 | Enriquecer o cadastro de produtos (descrição, mídia) | O cadastro operacional já existe | GRANDE |
 
 # Contrato de coerência (A ↔ B)
@@ -113,7 +113,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.155** — refinamento laptop + complemento E4-S2: resumos compactos, composição/filtros recolhíveis, preço substituído/encerrado e CSV idempotente. Build `laptop-prices-20261023.1`, migration 033; resultados efetivos/promoção no handoff único. 67 BE, 52 FE dirigidos; UI real no laboratório. Escrita operacional do perfil estoque **BLOCKED** pela entrada aduaneira; sem ampliar ACL. Físico **PENDENTE**, auditoria integral **PARTIAL**, barras inalteradas |
+| Versão | **0.5.156** — recebimento próprio de Inventory: leitura mínima, confirmação atômica/idempotente e concorrência protegida; migration 034, build `receiving-stock-20261023.1`. Escrita UI real como estoque: 4+6 UN, replay sem duplicação; administrador legado preservado. SHOW26/A intactos; baseline laptop/preços mantido. Resultados/promoção/recuperação no handoff único. Físico **PENDENTE**, auditoria integral **PARTIAL**, barras inalteradas |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -130,7 +130,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
 | Alembic head | código **032**; demo `epic_v2_test`/5447 = **032**; demo anterior/5433 e operação `epic_v2` = **031**, não migradas nesta entrega |
 
-**Próxima ação:** conferência física do apresentador; desenhar acesso próprio ao recebimento para estoque sem conceder customs:read; ratificar políticas de uso operacional. Densidade e CSV entregues neste recorte. I-01 histórico sem causa presumida; offsite e violação preexistente ingestion→foundation pendentes. Onda 2 / IA / mídia e E3-B amplo não iniciados. Não equivale a aceite global/J#8.
+**Próxima ação:** conferência física do apresentador e ratificação das políticas de uso operacional. Recebimento de estoque testado com ACL original; consulta não expõe valores/ações aduaneiras. Densidade e CSV preservados. I-01 histórico sem causa presumida; offsite e violação preexistente ingestion→foundation pendentes. Onda 2 / IA / mídia e E3-B amplo não iniciados. Não equivale a aceite global/J#8.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -228,7 +228,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Item | Destino | Observação |
 |---|---|---|
-| Estoque executivo / texto mínimo | Entregue em teste; operacional pendente | Multisseleção/agrupamento/medidas/visões, densidade, custo por origem e gestão/importação de preços; faltam política operacional, acesso próprio de recebimento e conferência física. E3-B amplo/I-01 independentes; handoff único em B.1 |
+| Estoque executivo / texto mínimo | Entregue em teste; operacional pendente | Multisseleção/agrupamento/medidas/visões, densidade, custo por origem, preços e recebimento próprio; faltam política operacional e conferência física. E3-B amplo/I-01 independentes; handoff único em B.1 |
 | Pós-reunião — origem/natureza da taxa no detalhe de Contas a pagar | Billing UI / Treasury | Explicitar fonte e se é planejada, de mercado, documental ou realizada conforme o dado existente; não alterar cálculo nem atribuir natureza não comprovada |
 | Pós-reunião — erro cambial longo na sidebar | Resolvido no pacote r2 | Mensagem curta, detalhe acessível; sem alterar mecanismo de cotação |
 | Pós-reunião — linguagem e ação operacional | UI local / E3-B | Primeiro percurso com rótulos/qualificadores e ação; demais telas e redação residual permanecem locais, não modernização integral |
@@ -245,7 +245,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Rev | Resumo | Evidência |
 |---|---|---|
-| **0.5.155** | Laptop/CSV após 0.5.154 Heroes: 033, preço/histórico/retry, tabelas compactas; demonstração anterior recuperável. Físico/global/I-01/arquitetura pendentes; barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
+| **0.5.156 / 0.5.155** | Recebimento estoque 034 sobre laptop/CSV 033; replay, saldo e concorrência testados, sem ampliar ACL. Demonstração anterior recuperável. Físico/global/I-01/arquitetura pendentes; barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.153** | Planning de estoque executivo e texto mínimo; inspeção da .3/catálogo real, proposta incorporada, parcela E4-S e recomendações; demo/dados/código preservados, sem avanço de barras | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.152** | Gate P→G1 integrado, leituras E0/posição/proveniência, shell r2, testes novos, demo local promovida com recuperação; físico pendente, barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.151** | Direção r2 aprovada; E0–E4 ajustado para pacote integrado painel/estoque/produto/custo/PDF/retorno. Planning, runtime e WIP preservados; sem implementação ou avanço de barras | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |

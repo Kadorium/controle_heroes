@@ -35,6 +35,7 @@ from app.customs.funding_routes import router as customs_funding_router
 from app.customs.nationalization_routes import router as customs_nationalization_router
 from app.customs.routes import router as customs_router
 from app.inventory.routes import router as inventory_router
+from app.inventory.receiving_routes import router as inventory_receiving_router
 from app.ingestion.routes import router as ingestion_router
 from app.costing.routes import router as costing_router
 from app.reconciliation.routes import router as reconciliation_router
@@ -97,6 +98,7 @@ def create_app() -> FastAPI:
     application.include_router(customs_funding_router, prefix="/api")
     application.include_router(customs_nationalization_router, prefix="/api")
     application.include_router(inventory_router, prefix="/api")
+    application.include_router(inventory_receiving_router, prefix="/api")
     application.include_router(ingestion_router, prefix="/api")
     application.include_router(costing_router, prefix="/api")
     application.include_router(reconciliation_router, prefix="/api")

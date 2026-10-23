@@ -26,6 +26,7 @@ import { CustomsDetailPage } from "./features/customs/CustomsDetailPage";
 import { SkuPositionPage } from "./features/inventory/SkuPositionPage";
 import { MovementsPage } from "./features/inventory/MovementsPage";
 import { StockPositionsPage } from "./features/inventory/StockPositionsPage";
+import { ReceivingPage } from "./features/inventory/ReceivingPage";
 import { FundingRedirectPage } from "./features/customs/FundingRedirectPage";
 import { IngestionQueuePage } from "./features/ingestion/IngestionQueuePage";
 import { IngestionWorkspacePage } from "./features/ingestion/IngestionWorkspacePage";
@@ -149,6 +150,7 @@ export function App() {
         <Route path="customs/:processId" element={<CustomsDetailPage user={user!} />} />
         <Route path="inventory/movements" element={<MovementsPage user={user!} />} />
         <Route path="inventory/positions" element={<StockPositionsPage user={user!} />} />
+        <Route path="inventory/receiving" element={<ReceivingPage user={user!} />} />
         <Route path="inventory/sku/:productId" element={<SkuPositionPage user={user!} />} />
         <Route path="ingestion" element={<IngestionQueuePage user={user!} />} />
         <Route path="ingestion/:documentId" element={<IngestionWorkspacePage user={user!} />} />

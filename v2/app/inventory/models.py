@@ -103,6 +103,17 @@ class GoodsReceipt(Base):
     )
 
 
+class ReceiptOperation(Base):
+    """Idempotent, actor-bound confirmation; same transaction as receipt/audit."""
+    __tablename__ = "inventory_receipt_operations"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    request_key: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    actor_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    receipt_id: Mapped[int] = mapped_column(ForeignKey("goods_receipts.id", ondelete="RESTRICT"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class GoodsReceiptLine(Base):
     __tablename__ = "goods_receipt_lines"
     __table_args__ = (

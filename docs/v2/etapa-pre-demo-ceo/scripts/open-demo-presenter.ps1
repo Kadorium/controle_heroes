@@ -1,7 +1,7 @@
 param([switch]$VerifyOnly)
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
-$runtime=Join-Path (Split-Path $repo) 'audit-runtime/laptop-prices-20261023'
+$runtime=Join-Path (Split-Path $repo) 'audit-runtime/receiving-stock-20261023'
 if (!(Test-Path -LiteralPath (Join-Path $runtime 'demo-manifest.json'))) { throw 'Frozen manifest missing; no preparation is performed here.' }
 $env:PLAYWRIGHT_BASE_URL='http://127.0.0.1:8082'
 $env:DEMO_PRESENTER='true'

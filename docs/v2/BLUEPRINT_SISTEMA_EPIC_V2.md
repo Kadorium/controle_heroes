@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.39 |
+| **Versão** | 0.2.40 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
 | **Data** | 2026-10-23 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
@@ -1140,6 +1140,8 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 
 ### 8.17 Estoque / entreposto
 
+**Recebimento operacional:** entrada `/inventory/receiving` com `inventory:read`; confirmação exige `inventory:write`, sem conceder `customs:read`. GET próprio entrega somente produto/unidade, identificadores e referências operacionais, quantidade liberada/recebida/pendente e bloqueio. Inventory consulta fachada pública mínima de Customs, sem campos financeiros/fiscais. POST confirma um item e destino doméstico ativo usando os comandos existentes na mesma UoW do ator/auditoria. Migration 034 guarda chave idempotente vinculada a ator/payload/receipt; retry devolve o mesmo recebimento. Locks nas origens e acumulação por item impedem duas confirmações excederem saldo; atualização atômica do StockBalance evita perda entre origens distintas. Unidade/cadastro, produto, localização, origem cancelada e liberação vigente são conferidos; receber não libera na Aduana. O percurso legado no processo permanece. Reversões aduaneiras posteriores e políticas econômicas históricas não são redefinidas por este incremento.
+
 **Entrada por posição atual:** `/inventory/positions`, autorizada por `inventory:read`, sem exigir Reporting, Catalog ou Costing. `GET /api/reporting/stock-positions` delega à fachada Inventory: busca/ID, regime, local, saldo, ordenação estável e paginação; resumo de toda a população filtrada. Dois SELECTs bulk; nenhuma criação de local ou movimento na leitura. Metadados Catalog limitados à identidade operacional já visível a Inventory. Quantidades por unidade/regime; unidade ausente não vira soma homogênea. Trânsito/liberação não são somados ao saldo. Rota de movimentos abaixo permanece histórico.
 
 **Continuidade:** produto → compra/processo escolhido → versão → composição → PDF real em uma superfície; filtros, ordem, página, scroll e foco no retorno. Custo indisponível não impede estoque. Ausência/403/erro/zero são estados diferentes; respostas obsoletas canceladas. Não é avaliação do estoque corrente.
@@ -1536,6 +1538,7 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 |---|---|---|
 | 0.2.37 | 2026-10-23 | Integração r2: shell por tarefas; posição paginada owner Inventory/ACL própria; índice de fontes por produto owner Costing, versão/composição/PDF sem escrita; resumo Comercial por população filtrada e unidade. §§8.0/8.2/8.17/8.18; sem migration ou política financeira nova |
 | 0.2.38 | 2026-10-23 | Consulta comercial/econômica de estoque, preço vigente e visões pessoais; contratos públicos e ACL próprios; migration 032. Política PEPS/origem/preço/margem restrita a demonstração/teste, sem ratificação contábil de produção. §8.17.1 |
+| 0.2.40 | 2026-10-23 | Recebimento Inventory próprio, DTO operacional mínimo, confirmação atômica/idempotente e locks compartilhados; migration 034; matriz ACL preservada. §8.17 |
 | 0.2.39 | 2026-10-23 | Histórico de substituição/encerramento e CSV com prévia e confirmação idempotente; migration 033; sem mudança de regra financeira/ACL. §8.17.1 |
 | 0.2.36 | 2026-10-22 | Refinamento executivo autorizado: composição local do preset de sistema, escopo temporal explícito, Controle por contrato existente, tour responsivo de leitura; hierarquia AP/Custo. Sem alteração financeira, migrations ou promoção de fase; §§8.2/8.9/8.18 |
 | 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |

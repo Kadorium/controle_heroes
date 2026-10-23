@@ -44,7 +44,7 @@ def _req_dec(value: str | Decimal | None, *, field: str) -> Decimal:
         raise InventoryValidationError(
             f"Decimal inválido: {value}", code="invalid_decimal"
         ) from exc
-    if d <= 0:
+    if not d.is_finite() or d <= 0 or d >= Decimal('1e14') or d != d.quantize(Decimal('0.0001')):
         raise InventoryValidationError(f"{field} deve ser > 0", code="invalid_quantity")
     return d
 
@@ -135,6 +135,8 @@ def create_receipt(
         loc = repo.get_location_by_code(db, location_code)
     if not loc:
         raise LocationNotFound(location_id or location_code or "?")
+    if not loc.active:
+        raise InventoryValidationError("Localização inativa. Escolha um destino ativo.")
 
     if receipt_type == "BONDED_IN" and loc.location_type != "BONDED":
         raise InventoryValidationError(
@@ -258,6 +260,8 @@ def add_receipt_lines(
 
 def _assert_domestic_coverage(db: Session, receipt: GoodsReceipt) -> None:
     """Domestic/reclass: qty ≤ residual do mesmo nationalization_item_id (item-level)."""
+    customs_public.lock_receiving_sources(db, [line.nationalization_item_id for line in receipt.lines if line.nationalization_item_id])
+    requested: dict[int, Decimal] = {}
     for line in receipt.lines:
         qty = Decimal(str(line.quantity))
         if line.nationalization_item_id is None:
@@ -275,16 +279,19 @@ def _assert_domestic_coverage(db: Session, receipt: GoodsReceipt) -> None:
                 code="product_mismatch",
             )
         nat = customs_public.get_nationalization(db, nat_item.nationalization_id)
+        process = customs_public.get_import_process(db, nat.process_id)
+        if process.status == 'CANCELLED' or (receipt.process_id is not None and receipt.process_id != nat.process_id):
+            raise NationalizationRequired("Origem cancelada ou incompatível com o recebimento.")
         if nat.status != "CONFIRMED":
             raise NationalizationRequired(
                 f"Nationalization {nat.id} não está CONFIRMED"
             )
         cleared = Decimal(str(nat_item.quantity))
         used = repo.sum_domestic_received_for_nat_item(db, line.nationalization_item_id)
-        if used + qty > cleared:
+        requested[line.nationalization_item_id] = requested.get(line.nationalization_item_id, Decimal('0')) + qty
+        if used + requested[line.nationalization_item_id] > cleared:
             raise OverReceiptError(
-                f"Nat item {line.nationalization_item_id}: "
-                f"{used + qty} > nacionalizado {cleared}"
+                f"Quantidade acima do saldo liberado disponível ({max(Decimal('0'), cleared-used)}). Atualize a consulta."
             )
 
 
@@ -305,6 +312,8 @@ def confirm_receipt(
     loc = repo.get_location(db, receipt.location_id)
     if not loc:
         raise LocationNotFound(receipt.location_id)
+    if not loc.active or (receipt.receipt_type in ('DOMESTIC_IN', 'RECLASS') and loc.location_type != 'DOMESTIC'):
+        raise InventoryValidationError("Localização de destino indisponível ou incompatível.")
 
     if receipt.receipt_type in ("DOMESTIC_IN", "RECLASS"):
         _assert_domestic_coverage(db, loaded)
@@ -404,6 +413,7 @@ def reverse_receipt(
 
     loaded = repo.get_receipt(db, receipt_id)
     assert loaded is not None
+    customs_public.lock_receiving_sources(db, [line.nationalization_item_id for line in loaded.lines if line.nationalization_item_id])
     # Find movements posted by this receipt's lines and reverse them
     for line in loaded.lines:
         originals = (

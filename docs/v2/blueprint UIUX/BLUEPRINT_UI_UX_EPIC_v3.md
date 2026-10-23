@@ -2,7 +2,7 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.12
+Versão: 3.13
 Data: 2026-10-23
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
@@ -15,7 +15,11 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
 
-### Ajuste local 3.12 — densidade no laptop e gestão de preços
+### Ajuste local 3.13 — recebimento por Estoque
+
+Recebimentos fica junto de Estoque na navegação, sem depender da página aduaneira. Fila compacta com busca e situação; produto/unidade, origem e liberado/recebido/pendente. Uma área ativa para quantidade/destino → conferência → resultado com saldo/histórico. Escape devolve foco; retorno preserva consulta. Resposta incerta mantém a confirmação identificada para retry, inclusive após recarga, sem gerar nova operação. Só leitura não oferece confirmar; bloqueio explica a próxima ação sem expor dados financeiros. Baseline r2, densidade, preços e oito etapas do tour permanecem.
+
+### Baseline 3.12 — densidade no laptop e gestão de preços
 
 Estoque mantém busca/seleções visíveis, resumo em linha e barra Agrupar/Exibir/Ordenar. Composição e filtros secundários recolhíveis guardam preferência na consulta/visão pessoal, com fallback local por usuário. Tabela preserva texto operacional de 14 px; densidade por espaçamento, não zoom. Margem informa SKUs comparáveis e cobertura parcial; ajuda secundária preserva qualificadores. Detalhe usa a tabela de preço selecionada na consulta.
 
