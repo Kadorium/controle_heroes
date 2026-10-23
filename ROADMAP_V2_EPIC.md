@@ -9,8 +9,8 @@
 | Campo | Valor |
 |---|---|
 | Atualizado em | 2026-10-23 |
-| Última entrega | Do painel ao estoque, produto, custo e documento real, com retorno preservado; versão de demonstração atualizada e recuperável |
-| Próxima entrega | Revisar a consulta de estoque por modalidade, modelo, quantidade, custo e venda, com menos texto; conferir também a experiência no laptop |
+| Última entrega | Estoque por modalidade e família, quantidade, custo por origem, preço e venda potencial; visões pessoais e demonstração populada, com recuperação |
+| Próxima entrega | Conferir a apresentação no laptop e ratificar as regras econômicas antes do uso operacional; melhorar a densidade da consulta |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -71,7 +71,7 @@ Hoje a cadeia atravessa até encerrar numa compra real, com o câmbio do documen
 
 | # | O que é | Por que importa | Tamanho |
 |---|---|---|---|
-| 1 | Explorar estoque por produto, quantidade, custo e preço de venda | Planejamento em revisão; preço e valor do saldo ainda precisam de regras e dados | GRANDE |
+| 1 | Levar a consulta econômica da demonstração ao uso operacional | Consulta entregue em teste; regras definitivas, importação de preços e conferência no laptop ainda pendentes | MÉDIO |
 | 2 | Enriquecer o cadastro de produtos (descrição, mídia) | O cadastro operacional já existe | GRANDE |
 
 # Contrato de coerência (A ↔ B)
@@ -113,7 +113,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.153** — próxima evolução **PLANNING**: texto mínimo e exploração comercial/financeira do estoque, parcela E4-S incluída no plano, não implementada. Pacote Gate P→G1 anterior **DONE no recorte**, fontes `6911932`, build `experience-r2-integration-20261023.3` preservado na demo8082. Testes anteriores: 203 FE, 32 BE, 27 UI + ensaio 6min44s; pós-promoção 13 UI e presenter, não repetidos nesta revisão. Auditoria integral **PARTIAL**; físico **PENDENTE**. Barras e Alembic **031** inalterados |
+| Versão | **0.5.154** — P2→T1→C2→E4-S1→E4-S2→Q3 implementados; **G2 técnico local PASS com ressalvas**, build `stock-executive-20261023.1`, fontes `8871864`, demo8082/PG5447. 49 BE, 32 FE dirigidos, 10 UI pós-promoção; tour 6min43s e repetição técnica. Preços/PEPS/valoração somente política de demonstração. Físico **PENDENTE**, auditoria integral **PARTIAL**, barras inalteradas |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -128,9 +128,9 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#7 | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** — [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
 | J#8 aceite UI | **DONE** — V1 arquivada — [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
-| Alembic head | código **031**; `epic_v2_test` = 031; `epic_v2` = **031** |
+| Alembic head | código **032**; demo `epic_v2_test`/5447 = **032**; demo anterior/5433 e operação `epic_v2` = **031**, não migradas nesta entrega |
 
-**Próxima ação:** revisar e autorizar o pacote texto mínimo + exploração comercial/financeira de estoque (T1/C2/E4-S1/E4-S2/Q3/G2), ratificando as recomendações econômicas; manter conferência física do laptop, I-01 e offsite pendentes independentes. Plano e imagens em `INTEGRACAO_EXPERIENCIA_EPIC.md` N1–N11. Implementação futura STOP; G1 anterior não é aceite humano/global. Violação preexistente ingestion→foundation, Onda 2 / IA / mídia e E3-B amplo fora deste pacote.
+**Próxima ação:** conferência física do apresentador e revisão das ressalvas de G2 no handoff único; depois densidade da consulta, importação de preços e políticas para uso operacional. I-01 histórico sem causa presumida; cenário novo de chegada/recebimento passou. Offsite e violação preexistente ingestion→foundation pendentes. Onda 2 / IA / mídia e E3-B amplo não iniciados. Não equivale a aceite global/J#8.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -138,9 +138,9 @@ Refinamento visual autorizado: composição só na Executiva de sistema; visões
 
 Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
 
-Auditoria ampliada autorizada (planejamento com testes): laboratório8084/cluster5441/storage próprio, distinto da demo8082/5433; fontes/dist/dados da apresentação intactos. Falhas de leitura e lacunas de preço/valoração/margem separadas de UX. Único retorno solicitado: [`AUDITORIA_UI_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-auditoria-uiux-executiva/AUDITORIA_UI_UX_EXECUTIVA_EPIC.md), com imagens incorporadas. Proposta não implementada nem aceita; cobertura integral continua parcial.
+Histórico da auditoria ampliada: laboratório8084/5441, então distinto da demo8082/5433. [`AUDITORIA_UI_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-auditoria-uiux-executiva/AUDITORIA_UI_UX_EXECUTIVA_EPIC.md) documenta aquele estado; não descreve a release atual. Cobertura integral continua parcial.
 
-Revisão de experiência: P01–P08 rejeitados; r2 aprovada, não aceite global. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) concentra plano atual, desenhos e entrega histórica. Leituras/shell/painel/posição/custo/PDF integrados; E4 ficou fora daquela execução e agora sua parcela de estoque/preços/avaliação está **planejada**, sujeita a decisões explícitas. Inspeção read-only: operação 116 produtos, 36 raquetes classificadas; demo 2 sem unidade/classificação. Sem código, dados ou build alterados na revisão atual.
+Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
 
 Manutenção: fase DONE → status+evidência aqui, detalhe em `docs/v2/etapa-*` (não no snapshot). Checkpoint de fase nova nasce em `etapa-*` antes de executar. Teto do arquivo vivo ≤300 linhas.
 
@@ -228,7 +228,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Item | Destino | Observação |
 |---|---|---|
-| Evolução do estoque executivo / texto mínimo | Planning T1/C2/E4-S1/E4-S2/Q3/G2 | Primeiro percurso integrado preservado. Novo pacote inclui exploração comercial, custo do saldo, preços/visões; recomendações econômicas ainda para ratificação. E3-B amplo/I-01 independentes; handoff único em B.1 |
+| Estoque executivo / texto mínimo | Entregue em teste; operacional pendente | Multisseleção/agrupamento/medidas/visões, custo por origem e preços vigentes; falta política operacional, importação de preços, maior densidade e conferência física. E3-B amplo/I-01 independentes; handoff único em B.1 |
 | Pós-reunião — origem/natureza da taxa no detalhe de Contas a pagar | Billing UI / Treasury | Explicitar fonte e se é planejada, de mercado, documental ou realizada conforme o dado existente; não alterar cálculo nem atribuir natureza não comprovada |
 | Pós-reunião — erro cambial longo na sidebar | Resolvido no pacote r2 | Mensagem curta, detalhe acessível; sem alterar mecanismo de cotação |
 | Pós-reunião — linguagem e ação operacional | UI local / E3-B | Primeiro percurso com rótulos/qualificadores e ação; demais telas e redação residual permanecem locais, não modernização integral |
@@ -245,6 +245,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Rev | Resumo | Evidência |
 |---|---|---|
+| **0.5.154** | Estoque econômico/visões/preços + Heroes; G2 técnico local, 032 apenas na nova demo, snapshots restaurados e push verificado; físico/global pendentes, barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.153** | Planning de estoque executivo e texto mínimo; inspeção da .3/catálogo real, proposta incorporada, parcela E4-S e recomendações; demo/dados/código preservados, sem avanço de barras | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.152** | Gate P→G1 integrado, leituras E0/posição/proveniência, shell r2, testes novos, demo local promovida com recuperação; físico pendente, barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.151** | Direção r2 aprovada; E0–E4 ajustado para pacote integrado painel/estoque/produto/custo/PDF/retorno. Planning, runtime e WIP preservados; sem implementação ou avanço de barras | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |

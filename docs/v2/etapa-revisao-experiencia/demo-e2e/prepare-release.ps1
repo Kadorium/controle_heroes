@@ -30,7 +30,7 @@ Copy-Item -LiteralPath "$repo/v2/frontend/dist/assets/demo-manifest.json" -Desti
 & "$pg/initdb.exe" -D "$release/postgres" -U postgres --encoding=UTF8 --locale=C --auth=trust|Out-Null
 if($LASTEXITCODE -ne 0){throw 'initdb failed'}
 $ctl=Start-Process -FilePath "$pg/pg_ctl.exe" -ArgumentList '-D',"$release/postgres",'-l',"$release/postgres.log",'-o','"-p 5447 -h 127.0.0.1"','-w','start' -WindowStyle Hidden -PassThru -RedirectStandardOutput "$release/pg-start.log" -RedirectStandardError "$release/pg-start.err"
-$ctl.WaitForExit();if($ctl.ExitCode -ne 0){throw 'PG start failed'}
+$ctl.WaitForExit();if(!(Get-NetTCPConnection -LocalPort 5447 -State Listen -ErrorAction SilentlyContinue)){throw 'PG start failed'}
 $actual=& "$pg/psql.exe" -h 127.0.0.1 -p 5447 -U postgres -d postgres -Atc 'show data_directory'
 if([IO.Path]::GetFullPath($actual) -ne [IO.Path]::GetFullPath("$release/postgres")){throw 'Wrong release database'}
 & "$pg/createdb.exe" -h 127.0.0.1 -p 5447 -U postgres epic_v2_test
