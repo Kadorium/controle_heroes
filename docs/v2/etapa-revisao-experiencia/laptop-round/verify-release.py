@@ -24,4 +24,17 @@ with create_engine('postgresql://postgres@127.0.0.1:5449/epic_v2_test').connect(
     identity=c.execute(text("select current_database(),inet_server_port(),current_setting('data_directory'),system_identifier from pg_control_system()")).one()
     assert identity[0]=='epic_v2_test' and identity[1]==5449 and Path(identity[2]).resolve()==(release/'postgres').resolve()
 result={'url':str(client.base_url),'health':health,'build':build,'database':[str(v) for v in identity],'files_checked':len(proof['files']),'manifest_checks':len(manifest['checks']),'documents_checked':len(manifest['documents']),'backup':proof['backup'],'dump_sha256':proof['dump_sha256']}
+tables=['products','orders','invoices','payables','payments','payment_allocations','shipments','import_processes','inventory_movements','costing_cases','costing_versions','documents','sales_price_entries','sales_price_operations']
+fingerprints={}
+for dbport in (5445,5449):
+    with create_engine(f'postgresql://postgres@127.0.0.1:{dbport}/epic_v2_test').connect() as c:
+        c.execute(text('SET TRANSACTION READ ONLY'))
+        expected=lab/'postgres' if dbport==5445 else release/'postgres'
+        assert Path(c.execute(text('show data_directory')).scalar()).resolve()==expected.resolve()
+        fingerprints[dbport]={}
+        for table in tables:
+            rows=sorted(c.execute(text(f'select row_to_json(t)::text from {table} t')).scalars())
+            fingerprints[dbport][table]={'count':len(rows),'sha256':hashlib.sha256('\n'.join(rows).encode()).hexdigest()}
+assert fingerprints[5445]==fingerprints[5449], 'Business state differs from frozen candidate'
+result['business_tables_equal']=fingerprints[5449]
 (lab/f'laptop/release-proof-{port}.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf8');print(json.dumps(result))
