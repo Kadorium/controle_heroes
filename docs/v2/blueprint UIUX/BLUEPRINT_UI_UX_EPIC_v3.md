@@ -1801,6 +1801,8 @@ Inventário MCK (contagens): 12(209) · 11(121) · 10.5(112) · 13(73) · 12.5(5
 Line-height e legibilidade 1366: validação em implementação (**DEFERRED_RUNTIME**).  
 **Sem** rampa fechada 9…22 de valores órfãos.
 
+**Exceção local aprovada — refinamento executivo (22/10/2026):** Executiva de sistema, fila AP e workspace Custo adotam títulos 28px, texto operacional 14–16px, rótulos/contexto 12–13px e valores de destaque 24–30px. Cards com radius12 e contorno discreto; menos caixas aninhadas. Não é troca global de tokens, não altera a sidebar nem presets/pessoais. Aprovação visual no equipamento real permanece distinta dos testes funcionais. Implementação/evidências: [handoff de refinamento §12](../etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md#12-execução-autorizada--22102026).
+
 ### 26.5 Espaçamento e dimensões
 
 **Spacing candidatos (recorrentes):** 4 · 8 · 12 · 16 · 20 · 24 · 32. Gutters: **24** @1366 / **32** @1440+ (hipótese §20.4 → NORMALIZED no DS).
@@ -2139,6 +2141,8 @@ Toast / skeleton / loading: especificar comportamento mínimo; visual MCK limita
 - **Destino Etapa 9:** wiring real de anexos/timeline; empty/error; a11y de lista.
 
 ### 27.8 Padrões financeiros (composições — não átomos)
+
+Composição local de 22/10/2026: Executiva prioriza resumo → próxima ação → posição operacional → complementos; zero/ausência/erro/loading não são intercambiáveis. AP usa saldo, vencimento e moeda visíveis, demais filtros no popover existente com chips ativos. Custo apresenta total/versão/cobertura e produtos antes das fontes; qualificadores financeiros não vão para tooltip. Tour ocupa faixa reservada no laptop ou lateral quando a largura útil comportar, sem ocultar alvos/controles. São variantes das features, não reforma dos componentes compartilhados. Contratos: Blueprint Sistema §§8.2/8.9/8.18.
 
 | Padrão | MCK | Class. |
 |---|---|---|

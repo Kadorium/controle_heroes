@@ -5,9 +5,9 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.35 |
+| **Versão** | 0.2.37 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
-| **Data** | 2026-08-21 |
+| **Data** | 2026-10-23 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
 
 ### 1.1 Documentos relacionados
@@ -316,7 +316,7 @@ Hipótese de pastas internas (`domain` / `application` / `infrastructure` / `api
 | Consultas | search_products; `GET /api/catalog/product-list` (facets, summary, qualidade); `supplier-list`. `GET /api/products` e `/api/suppliers` permanecem **array** (pickers) |
 | **Deps permitidas** | Documents, Audit |
 | Proibido | Quantidades de ordem/estoque aqui; importar Orders (normalização em `catalog.normalization`); ProductFamily/Variant; EAV genérico; embeddings/LLM/mídia nesta onda |
-| UI | **Catálogo → Produtos** (`catalog:read`); Fornecedores **não** são item de rail (overflow `⋯` + pickers). Identidade humana = **nome comercial** (DEC-MDM-HUMAN-IDENTITY); SKU secundário. Lista rica única (sem toggle compacto). Ficha Object Page: qualidade compacta fechada; edição progressiva; Comparar 2–3 produtos existentes (sem similaridade). Create mínimo SKU+descrição |
+| UI | **Produtos** (`catalog:read`); Fornecedores acessíveis em **Cadastros**, além do overflow `⋯` + pickers preservados. Identidade humana = **nome comercial** (DEC-MDM-HUMAN-IDENTITY); SKU secundário. Lista rica única (sem toggle compacto). Ficha Object Page: qualidade compacta fechada; edição progressiva; Comparar 2–3 produtos existentes (sem similaridade). Create mínimo SKU+descrição |
 | L-006 | **PARTIAL** — ean, size, color, ncm (8 dígitos), country_of_origin, unit, net_weight_kg (`> 0`); Supplier.tax_id opcional (unique parcial país+id). NCM ausente = informação fiscal pendente (fila, **não** blocker de pedido/estoque). CAP-006 **não** implementado |
 | Match | Ingestion casa por `Product.sku` **ou** `Product.ean`. Código de documento sem Product = COMMITMENT. **SKU ≠ EAN:** o código de barras nunca é gravado em `Product.sku` |
 
@@ -868,11 +868,11 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 | Campo | Conteúdo |
 |---|---|
 | Propósito | Continuidade operacional: shell, navegação, estados e composição de telas Order-to-Pay |
-| Shell | Sidebar agrupada (**Visão → Painel** · **Compras** · **Financeiro** · **Logística** · **Aduana** · **Catálogo → Produtos** · **Administração → Usuários**); permission-aware (Administração só com `users:read` — omitir, nunca 403); brand + usuário; strip FX de mercado. **Fornecedores** fora do rail (overflow em Produtos + pickers nos fluxos). **Prestadores** fora do rail (CTA em Embarques). Viewport ≤1100: rail 56px, labels ocultos (`display:none`), tooltip `data-label`, expandir 220px reversível. Home autenticada = `/dashboard` se `reporting:read` e o preset do papel tiver widget AVAILABLE após ACL |
+| Shell | Direção clara r2: entradas Visão geral, Estoque atual, Produtos, Contas a pagar e Operações; grupos Compras e documentos (Pedidos/Faturas/Conferir documentos), Financeiro (Pagamentos/Câmbio por obrigação/Custos de importação), Logística e histórico (Embarques/Movimentos/Prestadores), Cadastros (Fornecedores/Usuários). Todas sujeitas a ACL; rotas antigas preservadas. Navegação recolhível 68px, expandida 216px/190px conforme largura; seleção e expansão da seção atual. Home escolhe destino autorizado; Inventory sem Reporting abre posições |
 | Foundation UI | Componentes lean reutilizados: PageHeader, breadcrumb, KpiStrip, StatusBadge, Money/FxDisplay, Empty/Error/Loading, FilterBar, DetailDrawer, **charts temáticos (Recharts lendo tokens)**. Superfície do painel: totais compactos + 2 casas no detalhe; taxa na cara do card = 2 casas; precisão Numeric 18,6 + fonte/`observed_at` no explainer. Tokens globais (`--space-*`, `--shadow-card`, `--radius-card`, `--color-data-*`) — telas fora do painel herdam e **não** foram reescritas. Strip do shell permanece FxDisplay (4 casas) |
 | Tipos de tela | Fila (lista+KPI+filtro URL); Cockpit (resumo+drill); Formulário/detalhe de domínio; Drawer de contexto |
 | Navegação | Deep link preserva filtros na URL; item sem permissão omitido; API 403 + UI gated |
-| Tema | Dark operacional densificado (contraste/legibilidade); **validável** — não irrevogável |
+| Tema | Base neutra clara, texto escuro e marca em seleção/ação; direção `experience-r2-20261022.1`. Shell comum, composição integrada localizada em Executiva/posição/custo-origem; não presume modernização de todos os formulários |
 | Permissões | Chrome do painel: `reporting:read` (admin, comprador, aduana, estoque — **L-005 PARTIAL**). Widget: interseção com owner `*:read`. Papéis `financeiro`/`gestor` não existem nesta onda. Demais módulos por `*:read`/`*:write` |
 | Aceite | Shell não escreve domínio; Reporting não vira `order_central`; FE só consome HTTP público |
 
@@ -897,7 +897,7 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 | Propósito | Superfície de decisão: resume fatos, explica pendência, navega ao dono. Não escreve domínio. Três visões: **Executiva** (quanto pagar / câmbio / mercadoria / decidir), **Comercial** (o que oferecer / o que chega / o que pede atenção), **Controle** (exceções acionáveis) |
 | Usuário | Quem tem `reporting:read` (visão padrão por papel: admin→executiva, comprador→comercial, aduana/estoque→controle; personalização = cópia de preset) |
 | Header | Título da visão; subtítulo comercial; seletor **Minha visão** + Executiva/Comercial/Controle + pessoais (presets antigos `hidden`, URL ainda resolve); período relativo só onde o preset declara `period`; `generated_at` relativo; moeda se mixed; atualizar; personalizar/restaurar |
-| KPIs | Só métricas AVAILABLE após ACL. Tamanho por tipo (`stat`/`panel`/`list`/`wide`); altura do tipo, não do conteúdo. Executiva: vencido, a vencer, exposição EUR, a faturar; caixa empilhado; tendência EUR/BRL 30 dias (só fato); inbox; pedidos/faturamento; mercadoria em movimento (≠ funil). Comercial: SKUs/unidades/chegando/pendência + tabela por produto. Controle: gravidade + módulo + lista. PARTIAL não ocupa card. Ausência ≠ R$ 0. Entrada prevista sem fato = `—`, nunca `0` |
+| KPIs | Só métricas AVAILABLE após ACL. Grade genérica/pessoal mantém tamanho por tipo (`stat`/`panel`/`list`/`wide`). Executiva **de sistema**: resumo financeiro compacto → próxima ação de Controle → posição atual da operação → agenda/câmbio/faturamento; alturas proporcionais à informação. Equivalente de referência BRL preserva saldo original e condição da cotação. Um dia de câmbio = referência datada, não tendência. Comercial e Controle preservam composições existentes. Ausência ≠ R$ 0; entrada prevista sem fato = `—` |
 | Filtros | Declarados por visão. `view`, `period?`, `date_from?`, `date_to?`, `as_of?`, `currency?`, `supplier_id?` — browser e HTTP usam os mesmos params. Comercial: q/categoria/tipo/situação. Controle: gravidade/módulo. Sem cross-filter automático |
 | Agrupamentos | Presets visíveis: Executiva, Comercial, Controle. Ocultos (URL): Financeiro, Compras, Operação, Aduana, Estoque, Produtos, Custos |
 | Tabela | Comercial: produto, categoria, disponível, regimes, liberado não recebido, entrada prevista. Controle: lista de exceções com drill por item. Inbox Executiva: título humano; id interno nunca é título |
@@ -905,10 +905,18 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 | Inline | Não |
 | Drill-down | Widget → fila/entidade visível; linha Comercial → ficha; item Controle → dono; back preserva a visão |
 | Alertas | Inbox composta (não score opaco). Empty **não** diz “Sem pendências” se algum dono falhou |
-| Empty | Copy honesta (`Nada a vencer neste recorte` / `Sem saldo em moeda estrangeira` / `Nada precisa da sua decisão agora` / `Nenhum produto neste recorte`) |
+| Empty | Copy limitada ao recorte consultado: nenhuma obrigação vencida somente após resposta válida; ausência, loading, erro e falha parcial permanecem distintos de zero. Nunca afirmar ausência global de decisões a partir de consulta parcial |
 | Permissões | Chrome `reporting:read`; widget exige owner `*:read`; segmento de fluxo omite-se sem `*:read` |
 | Aceite | Somente leitura; labels do registry (nunca `metric_id`); compacto; títulos humanos; período relativo; chrome ⓘ/CTA; Recharts via tokens; grade 1440/1366/1100/1024; três visões; entrada prevista honesta |
 | DECs | DEC-UX2-CHART · TOKENS · THREE-VIEWS · SECTIONS · TOOLTIP · NO-DEMAND · FX-SERIES (além DEC-J7 OWNER/GRAPH/MOCK/ABSENCE/MOBILE/EXEC-*; **DEC-J7-CHART revogada**) |
+
+**Refinamento executivo autorizado em 22/10/2026:** override local somente para `view_id=executiva` de sistema (inclusive Minha visão resolvida nesse preset); pessoais conservam identidade, versão, ordem e ocultação. Prioridade operacional reutiliza uma única consulta `view=controle`, com ACL, ordem, severidade e href do servidor; não agrega a contagem de pendências financeiras/cadastro. Loading, erro/retentativa, ausência de acesso e retorno parcial são locais.
+
+O seletor é rotulado **Janela financeira**; mantém a semântica de `next_90`. Meses civis da agenda derivam das labels/as_of_month retornadas, não de rótulo inventado para a janela. Posição operacional atual e histórico cambial têm contexto próprio. `as_of` não promete reconstrução histórica. Filtros ignorados/escopo permanecem consultáveis; fila sem equivalência comprovada abre como **Abrir fila completa**, preservando contexto no retorno. Nenhum cálculo de domínio migra ao frontend.
+
+Tour opcional: desligado no build normal, somente no contexto de demonstração validado; navegação de leitura, manifesto e documentos conferidos, sem seed/reset na abertura. Faixa compacta com espaço reservado no laptop; lateral apenas se restarem ≥1000px úteis à aplicação depois de reservar 340px. Resize/recolher não reiniciam a etapa. Presenter usa viewport nativo separado dos testes determinísticos. Evidência e limites de aceite no handoff de refinamento, não neste contrato de produto.
+
+**Integração r2:** Executiva de sistema acrescenta a entrada Estoque atual ao resumo; BRL identifica saldo estrangeiro convertido por referência, preservando moeda original/fonte/data/stale. Demais presets e visões pessoais conservam identidade/versão/ordem/ocultação. Comercial agrega o recorte completo antes de paginação/ordenação, sem limite oculto de 500; totais/distribuições por unidade e regime. Falha de filtro não exibe snapshot amplo como resultado atualizado. Unidade ausente não sustenta total homogêneo. Valor do estoque, venda potencial e margem permanecem capacidades separadas, sem cartões fictícios.
 
 ### 8.3 Fila de ordens
 
@@ -970,7 +978,7 @@ UI une Billing+Treasury na “Central financeira”, mas **ownership** permanece
 
 ### 8.6 Produtos / 8.7 Fornecedores
 
-Cadastro mestre Catalog. **Produtos:** lista rica (placeholder profissional, nome comercial, categoria › subcategoria, características do tipo, qualidade, situação; SKU secundário; NCM fora da linha principal). Busca live sem botão Buscar; chips de categoria e de trabalho; facets só com valores; Mais filtros (NCM/origem/unidade/EAN); URL preserva contexto. Ficha Object Page (~760px): qualidade compacta fechada («Ver pendências»); Origem da informação; Histórico. Edição progressiva; SKU readonly; create mínimo SKU+descrição. Comparar 2–3. Picker: nome → contexto → SKU; `active_only` onde já existia. Incompleto fiscal (NCM) é fila, não bloqueio. **Fornecedores:** API/rotas permanecem; **não** no rail; overflow em Produtos + pickers. Permissões `catalog:read`/`catalog:write`. CSV genérico **FUTURO**; lote histórico = XLSX controlada fora da UI.
+Cadastro mestre Catalog. **Produtos:** lista rica (placeholder profissional, nome comercial, categoria › subcategoria, características do tipo, qualidade, situação; SKU secundário; NCM fora da linha principal). Busca live sem botão Buscar; chips de categoria e de trabalho; facets só com valores; Mais filtros (NCM/origem/unidade/EAN); URL preserva contexto. Ficha Object Page (~760px): qualidade compacta fechada («Ver pendências»); Origem da informação; Histórico. Edição progressiva; SKU readonly; create mínimo SKU+descrição. Comparar 2–3. Picker: nome → contexto → SKU; `active_only` onde já existia. Incompleto fiscal (NCM) é fila, não bloqueio. **Fornecedores:** API/rotas permanecem; acesso em Cadastros no shell r2, overflow em Produtos + pickers preservados. Permissões `catalog:read`/`catalog:write`. CSV genérico **FUTURO**; lote histórico = XLSX controlada fora da UI.
 
 ### 8.8 Central financeira
 
@@ -998,11 +1006,11 @@ Cadastro mestre Catalog. **Produtos:** lista rica (placeholder profissional, nom
 | Propósito | Trabalhar Payables (unidade de liquidação) com projeção FX |
 | Usuário | Quem tem `reporting:read` + `billing:read` (admin e comprador nesta onda; **L-005 PARTIAL**) |
 | Header | Título; atualizar; filtros na **URL**; contexto de fornecedor **uma vez** se a página for mono-supplier (ex. Heroes) |
-| KPIs | Do **conjunto filtrado** (não da página): vencido; hoje; próx. 7d; saldo aberto; candidatos unallocated |
-| Filtros | Status; pendência; moeda; ordem; invoice; vencimento (server-side). Filtro `supplier_id` permanece na **API**; **não** é eixo principal da UX com um único fornecedor operacional |
+| KPIs | Saldo aberto em primeiro plano, depois vencido/hoje/próx. 7d, por moeda do **conjunto filtrado** (não soma frontend). Créditos candidatos decorrem dos fornecedores representados na página; não são alocações nem saldo líquido da fila |
+| Filtros | Primários: saldo/pendência, vencimento e moeda. Secundários: status, pedido, fornecedor. URL preserva invoice e datas personalizadas, visíveis nos chips ativos e removíveis. Aplicar moeda + vencimento em uma única atualização da URL. Nenhum novo cálculo financeiro |
 | Ordenação | Vencidos primeiro; depois `due_date ASC`, `id ASC` |
 | Agrupamentos | — (lista plana paginada) |
-| **Colunas** | Vencimento; atraso; invoice; ordem; moeda; valor; alocado; saldo; FX proj.; BRL proj.; status; pendências; ações — **Supplier** no drawer/contexto, não coluna principal |
+| **Colunas** | Política adaptativa existente preservada: vencimento/atraso, fornecedor, fatura, saldo aberto, status e ação; pedido/valor original e demais detalhes conforme largura. Alocado e contexto completo no drawer. Não eliminar coluna ou destino a partir do menu ilustrativo do protótipo |
 | Ações | Abrir drawer; navegar invoice/ordem/FX/payment (sem escrever na fila) |
 | Inline | Não para saldos |
 | Drill-down | Drawer → invoice / cockpit / FX / novo payment (+ fornecedor como metadado) |
@@ -1132,6 +1140,10 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 
 ### 8.17 Estoque / entreposto
 
+**Entrada por posição atual:** `/inventory/positions`, autorizada por `inventory:read`, sem exigir Reporting, Catalog ou Costing. `GET /api/reporting/stock-positions` delega à fachada Inventory: busca/ID, regime, local, saldo, ordenação estável e paginação; resumo de toda a população filtrada. Dois SELECTs bulk; nenhuma criação de local ou movimento na leitura. Metadados Catalog limitados à identidade operacional já visível a Inventory. Quantidades por unidade/regime; unidade ausente não vira soma homogênea. Trânsito/liberação não são somados ao saldo. Rota de movimentos abaixo permanece histórico.
+
+**Continuidade:** produto → compra/processo escolhido → versão → composição → PDF real em uma superfície; filtros, ordem, página, scroll e foco no retorno. Custo indisponível não impede estoque. Ausência/403/erro/zero são estados diferentes; respostas obsoletas canceladas. Não é avaliação do estoque corrente.
+
 | Campo | Conteúdo |
 |---|---|
 | Propósito | Movimentos e saldo derivado |
@@ -1155,7 +1167,7 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 |---|---|
 | Propósito | Custo desembarcado bruto por componentes, por produto no processo |
 | Usuário | Financeiro; gestor; comprador (rascunho) |
-| Header | Processo; versão; cobertura |
+| Header | Processo; resultado incluído BRL, versão/tipo/estado e cobertura **antes** das fontes extensas; resultado por produto em seguida |
 | KPIs | Incluído BRL; bruto; cobertura completa/incompleta |
 | Filtros | Situação da fila; versão |
 | Agrupamentos | Por produto/SKU |
@@ -1167,6 +1179,10 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 | Empty | CTA ir aos processos |
 | Permissões | costing:read/write; costing:publish (admin); reconciliation:read/resolve |
 | Aceite | Expense∈Costing; lê fatos públicos; SC-12; subtítulo de tributos brutos; SKU ≠ EAN; FX documental ≠ bancário na UI da versão REVISED |
+
+Apresentação local: quantidade faturada da versão por SKU, não quantidade recebida. Câmbio documental, tributos brutos, cobertura e prévia/publicação parcial ficam visíveis junto ao resultado. Ausência de componente internacional incluído aparece como ausência de frete, não prova de custo zero; componente existente com zero explícito preserva zero. Fontes/documentos, ações e versões permanecem acessíveis; reorganização visual não recalcula nem publica custo.
+
+**Proveniência por produto (leitura):** `GET /api/costing/products/{product_id}/sources` paginado e filtrável por caso; `GET /api/costing/products/{product_id}/versions/{version_id}`. Costing projeta linhas, snapshots e alocações persistidos; `current_published_id` orienta versão vigente, sem escolher compra ambígua. Componente atribuído ao produto e componente inteiro da compra aparecem separados. Customs/Orders/Documents fornecem relações via fachadas públicas; rótulos de pedido e fontes documentais respeitam ACL, além da autorização no conteúdo. Nenhuma chamada a ensure/recalculate/publish ao navegar. Sem valuation, preço ou margem improvisados; essas capacidades exigem decisões e contratos separados.
 
 ### 8.19 Conciliação
 
@@ -1504,6 +1520,8 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 
 | Versão | Data | Notas |
 |---|---|---|
+| 0.2.37 | 2026-10-23 | Integração r2: shell por tarefas; posição paginada owner Inventory/ACL própria; índice de fontes por produto owner Costing, versão/composição/PDF sem escrita; resumo Comercial por população filtrada e unidade. §§8.0/8.2/8.17/8.18; sem migration ou política financeira nova |
+| 0.2.36 | 2026-10-22 | Refinamento executivo autorizado: composição local do preset de sistema, escopo temporal explícito, Controle por contrato existente, tour responsivo de leitura; hierarquia AP/Custo. Sem alteração financeira, migrations ou promoção de fase; §§8.2/8.9/8.18 |
 | 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |
 | 0.2.34 | 2026-08-21 | Elo 9: frete por papel; SKU ≠ EAN; REVISED documental (nunca «custo final»/«câmbio realizado»); §5.5 / §5.13 / §7.12 / §8.18 / §9.5 |
 | 0.2.33 | 2026-08-21 | PAINEL-UX2: três visões (Executiva/Comercial/Controle); tokens + Recharts; disponibilidade comercial; exceptions() por dono; tendência FX; §5.15 / §8.0 / §8.2 / §12 |
