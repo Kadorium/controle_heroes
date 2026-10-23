@@ -45,6 +45,12 @@ describe("Executive composition: factual states and boundaries", () => {
     expect(screen.queryByText("BRL 0,00")).not.toBeInTheDocument();
     await screen.findByText("Nenhuma exceção nas áreas consultadas.");
   });
+  it("limits the BRL reference to EUR and marks other currencies outside coverage", async () => {
+    overview([widget("treasury.fx_exposure", {hero_brl:"50", quote:{rate:"5"}, foreign:[{currency:"EUR",open_balance:"10"},{currency:"USD",open_balance:"20"}]} )]);
+    expect(screen.getByText("Saldo em euro · referência em reais")).toBeInTheDocument();
+    expect(screen.getByText(/USD: sem conversão neste indicador/)).toBeInTheDocument();
+    await screen.findByText("Nenhuma exceção nas áreas consultadas.");
+  });
   it("uses returned months and marks stale rates, not the HTML example", async () => {
     overview([widget("ap.cash_due", { by_currency: [{ currency: "EUR", amount: "7.00" }] }), widget("ap.cash_committed", { labels: { m0: "Janeiro", m1: "Fevereiro", m2: "Março" }, by_currency: [] }), widget("treasury.fx_exposure", { hero_brl: "35.00", foreign: [{ currency: "EUR", open_balance: "7" }], quote: { rate: "5", stale: true } })]);
     expect(screen.getByText("Compromissos · Janeiro–Março")).toBeInTheDocument();

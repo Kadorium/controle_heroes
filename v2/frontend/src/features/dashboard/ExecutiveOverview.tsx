@@ -34,12 +34,13 @@ export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, c
       {kpis.map(w => {
         const d = w.display, quote = fields(d.quote), currencies = rows(d.by_currency);
         const fx = w.widget_id === "treasury.fx_exposure";
-        const title = fx ? "Saldo estrangeiro · referência em reais" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
+        const title = fx ? "Saldo em euro · referência em reais" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
         return <Block key={w.widget_id} widget={w} title={title} summary onExplain={onExplain} caption={w.widget_id === "orders.to_invoice" ? "Pedidos confirmados · posição atual" : w.widget_id === "ap.cash_due" ? "Saldo nos meses civis indicados" : undefined}>
           {fx ? <>
-            <div className="exec-value">{d.hero_brl != null && quote.rate != null ? <Money value={d.hero_brl} currency="BRL" /> : <span className="exec-word">{d.empty === true ? "Sem saldo estrangeiro" : "Cotação indisponível"}</span>}</div>
+            <div className="exec-value">{d.hero_brl != null && quote.rate != null ? <Money value={d.hero_brl} currency="BRL" /> : <span className="exec-word">{d.empty === true ? "Sem saldo estrangeiro" : quote.rate == null ? "Cotação indisponível" : "Equivalente indisponível"}</span>}</div>
             <p className="exec-caption">{rows(d.foreign).map((r, n) => <span key={n}><Money value={r.open_balance} currency={r.currency} />{n < rows(d.foreign).length - 1 ? " · " : ""}</span>)}{d.empty !== true && <span> · {quote.rate == null ? "sem equivalente" : quote.stale ? "cotação desatualizada" : "cotação de referência"}</span>}</p>
             {quote.rate != null && <p className="exec-caption">{formatRate(amount(quote.rate_full ?? quote.rate), 4)} · {text(quote.source)} · {formatDateTime(text(quote.observed_at))}<br/>Referência de mercado · não é planejamento nem câmbio realizado</p>}
+            {rows(d.foreign).some(r=>r.currency!=="EUR") && <p className="exec-caption">{rows(d.foreign).filter(r=>r.currency!=="EUR").map(r=>text(r.currency)).join(", ")}: sem conversão neste indicador. O equivalente em reais cobre somente EUR.</p>}
           </> : w.widget_id === "ap.overdue" && d.total_count === 0 && d.overdue_count === 0 && d.state === "ok" ? <><div className="exec-value exec-word">Nenhuma</div><p className="exec-caption">Nenhuma obrigação vencida no recorte consultado.</p></> : currencies.length ? currencies.map((r, n) => <div className="exec-value" key={n}><Money value={r.amount} currency={r.currency} /></div>) : <p>{d.empty === true && d.message ? text(d.message) : "Valores não disponíveis"}</p>}
         </Block>;
       })}
