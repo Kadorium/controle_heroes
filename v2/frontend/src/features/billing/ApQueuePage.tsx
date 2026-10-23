@@ -309,7 +309,7 @@ export function ApQueuePage({ user }: Props) {
     <section className="panel dense ap-refined" data-testid="ap-queue-page">
       <ContextBreadcrumb items={[{ label: "Financeiro" }, { label: "Contas a pagar" }]} />
       <PageHeader
-        title="Contas a pagar"
+        title={params.get("purpose") === "fx" ? "Câmbio · escolha a obrigação" : "Contas a pagar"}
         subtitle={
           singleSupplierContext
             ? `Fila operacional · ${singleSupplierContext} · vencidos primeiro`
@@ -469,7 +469,7 @@ export function ApQueuePage({ user }: Props) {
           <OperationalTable
             density="finance"
             data-testid="ap-table"
-            columns={AP_QUEUE_COLUMNS}
+            columns={params.get("purpose") === "fx" && (user.role === "admin" || user.permissions.includes("treasury:fx_read")) ? [...AP_QUEUE_COLUMNS, {id:"fx-action",header:"Câmbio",visibility:"always",priority:0,minWidth:"8rem",cell:(row:ApQueueRow)=><RowLink to={`/payables/${row.id}/fx`}>Ver câmbio</RowLink>}] : AP_QUEUE_COLUMNS}
             rows={rows}
             getRowId={(row) => String(row.id)}
             getRowTestId={(row) => `ap-row-${row.id}`}

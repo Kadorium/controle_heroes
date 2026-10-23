@@ -4391,6 +4391,170 @@
         }
       }
     },
+    "/api/reporting/stock-positions": {
+      "get": {
+        "tags": [
+          "reporting"
+        ],
+        "summary": "Get Stock Positions",
+        "operationId": "get_stock_positions_api_reporting_stock_positions_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "regime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "DOMESTIC",
+                    "BONDED",
+                    "QUARANTINE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Regime"
+            }
+          },
+          {
+            "name": "location_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Location Id"
+            }
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "positive",
+                "zero",
+                "all"
+              ],
+              "type": "string",
+              "default": "positive",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "name",
+                "-name",
+                "sku",
+                "-sku",
+                "DOMESTIC",
+                "-DOMESTIC",
+                "BONDED",
+                "-BONDED",
+                "QUARANTINE",
+                "-QUARANTINE"
+              ],
+              "type": "string",
+              "default": "name",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockPositionsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/reporting/ap-queue": {
       "get": {
         "tags": [
@@ -12772,6 +12936,139 @@
                     "$ref": "#/components/schemas/MetricEventOut"
                   },
                   "title": "Response List Metric Events Api Ingestion Metrics Events Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/costing/products/{product_id}/sources": {
+      "get": {
+        "tags": [
+          "costing"
+        ],
+        "summary": "Read Product Sources",
+        "operationId": "read_product_sources_api_costing_products__product_id__sources_get",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "case_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductSourcesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/costing/products/{product_id}/versions/{version_id}": {
+      "get": {
+        "tags": [
+          "costing"
+        ],
+        "summary": "Read Product Version",
+        "operationId": "read_product_version_api_costing_products__product_id__versions__version_id__get",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductVersionResponse"
                 }
               }
             }
@@ -24782,6 +25079,72 @@
         ],
         "title": "PlanBody"
       },
+      "PositionBalance": {
+        "properties": {
+          "location_id": {
+            "type": "integer",
+            "title": "Location Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "regime": {
+            "type": "string",
+            "enum": [
+              "DOMESTIC",
+              "BONDED",
+              "QUARANTINE"
+            ],
+            "title": "Regime"
+          },
+          "qty": {
+            "type": "string",
+            "title": "Qty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location_id",
+          "code",
+          "name",
+          "regime",
+          "qty"
+        ],
+        "title": "PositionBalance"
+      },
+      "PositionLocation": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "regime": {
+            "type": "string",
+            "enum": [
+              "DOMESTIC",
+              "BONDED",
+              "QUARANTINE"
+            ],
+            "title": "Regime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "regime"
+        ],
+        "title": "PositionLocation"
+      },
       "PresetOut": {
         "properties": {
           "preset_id": {
@@ -25439,6 +25802,83 @@
         ],
         "title": "ProcessUpdate"
       },
+      "ProductComponent": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "included": {
+            "type": "boolean",
+            "title": "Included"
+          },
+          "product_brl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Brl"
+          },
+          "process_brl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Brl"
+          },
+          "source_kind": {
+            "type": "string",
+            "title": "Source Kind"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/SourceDocument"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "document_state": {
+            "type": "string",
+            "title": "Document State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "included",
+          "product_brl",
+          "process_brl",
+          "source_kind",
+          "source_id",
+          "documents",
+          "document_state"
+        ],
+        "title": "ProductComponent"
+      },
       "ProductCreate": {
         "properties": {
           "sku": {
@@ -25801,6 +26241,53 @@
         },
         "type": "object",
         "title": "ProductPatch"
+      },
+      "ProductPosition": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "sku": {
+            "type": "string",
+            "title": "Sku"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "quantities": {
+            "$ref": "#/components/schemas/Quantities"
+          },
+          "balances": {
+            "items": {
+              "$ref": "#/components/schemas/PositionBalance"
+            },
+            "type": "array",
+            "title": "Balances"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "sku",
+          "name",
+          "unit",
+          "quantities",
+          "balances"
+        ],
+        "title": "ProductPosition"
       },
       "ProductResponse": {
         "properties": {
@@ -26272,6 +26759,106 @@
         ],
         "title": "ProductResponse"
       },
+      "ProductSource": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "process_id": {
+            "type": "integer",
+            "title": "Process Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "current_published_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Published Id"
+          },
+          "purchases": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Purchases"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/VersionSource"
+            },
+            "type": "array",
+            "title": "Versions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "process_id",
+          "code",
+          "reference",
+          "current_published_id",
+          "purchases",
+          "versions"
+        ],
+        "title": "ProductSource"
+      },
+      "ProductSourcesResponse": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ProductSource"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "total",
+          "limit",
+          "offset",
+          "rows"
+        ],
+        "title": "ProductSourcesResponse"
+      },
       "ProductTypeResponse": {
         "properties": {
           "id": {
@@ -26301,6 +26888,104 @@
           "slug"
         ],
         "title": "ProductTypeResponse"
+      },
+      "ProductVersionResponse": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "version_id": {
+            "type": "integer",
+            "title": "Version Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "current_published_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Published Id"
+          },
+          "partial_coverage": {
+            "type": "boolean",
+            "title": "Partial Coverage"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product"
+          },
+          "fx": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Fx"
+          },
+          "coverage": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Coverage"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/ProductComponent"
+            },
+            "type": "array",
+            "title": "Components"
+          },
+          "basis": {
+            "type": "string",
+            "title": "Basis"
+          },
+          "tax_basis": {
+            "type": "string",
+            "title": "Tax Basis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "case_id",
+          "version_id",
+          "number",
+          "kind",
+          "status",
+          "current_published_id",
+          "partial_coverage",
+          "product",
+          "fx",
+          "coverage",
+          "components",
+          "basis",
+          "tax_basis"
+        ],
+        "title": "ProductVersionResponse"
       },
       "ProvenanceEntry": {
         "properties": {
@@ -26897,6 +27582,29 @@
         },
         "type": "object",
         "title": "QualityPayload"
+      },
+      "Quantities": {
+        "properties": {
+          "DOMESTIC": {
+            "type": "string",
+            "title": "Domestic"
+          },
+          "BONDED": {
+            "type": "string",
+            "title": "Bonded"
+          },
+          "QUARANTINE": {
+            "type": "string",
+            "title": "Quarantine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "DOMESTIC",
+          "BONDED",
+          "QUARANTINE"
+        ],
+        "title": "Quantities"
       },
       "QuoteBody": {
         "properties": {
@@ -29449,6 +30157,120 @@
         ],
         "title": "SkuPositionOut"
       },
+      "SourceDocument": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "mime_type"
+        ],
+        "title": "SourceDocument"
+      },
+      "StockPositionsResponse": {
+        "properties": {
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/PositionLocation"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ProductPosition"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "totals": {
+            "items": {
+              "$ref": "#/components/schemas/UnitPositionTotal"
+            },
+            "type": "array",
+            "title": "Totals"
+          },
+          "filters": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Filters"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "empty"
+            ],
+            "title": "State"
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "locations",
+          "rows",
+          "total",
+          "limit",
+          "offset",
+          "totals",
+          "filters",
+          "scope",
+          "state",
+          "generated_at"
+        ],
+        "title": "StockPositionsResponse"
+      },
       "SummaryOut": {
         "properties": {
           "id": {
@@ -30051,6 +30873,88 @@
         ],
         "title": "TermsReplace"
       },
+      "TotalQuantities": {
+        "properties": {
+          "DOMESTIC": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domestic"
+          },
+          "BONDED": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bonded"
+          },
+          "QUARANTINE": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quarantine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "DOMESTIC",
+          "BONDED",
+          "QUARANTINE"
+        ],
+        "title": "TotalQuantities"
+      },
+      "UnitPositionTotal": {
+        "properties": {
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "quantities": {
+            "$ref": "#/components/schemas/TotalQuantities"
+          },
+          "sku_count": {
+            "type": "integer",
+            "title": "Sku Count"
+          },
+          "quantity_state": {
+            "type": "string",
+            "enum": [
+              "known",
+              "unit_missing"
+            ],
+            "title": "Quantity State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unit",
+          "quantities",
+          "sku_count",
+          "quantity_state"
+        ],
+        "title": "UnitPositionTotal"
+      },
       "UnlinkInvoiceBody": {
         "properties": {
           "expected_version": {
@@ -30383,6 +31287,61 @@
           "expected_version"
         ],
         "title": "VersionLockBody"
+      },
+      "VersionSource": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "partial_coverage": {
+            "type": "boolean",
+            "title": "Partial Coverage"
+          },
+          "invoices": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Invoices"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "status",
+          "partial_coverage",
+          "invoices",
+          "product"
+        ],
+        "title": "VersionSource"
       },
       "ViewCreateIn": {
         "properties": {

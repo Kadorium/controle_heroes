@@ -23,6 +23,11 @@ async function capture(page: Page, name: string) {
   mkdirSync(evidence, { recursive: true });
   await page.screenshot({ path: join(evidence, `${name}.png`) });
 }
+async function openPurchaseNavigation(page: Page, name: string) {
+  const link = page.getByRole("link", { name, exact: true });
+  if (!await link.isVisible()) await page.getByText("Compras e documentos", { exact: true }).click();
+  await link.click();
+}
 
 test("automatic eight steps, repeatable and read-only", async ({ page }) => {
   test.setTimeout(duration === "50" ? 510000 : 90000);
@@ -88,13 +93,13 @@ test("pause, resume, previous, next, chapter, manual navigation and keyboard exi
   await page.getByLabel("Escolher etapa").selectOption("7");
   await expect(panel).toHaveAttribute("data-step", "8");
   await expect(panel).toHaveAttribute("data-phase", "running");
-  await page.getByRole("link", { name: "Pedidos", exact: true }).click();
+  await openPurchaseNavigation(page, "Pedidos");
   await expect(panel).toHaveAttribute("data-phase", "paused");
   await expect(page).toHaveURL(/\/orders$/);
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
   await expect(page.getByTestId("demo-start")).toBeFocused();
-  await page.getByRole("link", { name: "Faturas", exact: true }).click();
+  await openPurchaseNavigation(page, "Faturas");
   await expect(page).toHaveURL(/\/invoices$/);
 });
 
@@ -110,7 +115,7 @@ test("missing target interrupts, exit cancels loading and does not navigate late
   await page.getByLabel("Escolher etapa").selectOption("6");
   await expect(page.getByTestId("demo-panel")).toHaveAttribute("data-phase", "loading");
   await page.getByRole("button", { name: "Sair do tour", exact: true }).click();
-  await page.getByRole("link", { name: "Pedidos", exact: true }).click();
+  await openPurchaseNavigation(page, "Pedidos");
   await page.waitForTimeout(4500);
   await expect(page).toHaveURL(/\/orders$/);
   await expect(page.getByTestId("demo-panel")).toHaveCount(0);

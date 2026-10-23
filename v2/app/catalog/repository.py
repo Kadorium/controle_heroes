@@ -300,6 +300,25 @@ def list_products_filtered(db: Session, filters: ProductListFilters) -> list[Pro
     return query.order_by(*_product_order(filters.sort)).offset(filters.offset).limit(filters.limit).all()
 
 
+def product_read_population(db: Session, filters: ProductListFilters) -> list[Product]:
+    """Complete filtered population for server read-model aggregation, never a UI page.
+
+    Catalog owns filtering and metadata; callers aggregate before slicing. No arbitrary
+    500-product ceiling. Eager category/type loading prevents per-product queries.
+    """
+    return _product_query(db, filters).order_by(*_product_order(filters.sort), Product.id.asc()).all()
+
+
+def stock_product_population(db: Session, q: str | None = None) -> list[dict]:
+    """Only operational identity already exposed by Inventory; no commercial/fiscal fields."""
+    query = db.query(Product.id, Product.sku, Product.description, Product.unit)
+    if q:
+        like = f"%{q.strip()}%"
+        query = query.filter(or_(Product.sku.ilike(like), Product.description.ilike(like)))
+    return [{"product_id": r.id, "sku": r.sku, "name": r.description, "unit": r.unit}
+            for r in query.order_by(Product.description, Product.id).all()]
+
+
 def count_products_filtered(db: Session, filters: ProductListFilters) -> int:
     query = _product_query(db, filters, for_count=True)
     return int(query.scalar() or 0)

@@ -227,7 +227,7 @@ export function DashboardPage({ user: _user }: Props) {
   return (
     <div className={`dashboard-page${executive ? " dashboard-page--executive" : ""}`} data-testid="dashboard-page" data-demo-ready={!loading && !!snap && !error ? "true" : "false"}>
       <PageHeader
-        title={executive ? "Painel executivo" : snap?.view_name ?? VIEW_TITLE[view] ?? "Painel"}
+        title={executive ? "Visão geral" : snap?.view_name ?? VIEW_TITLE[view] ?? "Painel"}
         subtitle={subtitle}
         actions={
           <>
@@ -330,7 +330,7 @@ export function DashboardPage({ user: _user }: Props) {
           <div className="dash-slot dash-slot--panel"><Skeleton kind="block" /></div>
           <div className="dash-slot dash-slot--wide"><Skeleton kind="inbox" /></div>
         </div>
-      ) : executive && snap ? <ExecutiveOverview snapshot={snap} refreshKey={refreshKey} onExplain={setExplainer} onSeeAll={setInboxAll} /> : (
+      ) : executive && snap ? <ExecutiveOverview snapshot={snap} refreshKey={refreshKey} onExplain={setExplainer} onSeeAll={setInboxAll} canInventory={_user.role === "admin" || _user.permissions.includes("inventory:read")} /> : (
         <div className="dash-grid" data-demo-summary>
           {(snap?.widgets ?? []).map((w) => (
             <div key={w.widget_id} className={`dash-slot dash-slot--${w.size || "panel"}`}>

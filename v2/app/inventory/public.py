@@ -1,6 +1,8 @@
 """Fachada pública Inventory (J#5 I5-4)."""
 
 from __future__ import annotations
+from app.inventory.read_models import StockPositionsResponse
+from app.inventory.positions import positions
 
 from app.inventory.commands import (
     add_receipt_lines,
@@ -50,6 +52,7 @@ def get_receipt(db, receipt_id: int):
 stock_balance = get_stock_balance
 
 __all__ = [
+    "positions",
     "InventoryError",
     "InventoryNotImplemented",
     "LocationNotFound",

@@ -5,6 +5,7 @@ import { formatDateOnly, formatDateTime, formatMoney, formatRate } from "../../u
 import type { DashboardSnapshot, DashboardWidget } from "./dashboardApi";
 import { amount, fields, hasFailure, incomplete, monthRange, rows, text } from "./executiveDisplay";
 import { OperationalPriorities } from "./OperationalPriorities";
+import { ExecutiveStock } from "./ExecutiveStock";
 import "./executive.css";
 
 function Money({ value, currency }: { value: unknown; currency: unknown }) {
@@ -22,25 +23,27 @@ function Block({ widget, title, caption, summary, onExplain, children }: { widge
 }
 const operationNames: Record<string, string> = { confirmed: "pedidos confirmados", to_invoice: "linhas a faturar", shipments: "embarques em curso", customs: "processos na aduana", stock: "SKUs com saldo em estoque" };
 
-export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll }: { snapshot: DashboardSnapshot; refreshKey: number; onExplain: (w: DashboardWidget) => void; onSeeAll: (w: DashboardWidget) => void }) {
+export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, canInventory = false }: { snapshot: DashboardSnapshot; refreshKey: number; onExplain: (w: DashboardWidget) => void; onSeeAll: (w: DashboardWidget) => void; canInventory?: boolean }) {
   const widgets = snapshot.widgets.filter(w => w.status === "AVAILABLE");
   const get = (id: string) => widgets.find(w => w.widget_id === id);
   const cash = get("ap.cash_committed"), flow = get("goods.flow"), inbox = get("attention.inbox"), trend = get("treasury.fx_trend"), progress = get("orders.billing_progress");
   const labels = fields(cash?.display.labels), range = monthRange(cash?.display ?? {});
-  const kpis = ["ap.overdue", "ap.cash_due", "treasury.fx_exposure", "orders.to_invoice"].map(get).filter((w): w is DashboardWidget => !!w);
+  const kpis = ["treasury.fx_exposure", ...(!canInventory ? ["ap.cash_due", "ap.overdue", "orders.to_invoice"] : [])].map(get).filter((w): w is DashboardWidget => !!w);
   return <div className="executive-overview">
-    <div className="exec-summary" data-demo-summary data-testid="executive-summary">
+    <div className={`exec-summary ${canInventory ? "exec-summary--experience" : ""}`} data-demo-summary data-testid="executive-summary">
       {kpis.map(w => {
         const d = w.display, quote = fields(d.quote), currencies = rows(d.by_currency);
         const fx = w.widget_id === "treasury.fx_exposure";
-        const title = fx ? "Equivalente de referência · BRL" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
+        const title = fx ? "Saldo estrangeiro · referência em reais" : w.widget_id === "ap.cash_due" ? `Compromissos · ${range}` : w.widget_id === "ap.overdue" ? "Obrigações vencidas" : w.label;
         return <Block key={w.widget_id} widget={w} title={title} summary onExplain={onExplain} caption={w.widget_id === "orders.to_invoice" ? "Pedidos confirmados · posição atual" : w.widget_id === "ap.cash_due" ? "Saldo nos meses civis indicados" : undefined}>
           {fx ? <>
             <div className="exec-value">{d.hero_brl != null && quote.rate != null ? <Money value={d.hero_brl} currency="BRL" /> : <span className="exec-word">{d.empty === true ? "Sem saldo estrangeiro" : "Cotação indisponível"}</span>}</div>
             <p className="exec-caption">{rows(d.foreign).map((r, n) => <span key={n}><Money value={r.open_balance} currency={r.currency} />{n < rows(d.foreign).length - 1 ? " · " : ""}</span>)}{d.empty !== true && <span> · {quote.rate == null ? "sem equivalente" : quote.stale ? "cotação desatualizada" : "cotação de referência"}</span>}</p>
+            {quote.rate != null && <p className="exec-caption">{formatRate(amount(quote.rate_full ?? quote.rate), 4)} · {text(quote.source)} · {formatDateTime(text(quote.observed_at))}<br/>Referência de mercado · não é planejamento nem câmbio realizado</p>}
           </> : w.widget_id === "ap.overdue" && d.total_count === 0 && d.overdue_count === 0 && d.state === "ok" ? <><div className="exec-value exec-word">Nenhuma</div><p className="exec-caption">Nenhuma obrigação vencida no recorte consultado.</p></> : currencies.length ? currencies.map((r, n) => <div className="exec-value" key={n}><Money value={r.amount} currency={r.currency} /></div>) : <p>{d.empty === true && d.message ? text(d.message) : "Valores não disponíveis"}</p>}
         </Block>;
       })}
+      {canInventory && <ExecutiveStock refreshKey={refreshKey} />}
     </div>
     <div className="exec-primary">
       <div><OperationalPriorities refreshKey={refreshKey} />
@@ -50,10 +53,11 @@ export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll }:
           {Number(inbox.display.total_count) > rows(inbox.display.items).length && <button className="btn-ghost" onClick={() => onSeeAll(inbox)}>Ver todas as pendências consultadas</button>}
         </details>}
       </div>
-      {flow && <section data-testid="dash-widget-goods.flow"><div className="exec-section-heading"><h2>Posição atual da operação</h2><button className="dash-tip" aria-label="Sobre a posição atual" onClick={() => onExplain(flow)}>ⓘ</button></div>
+      <div>{canInventory && ["ap.cash_due","ap.overdue"].map(get).filter((w):w is DashboardWidget=>!!w).map(w=><div className="exec-due-line" key={w.widget_id}><Block widget={w} title={w.widget_id==="ap.cash_due"?`Vencimentos · ${range}`:"Vencidos no recorte"} onExplain={onExplain}>{rows(w.display.by_currency).length ? rows(w.display.by_currency).map((r,n)=><div className="exec-due-value" key={n}><Money value={r.amount} currency={r.currency}/></div>):<p>{w.display.state==="ok" && w.display.total_count===0 && w.display.overdue_count===0?"Nenhuma obrigação vencida no recorte.":w.display.empty===true?"Nenhum compromisso no recorte.":"Valores não disponíveis."}</p>}</Block></div>)}
+      {flow && <details className="exec-details" data-testid="dash-widget-goods.flow"><summary>Posição atual da operação</summary><section><div className="exec-section-heading"><h2>Posição atual da operação</h2><button className="dash-tip" aria-label="Sobre a posição atual" onClick={() => onExplain(flow)}>ⓘ</button></div>
         {hasFailure(flow) ? <p>Posição operacional indisponível.</p> : rows(flow.display.segments).length === 0 ? <p>Nenhuma posição disponível para o seu acesso neste recorte.</p> : <ul className="exec-operations">{rows(flow.display.segments).map((seg, n) => <li key={n}><span><strong>{text(seg.value)}</strong> {operationNames[text(seg.key)] ?? text(seg.label)}</span>{seg.href ? <Link to={String(seg.href)} aria-label={`Consultar ${operationNames[text(seg.key)] ?? text(seg.label)}`}>Consultar →</Link> : null}</li>)}</ul>}
         <p className="exec-caption">Chegada, nacionalização e recebimento são marcos distintos.</p>
-      </section>}
+      </section></details>}</div>
     </div>
     <div className="exec-complementary">
       {cash && <Block widget={cash} title="Agenda de caixa" caption={`Meses civis · ${range}${cash.display.as_of_month ? ` · base ${formatDateOnly(String(cash.display.as_of_month))}` : ""}`} onExplain={onExplain}>

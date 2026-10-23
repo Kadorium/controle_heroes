@@ -119,7 +119,7 @@ function WidgetChrome({
   );
 }
 
-function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
+export function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
   const [productType, setProductType] = useState("");
@@ -127,10 +127,16 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
   const [sort, setSort] = useState("commercial_name");
   const [data, setData] = useState<CommercialAvailability | null>(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setBusy(true);
+    setError(false);
+    setData(null);
     void fetchCommercialAvailability({
       q: q || undefined,
       category: category || undefined,
@@ -138,23 +144,26 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
       status: status || undefined,
       sort,
       limit: 50,
-      offset: 0,
-    })
+      offset,
+    }, controller.signal)
       .then((row) => {
         if (!cancelled) setData(row);
       })
       .catch(() => {
-        if (!cancelled) setData(null);
+        if (!cancelled) setError(true);
       })
       .finally(() => {
         if (!cancelled) setBusy(false);
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [q, category, productType, status, sort]);
+  }, [q, category, productType, status, sort, offset, retry]);
+  useEffect(() => { setOffset(0); }, [q, category, productType, status]);
 
-  const view = data ?? (initial as unknown as CommercialAvailability);
+  // Initial snapshot is used only for stable filter choices, never as a result of a failed search.
+  const view = data ?? ({ rows: [], totals: {}, facets: initial.facets ?? {}, by_regime: [] } as unknown as CommercialAvailability);
   const rows = view.rows ?? [];
   const totals = view.totals ?? {};
   const facets = view.facets ?? {};
@@ -175,7 +184,7 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
         </div>
         <div>
           <dt>Unidades</dt>
-          <dd>{formatQuantity(String(totals.units_available ?? ""))}</dd>
+          <dd>{totals.units_available == null ? "Ver por produto" : formatQuantity(String(totals.units_available))}</dd>
         </div>
         <div>
           <dt>Chegando</dt>
@@ -186,7 +195,7 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
           <dd>{String(totals.sku_attention ?? "—")}</dd>
         </div>
       </div>
-      {chartData.some((d) => d.qty > 0) ? (
+      {new Set(regime.map(r => r.unit)).size <= 1 && chartData.some((d) => d.qty > 0) ? (
         <BarStack
           data={chartData}
           xKey="name"
@@ -234,6 +243,8 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
         </label>
       </div>
       {busy ? <p className="muted">Atualizando…</p> : null}
+      {error ? <div role="alert">Não foi possível consultar este recorte. <button type="button" onClick={() => setRetry(n => n + 1)}>Tentar novamente</button></div> : null}
+      {!busy && !error && data ? <>
       {view.empty ? (
         <EmptyState message="Nenhum produto neste recorte." />
       ) : (
@@ -285,6 +296,8 @@ function CommercialBody({ initial }: { initial: Record<string, unknown> }) {
           {view.footer.label}: {formatQuantity(view.footer.qty)}
         </p>
       ) : null}
+      <div className="form-actions"><button disabled={offset === 0} onClick={() => setOffset(n => Math.max(0, n - 50))}>Anterior</button><span>{view.total} {view.total === 1 ? "produto" : "produtos"} · página {Math.floor(offset / 50) + 1}</span><button disabled={offset + 50 >= view.total} onClick={() => setOffset(n => n + 50)}>Próxima</button></div>
+      </> : null}
     </div>
   );
 }

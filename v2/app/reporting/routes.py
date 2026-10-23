@@ -12,6 +12,8 @@ from app.foundation.errors import AppError
 from app.foundation.settings import get_settings
 from app.foundation.uow import UnitOfWork
 from app.orders.public import OrdersError
+from app.inventory import public as inventory_public
+from typing import Literal
 from app.reporting import dashboard as dash
 from app.reporting import public as reporting_public
 from app.reporting import views as view_cmds
@@ -28,6 +30,21 @@ from app.reporting.schemas import (
 )
 
 router = APIRouter(tags=["reporting"])
+
+
+@router.get("/reporting/stock-positions", response_model=inventory_public.StockPositionsResponse)
+def get_stock_positions(
+    q: str | None = None, regime: Literal["DOMESTIC", "BONDED", "QUARANTINE"] | None = None,
+    location_id: int | None = Query(default=None, ge=1),
+    product_id: int | None = Query(default=None, ge=1),
+    status: Literal["positive", "zero", "all"] = "positive",
+    sort: Literal["name", "-name", "sku", "-sku", "DOMESTIC", "-DOMESTIC", "BONDED", "-BONDED", "QUARANTINE", "-QUARANTINE"] = "name",
+    limit: int = Query(default=25, ge=1, le=100), offset: int = Query(default=0, ge=0),
+    user=Depends(get_current_user), db: Session = Depends(get_db),
+):
+    enforce_permission(user, "inventory:read")
+    return inventory_public.positions(db, q=q, product_id=product_id, regime=regime, location_id=location_id,
+                                      status=status, sort=sort, limit=limit, offset=offset)
 
 
 def _map_orders_error(exc: OrdersError) -> AppError:

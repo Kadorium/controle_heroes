@@ -122,6 +122,10 @@ export function InvoicesListPage({ user: _user }: Props) {
 }
 
 export function PayablesListPage({ user: _user }: Props) {
+  const [params] = useSearchParams();
+  const fxMode = params.get("purpose") === "fx";
+  const canFx = _user.role === "admin" || _user.permissions.includes("treasury:fx_read");
+  const canBilling = _user.role === "admin" || _user.permissions.includes("billing:read");
   const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,14 +146,15 @@ export function PayablesListPage({ user: _user }: Props) {
     };
   }, []);
 
+  if (!canBilling) return <ErrorState message="Seu acesso não permite listar obrigações. Para abrir o câmbio, use o link de uma obrigação autorizada." />;
   if (error) return <ErrorState message={error} />;
   if (rows === null) return <LoadingState message="Carregando contas a pagar…" />;
 
   return (
     <section className="panel dense" data-testid="payables-list-page">
       <PageHeader
-        title="Contas a pagar"
-        subtitle="Lista básica — use a fila operacional enriquecida quando disponível"
+        title={fxMode ? "Câmbio · escolha a obrigação" : "Contas a pagar"}
+        subtitle="Saldos e vencimentos das obrigações"
       />
       {rows.length === 0 ? <EmptyState message="Nenhuma obrigação" /> : null}
       <OperationalTable density="finance">
@@ -159,6 +164,7 @@ export function PayablesListPage({ user: _user }: Props) {
             <th>Vencimento</th>
             <th className="num">Saldo</th>
             <th>Status</th>
+            {fxMode && canFx && <th>Câmbio</th>}
           </tr>
         </thead>
         <tbody>
@@ -176,6 +182,7 @@ export function PayablesListPage({ user: _user }: Props) {
               <td>
                 <StatusBadge status={String(p.status)} entity="payable" />
               </td>
+              {fxMode && canFx && <td><RowLink to={`/payables/${p.id}/fx`}>Ver câmbio</RowLink></td>}
             </tr>
           ))}
         </tbody>

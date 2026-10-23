@@ -25,6 +25,7 @@ import { CustomsCreatePage } from "./features/customs/CustomsCreatePage";
 import { CustomsDetailPage } from "./features/customs/CustomsDetailPage";
 import { SkuPositionPage } from "./features/inventory/SkuPositionPage";
 import { MovementsPage } from "./features/inventory/MovementsPage";
+import { StockPositionsPage } from "./features/inventory/StockPositionsPage";
 import { FundingRedirectPage } from "./features/customs/FundingRedirectPage";
 import { IngestionQueuePage } from "./features/ingestion/IngestionQueuePage";
 import { IngestionWorkspacePage } from "./features/ingestion/IngestionWorkspacePage";
@@ -54,8 +55,16 @@ function HomeRedirect({ user }: { user: User }) {
   }
   if (can(user, "orders:read")) return <Navigate to="/orders" replace />;
   if (can(user, "customs:read")) return <Navigate to="/customs" replace />;
-  if (can(user, "inventory:read")) return <Navigate to="/inventory/movements" replace />;
-  return <Navigate to="/orders" replace />;
+  if (can(user, "inventory:read")) return <Navigate to="/inventory/positions" replace />;
+  if (can(user, "billing:read")) return <Navigate to="/payables" replace />;
+  if (can(user, "treasury:read")) return <Navigate to="/payments" replace />;
+  if (can(user, "catalog:read")) return <Navigate to="/catalog/products" replace />;
+  if (can(user, "logistics:read")) return <Navigate to="/shipments" replace />;
+  if (can(user, "costing:read")) return <Navigate to="/costing" replace />;
+  if (can(user, "ingestion:read")) return <Navigate to="/ingestion" replace />;
+  if (can(user, "users:read")) return <Navigate to="/admin/users" replace />;
+  if (can(user, "treasury:fx_read")) return <Navigate to="/payables?purpose=fx" replace />;
+  return <p>Nenhum módulo disponível para este acesso. Solicite a revisão das permissões.</p>;
 }
 
 function LoginRoute({ user, onSuccess }: { user: User | null; onSuccess: () => Promise<void> | void }) {
@@ -137,6 +146,7 @@ export function App() {
         <Route path="customs/funding/:fundingRequestId" element={<FundingRedirectPage />} />
         <Route path="customs/:processId" element={<CustomsDetailPage user={user!} />} />
         <Route path="inventory/movements" element={<MovementsPage user={user!} />} />
+        <Route path="inventory/positions" element={<StockPositionsPage user={user!} />} />
         <Route path="inventory/sku/:productId" element={<SkuPositionPage user={user!} />} />
         <Route path="ingestion" element={<IngestionQueuePage user={user!} />} />
         <Route path="ingestion/:documentId" element={<IngestionWorkspacePage user={user!} />} />

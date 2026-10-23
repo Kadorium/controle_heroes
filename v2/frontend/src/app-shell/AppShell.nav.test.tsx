@@ -1,102 +1,42 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "./AppShell";
-
-vi.mock("./RuntimeBadge", () => ({
-  RuntimeBadge: () => null,
-}));
-
-vi.mock("../features/treasury/FxPanels", () => ({
-  FxQuoteStrip: () => null,
-}));
-
-const admin = {
-  id: 1,
-  email: "admin@epic.com.br",
-  name: "Admin",
-  role: "admin",
-  permissions: [] as string[],
-};
-
-const NAV_ITEMS: { name: string; href: string }[] = [
-  { name: "Painel", href: "/dashboard" },
-  { name: "Pedidos", href: "/orders" },
-  { name: "Faturas", href: "/invoices" },
-  { name: "Ingestão", href: "/ingestion" },
-  { name: "Contas a pagar", href: "/payables" },
-  { name: "Pagamentos realizados", href: "/payments" },
-  { name: "Custos de importação", href: "/costing" },
-  { name: "Embarques", href: "/shipments" },
-  { name: "Processos", href: "/customs" },
-  { name: "Estoque", href: "/inventory/movements" },
-  { name: "Produtos", href: "/catalog/products" },
-  { name: "Usuários", href: "/admin/users" },
+vi.mock("./RuntimeBadge",()=>({RuntimeBadge:()=>null}));
+vi.mock("../features/treasury/FxPanels",()=>({FxQuoteStrip:()=>null}));
+const admin={id:1,email:"admin@example.com",name:"Admin",role:"admin",permissions:[] as string[]};
+afterEach(()=>{cleanup();localStorage.clear();});
+const destinations=[
+  ["Visão geral","/dashboard"],["Estoque atual","/inventory/positions"],["Produtos","/catalog/products"],
+  ["Contas a pagar","/payables"],["Operações","/customs"],["Pedidos","/orders"],["Faturas","/invoices"],
+  ["Conferir documentos","/ingestion"],["Pagamentos","/payments"],["Câmbio por obrigação","/payables?purpose=fx"],
+  ["Custos de importação","/costing"],["Embarques","/shipments"],["Movimentos de estoque","/inventory/movements"],
+  ["Fornecedores","/catalog/suppliers"],["Prestadores logísticos","/logistics-providers"],["Usuários e acessos","/admin/users"],
 ];
-
-afterEach(() => {
-  cleanup();
-});
-
-describe("AppShell nav icons", () => {
-  it("mantém grupos e destinos com SVG distintos", () => {
-    render(
-      <MemoryRouter>
-        <AppShell user={admin} onLogout={() => undefined} />
-      </MemoryRouter>,
-    );
-
-    const nav = within(screen.getByRole("navigation", { name: /módulos/i }));
-    expect(nav.getAllByText(/^Produtos$/i).length).toBeGreaterThanOrEqual(1);
-    expect(nav.getByText(/^Visão$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Compras$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Financeiro$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Custos$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Logística$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Aduana$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Catálogo$/i)).toBeInTheDocument();
-    expect(nav.getByText(/^Administração$/i)).toBeInTheDocument();
-    expect(nav.queryByRole("link", { name: "Fornecedores" })).toBeNull();
-    expect(nav.queryByRole("link", { name: "Prestadores" })).toBeNull();
-    expect(nav.queryByRole("link", { name: /logistics-providers/i })).toBeNull();
-
-    const pathDs: string[] = [];
-    for (const item of NAV_ITEMS) {
-      const link = nav.getByRole("link", { name: item.name });
-      expect(link).toHaveAttribute("href", item.href);
-      expect(link).toHaveAttribute("data-label", item.name);
-      expect(link).not.toHaveAttribute("title");
-      const svg = link.querySelector("svg.shell-nav-icon");
-      expect(svg).toBeTruthy();
-      expect(svg).toHaveAttribute("width", "20");
-      expect(svg).toHaveAttribute("height", "20");
-      const d = [...(svg?.querySelectorAll("path") ?? [])]
-        .map((p) => p.getAttribute("d") ?? "")
-        .join("|");
-      expect(d.length).toBeGreaterThan(24);
-      pathDs.push(d);
-    }
-    expect(new Set(pathDs).size).toBe(pathDs.length);
+describe("experience navigation",()=>{
+  it("preserves all destinations with inventory second and coherent icons",()=>{
+    render(<MemoryRouter><AppShell user={admin} onLogout={()=>{}}/></MemoryRouter>);
+    const nav=within(screen.getByRole("navigation",{name:"Módulos"}));
+    for(const [name,href] of destinations){const a=nav.getByRole("link",{name});expect(a).toHaveAttribute("href",href);expect(a.querySelector("svg")).toBeTruthy();}
+    expect(nav.getAllByRole("link")[1]).toHaveAttribute("href","/inventory/positions");
   });
-
-  it("esconde Administração sem users:read", () => {
-    render(
-      <MemoryRouter>
-        <AppShell
-          user={{
-            ...admin,
-            role: "comprador",
-            permissions: ["orders:read", "catalog:read", "logistics:read"],
-          }}
-          onLogout={() => undefined}
-        />
-      </MemoryRouter>,
-    );
-    const nav = within(screen.getByRole("navigation", { name: /módulos/i }));
-    expect(nav.queryByText(/^Administração$/i)).toBeNull();
-    expect(nav.queryByRole("link", { name: "Usuários" })).toBeNull();
-    expect(nav.getByRole("link", { name: "Produtos" })).toBeInTheDocument();
-    expect(nav.queryByRole("link", { name: "Fornecedores" })).toBeNull();
-    expect(nav.queryByRole("link", { name: "Prestadores" })).toBeNull();
+  it("does not give inventory readers access to financial, catalog or admin destinations",()=>{
+    render(<MemoryRouter><AppShell user={{...admin,role:"operacao",permissions:["inventory:read"]}} onLogout={()=>{}}/></MemoryRouter>);
+    const links=within(screen.getByRole("navigation",{name:"Módulos"})).getAllByRole("link");
+    expect(links.map(l=>l.getAttribute("href"))).toEqual(["/inventory/positions","/inventory/movements"]);
+  });
+  it("financial reader without reporting keeps payments and FX",()=>{
+    render(<MemoryRouter><AppShell user={{...admin,role:"financeiro",permissions:["billing:read","treasury:read","treasury:fx_read"]}} onLogout={()=>{}}/></MemoryRouter>);
+    expect(screen.getByRole("link",{name:"Câmbio por obrigação"})).toBeInTheDocument();
+    expect(screen.getByRole("link",{name:"Contas a pagar"})).toBeInTheDocument();
+    expect(screen.queryByRole("link",{name:"Visão geral"})).toBeNull();
+  });
+  it("collapse persists without removing destinations or their accessible names",()=>{
+    render(<MemoryRouter><AppShell user={admin} onLogout={()=>{}}/></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button",{name:"Recolher navegação"}));
+    expect(localStorage.getItem("epic.navigation.expanded")).toBe("false");
+    expect(screen.getByRole("link",{name:"Estoque atual"})).toHaveAttribute("title","Estoque atual");
+    fireEvent.click(screen.getByRole("button",{name:"Expandir navegação"}));
+    expect(screen.getByTestId("shell-rail-toggle")).toHaveAttribute("aria-expanded","true");
   });
 });

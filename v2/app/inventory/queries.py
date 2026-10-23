@@ -296,7 +296,6 @@ def stock_position_bulk(db: Session, product_ids: list[int] | set[int] | None = 
 
     from app.inventory.models import LOCATION_TYPES, StockBalance, StockLocation
 
-    repo.ensure_default_locations(db)
     q = (
         db.query(
             StockBalance.product_id,

@@ -22,10 +22,12 @@ from app.catalog.queries import (
     taxonomy_catalog,
     exceptions,
 )
-from app.catalog.repository import distinct_product_values, product_facets, product_list_summary
+from app.catalog.repository import distinct_product_values, product_facets, product_list_summary, product_read_population, stock_product_population
 from app.catalog.taxonomy import ensure_taxonomy
 
 __all__ = [
+    "product_read_population",
+    "stock_product_population",
     "CatalogError",
     "SupplierCodeDuplicate",
     "create_supplier",

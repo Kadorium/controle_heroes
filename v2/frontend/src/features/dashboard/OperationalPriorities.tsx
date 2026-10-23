@@ -26,8 +26,9 @@ export function OperationalPriorities({ refreshKey }: { refreshKey: number }) {
       {items.length ? <>
         <article className="exec-priority">
           <span className={`exec-severity exec-severity--${text(items[0].severity)}`}>{severityLabel[text(items[0].severity)] ?? text(items[0].severity)} · {moduleLabel[text(items[0].module)] ?? text(items[0].module)}</span>
-          <h3>{text(items[0].title)}</h3><p>{text(items[0].reason)}</p>
-          <div className="exec-priority-footer"><span>{text(d.total_count)} exceção(ões) consultada(s)</span>{items[0].href ? <Link className="ui-button" to={String(items[0].href)}>Consultar origem →</Link> : <span>Origem sem link disponível</span>}</div>
+          <h3>{/declaração.*versão ativa/i.test(text(items[0].reason)) ? "Conferir declaração" : text(items[0].title)}</h3><p>{text(items[0].reason)}</p>
+          {/declaração.*versão ativa/i.test(text(items[0].reason)) && <p className="exec-caption">{text(items[0].title)}</p>}
+          <div className="exec-priority-footer"><span>{text(d.total_count)} {d.total_count===1?"exceção consultada":"exceções consultadas"}</span>{items[0].href ? <Link className="ui-button" to={String(items[0].href)}>Consultar origem →</Link> : <span>Origem sem link disponível</span>}</div>
         </article>
         {items.length > 1 && <details className="exec-details"><summary>Outras prioridades</summary><ul>{items.slice(1, 5).map((item, n) => <li key={n}><strong>{severityLabel[text(item.severity)] ?? text(item.severity)}</strong> · {item.href ? <Link to={String(item.href)}>{text(item.title)}</Link> : text(item.title)} — {text(item.reason)}</li>)}</ul><Link to="/dashboard?view=controle">Abrir lista completa</Link></details>}
       </> : d.total_count === 0 && !partial && ["ok", "empty"].includes(text(d.state)) ? <p>Nenhuma exceção nas áreas consultadas.</p> : <p>Não foi possível concluir se há exceções em todas as áreas consultadas.</p>}

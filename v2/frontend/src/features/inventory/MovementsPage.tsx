@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 import type { User } from "../auth/types";
 import { listMovements, type InventoryMovement } from "./inventoryApi";
 import { canReadInventory } from "./inventoryPermissions";
@@ -25,6 +25,8 @@ const PAGE_LIMIT = 100;
 
 export function MovementsPage({ user }: Props) {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const stockReturn = typeof location.state?.stockReturn === "string" && location.state.stockReturn.startsWith("/inventory/positions") ? location.state.stockReturn : "/inventory/positions";
   const productFilter = params.get("product_id") ?? params.get("q") ?? "";
   const [query, setQuery] = useState(productFilter);
   const [rows, setRows] = useState<InventoryMovement[] | undefined>(undefined);
@@ -50,11 +52,13 @@ export function MovementsPage({ user }: Props) {
             productId = asNum;
           } else {
             const res = await fetch(
-              `/api/products?q=${encodeURIComponent(raw)}&limit=1`,
+              `/api/products?q=${encodeURIComponent(raw)}&limit=2`,
               { credentials: "include" },
             );
+            if (!res.ok) throw new Error("Não foi possível identificar o produto. Tente novamente; o filtro foi preservado.");
             if (res.ok) {
               const list = (await res.json()) as Array<{ id: number }>;
+              if (list.length > 1) throw new Error("Mais de um produto encontrado. Refine a busca ou informe o código do produto.");
               if (list[0]) productId = list[0].id;
               else {
                 if (!cancelled) {
@@ -105,6 +109,7 @@ export function MovementsPage({ user }: Props) {
 
   return (
     <div data-testid="inventory-movements-page">
+      <Link to={stockReturn}>← Voltar ao estoque</Link>
       <ContextBreadcrumb items={[{ label: "Aduana" }, { label: "Estoque" }]} />
       <PageHeader
         title="Movimentações"

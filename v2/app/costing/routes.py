@@ -4,18 +4,34 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.costing import public as costing_public
 from app.costing.errors import CostingError
+from app.costing.read_models import ProductSourcesResponse, ProductVersionResponse
 from app.foundation.database import get_db
-from app.foundation.deps import enforce_permission, get_current_user
+from app.foundation.deps import enforce_permission, get_current_user, permission_set
 from app.foundation.errors import AppError
 from app.foundation.uow import UnitOfWork
 
 router = APIRouter(tags=["costing"])
+
+
+@router.get("/costing/products/{product_id}/sources", response_model=ProductSourcesResponse)
+def read_product_sources(product_id: int, limit: int = Query(25, ge=1, le=100), offset: int = Query(0, ge=0), case_id: int | None = Query(None, ge=1), user=Depends(get_current_user), db: Session = Depends(get_db)):
+    enforce_permission(user, "costing:read")
+    return costing_public.product_sources(db, product_id, limit=limit, offset=offset, case_id=case_id, can_orders=user.role.name == "admin" or "orders:read" in permission_set(user))
+
+
+@router.get("/costing/products/{product_id}/versions/{version_id}", response_model=ProductVersionResponse)
+def read_product_version(product_id: int, version_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    enforce_permission(user, "costing:read")
+    try:
+        return costing_public.product_version(db, product_id, version_id, permissions=permission_set(user), admin=user.role.name == "admin")
+    except CostingError as exc:
+        raise _map(exc) from exc
 
 
 def _map(exc: CostingError) -> AppError:

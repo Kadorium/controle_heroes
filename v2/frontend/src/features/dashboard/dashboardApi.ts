@@ -207,8 +207,8 @@ export async function fetchCommercialAvailability(params: {
   sort?: string;
   limit?: number;
   offset?: number;
-}) {
+}, signal?: AbortSignal) {
   return parse<CommercialAvailability>(
-    await fetch(`/api/reporting/commercial-availability${qs(params)}`, { credentials: "include" }),
+    await fetch(`/api/reporting/commercial-availability${qs(params)}`, { credentials: "include", signal }),
   );
 }

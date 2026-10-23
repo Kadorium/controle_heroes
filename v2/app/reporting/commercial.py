@@ -49,19 +49,18 @@ def availability(
     limit = max(1, min(int(limit), 200))
     offset = max(0, int(offset))
     stock_sorts = {"available", "-available", "incoming", "-incoming", "bonded", "-bonded"}
-    needs_full = (status in {"available", "incoming", "attention"}) or (sort in stock_sorts)
 
     filters = catalog_public.ProductListFilters(
         q=q or None,
         category=category or None,
         product_type=product_type or None,
         sort=sort if sort not in stock_sorts else "commercial_name",
-        limit=500 if needs_full else limit,
-        offset=0 if needs_full else offset,
+        limit=limit,
+        offset=0,
         needs_review=status == "attention",
         is_active=True,
     )
-    products, total = catalog_public.list_products_report(db, filters)
+    products = catalog_public.product_read_population(db, filters)
     pids = [p.id for p in products]
     stock = inventory_public.stock_position_bulk(db, pids) if pids else {}
     cleared = inventory_public.cleared_not_received_bulk(db, pids) if pids else {}
@@ -89,6 +88,7 @@ def availability(
         row = {
             "product_id": p.id,
             "sku": p.sku,
+            "unit": p.unit,
             "commercial_name": p.commercial_name,
             "category": p.category.name if p.category else None,
             "product_type": p.product_type.name if p.product_type else None,
@@ -109,14 +109,21 @@ def availability(
         rows.append(row)
 
     sku_available = sum(1 for r in rows if _d(r["available_qty"]) > 0)
-    units_available = sum((_d(r["available_qty"]) for r in rows), Decimal("0"))
+    units = sorted({r["unit"] or "" for r in rows})
+    totals_by_unit = [{"unit": unit or None, "qty": _qty(sum((_d(r["available_qty"]) for r in rows if (r["unit"] or "") == unit), Decimal("0"))) if unit else None} for unit in units]
+    units_available = sum((_d(r["available_qty"]) for r in rows), Decimal("0")) if len(units) <= 1 and "" not in units else None
     incoming_skus = sum(1 for r in rows if r["incoming_qty"] is not None)
     pending_skus = sum(1 for r in rows if r["needs_attention"])
-    by_category: dict[str, Decimal] = {}
+    by_category: dict[tuple[str, str], Decimal] = {}
     for r in rows:
-        cat = r.get("category") or "Sem categoria"
+        cat = (r.get("category") or "Sem categoria", r.get("unit") or "")
         by_category[cat] = by_category.get(cat, Decimal("0")) + _d(r["available_qty"])
 
+    by_regime = [{"location_type": regime, "unit": unit or None,
+                  "sku_count": sum(1 for r in rows if (r["unit"] or "") == unit and _d(r[key]) > 0),
+                  "qty": _qty(sum((_d(r[key]) for r in rows if (r["unit"] or "") == unit), Decimal("0"))) if unit else None}
+                 for unit in units for regime, key in [("DOMESTIC", "available_qty"), ("BONDED", "bonded_qty"), ("QUARANTINE", "quarantine_qty")]]
+    total = len(rows)
     if sort in stock_sorts:
         key = {
             "available": lambda r: _d(r["available_qty"]),
@@ -128,11 +135,7 @@ def availability(
         }[sort]
         reverse = sort.startswith("-")
         rows.sort(key=key, reverse=reverse)
-        total = len(rows)
-        rows = rows[offset : offset + limit]
-    elif needs_full:
-        total = len(rows)
-        rows = rows[offset : offset + limit]
+    rows = rows[offset : offset + limit]
 
     cats, types = catalog_public.taxonomy_catalog(db)
     category_facet = [{"value": c.slug, "label": c.name} for c in cats]
@@ -142,8 +145,6 @@ def availability(
         db,
         catalog_public.ProductListFilters(q=q or None, is_active=True, limit=1, offset=0),
     )
-
-    by_regime = inventory_public.stock_overview_by_location_type(db)
 
     footer = None
     if unassigned_qty > 0:
@@ -164,13 +165,15 @@ def availability(
         },
         "totals": {
             "sku_available": sku_available,
-            "units_available": _qty(units_available),
+            "units_available": _qty(units_available) if units_available is not None else None,
+            "by_unit": totals_by_unit,
             "sku_incoming": incoming_skus,
             "sku_attention": pending_skus,
         },
-        "by_regime": by_regime.get("by_location_type") or [],
+        "by_regime": by_regime,
+        "totals_scope": "filtered_population",
         "by_category": [
-            {"category": k, "qty": _qty(v)} for k, v in sorted(by_category.items(), key=lambda x: -x[1])
+            {"category": k[0], "unit": k[1] or None, "qty": _qty(v) if k[1] else None} for k, v in sorted(by_category.items(), key=lambda x: -x[1])
         ],
         "footer": footer,
         "empty": total == 0,

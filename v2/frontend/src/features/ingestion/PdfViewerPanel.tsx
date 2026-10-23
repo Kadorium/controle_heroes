@@ -223,11 +223,12 @@ export function PdfViewerPanel({ occurrenceId, contentUrl, activeLocator, onPage
               Tentar PDF.js
             </Button>
           </>
-        ) : (
+        ) : compactChrome ? null : (
           <span className="muted" data-testid="pdf-engine-label">
             PDF.js (legacy)
           </span>
         )}
+        {contentUrl && <a className="ui-button ui-button--ghost" href={contentUrl} download>Baixar PDF</a>}
         {activeLocator ? (
           <span className="muted" data-testid="pdf-locator-hint">
             {compactChrome

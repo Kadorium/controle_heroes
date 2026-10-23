@@ -1,5 +1,6 @@
 """Fachada pública Costing."""
 
+from app.costing.product_sources import product_sources, product_version
 from app.costing.commands import (
     add_expense,
     ensure_case,

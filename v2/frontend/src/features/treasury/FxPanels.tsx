@@ -96,7 +96,7 @@ export function FxQuoteStrip({ user }: { user: User }) {
     >
       EUR/BRL {rateLabel}
       {stale}
-      {error ? ` · ${error}` : ""}
+      {error ? " · atualização indisponível" : ""}
     </button>
   );
 }
@@ -127,14 +127,19 @@ export function PayableFxPanel({
   const [busy, setBusy] = useState(false);
 
   async function reload() {
+    setError(null);
     setView(await getPayableFxView(payableId));
   }
 
   useEffect(() => {
-    void reload().catch((e) => setError(e instanceof Error ? e.message : "Erro"));
+    let current = true;
+    setView(null); setError(null);
+    void getPayableFxView(payableId).then(v => { if (current) setView(v); }).catch(e => { if(current) setError(e instanceof Error ? e.message : "Erro"); });
+    return () => { current = false; };
   }, [payableId, reloadToken]);
 
   if (!canReadFx(user)) return null;
+  if (!view && error) return <div role="alert">Não foi possível carregar o câmbio. <Button onClick={() => void reload().catch(e => setError(e instanceof Error ? e.message : "Erro"))}>Tentar novamente</Button></div>;
   if (!view) return <LoadingState message="Carregando câmbio…" />;
 
   const marketStatusLabel =

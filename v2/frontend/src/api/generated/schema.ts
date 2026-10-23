@@ -1073,6 +1073,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reporting/stock-positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Stock Positions */
+        get: operations["get_stock_positions_api_reporting_stock_positions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/reporting/ap-queue": {
         parameters: {
             query?: never;
@@ -3465,6 +3482,40 @@ export interface paths {
          * @description Lista eventos de métricas com filtros opcionais.
          */
         get: operations["list_metric_events_api_ingestion_metrics_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/products/{product_id}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Product Sources */
+        get: operations["read_product_sources_api_costing_products__product_id__sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/costing/products/{product_id}/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Product Version */
+        get: operations["read_product_version_api_costing_products__product_id__versions__version_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6954,6 +7005,34 @@ export interface components {
             /** Supersedes Id */
             supersedes_id?: number | null;
         };
+        /** PositionBalance */
+        PositionBalance: {
+            /** Location Id */
+            location_id: number;
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "DOMESTIC" | "BONDED" | "QUARANTINE";
+            /** Qty */
+            qty: string;
+        };
+        /** PositionLocation */
+        PositionLocation: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /**
+             * Regime
+             * @enum {string}
+             */
+            regime: "DOMESTIC" | "BONDED" | "QUARANTINE";
+        };
         /** PresetOut */
         PresetOut: {
             /** Preset Id */
@@ -7154,6 +7233,27 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** ProductComponent */
+        ProductComponent: {
+            /** Id */
+            id: number;
+            /** Type */
+            type: string;
+            /** Included */
+            included: boolean;
+            /** Product Brl */
+            product_brl: string | null;
+            /** Process Brl */
+            process_brl: string | null;
+            /** Source Kind */
+            source_kind: string;
+            /** Source Id */
+            source_id: number | null;
+            /** Documents */
+            documents: components["schemas"]["SourceDocument"][];
+            /** Document State */
+            document_state: string;
+        };
         /** ProductCreate */
         ProductCreate: {
             /** Sku */
@@ -7267,6 +7367,20 @@ export interface components {
             taxonomy_reason?: string | null;
             /** Lifecycle Status */
             lifecycle_status?: string | null;
+        };
+        /** ProductPosition */
+        ProductPosition: {
+            /** Product Id */
+            product_id: number;
+            /** Sku */
+            sku: string;
+            /** Name */
+            name: string;
+            /** Unit */
+            unit: string | null;
+            quantities: components["schemas"]["Quantities"];
+            /** Balances */
+            balances: components["schemas"]["PositionBalance"][];
         };
         /** ProductResponse */
         ProductResponse: {
@@ -7383,6 +7497,38 @@ export interface components {
             /** Updated At */
             updated_at?: string | null;
         };
+        /** ProductSource */
+        ProductSource: {
+            /** Case Id */
+            case_id: number;
+            /** Process Id */
+            process_id: number;
+            /** Code */
+            code: string;
+            /** Reference */
+            reference: string | null;
+            /** Current Published Id */
+            current_published_id: number | null;
+            /** Purchases */
+            purchases: {
+                [key: string]: unknown;
+            }[];
+            /** Versions */
+            versions: components["schemas"]["VersionSource"][];
+        };
+        /** ProductSourcesResponse */
+        ProductSourcesResponse: {
+            /** Product Id */
+            product_id: number;
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Rows */
+            rows: components["schemas"]["ProductSource"][];
+        };
         /** ProductTypeResponse */
         ProductTypeResponse: {
             /** Id */
@@ -7393,6 +7539,43 @@ export interface components {
             slug: string;
             /** Recommended Attributes */
             recommended_attributes?: string[];
+        };
+        /** ProductVersionResponse */
+        ProductVersionResponse: {
+            /** Product Id */
+            product_id: number;
+            /** Case Id */
+            case_id: number;
+            /** Version Id */
+            version_id: number;
+            /** Number */
+            number: number;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Current Published Id */
+            current_published_id: number | null;
+            /** Partial Coverage */
+            partial_coverage: boolean;
+            /** Product */
+            product: {
+                [key: string]: unknown;
+            } | null;
+            /** Fx */
+            fx: {
+                [key: string]: unknown;
+            };
+            /** Coverage */
+            coverage: {
+                [key: string]: unknown;
+            };
+            /** Components */
+            components: components["schemas"]["ProductComponent"][];
+            /** Basis */
+            basis: string;
+            /** Tax Basis */
+            tax_basis: string;
         };
         /** ProvenanceEntry */
         ProvenanceEntry: {
@@ -7626,6 +7809,15 @@ export interface components {
              * @default true
              */
             incomplete_mdm: boolean;
+        };
+        /** Quantities */
+        Quantities: {
+            /** Domestic */
+            DOMESTIC: string;
+            /** Bonded */
+            BONDED: string;
+            /** Quarantine */
+            QUARANTINE: string;
         };
         /** QuoteBody */
         QuoteBody: {
@@ -8366,6 +8558,43 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        /** SourceDocument */
+        SourceDocument: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Mime Type */
+            mime_type: string | null;
+        };
+        /** StockPositionsResponse */
+        StockPositionsResponse: {
+            /** Locations */
+            locations: components["schemas"]["PositionLocation"][];
+            /** Rows */
+            rows: components["schemas"]["ProductPosition"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Totals */
+            totals: components["schemas"]["UnitPositionTotal"][];
+            /** Filters */
+            filters: {
+                [key: string]: string | number | null;
+            };
+            /** Scope */
+            scope: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "ok" | "empty";
+            /** Generated At */
+            generated_at: string;
+        };
         /** SummaryOut */
         SummaryOut: {
             /** Id */
@@ -8522,6 +8751,28 @@ export interface components {
             /** Terms */
             terms: components["schemas"]["TermIn"][];
         };
+        /** TotalQuantities */
+        TotalQuantities: {
+            /** Domestic */
+            DOMESTIC: string | null;
+            /** Bonded */
+            BONDED: string | null;
+            /** Quarantine */
+            QUARANTINE: string | null;
+        };
+        /** UnitPositionTotal */
+        UnitPositionTotal: {
+            /** Unit */
+            unit: string | null;
+            quantities: components["schemas"]["TotalQuantities"];
+            /** Sku Count */
+            sku_count: number;
+            /**
+             * Quantity State
+             * @enum {string}
+             */
+            quantity_state: "known" | "unit_missing";
+        };
         /** UnlinkInvoiceBody */
         UnlinkInvoiceBody: {
             /** Expected Version */
@@ -8638,6 +8889,27 @@ export interface components {
         VersionLockBody: {
             /** Expected Version */
             expected_version: number;
+        };
+        /** VersionSource */
+        VersionSource: {
+            /** Id */
+            id: number;
+            /** Number */
+            number: number;
+            /** Kind */
+            kind: string;
+            /** Status */
+            status: string;
+            /** Partial Coverage */
+            partial_coverage: boolean;
+            /** Invoices */
+            invoices: {
+                [key: string]: unknown;
+            }[];
+            /** Product */
+            product: {
+                [key: string]: unknown;
+            } | null;
         };
         /** ViewCreateIn */
         ViewCreateIn: {
@@ -11493,6 +11765,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_stock_positions_api_reporting_stock_positions_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                regime?: ("DOMESTIC" | "BONDED" | "QUARANTINE") | null;
+                location_id?: number | null;
+                product_id?: number | null;
+                status?: "positive" | "zero" | "all";
+                sort?: "name" | "-name" | "sku" | "-sku" | "DOMESTIC" | "-DOMESTIC" | "BONDED" | "-BONDED" | "QUARANTINE" | "-QUARANTINE";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockPositionsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -16643,6 +16953,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetricEventOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_product_sources_api_costing_products__product_id__sources_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                case_id?: number | null;
+            };
+            header?: never;
+            path: {
+                product_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSourcesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_product_version_api_costing_products__product_id__versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: number;
+                version_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductVersionResponse"];
                 };
             };
             /** @description Validation Error */
