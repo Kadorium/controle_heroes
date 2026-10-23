@@ -510,21 +510,29 @@ export function InvoiceDetailPage({ user }: Props) {
     }
   }
 
+  // Editing keeps its unsaved rows. Read-only views must reflect the persisted
+  // terms, not the two initial editing slots (or a draft changed during save).
+  const displayedTerms = canWrite ? terms : (inv.terms ?? []).map((t) => ({
+    due_date: t.due_date,
+    percent: t.percent ?? "",
+    amount: t.amount ?? "",
+  }));
+  const displayedTermMode = canWrite ? termMode : inv.terms_mode;
   const net = Number(inv.net_amount ?? NaN);
   const preview =
-    termMode === "PERCENT" && Number.isFinite(net)
+    displayedTermMode === "PERCENT" && Number.isFinite(net)
       ? previewPercentPayables(
           net,
-          terms.map((t) => Number(t.percent)).filter((n) => Number.isFinite(n)),
+          displayedTerms.map((t) => Number(t.percent)).filter((n) => Number.isFinite(n)),
         )
-      : terms.map((t) => t.amount);
+      : displayedTerms.map((t) => t.amount);
 
   const draftPayables = inv.payables_preview?.length
     ? inv.payables_preview
     : preview.map((a, i) => ({
         sequence: String(i + 1),
         amount: a,
-        due_date: terms[i]?.due_date ?? "",
+        due_date: displayedTerms[i]?.due_date ?? "",
       }));
 
   return (
@@ -914,12 +922,12 @@ export function InvoiceDetailPage({ user }: Props) {
           <thead>
             <tr>
               <th>Vencimento</th>
-              <th className="num">{termMode === "PERCENT" ? "%" : "Valor"}</th>
+              <th className="num">{displayedTermMode === "PERCENT" ? "%" : "Valor"}</th>
               <th className="num">Prévia</th>
             </tr>
           </thead>
           <tbody>
-            {terms.map((t, idx) => (
+            {displayedTerms.map((t, idx) => (
               <tr key={idx}>
                 <td>
                   {canWrite ? (
@@ -962,10 +970,10 @@ export function InvoiceDetailPage({ user }: Props) {
                       }}
                     />
                   ) : null}
-                  {!canWrite && termMode === "PERCENT" ? (
+                  {!canWrite && displayedTermMode === "PERCENT" ? (
                     <span data-testid={`term-pct-${idx}`}>{formatQuantity(t.percent)}%</span>
                   ) : null}
-                  {!canWrite && termMode === "AMOUNT" ? (
+                  {!canWrite && displayedTermMode === "AMOUNT" ? (
                     <span data-testid={`term-amt-${idx}`}>
                       <MoneyDisplay amount={t.amount} currency={inv.currency} />
                     </span>

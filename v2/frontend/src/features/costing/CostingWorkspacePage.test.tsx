@@ -160,6 +160,9 @@ describe("CostingWorkspacePage expenses", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByTestId("costing-expenses")).toBeInTheDocument();
+    expect(screen.getByTestId("costing-components")).toHaveTextContent("12.000,00");
+    expect(screen.getByTestId("costing-included-total")).toHaveTextContent("BRL 12.100,00");
+    expect(screen.getByTestId("costing-products")).toHaveTextContent("6.050,00");
     expect(screen.queryByTestId("costing-expense-add")).not.toBeInTheDocument();
   });
 
@@ -173,7 +176,7 @@ describe("CostingWorkspacePage expenses", () => {
     );
     expect(await screen.findByTestId("costing-coverage-invoices")).toHaveTextContent("6 de 6");
     expect(screen.getByTestId("costing-fx-story")).toHaveTextContent(/documental da importação/i);
-    expect(screen.getByTestId("costing-fx-story")).toHaveTextContent("5.9205");
+    expect(screen.getByTestId("costing-fx-story")).toHaveTextContent("5,920500");
     expect(screen.getByTestId("costing-fx-story")).toHaveTextContent(/não é câmbio bancário realizado/i);
     expect(screen.getByTestId("costing-publish-copy")).toHaveTextContent(/não é custo final/i);
     expect(screen.getByTestId("costing-publish")).toHaveTextContent(/revisado/i);

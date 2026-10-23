@@ -109,9 +109,9 @@ async function parse<T>(res: Response): Promise<T> {
   return (await res.json()) as T;
 }
 
-export async function fetchDashboard(params: DashboardFilters) {
+export async function fetchDashboard(params: DashboardFilters, signal?: AbortSignal) {
   return parse<DashboardSnapshot>(
-    await fetch(`/api/reporting/dashboard${qs(params)}`, { credentials: "include" }),
+    await fetch(`/api/reporting/dashboard${qs(params)}`, { credentials: "include", signal }),
   );
 }
 

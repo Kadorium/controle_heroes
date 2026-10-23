@@ -135,7 +135,7 @@ export type CostingVersion = {
       domestic_freight_count?: number;
       funding_included?: boolean;
     };
-    invoices?: Array<{ invoice_number?: string; net_amount?: string | null; fx?: { initial_rate?: string } }>;
+    invoices?: Array<{ invoice_id?: number; invoice_number?: string; currency?: string; net_amount?: string | null; fx?: { initial_rate?: string } }>;
     fx?: { kind?: string; statuses?: string[]; documentary_rate?: string | null };
   };
   freight_choice?: string | null;

@@ -18,14 +18,18 @@ type PdfDoc = {
 };
 
 type Props = {
-  occurrenceId: number;
+  occurrenceId?: number;
+  /** Existing DocumentStore content, for a read-only supporting document. */
+  contentUrl?: string;
   activeLocator: Locator | null;
   onPageChange?: (page: number) => void;
   /** Ordine: esconde ruído "Sem locator ativo" / coords técnicas. */
   compactChrome?: boolean;
 };
 
-export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, compactChrome = false }: Props) {
+export function PdfViewerPanel({ occurrenceId, contentUrl, activeLocator, onPageChange, compactChrome = false }: Props) {
+  const sourceUrl = contentUrl ?? occurrenceContentUrl(occurrenceId!);
+  const [rendered, setRendered] = useState(false);
   const [page, setPage] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [numPages, setNumPages] = useState(1);
@@ -39,9 +43,9 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
   const renderTaskRef = useRef<{ cancel: () => void } | null>(null);
 
   const iframeSrc = useMemo(() => {
-    const base = occurrenceContentUrl(occurrenceId);
+    const base = sourceUrl;
     return `${base}#page=${page}`;
-  }, [occurrenceId, page]);
+  }, [sourceUrl, page]);
 
   function setPageSafe(n: number) {
     const next = Math.max(1, Math.min(numPages, n));
@@ -75,10 +79,11 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
 
     void (async () => {
       setLoading(true);
+      setRendered(false);
       setPdfError(null);
       pdfRef.current = null;
       try {
-        const res = await fetch(occurrenceContentUrl(occurrenceId), { credentials: "include" });
+        const res = await fetch(sourceUrl, { credentials: "include" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.arrayBuffer();
         loadingTask = pdfjs.getDocument({ data });
@@ -106,7 +111,7 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
       pdfRef.current = null;
       void cur?.destroy?.();
     };
-  }, [occurrenceId, useIframeFallback, retryToken]);
+  }, [sourceUrl, useIframeFallback, retryToken]);
 
   // Re-render page when page/zoom change (uses cached pdf).
   useEffect(() => {
@@ -117,6 +122,7 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
 
     void (async () => {
       try {
+        setRendered(false);
         const pageIndex = Math.min(page, pdf.numPages);
         const pdfPage = await pdf.getPage(pageIndex);
         if (cancelled) return;
@@ -141,6 +147,7 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
         });
         renderTaskRef.current = task;
         await task.promise;
+        if (!cancelled) setRendered(true);
       } catch (e) {
         if (!cancelled) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -159,7 +166,7 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
         /* ignore */
       }
     };
-  }, [page, zoom, loading, useIframeFallback, retryToken, occurrenceId]);
+  }, [page, zoom, loading, useIframeFallback, retryToken, sourceUrl]);
 
   const highlight =
     activeLocator &&
@@ -168,7 +175,7 @@ export function PdfViewerPanel({ occurrenceId, activeLocator, onPageChange, comp
     activeLocator.y != null;
 
   return (
-    <div className="ingestion-pdf-viewer" data-testid="ingestion-pdf-viewer">
+    <div className="ingestion-pdf-viewer" data-testid="ingestion-pdf-viewer" data-pdf-ready={rendered && !pdfError ? "true" : "false"}>
       <div className="ingestion-pdf-toolbar" role="toolbar" aria-label="Controles do PDF">
         <Button
           type="button"

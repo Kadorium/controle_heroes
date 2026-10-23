@@ -1,0 +1,14 @@
+.panel.dense.ap-refined { padding: 0; border: 0; box-shadow: none; background: transparent; }
+.ap-refined .page-header h1 { font-size: 28px; }
+.ap-refined .ap-context { font-size: 13px; color: #53647b; margin: 8px 0 16px; }
+.ap-refined .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ap-refined .kpi-card { border: 1px solid #e0e7ef; border-radius: 12px; padding: 16px; background: #fff; text-align: left; min-width: 0; }
+.ap-refined .kpi-card:first-child { border-top: 3px solid #295acb; }
+.ap-refined .kpi-value { font-size: clamp(20px, 1.8vw, 28px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ap-refined .kpi-label { font-size: 13px; color: #53647b; margin-bottom: 8px; }
+.ap-refined .filter-bar { border: 0; background: transparent; padding: 0; margin: 16px 0; }
+.ap-refined .filter-bar-primary { align-items: end; }
+.ap-refined .filter-bar-primary input { max-width: 100px; }
+.ap-refined .operational-table-wrap { border: 1px solid #e0e7ef; border-radius: 12px; background: #fff; }
+.ap-refined .ap-balance { font-weight: 650; font-variant-numeric: tabular-nums; }
+.ap-refined [data-column-id="invoice"], .ap-refined [data-column-id="order"] { overflow-wrap: anywhere; }

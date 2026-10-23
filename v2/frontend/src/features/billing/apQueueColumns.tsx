@@ -71,7 +71,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     visibility: "always",
     priority: 0,
     minWidth: "7rem",
-    truncate: true,
+    truncate: false,
     cell: (row) => {
       const invText = invoiceLabel(row.invoice_number);
       if (invText === "—") return "—";
@@ -84,12 +84,12 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
   },
   {
     id: "balance",
-    header: "Saldo",
+    header: "Saldo aberto",
     visibility: "always",
     priority: 0,
     minWidth: "9rem",
     align: "end",
-    cellClassName: "nowrap",
+    cellClassName: "nowrap ap-balance",
     cell: (row) => (
       <MoneyDisplay amount={String(row.balance)} currency={String(row.currency)} />
     ),
@@ -108,7 +108,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     visibility: "standard",
     priority: 1,
     minWidth: "7rem",
-    truncate: true,
+    truncate: false,
     cell: (row) => {
       const ordText = orderLabel(row.order_code);
       if (ordText === "—") return "—";
@@ -121,7 +121,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
   },
   {
     id: "amount",
-    header: "Valor",
+    header: "Valor original",
     visibility: "standard",
     priority: 1,
     minWidth: "9rem",

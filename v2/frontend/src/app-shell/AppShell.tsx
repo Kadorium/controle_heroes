@@ -4,6 +4,7 @@ import type { User } from "../features/auth/types";
 import { FxQuoteStrip } from "../features/treasury/FxPanels";
 import { Button, roleLabel } from "../ui";
 import { RuntimeBadge } from "./RuntimeBadge";
+import { DemoTour } from "../features/demo/DemoTour";
 
 type Props = {
   user: User;
@@ -316,6 +317,7 @@ export function AppShell({ user, onLogout }: Props) {
       </aside>
       <div className="shell-content">
         <main id="main-content" className="shell-main" tabIndex={-1}>
+          {import.meta.env.VITE_ENABLE_DEMO === "true" && user.role === "admin" ? <DemoTour /> : null}
           <Outlet />
         </main>
       </div>

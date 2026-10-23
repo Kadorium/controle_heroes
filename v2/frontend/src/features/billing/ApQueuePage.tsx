@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import { getSupplier } from "../catalog/catalogApi";
@@ -34,6 +34,7 @@ import { fetchApQueue, type ApQueueResponse } from "../reporting/reportingApi";
 import { useListReturn } from "../../navigation/useListReturn";
 import { saveReturnState } from "../../navigation/returnState";
 import { AP_QUEUE_COLUMNS, type ApQueueRow } from "./apQueueColumns";
+import "./apQueue.css";
 
 type Props = { user: User };
 
@@ -102,6 +103,7 @@ export function ApQueuePage({ user }: Props) {
   const [data, setData] = useState<ApQueueResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const loadSequence = useRef(0);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [suppliers, setSuppliers] = useState<{ id: number; name: string }[]>([]);
   const [supplierQ, setSupplierQ] = useState("");
@@ -151,6 +153,7 @@ export function ApQueuePage({ user }: Props) {
   }, [params]);
 
   const load = useCallback(() => {
+    const sequence = ++loadSequence.current;
     if (!canReadReporting(user)) {
       setError("Sem permissão para Contas a pagar");
       setLoading(false);
@@ -159,13 +162,14 @@ export function ApQueuePage({ user }: Props) {
     setLoading(true);
     setError(null);
     void fetchApQueue(query)
-      .then(setData)
-      .catch((e) => setError(e instanceof Error ? e.message : "Erro"))
-      .finally(() => setLoading(false));
+      .then(result => { if (sequence === loadSequence.current) setData(result); })
+      .catch((e) => { if (sequence === loadSequence.current) setError(e instanceof Error ? e.message : "Erro"); })
+      .finally(() => { if (sequence === loadSequence.current) setLoading(false); });
   }, [query, user]);
 
   useEffect(() => {
     load();
+    return () => { loadSequence.current++; };
   }, [load]);
 
   function patchParams(mutate: (next: URLSearchParams) => void) {
@@ -182,8 +186,9 @@ export function ApQueuePage({ user }: Props) {
     });
   }
 
-  function setDuePreset(preset: DuePreset) {
+  function setDuePreset(preset: DuePreset, currency?: string) {
     patchParams((next) => {
+      if (currency) next.set("currency", currency);
       next.delete("due_before");
       next.delete("due_after");
       if (preset === "overdue") {
@@ -198,8 +203,9 @@ export function ApQueuePage({ user }: Props) {
     });
   }
 
-  function setSaldo(value: string) {
+  function setSaldo(value: string, currency?: string) {
     patchParams((next) => {
+      if (currency) next.set("currency", currency);
       next.set("pending", value || "ALL");
     });
   }
@@ -227,6 +233,14 @@ export function ApQueuePage({ user }: Props) {
     if (duePreset && duePreset !== "all") {
       const label = DUE_CHIPS.find((c) => c.id === duePreset)?.label ?? duePreset;
       chips.push({ id: "due", label, onRemove: () => setDuePreset("all") });
+    }
+    if (duePreset === null) {
+      const after = params.get("due_after");
+      const before = params.get("due_before");
+      chips.push({ id: "due-custom", label: `Vencimento: ${after ? `de ${formatDateOnly(after)}` : ""}${before ? ` até ${formatDateOnly(before)}` : ""}`, onRemove: () => setDuePreset("all") });
+    }
+    if (params.get("invoice_id")) {
+      chips.push({ id: "invoice", label: `Fatura: ${params.get("invoice_id")}`, onRemove: () => setFilter("invoice_id", "") });
     }
     if (pendingValue && pendingValue !== "OPEN_BALANCE") {
       const label = SALDO_CHIPS.find((c) => c.value === pendingValue)?.label ?? pendingValue;
@@ -284,6 +298,7 @@ export function ApQueuePage({ user }: Props) {
       next.set("pending", "OPEN_BALANCE");
       next.delete("currency");
       next.delete("order_id");
+      next.delete("invoice_id");
       next.delete("supplier_id");
     });
   }
@@ -291,7 +306,7 @@ export function ApQueuePage({ user }: Props) {
   const rows: ApQueueRow[] = (data?.items ?? []) as ApQueueRow[];
 
   return (
-    <section className="panel dense" data-testid="ap-queue-page">
+    <section className="panel dense ap-refined" data-testid="ap-queue-page">
       <ContextBreadcrumb items={[{ label: "Financeiro" }, { label: "Contas a pagar" }]} />
       <PageHeader
         title="Contas a pagar"
@@ -307,12 +322,13 @@ export function ApQueuePage({ user }: Props) {
         }
       />
       {error ? <ErrorState message={error} onRetry={load} /> : null}
-      {byCurrency.length === 0 ? (
+      <p className="ap-context">Posição atual · indicadores por moeda, conforme os filtros da fila. Créditos abrem a fila completa de pagamentos com saldo disponível.</p>
+      {!loading && !error && data && (byCurrency.length === 0 ? (
         <KpiStrip
           items={[
             {
               label: "Títulos",
-              value: String(kpis.total_count ?? 0),
+              value: kpis.total_count == null ? "—" : String(kpis.total_count),
               "data-testid": "kpi-total-count",
             },
           ]}
@@ -323,13 +339,18 @@ export function ApQueuePage({ user }: Props) {
             key={entry.currency}
             items={[
               {
+                label: `Saldo aberto (${entry.currency})`,
+                value: kpiMoney(entry.open_balance, entry.currency),
+                "data-testid": `kpi-open-balance-${entry.currency}`,
+                onClick: () => setSaldo("OPEN_BALANCE", entry.currency),
+              },
+              {
                 label: `Vencido (${entry.currency})`,
                 value: kpiMoney(entry.overdue_balance, entry.currency),
                 hint: `${entry.overdue_count ?? 0} títulos`,
                 "data-testid": `kpi-overdue-${entry.currency}`,
                 onClick: () => {
-                  setFilter("currency", entry.currency);
-                  setDuePreset("overdue");
+                  setDuePreset("overdue", entry.currency);
                 },
               },
               {
@@ -337,8 +358,7 @@ export function ApQueuePage({ user }: Props) {
                 value: kpiMoney(entry.due_today_balance, entry.currency),
                 "data-testid": `kpi-today-${entry.currency}`,
                 onClick: () => {
-                  setFilter("currency", entry.currency);
-                  setDuePreset("today");
+                  setDuePreset("today", entry.currency);
                 },
               },
               {
@@ -346,17 +366,7 @@ export function ApQueuePage({ user }: Props) {
                 value: kpiMoney(entry.next_7d_balance, entry.currency),
                 "data-testid": `kpi-next7-${entry.currency}`,
                 onClick: () => {
-                  setFilter("currency", entry.currency);
-                  setDuePreset("next7");
-                },
-              },
-              {
-                label: `Saldo aberto (${entry.currency})`,
-                value: kpiMoney(entry.open_balance, entry.currency),
-                "data-testid": `kpi-open-balance-${entry.currency}`,
-                onClick: () => {
-                  setFilter("currency", entry.currency);
-                  setSaldo("OPEN_BALANCE");
+                  setDuePreset("next7", entry.currency);
                 },
               },
               ...(unallocByCurrency
@@ -377,10 +387,30 @@ export function ApQueuePage({ user }: Props) {
             ]}
           />
         ))
-      )}
+      ))}
       <div className="queue-shell">
         <FilterBar
+          moreAlways
           primary={
+            <>
+              <FormField label="Saldo" htmlFor="ap-saldo">
+                <SelectField id="ap-saldo" data-testid="ap-filter-saldo" value={pendingValue} onChange={(e) => setSaldo(e.target.value)} options={[
+                  ...SALDO_CHIPS,
+                  ...(!SALDO_CHIPS.some(c => c.value === pendingValue) ? [{ value: pendingValue, label: pendingValue === "OVERDUE" ? "Vencidas em aberto" : pendingValue }] : []),
+                ]} />
+              </FormField>
+              <FormField label="Vencimento" htmlFor="ap-due">
+                <SelectField id="ap-due" data-testid="ap-filter-due" value={duePreset ?? "custom"} onChange={(e) => setDuePreset(e.target.value as DuePreset)} options={[
+                  ...(duePreset === null ? [{ value: "custom", label: "Período personalizado (URL)" }] : []),
+                  ...DUE_CHIPS.map((c) => ({ value: c.id, label: c.label })),
+                ]} />
+              </FormField>
+              <FormField label="Moeda" htmlFor="ap-currency">
+                <TextInput id="ap-currency" data-testid="ap-filter-currency" value={params.get("currency") ?? ""} onChange={(e) => setFilter("currency", e.target.value.toUpperCase())} placeholder="Todas" />
+              </FormField>
+            </>
+          }
+          secondary={
             <>
               <div className="filter-chip-group" data-testid="ap-filter-status" role="group" aria-label="Status">
                 {STATUS_CHIPS.map((chip) => (
@@ -393,41 +423,6 @@ export function ApQueuePage({ user }: Props) {
                   </FilterChip>
                 ))}
               </div>
-              <div className="filter-chip-group" data-testid="ap-filter-saldo" role="group" aria-label="Saldo">
-                {SALDO_CHIPS.map((chip) => (
-                  <FilterChip
-                    key={chip.value}
-                    pressed={pendingValue === chip.value}
-                    onClick={() => setSaldo(chip.value)}
-                  >
-                    {chip.label}
-                  </FilterChip>
-                ))}
-              </div>
-            </>
-          }
-          secondary={
-            <>
-              <div className="filter-chip-group" data-testid="ap-filter-due" role="group" aria-label="Vencimento">
-                {DUE_CHIPS.map((chip) => (
-                  <FilterChip
-                    key={chip.id}
-                    pressed={duePreset === chip.id}
-                    onClick={() => setDuePreset(chip.id)}
-                  >
-                    {chip.label}
-                  </FilterChip>
-                ))}
-              </div>
-              <FormField label="Moeda" htmlFor="ap-currency">
-                <TextInput
-                  id="ap-currency"
-                  data-testid="ap-filter-currency"
-                  value={params.get("currency") ?? ""}
-                  onChange={(e) => setFilter("currency", e.target.value.toUpperCase())}
-                  placeholder="EUR"
-                />
-              </FormField>
               <FormField label="Pedido" htmlFor="ap-order" hint="Número interno do pedido">
                 <TextInput
                   id="ap-order"
@@ -466,10 +461,10 @@ export function ApQueuePage({ user }: Props) {
         />
       </div>
       {loading ? <LoadingState message="Carregando contas a pagar…" /> : null}
-      {!loading && data && data.items.length === 0 ? (
+      {!loading && !error && data && data.items.length === 0 ? (
         <EmptyState message="Nenhuma obrigação neste filtro" orientation="Limpe os filtros ou aguarde novas emissões." />
       ) : null}
-      {data && data.items.length > 0 ? (
+      {!loading && !error && data && data.items.length > 0 ? (
         <>
           <OperationalTable
             density="finance"

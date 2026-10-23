@@ -249,9 +249,9 @@ export function CustomsDetailPage({ user }: Props) {
         {writable && draft ? (
           <div className="form-actions">
             <FormField
-              label="Referência DUIMP (digitada — ensaio, não veio de PDF)"
+              label="Referência DUIMP / DI"
               htmlFor="customs-edit-ext"
-              hint="L-007: não há PDF de DUIMP/DI no corpus. Informe uma referência de teste."
+              hint="Informe a referência da declaração. Este campo é preenchido manualmente; confira o documento antes de submeter."
             >
               <TextInput
                 id="customs-edit-ext"
@@ -293,7 +293,7 @@ export function CustomsDetailPage({ user }: Props) {
         ) : null}
         {writable && draft && !process.external_reference ? (
           <p className="muted" data-testid="customs-duimp-hint">
-            Digite a referência DUIMP de ensaio e salve antes de submeter.
+            Informe e salve a referência DUIMP / DI antes de submeter o processo.
           </p>
         ) : null}
         {writable && process.status !== "CANCELLED" ? (

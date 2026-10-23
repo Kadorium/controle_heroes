@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import {
@@ -14,7 +14,9 @@ import {
   Skeleton,
   TextInput,
 } from "../../ui";
-import { formatUpdatedAgo, formatRate } from "../../ui/format";
+import { formatUpdatedAgo, formatRate, formatDateTime, formatDateOnly } from "../../ui/format";
+import { ExecutiveOverview } from "./ExecutiveOverview";
+import { isSystemExecutive } from "./executiveDisplay";
 import { useListReturn } from "../../navigation/useListReturn";
 import { DashboardWidgetCard } from "./DashboardWidgets";
 import {
@@ -99,6 +101,9 @@ export function DashboardPage({ user: _user }: Props) {
   const [inboxAll, setInboxAll] = useState<DashboardWidget | null>(null);
   const [customize, setCustomize] = useState(false);
   const [copyName, setCopyName] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const request = useRef<AbortController | null>(null);
+  const previousQuery = useRef("");
 
   const setFilter = useCallback(
     (key: string, value: string) => {
@@ -111,8 +116,14 @@ export function DashboardPage({ user: _user }: Props) {
   );
 
   const load = useCallback(async () => {
+    request.current?.abort();
+    const controller = new AbortController(); request.current = controller;
+    const query = JSON.stringify([view, period, isCustom, dateFrom, dateTo, asOf, currency, supplierId]);
+    if (previousQuery.current !== query) setSnap(null);
+    previousQuery.current = query;
     setLoading(true);
     setError(null);
+    setRefreshKey(n => n + 1);
     try {
       const data = await fetchDashboard({
         view: view || undefined,
@@ -122,17 +133,18 @@ export function DashboardPage({ user: _user }: Props) {
         as_of: isCustom ? asOf || undefined : undefined,
         currency: currency || undefined,
         supplier_id: supplierId || undefined,
-      });
-      setSnap(data);
+      }, controller.signal);
+      if (!controller.signal.aborted) setSnap(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar o painel");
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Falha ao carregar o painel");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [view, period, isCustom, dateFrom, dateTo, asOf, currency, supplierId]);
 
   useEffect(() => {
     void load();
+    return () => request.current?.abort();
   }, [load]);
 
   useEffect(() => {
@@ -145,7 +157,8 @@ export function DashboardPage({ user: _user }: Props) {
   const basePreset = snap?.base_preset ?? (view || "executiva");
   const shownFilters = presetFilters(catalog, basePreset);
   const showPeriod = shownFilters.includes("period");
-  const showCurrency = shownFilters.includes("currency") && mixed;
+  const showCurrency = shownFilters.includes("currency") && (mixed || !!currency);
+  const executive = isSystemExecutive(snap);
   const showSupplier = shownFilters.includes("supplier_id");
   const chips = useMemo(() => {
     const out: { id: string; label: string; onRemove: () => void }[] = [];
@@ -156,13 +169,13 @@ export function DashboardPage({ user: _user }: Props) {
     if (showPeriod && isCustom && dateFrom) out.push({ id: "date_from", label: `De ${dateFrom}`, onRemove: () => setFilter("date_from", "") });
     if (showPeriod && isCustom && dateTo) out.push({ id: "date_to", label: `Até ${dateTo}`, onRemove: () => setFilter("date_to", "") });
     if (showPeriod && isCustom && asOf) out.push({ id: "as_of", label: `Na data ${asOf}`, onRemove: () => setFilter("as_of", "") });
-    if (showCurrency && currency) out.push({ id: "currency", label: currency, onRemove: () => setFilter("currency", "") });
-    if (showSupplier && supplierId) out.push({ id: "supplier_id", label: `Fornecedor ${supplierId}`, onRemove: () => setFilter("supplier_id", "") });
+    if (currency) out.push({ id: "currency", label: currency, onRemove: () => setFilter("currency", "") });
+    if (supplierId) out.push({ id: "supplier_id", label: `Fornecedor ${supplierId}`, onRemove: () => setFilter("supplier_id", "") });
     return out;
   }, [showPeriod, showCurrency, showSupplier, period, isCustom, dateFrom, dateTo, asOf, currency, supplierId, setFilter]);
   const subtitle =
-    (VIEW_COPY[basePreset] ?? "Resumo para decidir e ir à fila.") +
-    (snap ? ` ${formatUpdatedAgo(snap.generated_at)}` : "");
+    (executive ? "Compromissos financeiros, operação e próxima ação." : VIEW_COPY[basePreset] ?? "Resumo para decidir e ir à fila.") +
+    (snap && !error && !loading && !executive ? ` ${formatUpdatedAgo(snap.generated_at)}` : "");
 
   async function saveCopy() {
     const base = snap?.base_preset || "executiva";
@@ -212,9 +225,9 @@ export function DashboardPage({ user: _user }: Props) {
   }
 
   return (
-    <div className="dashboard-page" data-testid="dashboard-page">
+    <div className={`dashboard-page${executive ? " dashboard-page--executive" : ""}`} data-testid="dashboard-page" data-demo-ready={!loading && !!snap && !error ? "true" : "false"}>
       <PageHeader
-        title={snap?.view_name ?? VIEW_TITLE[view] ?? "Painel"}
+        title={executive ? "Painel executivo" : snap?.view_name ?? VIEW_TITLE[view] ?? "Painel"}
         subtitle={subtitle}
         actions={
           <>
@@ -250,7 +263,7 @@ export function DashboardPage({ user: _user }: Props) {
             </FormField>
             {showPeriod ? (
               <>
-                <FormField label="Período">
+                <FormField label={executive ? "Janela financeira" : "Período"}>
                   <SelectField
                     value={period}
                     onChange={(e) => {
@@ -298,10 +311,15 @@ export function DashboardPage({ user: _user }: Props) {
           ) : null
         }
       />
-      {snap?.lane.includes_trial_mass ? (
+      {executive && <div className="exec-context">
+        {snap?.lane.includes_trial_mass && <span>Ambiente de demonstração / teste</span>}
+        <span>{loading ? "Consultando…" : error ? "Leitura não atualizada" : "Leitura"}{snap ? ` · ${formatDateTime(snap.generated_at)}` : ""}</span>
+        <details><summary>Escopo dos filtros</summary><p>Janela financeira: {snap?.filters.date_from ? `de ${formatDateOnly(snap.filters.date_from)} ` : ""}{snap?.filters.date_to ? `até ${formatDateOnly(snap.filters.date_to)}` : "sem limite de data"}. Os blocos indicam seu recorte próprio.</p><p>Vencidos e saldo em moeda estrangeira aplicam o recorte de vencimentos. Compromissos e agenda usam meses civis e o limite Até, não o limite De. Pedidos e posição operacional mostram a posição atual. Câmbio usa a última referência e os dias observados, não a janela financeira. “Na data” não reconstrói uma posição histórica completa.</p><p>Moeda/fornecedor só se aplicam aos blocos que oferecem esse filtro; detalhes em ⓘ. Links “Abrir fila completa” não transportam automaticamente estes filtros.</p></details>
+      </div>}
+      {!executive && snap?.lane.includes_trial_mass ? (
         <Notice>Ambiente de teste. Os números podem incluir massa de ensaio.</Notice>
       ) : null}
-      {error ? <Notice tone="danger">{error}</Notice> : null}
+      {error ? <Notice tone="danger">Não foi possível atualizar o painel. {snap ? `Última leitura: ${formatDateTime(snap.generated_at)}. Os valores abaixo não foram atualizados.` : "Nenhum resultado confirmado."} <Button variant="ghost" onClick={() => void load()}>Tentar novamente</Button></Notice> : null}
       {loading ? (
         <div className="dash-grid" data-testid="dash-skeleton">
           <div className="dash-slot dash-slot--stat"><Skeleton kind="kpi" /></div>
@@ -312,8 +330,8 @@ export function DashboardPage({ user: _user }: Props) {
           <div className="dash-slot dash-slot--panel"><Skeleton kind="block" /></div>
           <div className="dash-slot dash-slot--wide"><Skeleton kind="inbox" /></div>
         </div>
-      ) : (
-        <div className="dash-grid">
+      ) : executive && snap ? <ExecutiveOverview snapshot={snap} refreshKey={refreshKey} onExplain={setExplainer} onSeeAll={setInboxAll} /> : (
+        <div className="dash-grid" data-demo-summary>
           {(snap?.widgets ?? []).map((w) => (
             <div key={w.widget_id} className={`dash-slot dash-slot--${w.size || "panel"}`}>
               <DashboardWidgetCard

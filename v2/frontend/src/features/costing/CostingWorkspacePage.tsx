@@ -46,7 +46,9 @@ import {
   formatDateOnly,
   formatDateTime,
   formatMoney,
+  formatRate,
 } from "../../ui";
+import { CostingResult } from "./CostingResult";
 
 type Props = { user: User };
 
@@ -56,7 +58,7 @@ const SUBTITLE =
 const KINDS = ["ESTIMATED", "REVISED", "REALIZED"] as const;
 
 function fxStoryCopy(kind: string | undefined, fx: { kind?: string; documentary_rate?: string | null } | undefined) {
-  const rate = fx?.documentary_rate ? ` Taxa documental ${fx.documentary_rate}.` : "";
+  const rate = fx?.documentary_rate ? ` Taxa documental ${formatRate(fx.documentary_rate, 6)}.` : "";
   if (kind === "REALIZED" && fx?.kind === "bancario") {
     return `Câmbio bancário realizado.${rate}`;
   }
@@ -246,7 +248,7 @@ export function CostingWorkspacePage({ user }: Props) {
       : null;
 
   return (
-    <div data-testid="costing-workspace">
+    <div className="costing-refined" data-testid="costing-workspace">
       <ContextBreadcrumb
         items={[
           { label: "Custos", to: "/costing" },
@@ -283,6 +285,8 @@ export function CostingWorkspacePage({ user }: Props) {
           publique custo desembarcado completo com o total do DUIMP nestes produtos.
         </Notice>
       ) : null}
+
+      {version ? <CostingResult version={version} fxCopy={fxStoryCopy(version.kind, fxStory)} /> : <Notice tone="info">Nenhuma versão calculada neste caso.</Notice>}
 
       {canWriteCosting(user) ? (
         <div className="toolbar" style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "12px 0" }}>
@@ -366,7 +370,6 @@ export function CostingWorkspacePage({ user }: Props) {
           <li data-testid="costing-coverage-tax">
             Tributos e despesas do Numerário: {coverage?.funding_included ? "incluídos" : "ausentes"}
           </li>
-          <li data-testid="costing-fx-story">{fxStoryCopy(version?.kind, fxStory)}</li>
         </ul>
         {invoiceFacts.length ? (
           <table className="data-table" data-testid="costing-invoice-sources">
@@ -380,8 +383,8 @@ export function CostingWorkspacePage({ user }: Props) {
             <tbody>
               {invoiceFacts.map((inv) => (
                 <tr key={inv.invoice_number}>
-                  <td>{inv.invoice_number}</td>
-                  <td>{inv.net_amount ?? "—"}</td>
+                  <td>{inv.invoice_id ? <Link to={`/invoices/${inv.invoice_id}`}>{inv.invoice_number}</Link> : inv.invoice_number}</td>
+                  <td>{formatMoney(inv.net_amount, inv.currency)}</td>
                   <td>{inv.fx?.initial_rate ? `documental ${inv.fx.initial_rate}` : "—"}</td>
                 </tr>
               ))}
@@ -435,44 +438,9 @@ export function CostingWorkspacePage({ user }: Props) {
               <tr key={comp.id}>
                 <td>{componentTypeLabel(comp.component_type)}</td>
                 <td>{sourceKindLabel(comp.source_kind)}</td>
-                <td>{comp.amount_brl ?? "—"}</td>
+                <td>{formatMoney(comp.amount_brl)}</td>
                 <td>{comp.included ? "incluído" : "excluído"}</td>
                 <td>{comp.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p data-testid="costing-included-total">
-          Total publicável: {version?.included_total_brl ?? "—"} BRL (bruto visível{" "}
-          {version?.gross_total_brl ?? "—"})
-        </p>
-      </SectionCard>
-
-      <SectionCard title="Produtos">
-        <table className="data-table" data-testid="costing-products">
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>Qty</th>
-              <th>Mercadoria</th>
-              <th>Frete int.</th>
-              <th>Tributos</th>
-              <th>Despesas</th>
-              <th>Total BRL</th>
-              <th>Unitário</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(version?.products ?? []).map((p) => (
-              <tr key={p.sku_snapshot}>
-                <td>{p.sku_snapshot}</td>
-                <td>{p.qty}</td>
-                <td>{p.merchandise_brl ?? "—"}</td>
-                <td>{p.freight_brl ?? "—"}</td>
-                <td>{p.tax_brl ?? "—"}</td>
-                <td>{p.expense_brl ?? "—"}</td>
-                <td>{p.total_brl ?? "—"}</td>
-                <td>{p.unit_brl ?? "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -589,7 +557,7 @@ export function CostingWorkspacePage({ user }: Props) {
                     <MoneyDisplay amount={ex.amount} currency={ex.currency} />
                   </td>
                   <td>{ex.expense_date ? formatDateOnly(ex.expense_date) : "—"}</td>
-                  <td>{ex.document_id ? `Documento #${ex.document_id}` : "—"}</td>
+                  <td>{ex.document_id ? <a href={`/api/documents/${ex.document_id}/content`} target="_blank" rel="noopener noreferrer">Documento #{ex.document_id}</a> : "—"}</td>
                   <td>{allocationMethodLabel(ex.allocation_method)}</td>
                   <td>{expenseStatusLabel(ex.status)}</td>
                   <td>Despesa adicional</td>

@@ -1,0 +1,18 @@
+.costing-refined .page-header h1 { font-size: 28px; }
+.costing-refined [data-testid="costing-process-meta"] { color: #53647b; font-size: 14px; }
+.cost-result { margin: 18px 0; }
+.cost-result-summary { display: grid; grid-template-columns: 1.15fr 1fr 1fr; border: 1px solid #e0e7ef; border-radius: 12px; background: #fff; }
+.cost-result-summary > div { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cost-result-summary > div:first-child { border-top: 3px solid #295acb; border-radius: 12px 0 0 0; }
+.cost-result-label { font-size: 13px; color: #53647b; }
+.cost-result-summary strong { font-size: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cost-result-summary > div:first-child strong { font-size: 30px; }
+.cost-result-summary small { color: #53647b; font-size: 13px; }
+.cost-result-qualifiers { padding: 8px 0; font-size: 14px; color: #425570; }
+.cost-result-qualifiers p { margin: 6px 0; }
+.cost-result .section-card { border: 1px solid #e0e7ef; box-shadow: none; border-radius: 12px; }
+.cost-result-table-wrap { overflow-x: auto; }
+.cost-result table th, .cost-result table td { text-align: right; font-variant-numeric: tabular-nums; padding: 12px; }
+.cost-result table th:first-child, .cost-result table td:first-child { text-align: left; overflow-wrap: anywhere; }
+.cost-result table td:not(:first-child) { white-space: nowrap; }
+@media (max-width: 900px) { .cost-result-summary { grid-template-columns: 1fr; } }
