@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -6,6 +6,8 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    Date,
+    UniqueConstraint,
     ForeignKey,
     Index,
     Integer,
@@ -157,3 +159,33 @@ class Product(Base):
     category: Mapped[ProductCategory | None] = relationship("ProductCategory")
     product_type: Mapped[ProductType | None] = relationship("ProductType")
     import_batch: Mapped[CatalogImportBatch | None] = relationship("CatalogImportBatch")
+
+
+class SalesPriceList(Base):
+    __tablename__ = "sales_price_lists"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String(64), unique=True)
+    name: Mapped[str] = mapped_column(String(128))
+    channel: Mapped[str] = mapped_column(String(64), default="Venda direta")
+    currency: Mapped[str] = mapped_column(String(3), default="BRL")
+    nature: Mapped[str] = mapped_column(String(32), default="GROSS_LIST")
+
+
+class SalesPriceEntry(Base):
+    __tablename__ = "sales_price_entries"
+    __table_args__ = (
+        UniqueConstraint("request_key", name="uq_sales_price_request"),
+        CheckConstraint("amount > 0", name="ck_sales_price_positive"),
+        CheckConstraint("valid_to IS NULL OR valid_to >= valid_from", name="ck_sales_price_dates"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    list_id: Mapped[int] = mapped_column(ForeignKey("sales_price_lists.id"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
+    unit: Mapped[str] = mapped_column(String(16))
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    valid_from: Mapped[date] = mapped_column(Date)
+    valid_to: Mapped[date | None] = mapped_column(Date, nullable=True)
+    request_key: Mapped[str] = mapped_column(String(128))
+    actor_id: Mapped[str] = mapped_column(String(64))
+    reason: Mapped[str] = mapped_column(String(512))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

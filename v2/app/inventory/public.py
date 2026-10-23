@@ -3,6 +3,7 @@
 from __future__ import annotations
 from app.inventory.read_models import StockPositionsResponse
 from app.inventory.positions import positions
+from app.inventory.remaining_sources import remaining_sources
 
 from app.inventory.commands import (
     add_receipt_lines,

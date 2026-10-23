@@ -18,7 +18,10 @@ export function useRead<T>(url:string|null) {
     if (!url) { setState({url,data:null,error:null,busy:false}); return; }
     const controller = new AbortController(); setState({url,data:null,error:null,busy:true});
     void fetch(url,{credentials:"include",signal:controller.signal}).then(async r => {
-      if (!r.ok) throw new Error(r.status===403 ? "Seu acesso não permite consultar esta informação." : r.status===404 ? "Registro não encontrado." : "Não foi possível carregar esta informação.");
+      if (!r.ok) {
+        const problem=await r.json().catch(()=>null);
+        throw new Error(r.status===403 ? "Seu acesso não permite consultar esta informação." : r.status===404 ? "Registro não encontrado." : r.status===422 && typeof problem?.message==="string" ? problem.message : "Não foi possível carregar esta informação.");
+      }
       return await r.json() as T;
     }).then(data => { if(!controller.signal.aborted) setState({url,data,error:null,busy:false}); })
       .catch(e => {if(!controller.signal.aborted) setState({url,data:null,error:String(e.message),busy:false});});

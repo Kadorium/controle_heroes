@@ -29,7 +29,7 @@ test("leave the verified presentation runtime open", async ({ browser }, testInf
   expect(manifest.schema_version).toBe(1);
   expect(manifest.checks.length).toBeGreaterThanOrEqual(10);
   for (const check of manifest.checks) {
-    expect(check.path).toMatch(/^\/api\/(orders|invoices|payments|shipments|import-processes|inventory|costing)(\/[\w/-]+)?$/);
+    expect(check.path).toMatch(/^\/api\/(?:(orders|invoices|payments|shipments|import-processes|inventory|costing)(\/[\w/-]+)?|reporting\/stock-explorer\?product_id=\d+)$/);
     const response = await page.request.get(check.path); expect(response.ok()).toBe(true);
     const actual = await response.json();
     for (const [key, value] of Object.entries(check.fields)) expect(pointer(actual, key)).toEqual(value);

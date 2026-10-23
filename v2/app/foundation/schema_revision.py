@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 # Head canônico da árvore em execução. Migration 020 (RUX-3A Catalog) vive em WIP isolado — não aplicar.
-EXPECTED_ALEMBIC_REVISION = "031"
+EXPECTED_ALEMBIC_REVISION = "032"
 
 
 class SchemaRevisionDriftError(RuntimeError):

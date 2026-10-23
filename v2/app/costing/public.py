@@ -1,4 +1,5 @@
 """Fachada pública Costing."""
+from app.costing.stock_cost_read import published_origin_costs
 
 from app.costing.product_sources import product_sources, product_version
 from app.costing.commands import (

@@ -159,7 +159,4 @@ def resolve_product(db: Session, *, product_id: int | None = None, sku: str | No
 
 
 def taxonomy_catalog(db: Session) -> tuple[list[ProductCategory], list[ProductType]]:
-    from app.catalog.taxonomy import ensure_taxonomy
-
-    ensure_taxonomy(db)
     return repo.list_categories(db), repo.list_product_types(db)

@@ -174,7 +174,7 @@ export function DashboardPage({ user: _user }: Props) {
     return out;
   }, [showPeriod, showCurrency, showSupplier, period, isCustom, dateFrom, dateTo, asOf, currency, supplierId, setFilter]);
   const subtitle =
-    (executive ? "Compromissos financeiros, operação e próxima ação." : VIEW_COPY[basePreset] ?? "Resumo para decidir e ir à fila.") +
+    (executive ? "" : VIEW_COPY[basePreset] ?? "Resumo para decidir e ir à fila.") +
     (snap && !error && !loading && !executive ? ` ${formatUpdatedAgo(snap.generated_at)}` : "");
 
   async function saveCopy() {
@@ -263,7 +263,7 @@ export function DashboardPage({ user: _user }: Props) {
             </FormField>
             {showPeriod ? (
               <>
-                <FormField label={executive ? "Janela financeira" : "Período"}>
+                <FormField label={executive ? "Vencimentos financeiros" : "Período"}>
                   <SelectField
                     value={period}
                     onChange={(e) => {
@@ -289,9 +289,9 @@ export function DashboardPage({ user: _user }: Props) {
                     <FormField label="Até">
                       <DateInput value={dateTo} onChange={(e) => setFilter("date_to", e.target.value)} />
                     </FormField>
-                    <FormField label="Na data">
+                    {!executive && <FormField label="Na data">
                       <DateInput value={asOf} onChange={(e) => setFilter("as_of", e.target.value)} />
-                    </FormField>
+                    </FormField>}
                   </>
                 ) : null}
               </>
@@ -314,7 +314,7 @@ export function DashboardPage({ user: _user }: Props) {
       {executive && <div className="exec-context">
         {snap?.lane.includes_trial_mass && <span>Ambiente de demonstração / teste</span>}
         <span>{loading ? "Consultando…" : error ? "Leitura não atualizada" : "Leitura"}{snap ? ` · ${formatDateTime(snap.generated_at)}` : ""}</span>
-        <details><summary>Escopo dos filtros</summary><p>Janela financeira: {snap?.filters.date_from ? `de ${formatDateOnly(snap.filters.date_from)} ` : ""}{snap?.filters.date_to ? `até ${formatDateOnly(snap.filters.date_to)}` : "sem limite de data"}. Os blocos indicam seu recorte próprio.</p><p>Vencidos e saldo em moeda estrangeira aplicam o recorte de vencimentos. Compromissos e agenda usam meses civis e o limite Até, não o limite De. Pedidos e posição operacional mostram a posição atual. Câmbio usa a última referência e os dias observados, não a janela financeira. “Na data” não reconstrói uma posição histórica completa.</p><p>Moeda/fornecedor só se aplicam aos blocos que oferecem esse filtro; detalhes em ⓘ. Links “Abrir fila completa” não transportam automaticamente estes filtros.</p></details>
+        <span>Vencimentos {snap?.filters.date_from ? `de ${formatDateOnly(snap.filters.date_from)} ` : ""}{snap?.filters.date_to ? `até ${formatDateOnly(snap.filters.date_to)}` : "sem limite"}</span>
       </div>}
       {!executive && snap?.lane.includes_trial_mass ? (
         <Notice>Ambiente de teste. Os números podem incluir massa de ensaio.</Notice>
@@ -330,7 +330,7 @@ export function DashboardPage({ user: _user }: Props) {
           <div className="dash-slot dash-slot--panel"><Skeleton kind="block" /></div>
           <div className="dash-slot dash-slot--wide"><Skeleton kind="inbox" /></div>
         </div>
-      ) : executive && snap ? <ExecutiveOverview snapshot={snap} refreshKey={refreshKey} onExplain={setExplainer} onSeeAll={setInboxAll} canInventory={_user.role === "admin" || _user.permissions.includes("inventory:read")} /> : (
+      ) : executive && snap ? <ExecutiveOverview user={_user} snapshot={snap} refreshKey={refreshKey} onExplain={setExplainer} onSeeAll={setInboxAll} canInventory={_user.role === "admin" || _user.permissions.includes("inventory:read")} /> : (
         <div className="dash-grid" data-demo-summary>
           {(snap?.widgets ?? []).map((w) => (
             <div key={w.widget_id} className={`dash-slot dash-slot--${w.size || "panel"}`}>

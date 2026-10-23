@@ -30,7 +30,7 @@ PRODUCT_TYPES: tuple[tuple[str, str, int, tuple[str, ...]], ...] = (
     ("Bolsa", "bolsa", 2, ("line", "collection_year")),
     ("Mochila", "mochila", 3, ("line", "collection_year")),
     ("Mala", "mala", 4, ("line", "collection_year")),
-    ("Consumível", "consumivel", 5, ("sport", "pack_qty")),
+    ("Consumível", "consumivel", 5, ("sport", "pack_qty", "consumable_kind")),
     ("Equipamento", "equipamento", 6, ("sport",)),
     ("Acessório de vestuário", "acessorio-de-vestuario", 7, ("line", "sport")),
     ("Vestuário", "vestuario", 8, ("garment_kind", "gender")),
@@ -44,6 +44,7 @@ ATTR_KEYS = (
     "garment_kind",
     "gender",
     "pack_qty",
+    "consumable_kind",
 )
 
 TAXONOMY_STATUSES = ("CONFIDENT", "REVIEW")

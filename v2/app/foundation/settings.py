@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     logs_path: Path = ROOT_DIR / "logs"
     frontend_dist_path: Path = ROOT_DIR / "frontend" / "dist"
     session_cookie_name: str = "epic_v2_session"
+    stock_economics_policy: str | None = None
     session_max_age_seconds: int = 86400
     seed_admin_email: str = "admin@epic.com.br"
     seed_admin_password: str = "admin123"

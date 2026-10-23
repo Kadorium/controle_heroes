@@ -48,3 +48,15 @@ class ReportingDashboardView(Base):
     created_by_user_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+
+
+class ReportingStockView(Base):
+    __tablename__ = "reporting_stock_views"
+    __table_args__ = (UniqueConstraint("actor_id", "name", name="uq_stock_view_actor_name"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    actor_id: Mapped[str] = mapped_column(String(64), index=True)
+    name: Mapped[str] = mapped_column(String(128))
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    schema_version: Mapped[int] = mapped_column(Integer, default=1)

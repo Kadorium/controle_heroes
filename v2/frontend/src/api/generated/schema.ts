@@ -340,6 +340,41 @@ export interface paths {
         patch: operations["patch_product_api_products__product_id__patch"];
         trace?: never;
     };
+    "/api/catalog/price-lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lists */
+        get: operations["lists_api_catalog_price_lists_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/sales-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prices */
+        get: operations["prices_api_catalog_sales_prices_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_catalog_sales_prices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders": {
         parameters: {
             query?: never;
@@ -1245,6 +1280,41 @@ export interface paths {
         put?: never;
         /** Restore Dashboard View */
         post: operations["restore_dashboard_view_api_reporting_views__view_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/stock-explorer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Stock */
+        get: operations["read_stock_api_reporting_stock_explorer_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reporting/stock-views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Views */
+        get: operations["views_api_reporting_stock_views_get"];
+        put?: never;
+        /** Save */
+        post: operations["save_api_reporting_stock_views_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5508,7 +5578,7 @@ export interface components {
             alembic_head?: string | null;
             /**
              * Alembic Expected
-             * @default 031
+             * @default 032
              */
             alembic_expected: string;
             /**
@@ -7092,6 +7162,28 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** PriceIn */
+        PriceIn: {
+            /** Product Id */
+            product_id: number;
+            /** List Id */
+            list_id: number;
+            /** Amount */
+            amount: number | string;
+            /** Unit */
+            unit: string;
+            /**
+             * Valid From
+             * Format: date
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Request Key */
+            request_key: string;
+            /** Reason */
+            reason: string;
+        };
         /** PrintCommitIn */
         PrintCommitIn: {
             /** Operation Key */
@@ -8595,6 +8687,64 @@ export interface components {
             /** Generated At */
             generated_at: string;
         };
+        /** StockQuery */
+        StockQuery: {
+            /**
+             * Q
+             * @default
+             */
+            q: string;
+            /** Modality Ids */
+            modality_ids?: string[];
+            /** Item Kind Ids */
+            item_kind_ids?: string[];
+            /** Model Ids */
+            model_ids?: string[];
+            /** Location Ids */
+            location_ids?: number[];
+            /** Position Ids */
+            position_ids?: ("DOMESTIC" | "BONDED" | "QUARANTINE")[];
+            /** Product Id */
+            product_id?: number | null;
+            /**
+             * Status
+             * @default positive
+             * @enum {string}
+             */
+            status: "positive" | "all" | "zero";
+            /** Group By */
+            group_by?: ("item_kind" | "model" | "modality")[];
+            /** Measures */
+            measures?: ("quantity" | "cost" | "sale" | "margin")[];
+            /**
+             * Composition Measure
+             * @default cost
+             * @enum {string}
+             */
+            composition_measure: "quantity" | "cost" | "sale" | "margin";
+            /** Visible Filters */
+            visible_filters?: ("modality_ids" | "item_kind_ids" | "model_ids" | "position_ids" | "location_ids")[];
+            /** Columns */
+            columns?: ("quantity" | "unit_cost" | "cost" | "price" | "sale" | "margin")[];
+            /**
+             * Sort
+             * @default name
+             * @enum {string}
+             */
+            sort: "name" | "-name" | "quantity" | "-quantity" | "cost" | "-cost" | "sale" | "-sale";
+            /** Price List Id */
+            price_list_id?: number | null;
+            /**
+             * Limit
+             * @default 25
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+        };
         /** SummaryOut */
         SummaryOut: {
             /** Id */
@@ -8930,6 +9080,21 @@ export interface components {
              * @default false
              */
             is_default: boolean;
+        };
+        /** ViewIn */
+        ViewIn: {
+            /** Name */
+            name: string;
+            config: components["schemas"]["StockQuery"];
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /** View Id */
+            view_id?: number | null;
+            /** Expected Version */
+            expected_version?: number | null;
         };
         /** ViewOut */
         ViewOut: {
@@ -10018,6 +10183,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lists_api_catalog_price_lists_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    prices_api_catalog_sales_prices_get: {
+        parameters: {
+            query?: {
+                product_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_catalog_sales_prices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -12155,6 +12404,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ViewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_stock_api_reporting_stock_explorer_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                modality_ids?: string[];
+                item_kind_ids?: string[];
+                model_ids?: string[];
+                position_ids?: string[];
+                location_ids?: number[];
+                product_id?: number | null;
+                group_by?: string[];
+                sort?: string;
+                status?: string;
+                price_list_id?: number | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    views_api_reporting_stock_views_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    save_api_reporting_stock_views_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

@@ -199,7 +199,6 @@ def get_taxonomy(
 ):
     enforce_permission(user, "catalog:read")
     cats, types = catalog_public.taxonomy_catalog(db)
-    db.commit()
     return TaxonomyResponse(
         categories=[
             CategoryResponse(

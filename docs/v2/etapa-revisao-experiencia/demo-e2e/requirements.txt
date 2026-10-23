@@ -1,0 +1,2 @@
+# Auxiliary PDF fixture generator, not required by the application runtime.
+reportlab==4.4.10

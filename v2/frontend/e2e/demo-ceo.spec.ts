@@ -43,7 +43,8 @@ test("automatic eight steps, repeatable and read-only", async ({ page }) => {
   await page.getByText("Ritmo e informações", { exact: true }).click();
   await page.getByLabel("Tempo por etapa").selectOption(duration);
   await page.getByText("Ritmo e informações", { exact: true }).click();
-  const targets = ['[data-demo-ready="true"] [data-demo-summary]', '[data-demo-document] [data-pdf-ready="true"]', '[data-testid="payables-list"]', '[data-testid="alloc-list"]', '[data-testid="shipment-items"]', '[data-testid="customs-section-liberacoes"]', '[data-testid="sku-buckets"]', '[data-testid="costing-result"]'];
+  const manifest = await (await page.request.get('/assets/demo-manifest.json')).json();
+  const targets = ['[data-demo-ready="true"] [data-demo-summary]', '[data-demo-document] [data-pdf-ready="true"]', '[data-testid="payables-list"]', '[data-testid="alloc-list"]', '[data-testid="shipment-items"]', '[data-testid="customs-section-liberacoes"]', manifest.scenario_id.startsWith('DEMO-HEROES') ? '.stock-numbers' : '[data-testid="sku-buckets"]', '[data-testid="costing-result"]'];
   for (let n = 1; n <= 8; n++) {
     const panel = page.getByTestId("demo-panel");
     await expect(panel).toHaveAttribute("data-step", String(n), { timeout: 65000 });
@@ -105,13 +106,14 @@ test("pause, resume, previous, next, chapter, manual navigation and keyboard exi
 
 test("missing target interrupts, exit cancels loading and does not navigate later", async ({ page }) => {
   await login(page); await start(page);
-  await page.route("**/api/shipments/1", route => route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"Falha controlada do ensaio"}' }));
+  const currentManifest = await (await page.request.get('/assets/demo-manifest.json')).json();
+  await page.route(`**/api/shipments/${currentManifest.ids.shipment}`, route => route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"Falha controlada do ensaio"}' }));
   await page.getByLabel("Escolher etapa").selectOption("4");
   await expect(page.getByTestId("demo-panel")).toHaveAttribute("data-phase", "error", { timeout: 20000 });
   await expect(page.getByTestId("demo-panel")).toContainText(/interrompido|erro/i);
   await capture(page, "tour-target-unavailable");
-  await page.unroute("**/api/shipments/1");
-  await page.route("**/api/inventory/sku/1/position", async route => { await new Promise(r => setTimeout(r, 4000)); await route.continue(); });
+  await page.unroute(`**/api/shipments/${currentManifest.ids.shipment}`);
+  await page.route('**/api/reporting/stock-explorer?*', async route => { await new Promise(r => setTimeout(r, 4000)); await route.continue().catch(()=>{}); });
   await page.getByLabel("Escolher etapa").selectOption("6");
   await expect(page.getByTestId("demo-panel")).toHaveAttribute("data-phase", "loading");
   await page.getByRole("button", { name: "Sair do tour", exact: true }).click();

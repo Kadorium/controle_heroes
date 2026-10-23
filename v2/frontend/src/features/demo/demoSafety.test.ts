@@ -4,6 +4,14 @@ import { waitForTarget } from "./demoWait";
 
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); document.body.innerHTML = ""; });
 describe("demo read-only gates", () => {
+  it("waits for the complete filtered route, not only its pathname", async () => {
+    vi.useFakeTimers();const prior=location.pathname+location.search;
+    history.replaceState({},"","/inventory/positions?q=SHOW&modality_ids=");
+    const el=document.createElement("div");el.id="stock-target";el.textContent="42 UN";document.body.append(el);
+    el.getBoundingClientRect=()=>({height:50} as DOMRect);
+    const result=waitForTarget("/inventory/positions?q=SHOW&modality_ids=","#stock-target",new AbortController().signal);
+    await vi.advanceTimersByTimeAsync(350);expect(await result).toBe(el);expect(vi.getTimerCount()).toBe(0);history.replaceState({},"",prior);
+  });
   it("reads nested fields and array lengths without evaluation", () => {
     expect(pointer({ rows: [{ amount: "2" }] }, "rows.0.amount")).toBe("2");
     expect(pointer({ rows: [] }, "rows.length")).toBe(0);

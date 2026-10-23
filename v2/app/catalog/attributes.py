@@ -22,8 +22,11 @@ def normalize_attributes(raw: object | None) -> dict[str, str]:
             continue
         value = raw[key]
         if value is None or str(value).strip() == "":
+            out[key] = ""
             continue
         text = str(value).strip()
+        if key == "consumable_kind" and text not in ("BALL", "OVERGRIP", "OTHER"):
+            raise CatalogValidationError("Escolha Bola, Overgrip ou Outro")
         if len(text) > 128:
             raise CatalogValidationError(f"{key} excede 128 caracteres")
         out[key] = text

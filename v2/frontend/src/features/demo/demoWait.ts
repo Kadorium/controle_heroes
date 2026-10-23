@@ -11,7 +11,7 @@ export function waitForTarget(path: string, selector: string, signal: AbortSigna
       if (errors?.textContent?.trim()) {
         stop(); reject(new Error(`A tela apresentou um erro: ${errors.textContent.trim()}`)); return;
       }
-      if (window.location.pathname === path && el && el.getBoundingClientRect().height > 0 && el.textContent?.trim()) {
+      if (window.location.pathname + window.location.search + window.location.hash === path && el && el.getBoundingClientRect().height > 0 && el.textContent?.trim()) {
         if (stable === el) { stop(); resolve(el); return; }
         stable = el;
       } else stable = null;

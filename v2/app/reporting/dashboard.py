@@ -501,7 +501,7 @@ def build_widget(
             amt = sum(Decimal(str(buckets.get(k) or "0")) for k in ("m0", "m1", "m2"))
             by.append({"currency": row.get("currency"), "amount": _q2(amt)})
         empty = not by or all(Decimal(str(r["amount"])) == 0 for r in by)
-        applied, ignored = _ap_filters(date_from, date_to, currency, supplier_id, as_of_ignored)
+        applied, ignored = _ap_filters(None, date_to, currency, supplier_id, as_of_ignored + (["date_from"] if date_from else []))
         return _wrap_widget(
             w,
             display={
@@ -875,7 +875,7 @@ def build_widget(
             for r in enriched
             for k in ("overdue", "m0", "m1", "m2")
         )
-        applied, ignored = _ap_filters(date_from, date_to, currency, supplier_id, as_of_ignored)
+        applied, ignored = _ap_filters(None, date_to, currency, supplier_id, as_of_ignored + (["date_from"] if date_from else []))
         return _wrap_widget(
             w,
             display={
@@ -937,9 +937,7 @@ def build_widget(
             message = "Sem saldo em moeda estrangeira."
         elif eur is not None and quote is None:
             message = "Cotação indisponível"
-        applied, ignored = _ap_filters(date_from, date_to, currency, supplier_id, [])
-        if as_of:
-            applied = [*applied, "as_of"]
+        applied, ignored = _ap_filters(date_from, date_to, currency, supplier_id, as_of_ignored)
         return _wrap_widget(
             w,
             display={
@@ -965,7 +963,7 @@ def build_widget(
             currencies=[r["currency"] for r in foreign],
             applied=applied,
             ignored=ignored,
-            time_field="as_of",
+            time_field="due_date",
         )
 
     if w.widget_id == "goods.flow":

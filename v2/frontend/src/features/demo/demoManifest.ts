@@ -40,7 +40,7 @@ export async function validateManifest(signal: AbortSignal): Promise<DemoManifes
     throw new Error("Manifesto de demonstração ausente ou incompatível. Não houve preparação automática de dados.");
   }
   for (const check of manifest.checks) {
-    if (!/^\/api\/(orders|invoices|payments|shipments|import-processes|inventory|costing)(\/[\w/-]+)?$/.test(check.path)) {
+    if (!/^\/api\/(orders|invoices|payments|shipments|import-processes|inventory|costing)(\/[\w/-]+)?$/.test(check.path) && !/^\/api\/reporting\/stock-explorer\?product_id=\d+$/.test(check.path)) {
       throw new Error("Endpoint não permitido no manifesto.");
     }
     const actual = await readJson(check.path, signal);

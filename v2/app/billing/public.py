@@ -13,6 +13,7 @@ from app.billing.customs_payables import (
     create_customs_payable_from_funding,
 )
 from app.billing.errors import BillingError
+from app.billing.stock_units import stock_invoice_units
 from app.billing.liquidation import (
     apply_payable_allocations,
     assert_payable_matches_payment,

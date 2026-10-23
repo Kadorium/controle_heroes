@@ -22,11 +22,13 @@ from app.foundation.settings import ensure_runtime_dirs, get_settings
 from app.foundation.user_routes import router as user_router
 from app.identity.seed import ensure_seed
 from app.catalog.routes import router as catalog_router
+from app.catalog.pricing_api.routes import router as pricing_router
 from app.orders.routes import router as orders_router
 from app.billing.routes import router as billing_router
 from app.treasury.routes import router as treasury_router
 from app.treasury.fx_routes import router as treasury_fx_router
 from app.reporting.routes import router as reporting_router
+from app.reporting.stock_api.routes import router as stock_router
 from app.logistics.routes import router as logistics_router
 from app.customs.doganale_routes import router as customs_doganale_router
 from app.customs.funding_routes import router as customs_funding_router
@@ -82,11 +84,13 @@ def create_app() -> FastAPI:
     application.include_router(audit_router, prefix="/api")
     application.include_router(document_router, prefix="/api")
     application.include_router(catalog_router, prefix="/api")
+    application.include_router(pricing_router, prefix="/api")
     application.include_router(orders_router, prefix="/api")
     application.include_router(billing_router, prefix="/api")
     application.include_router(treasury_router, prefix="/api")
     application.include_router(treasury_fx_router, prefix="/api")
     application.include_router(reporting_router, prefix="/api")
+    application.include_router(stock_router, prefix="/api")
     application.include_router(logistics_router, prefix="/api")
     application.include_router(customs_router, prefix="/api")
     application.include_router(customs_doganale_router, prefix="/api")

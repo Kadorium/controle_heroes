@@ -6,6 +6,7 @@ import type { DashboardSnapshot, DashboardWidget } from "./dashboardApi";
 import { amount, fields, hasFailure, incomplete, monthRange, rows, text } from "./executiveDisplay";
 import { OperationalPriorities } from "./OperationalPriorities";
 import { ExecutiveStock } from "./ExecutiveStock";
+import type { User } from "../auth/types";
 import "./executive.css";
 
 function Money({ value, currency }: { value: unknown; currency: unknown }) {
@@ -23,7 +24,7 @@ function Block({ widget, title, caption, summary, onExplain, children }: { widge
 }
 const operationNames: Record<string, string> = { confirmed: "pedidos confirmados", to_invoice: "linhas a faturar", shipments: "embarques em curso", customs: "processos na aduana", stock: "SKUs com saldo em estoque" };
 
-export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, canInventory = false }: { snapshot: DashboardSnapshot; refreshKey: number; onExplain: (w: DashboardWidget) => void; onSeeAll: (w: DashboardWidget) => void; canInventory?: boolean }) {
+export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, canInventory = false, user }: { snapshot: DashboardSnapshot; refreshKey: number; onExplain: (w: DashboardWidget) => void; onSeeAll: (w: DashboardWidget) => void; canInventory?: boolean; user?:User }) {
   const widgets = snapshot.widgets.filter(w => w.status === "AVAILABLE");
   const get = (id: string) => widgets.find(w => w.widget_id === id);
   const cash = get("ap.cash_committed"), flow = get("goods.flow"), inbox = get("attention.inbox"), trend = get("treasury.fx_trend"), progress = get("orders.billing_progress");
@@ -39,15 +40,16 @@ export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, c
           {fx ? <>
             <div className="exec-value">{d.hero_brl != null && quote.rate != null ? <Money value={d.hero_brl} currency="BRL" /> : <span className="exec-word">{d.empty === true ? "Sem saldo estrangeiro" : quote.rate == null ? "Cotação indisponível" : "Equivalente indisponível"}</span>}</div>
             <p className="exec-caption">{rows(d.foreign).map((r, n) => <span key={n}><Money value={r.open_balance} currency={r.currency} />{n < rows(d.foreign).length - 1 ? " · " : ""}</span>)}{d.empty !== true && <span> · {quote.rate == null ? "sem equivalente" : quote.stale ? "cotação desatualizada" : "cotação de referência"}</span>}</p>
-            {quote.rate != null && <p className="exec-caption">{formatRate(amount(quote.rate_full ?? quote.rate), 4)} · {text(quote.source)} · {formatDateTime(text(quote.observed_at))}<br/>Referência de mercado · não é planejamento nem câmbio realizado</p>}
+            {quote.rate != null && <p className="exec-caption">{formatRate(amount(quote.rate_full ?? quote.rate), 4)} · {text(quote.source)} · {formatDateTime(text(quote.observed_at))}</p>}
             {rows(d.foreign).some(r=>r.currency!=="EUR") && <p className="exec-caption">{rows(d.foreign).filter(r=>r.currency!=="EUR").map(r=>text(r.currency)).join(", ")}: sem conversão neste indicador. O equivalente em reais cobre somente EUR.</p>}
           </> : w.widget_id === "ap.overdue" && d.total_count === 0 && d.overdue_count === 0 && d.state === "ok" ? <><div className="exec-value exec-word">Nenhuma</div><p className="exec-caption">Nenhuma obrigação vencida no recorte consultado.</p></> : currencies.length ? currencies.map((r, n) => <div className="exec-value" key={n}><Money value={r.amount} currency={r.currency} /></div>) : <p>{d.empty === true && d.message ? text(d.message) : "Valores não disponíveis"}</p>}
         </Block>;
       })}
-      {canInventory && <ExecutiveStock refreshKey={refreshKey} />}
+      {canInventory && <OperationalPriorities refreshKey={refreshKey} />}
     </div>
+    {canInventory && user && <ExecutiveStock refreshKey={refreshKey} user={user} />}
     <div className="exec-primary">
-      <div><OperationalPriorities refreshKey={refreshKey} />
+      <div>{!canInventory && <OperationalPriorities refreshKey={refreshKey} />}
         {inbox && <details className="exec-details" data-testid="executive-financial-priorities"><summary>Pendências financeiras e de cadastro</summary>
           {hasFailure(inbox) || incomplete(inbox.display) ? <p>Consulta incompleta. Algumas pendências podem não estar disponíveis.</p> : null}
           {rows(inbox.display.items).length ? <ul>{rows(inbox.display.items).map((it, n) => <li key={n}>{it.href ? <Link to={String(it.href)}>{text(it.title)}</Link> : text(it.title)} — {text(it.reason)}</li>)}</ul> : !hasFailure(inbox) && !incomplete(inbox.display) && inbox.display.total_count === 0 ? <p>Nenhuma pendência financeira ou de cadastro apontada neste recorte consultado.</p> : <p>Sem conclusão disponível para este recorte.</p>}
@@ -62,7 +64,7 @@ export function ExecutiveOverview({ snapshot, refreshKey, onExplain, onSeeAll, c
     </div>
     <div className="exec-complementary">
       {cash && <Block widget={cash} title="Agenda de caixa" caption={`Meses civis · ${range}${cash.display.as_of_month ? ` · base ${formatDateOnly(String(cash.display.as_of_month))}` : ""}`} onExplain={onExplain}>
-        {rows(cash.display.by_currency).length ? rows(cash.display.by_currency).map((r, n) => <div key={n}><h3>{text(r.currency)}</h3><dl className="exec-agenda">{["overdue", "m0", "m1", "m2"].map(k => <div key={k}><dt>{k === "overdue" ? `Antes de ${text(labels.m0, "este mês")}` : text(labels[k])}</dt><dd><Money value={fields(r.buckets)[k]} currency={r.currency} /></dd>{fields(r.counts)[k] != null && <small>{text(fields(r.counts)[k])} obrigação(ões)</small>}</div>)}</dl></div>) : <p>{cash.display.empty === true ? "Nenhum compromisso nos meses consultados." : "Agenda indisponível."}</p>}
+        {rows(cash.display.by_currency).length ? rows(cash.display.by_currency).map((r, n) => <div key={n}><h3>{text(r.currency)}</h3><dl className="exec-agenda">{["overdue", "m0", "m1", "m2"].map(k => <div key={k}><dt>{k === "overdue" ? `Antes de ${text(labels.m0, "este mês")}` : text(labels[k])}</dt><dd><Money value={fields(r.buckets)[k]} currency={r.currency} /></dd>{fields(r.counts)[k] != null && <small>{text(fields(r.counts)[k])} {Number(fields(r.counts)[k])===1?"obrigação":"obrigações"}</small>}</div>)}</dl></div>) : <p>{cash.display.empty === true ? "Nenhum compromisso nos meses consultados." : "Agenda indisponível."}</p>}
         <details className="exec-details"><summary>Escopo da agenda</summary><p>Meses civis retornados pela consulta, mais vencimentos anteriores ao primeiro mês. O primeiro mês inclui vencimentos anteriores a hoje. O limite Até restringe os compromissos; não representa uma projeção diária de 90 dias. O limite De não é aplicado a esta agenda.</p></details>
       </Block>}
       {trend && <Block widget={trend} title="Referência cambial" caption={`Histórico observado · últimos ${text(trend.display.days)} dias`} onExplain={onExplain}>

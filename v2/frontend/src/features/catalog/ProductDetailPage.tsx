@@ -26,6 +26,8 @@ import {
   type AuditEntry,
 } from "../../ui";
 
+import { SalesPrices } from "./SalesPrices";
+
 type Props = { user: User; editing?: boolean };
 
 function canWrite(user: User) {
@@ -71,6 +73,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
   const [model, setModel] = useState("");
   const [collectionYear, setCollectionYear] = useState("");
   const [line, setLine] = useState("");
+  const [consumableKind,setConsumableKind]=useState("");
   const [garmentKind, setGarmentKind] = useState("");
   const [gender, setGender] = useState("");
   const [supplierSku, setSupplierSku] = useState("");
@@ -99,6 +102,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
     setCollectionYear(p.collection_year ?? "");
     setLine(p.line ?? "");
     setGarmentKind(p.garment_kind ?? "");
+    setConsumableKind(String(p.attributes?.consumable_kind||""));
     setGender(p.gender ?? "");
     setSupplierSku(p.supplier_sku ?? "");
   }
@@ -177,6 +181,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
           collection_year: collectionYear.trim() || null,
           line: line.trim() || null,
           garment_kind: garmentKind.trim() || null,
+          consumable_kind: consumableKind || null,
           gender: gender.trim() || null,
         },
         ...extra,
@@ -336,6 +341,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
             )}
           </section>
         </div>
+        <SalesPrices productId={id} unit={row.unit||null} user={user}/>
         <AuditDocumentsBlock documents={[]} audit={audit} documentsTitle="Histórico" />
       </section>
     );
@@ -461,6 +467,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
             <FormField label="Linha" htmlFor="p-line">
               <TextInput id="p-line" value={line} onChange={(e) => setLine(e.target.value)} disabled={!write} />
             </FormField>
+            <FormField label="Tipo de consumível" htmlFor="p-consumable"><SelectField id="p-consumable" value={consumableKind} onChange={e=>setConsumableKind(e.target.value)} disabled={!write} options={[{value:"",label:"Não informado"},{value:"BALL",label:"Bolas"},{value:"OVERGRIP",label:"Overgrips"},{value:"OTHER",label:"Outros"}]}/></FormField>
             <FormField label="Peça" htmlFor="p-piece">
               <TextInput id="p-piece" value={garmentKind} onChange={(e) => setGarmentKind(e.target.value)} disabled={!write} />
             </FormField>

@@ -1649,6 +1649,109 @@
         }
       }
     },
+    "/api/catalog/price-lists": {
+      "get": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Lists",
+        "operationId": "lists_api_catalog_price_lists_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/sales-prices": {
+      "get": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Prices",
+        "operationId": "prices_api_catalog_sales_prices_get",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "catalog-prices"
+        ],
+        "summary": "Create",
+        "operationId": "create_api_catalog_sales_prices_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PriceIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/orders": {
       "post": {
         "tags": [
@@ -5346,6 +5449,258 @@
                 "schema": {
                   "$ref": "#/components/schemas/ViewOut"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reporting/stock-explorer": {
+      "get": {
+        "tags": [
+          "stock-explorer"
+        ],
+        "summary": "Read Stock",
+        "operationId": "read_stock_api_reporting_stock_explorer_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "modality_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Modality Ids"
+            }
+          },
+          {
+            "name": "item_kind_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Item Kind Ids"
+            }
+          },
+          {
+            "name": "model_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Model Ids"
+            }
+          },
+          {
+            "name": "position_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "DOMESTIC"
+              ],
+              "title": "Position Ids"
+            }
+          },
+          {
+            "name": "location_ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "default": [],
+              "title": "Location Ids"
+            }
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [],
+              "title": "Group By"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "name",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "positive",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "price_list_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price List Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reporting/stock-views": {
+      "get": {
+        "tags": [
+          "stock-explorer"
+        ],
+        "summary": "Views",
+        "operationId": "views_api_reporting_stock_views_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "stock-explorer"
+        ],
+        "summary": "Save",
+        "operationId": "save_api_reporting_stock_views_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -19637,7 +19992,7 @@
           "alembic_expected": {
             "type": "string",
             "title": "Alembic Expected",
-            "default": "031"
+            "default": "032"
           },
           "schema_ok": {
             "type": "boolean",
@@ -25275,6 +25630,77 @@
         ],
         "title": "PreviewOperationOut"
       },
+      "PriceIn": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "list_id": {
+            "type": "integer",
+            "title": "List Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Unit"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "request_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Request Key"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "list_id",
+          "amount",
+          "unit",
+          "valid_from",
+          "request_key",
+          "reason"
+        ],
+        "title": "PriceIn"
+      },
       "PrintCommitIn": {
         "properties": {
           "operation_key": {
@@ -30271,6 +30697,188 @@
         ],
         "title": "StockPositionsResponse"
       },
+      "StockQuery": {
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Q",
+            "default": ""
+          },
+          "modality_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Modality Ids"
+          },
+          "item_kind_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Item Kind Ids"
+          },
+          "model_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Model Ids"
+          },
+          "location_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Location Ids"
+          },
+          "position_ids": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "DOMESTIC",
+                "BONDED",
+                "QUARANTINE"
+              ]
+            },
+            "type": "array",
+            "title": "Position Ids"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "positive",
+              "all",
+              "zero"
+            ],
+            "title": "Status",
+            "default": "positive"
+          },
+          "group_by": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "item_kind",
+                "model",
+                "modality"
+              ]
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Group By"
+          },
+          "measures": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "quantity",
+                "cost",
+                "sale",
+                "margin"
+              ]
+            },
+            "type": "array",
+            "title": "Measures"
+          },
+          "composition_measure": {
+            "type": "string",
+            "enum": [
+              "quantity",
+              "cost",
+              "sale",
+              "margin"
+            ],
+            "title": "Composition Measure",
+            "default": "cost"
+          },
+          "visible_filters": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "modality_ids",
+                "item_kind_ids",
+                "model_ids",
+                "position_ids",
+                "location_ids"
+              ]
+            },
+            "type": "array",
+            "title": "Visible Filters"
+          },
+          "columns": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "quantity",
+                "unit_cost",
+                "cost",
+                "price",
+                "sale",
+                "margin"
+              ]
+            },
+            "type": "array",
+            "title": "Columns"
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "name",
+              "-name",
+              "quantity",
+              "-quantity",
+              "cost",
+              "-cost",
+              "sale",
+              "-sale"
+            ],
+            "title": "Sort",
+            "default": "name"
+          },
+          "price_list_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price List Id"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 25
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "StockQuery"
+      },
       "SummaryOut": {
         "properties": {
           "id": {
@@ -31389,6 +31997,52 @@
           "base_preset"
         ],
         "title": "ViewCreateIn"
+      },
+      "ViewIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "config": {
+            "$ref": "#/components/schemas/StockQuery"
+          },
+          "is_default": {
+            "type": "boolean",
+            "title": "Is Default",
+            "default": false
+          },
+          "view_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "View Id"
+          },
+          "expected_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "config"
+        ],
+        "title": "ViewIn"
       },
       "ViewOut": {
         "properties": {

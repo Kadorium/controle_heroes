@@ -1,4 +1,6 @@
 """Fachada pública Catalog — reexporta commands/queries."""
+from app.catalog.commercial_read import commercial_population, MODALITIES
+from app.catalog.pricing import current_prices, price_lists, list_prices, add_price, price_dict, ensure_price_list
 
 from app.catalog.commands import create_product, create_supplier, update_product, update_supplier
 from app.catalog.errors import CatalogError, SupplierCodeDuplicate
