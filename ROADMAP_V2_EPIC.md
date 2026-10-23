@@ -9,8 +9,8 @@
 | Campo | Valor |
 |---|---|
 | Atualizado em | 2026-10-23 |
-| Última entrega | Estoquista recebe pela navegação de estoque, com conferência, saldo pendente e histórico, sem acesso amplo à Aduana |
-| Próxima entrega | Conferir no laptop e ratificar as regras econômicas antes do uso operacional |
+| Última entrega | Auditoria integrada preservou a demonstração e encontrou falhas em custo incompleto, consulta financeira e cancelamento de edição |
+| Próxima entrega | Revisar os achados e priorizar correções; conferir no laptop e ratificar as regras econômicas antes do uso operacional |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -113,7 +113,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.156** — recebimento próprio de Inventory: leitura mínima, confirmação atômica/idempotente e concorrência protegida; migration 034, build `receiving-stock-20261023.1`. Escrita UI real como estoque: 4+6 UN, replay sem duplicação; administrador legado preservado. SHOW26/A intactos; baseline laptop/preços mantido. Resultados/promoção/recuperação no handoff único. Físico **PENDENTE**, auditoria integral **PARTIAL**, barras inalteradas |
+| Versão | **0.5.157** — auditoria integrada do build `receiving-stock-20261023.1`/e48f7c2, sem código de produto alterado. Lab8094/5452 separado da demo8082/5451; UI compra→financeiro→recebimento parcial/replay/concorrência, preços e tour405s. Falhas abertas: custo incompleto publicado0/COMPLETE, natureza FX, paginação/resumo AP, cancelar produto e foco. SHOW26/A preservados. Cobertura **PARTIAL**; físico **PENDENTE**; barras históricas inalteradas, sem novo aceite global |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -128,9 +128,9 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#7 | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** — [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
 | J#8 aceite UI | **DONE** — V1 arquivada — [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
-| Alembic head | código **032**; demo `epic_v2_test`/5447 = **032**; demo anterior/5433 e operação `epic_v2` = **031**, não migradas nesta entrega |
+| Alembic head | código/release **034**; demo `epic_v2_test`/5451 = **034**, lab auditoria/5452 = **034**. Ambientes anteriores/operacionais não migrados nem revalidados nesta auditoria |
 
-**Próxima ação:** conferência física do apresentador e ratificação das políticas de uso operacional. Recebimento de estoque testado com ACL original; consulta não expõe valores/ações aduaneiras. Densidade e CSV preservados. I-01 histórico sem causa presumida; offsite e violação preexistente ingestion→foundation pendentes. Onda 2 / IA / mídia e E3-B amplo não iniciados. Não equivale a aceite global/J#8.
+**Próxima ação:** advisor revisar F-01…F-06 da auditoria integrada: custo incompleto/natureza FX, AP/paginação, cancelar produto e foco; reteste delimitado com alocação explícita da fatura. Conferência física e políticas operacionais pendentes. I-01 sem causa presumida; offsite e violação ingestion→foundation permanecem. Onda 2/IA/mídia e E3-B amplo não iniciados. Sem implementação nesta rodada nem aceite global/J#8.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -138,7 +138,7 @@ Refinamento visual autorizado: composição só na Executiva de sistema; visões
 
 Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
 
-Histórico da auditoria ampliada: laboratório8084/5441, então distinto da demo8082/5433. [`AUDITORIA_UI_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-auditoria-uiux-executiva/AUDITORIA_UI_UX_EXECUTIVA_EPIC.md) documenta aquele estado; não descreve a release atual. Cobertura integral continua parcial.
+Auditoria atual: [`AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-revisao-experiencia/AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md); pacote ZIP local com PNGs/logs selecionados. Auditoria antiga8084/5441 permanece histórica; não descreve release atual. Capacidades das barras não equivalem à cobertura/aceite desta auditoria, que continua parcial.
 
 Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
 
