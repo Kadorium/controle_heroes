@@ -268,7 +268,17 @@ Branch: **feat/stock-executive-20261023**. Remoto público: https://github.com/K
 
 Comando de verificação em cada checkpoint: git rev-parse HEAD e git ls-remote origin refs/heads/feat/stock-executive-20261023. O hash retornado pelo servidor foi igual ao local. A revisão final do documento/auxiliares é discriminada no recibo ao fim desta seção; não muda o commit do bundle servido.
 
-O código final8871864 já está publicado e verificado. O recibo do commit documental será incorporado à cópia de devolutiva após o push, sem alterar o código servido.
+**Fechamento documental/técnico:** [f864cbbe19b77cb1c28d8b16c122c7f695d189ac](https://github.com/Kadorium/controle_heroes/commit/f864cbbe19b77cb1c28d8b16c122c7f695d189ac).
+
+Consulta remota em 2026-10-23T16:36:26.129Z:
+
+```text
+local:  f864cbbe19b77cb1c28d8b16c122c7f695d189ac
+remote: f864cbbe19b77cb1c28d8b16c122c7f695d189ac refs/heads/feat/stock-executive-20261023
+resultado: IGUAIS; push confirmado no GitHub
+```
+
+O commit acima guarda a consolidação e os auxiliares finais; o bundle continua sendo8871864. Este recibo autorreferente foi incorporado à cópia de devolutiva **após** a consulta remota, conforme o contrato do prompt. Somente esse recibo difere da versão do MD no commit; não há código de aplicação posterior não publicado. A cópia final também é preservada no backup local.
 
 ## 10. Arquivos, pendências e DOC_DELTA
 
