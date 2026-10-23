@@ -5,7 +5,7 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.37 |
+| **Versão** | 0.2.38 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
 | **Data** | 2026-10-23 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
@@ -1161,6 +1161,18 @@ Lista origem/uso; ações apply_credit; distinção desconto≠crédito≠CC BR 
 | Permissões | inventory:\* |
 | Aceite | StockBalance read-only; Inventory→Catalog+Customs |
 
+### 8.17.1 Consulta comercial e econômica do estoque
+
+Filtros comerciais, agrupamento e medidas são independentes. Catalog fornece modalidade, tipo comercial e modelo por atributos persistidos; consumíveis distinguem `BALL`/`OVERGRIP` por classificação explícita. União dentro de uma dimensão e interseção entre dimensões; SKU multimodal contado uma vez. IDs inválidos exigem revisão, não ampliação silenciosa. Totais e cobertura precedem paginação/ordenação.
+
+Reporting compõe contratos públicos de Catalog, Inventory, Customs, Billing e Costing. Inventory projeta origens remanescentes a partir dos movimentos; divergência contra o saldo cacheado não inventa origem. Costing fornece somente versões publicadas aplicáveis à linha/origem, unidade e quantidade-base. Abrir leituras, catálogo, facetas ou PDF não cria/recalcula/publica negócio. Preferências pessoais são configuração de Reporting, com actor, versão e padrão único; preservam os contratos de layout do dashboard existentes.
+
+Catalog mantém tabela/canal/moeda/natureza e histórico de preço com unidade, vigência, motivo, auditoria e request key. Intervalos conflitantes são rejeitados sob lock do produto. Novo preço não é preço de aquisição. Direitos distintos: `catalog:prices_read`, `catalog:prices_write` e `inventory:valuation_read`; posição física exige Inventory, não Costing. Valores de custo também exigem `costing:read`.
+
+**Política econômica de demonstração, não contábil definitiva:** habilitada apenas em `APP_ENV=test` com `STOCK_ECONOMICS_POLICY=DEMO_ORIGIN_FIFO_V1`. Origem explícita prevalece; saída genérica usa PEPS gerencial marcado estimado. Custo do saldo soma remanescentes × custo publicado por origem; não usa última compra nem custo médio arredondado como base. Venda potencial considera saldo doméstico elegível × preço bruto vigente/compatível. Margem usa somas da população comparável, antes de despesas de venda. Quarentena/entreposto não são disponíveis para venda. Unidades distintas permanecem separadas; ausência é nula, cobertura parcial explícita. Não aprova política de produção, reservas, avaliação contábil, conversão implícita de embalagens ou margem realizada.
+
+Migration aditiva 032: tabelas de preço e consultas pessoais. Importador genérico de preços, editor de tabelas/canais, reservas comerciais e margem realizada continuam fora desta entrega. A UI inicial de preço permite registrar intervalos não sobrepostos e consultar histórico; não encerra automaticamente uma vigência anterior.
+
 ### 8.18 Custo desembarcado por produto
 
 | Campo | Conteúdo |
@@ -1521,6 +1533,7 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 | Versão | Data | Notas |
 |---|---|---|
 | 0.2.37 | 2026-10-23 | Integração r2: shell por tarefas; posição paginada owner Inventory/ACL própria; índice de fontes por produto owner Costing, versão/composição/PDF sem escrita; resumo Comercial por população filtrada e unidade. §§8.0/8.2/8.17/8.18; sem migration ou política financeira nova |
+| 0.2.38 | 2026-10-23 | Consulta comercial/econômica de estoque, preço vigente e visões pessoais; contratos públicos e ACL próprios; migration 032. Política PEPS/origem/preço/margem restrita a demonstração/teste, sem ratificação contábil de produção. §8.17.1 |
 | 0.2.36 | 2026-10-22 | Refinamento executivo autorizado: composição local do preset de sistema, escopo temporal explícito, Controle por contrato existente, tour responsivo de leitura; hierarquia AP/Custo. Sem alteração financeira, migrations ou promoção de fase; §§8.2/8.9/8.18 |
 | 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |
 | 0.2.34 | 2026-08-21 | Elo 9: frete por papel; SKU ≠ EAN; REVISED documental (nunca «custo final»/«câmbio realizado»); §5.5 / §5.13 / §7.12 / §8.18 / §9.5 |

@@ -2,8 +2,8 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.10
-Data: 2026-07-29
+Versão: 3.11
+Data: 2026-10-23
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
 Status de implementação das superfícies: consultar o Roadmap
@@ -14,6 +14,14 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 ```
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
+
+### Ajuste local 3.11 — experiência executiva r2 e consulta de estoque
+
+O baseline histórico abaixo não descreve sozinho o runtime atual. Preservar o shell r2 por tarefas, Estoque visível, todas as rotas/permissões e as visões pessoais anteriores. No preset Executiva, período rotulado **Vencimentos financeiros**; posição de estoque independente. Números antes de controles secundários; referência cambial, data, stale e cobertura permanecem explícitos. A composição comercial compartilha a consulta com o estoque completo.
+
+**Filtros / Agrupar por / Exibir** independentes; multisseleção com OR interno e AND entre facetas. Beach Tennis removível como início sem preferência; URL explícita prevalece sobre visão pessoal e esta sobre o padrão. Visões guardam filtros, controles visíveis, níveis, medidas, colunas, ordem e padrão, sem alterar layouts de dashboard. Todos os totais cobrem o resultado filtrado, não a página. Produto → compra/versão → composição → PDF real ocupa uma área por vez, com retorno/foco/contexto preservados. Seletores de custo e venda não substituem silenciosamente quantidade ou um ao outro. Classificação e preços usam cadastro real; ausência não vira zero.
+
+Escopo econômico e limites estão no Blueprint Sistema §8.17.1; execução/testes/capturas no único handoff `etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md`. O tour continua de leitura, oito etapas, automático e cancelável; consulta filtrada é parte da rota esperada. Esta atualização local não moderniza nem aprova todas as telas do produto. Status histórico de Etapas 7–9 no restante do arquivo não substitui o Roadmap vivo.
 
 **Fontes de consolidação:** Blueprint Sistema V2 · Roadmap V2 · auditoria UX-1 (2026-07-24) · código `v2/` · corpus em `docs/v2/blueprint UIUX/` (benchmark, não canônico). Evidências de investigação e vereditos: **Roadmap**, não este arquivo.
 

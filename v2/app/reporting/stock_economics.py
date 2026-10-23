@@ -22,6 +22,16 @@ def value_product(product, positions, costs, price, *, can_cost, can_price, pric
                     cost_complete+=count
                     if eligible and price_ok:comparable_cost+=subtotal;comparable_sale+=count*value;comparable_qty+=count
                 contributions.append({**c,'remaining_quantity':count,'subtotal':subtotal,'location':pos['location']['name'],'estimated':pos['estimated']})
+    # Two receipts of the same purchase/line remain one economic origin in detail.
+    by_origin={}
+    for contribution in contributions:
+        key=tuple(contribution.get(k) for k in ['process_id','invoice_item_id','shipment_item_id','version_id','location'])
+        if key in by_origin:
+            by_origin[key]['remaining_quantity']+=contribution['remaining_quantity']
+            by_origin[key]['subtotal']+=contribution['subtotal']
+            by_origin[key]['estimated']|=contribution['estimated']
+        else:by_origin[key]=dict(contribution)
+    contributions=list(by_origin.values())
     sale=eligible_qty*value if price_ok else None
     return {'quantity':qty,'eligible_quantity':eligible_qty,'cost_total':cost_total if can_cost and cost_known else None,
         'unit_cost':cost_total/qty if can_cost and qty>0 and cost_complete==qty else None,

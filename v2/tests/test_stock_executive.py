@@ -63,6 +63,13 @@ def test_show_oracle_independent():
     assert round(r['margin'],2)==D('60.26')
     assert r['unit_cost']==D('54900')/42
 
+def test_two_receipts_one_economic_origin():
+    p,pos,costs,price=fixture_value();pos[0]['layers']=[{'quantity':D(4),'process_id':1,'invoice_item_id':1},{'quantity':D(8),'process_id':1,'invoice_item_id':1},pos[0]['layers'][1]]
+    r=value_product(p,pos,costs,price,can_cost=True,can_price=True,price_currency='BRL')
+    assert len(r['contributions'])==2
+    assert r['contributions'][0]['remaining_quantity']==12 and r['contributions'][0]['subtotal']==14400
+    assert r['cost_total']==54900
+
 @pytest.mark.parametrize('change',['no-price','wrong-unit','wrong-currency','partial','no-cost','no-permission'])
 def test_missing_partial_not_zero(change):
     p,pos,costs,price=fixture_value();currency='BRL';can_cost=True
