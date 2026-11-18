@@ -56,7 +56,7 @@ export function StockPositionsPage({user}:{user:User}) {
     {row && !section && !docId && <>
       <dl className="experience-stats">{Object.entries(regimes).map(([k,label])=><div key={k}><dt>{label}</dt><dd>{number(row.quantities[k as keyof typeof regimes])} <small>{row.unit||"unidade não informada"}</small></dd></div>)}</dl>
       {row.balances.some(b=>Number(b.qty)!==0) && <p className="muted">{row.balances.filter(b=>Number(b.qty)!==0).map(b=>`${b.name} · ${number(b.qty)} ${row.unit||""}`).join(" / ")}</p>}
-      <Link className="experience-link" to={`/inventory/movements?product_id=${productId}`} state={{stockReturn:location.pathname+location.search}}>Ver movimentos</Link>
+      <Link className="experience-link" to={`/inventory/movements?product_id=${productId}`} state={{stockReturn:location.pathname+location.search}}>Histórico de estoque</Link>
       <StockValueDetail productId={productId} user={user} priceListId={Number(params.get("price_list_id"))||undefined} onOrigin={(caseId,versionId)=>go({case:String(caseId),version:String(versionId)})}/>
       <section className="experience-cost"><div className="experience-cost-header"><h2>Custo por compra</h2>{selectedCase && <button onClick={()=>go({case:null,version:null})}>Escolher outra compra</button>}</div>
         {!can("costing:read") ? <p className="muted">Custo não disponível para este acesso. A posição de estoque permanece disponível.</p> : <>{state(sources)}

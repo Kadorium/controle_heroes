@@ -552,6 +552,11 @@ export function InvoiceDetailPage({ user }: Props) {
             <Link className="ui-button ui-button--secondary" to={invoicesReturn}>
               Voltar à fila
             </Link>
+            {(inv.payables?.length ?? 0) > 0 && (user.role === "admin" || user.permissions.includes("billing:read")) && (
+              <Link className="ui-button ui-button--secondary" to={`/payables?invoice_id=${inv.id}&pending=ALL`}>
+                Contas desta fatura
+              </Link>
+            )}
             {canCancelDraft ? (
               <Button
                 type="button"

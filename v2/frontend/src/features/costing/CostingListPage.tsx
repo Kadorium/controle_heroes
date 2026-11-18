@@ -76,7 +76,7 @@ export function CostingListPage({ user }: Props) {
 
   return (
     <div data-testid="costing-queue">
-      <ContextBreadcrumb items={[{ label: "Custos" }, { label: "Custos de importação" }]} />
+      <ContextBreadcrumb items={[{ label: "Importações" }, { label: "Custo desembarcado" }]} />
       <PageHeader
         title="Custo desembarcado por produto"
         subtitle={SUBTITLE}

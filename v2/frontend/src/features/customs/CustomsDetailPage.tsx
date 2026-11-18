@@ -222,14 +222,16 @@ export function CustomsDetailPage({ user }: Props) {
     <div data-testid="customs-detail-page">
       <ContextBreadcrumb
         items={[
-          { label: "Aduana" },
-          { label: "Processos", to: "/customs" },
+          { label: "Importações" },
+          { label: "Operações", to: "/customs" },
           { label: process.code },
         ]}
       />
       <PageHeader
         title={process.code}
         subtitle={`Status: ${statusLabel(process.status)} · v${process.version}`}
+        actions={(user.role === "admin" || user.permissions.includes("inventory:read")) ?
+          <Link className="ui-button ui-button--secondary" to={`/inventory/receiving?state=all&q=${encodeURIComponent(process.code)}`}>Receber mercadorias</Link> : undefined}
       />
       <div className="form-actions" style={{ marginBottom: "0.75rem" }}>
         <StatusBadge status={process.status} entity="customs" />

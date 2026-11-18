@@ -2,8 +2,8 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.13
-Data: 2026-10-23
+Versão: 3.14
+Data: 2026-11-18
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
 Status de implementação das superfícies: consultar o Roadmap
@@ -15,7 +15,15 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
 
-### Ajuste local 3.13 — recebimento por Estoque
+### Ajuste local 3.14 — navegação consolidada implementada
+
+Decisão vigente nesta superfície, autorizada na execução de 18/11/2026 e verificada no código/runtime: lateral estável com Visão geral, Produtos, Compras, Importações e Financeiro. Conferir documentos e Usuários e acessos ficam na seção secundária. Cada área abre uma tela existente e apresenta navegação local; não há hub de cartões nem repetição de destinos na lateral.
+
+Produtos reúne Estoque atual, Catálogo e preços e Histórico de estoque. Compras reúne Pedidos, Faturas e Fornecedores. Importações reúne Operações, Embarques, Receber mercadorias, Custo desembarcado e Prestadores logísticos. O recebimento atual usa exclusivamente liberações da importação; o custo é um trabalho por processo com resultado por produto, consultável também no detalhe do estoque. Financeiro reúne Contas a pagar e Pagamentos realizados; câmbio permanece na obrigação. Quando apenas FX é permitido, Financeiro conserva a URL existente `?purpose=fx` e permite informar a obrigação, sem carregar a lista de Billing.
+
+A área aparece quando ao menos uma seção é permitida; sua entrada é a primeira seção autorizada, sem exigir a permissão da entrada preferencial. URLs, parâmetros, regras de escrita e faixa de cotação permanecem. Na lateral recolhida, ícone e legenda continuam visíveis. Referência de implementação, matriz e limites: [handoff da consolidação](../etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md). Outras seções deste blueprint mantêm sua classificação histórica/candidata e não redefinem este mapa.
+
+### Ajuste local 3.13 — recebimento por Estoque (histórico; localização substituída por 3.14)
 
 Recebimentos fica junto de Estoque na navegação, sem depender da página aduaneira. Fila compacta com busca e situação; produto/unidade, origem e liberado/recebido/pendente. Uma área ativa para quantidade/destino → conferência → resultado com saldo/histórico. Escape devolve foco; retorno preserva consulta. Resposta incerta mantém a confirmação identificada para retry, inclusive após recarga, sem gerar nova operação. Só leitura não oferece confirmar; bloqueio explica a próxima ação sem expor dados financeiros. Baseline r2, densidade, preços e oito etapas do tour permanecem.
 

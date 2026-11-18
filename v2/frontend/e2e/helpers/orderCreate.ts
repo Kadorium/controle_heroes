@@ -17,6 +17,13 @@ export async function loginAs(
   await expect(page.getByRole("navigation", { name: /módulos/i })).toBeVisible({
     timeout: 15_000,
   });
+  await expandNavigation(page);
+}
+
+/** Expand the current rail without changing the selected area. */
+export async function expandNavigation(page: Page) {
+  const toggle = page.getByTestId("shell-rail-toggle");
+  if (await toggle.getAttribute("aria-expanded") === "false") await toggle.click();
 }
 
 /** Fila de pedidos — não é mais a home pós-login. */

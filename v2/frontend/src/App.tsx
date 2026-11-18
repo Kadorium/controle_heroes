@@ -103,7 +103,7 @@ export function App() {
   }
 
   const useApQueue =
-    !!user && (user.role === "admin" || (user.permissions ?? []).includes("reporting:read"));
+    !!user && (user.role === "admin" || (can(user, "reporting:read") && can(user, "billing:read")));
 
   return (
     <Routes>

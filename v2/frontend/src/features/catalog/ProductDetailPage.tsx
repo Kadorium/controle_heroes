@@ -125,7 +125,8 @@ export function ProductDetailPage({ user, editing = false }: Props) {
           setColorHints(colors);
           if (tax) setTaxonomy(tax);
         }
-        const events = await listEntityAudit("product", String(id));
+        const events = user.role === "admin" || user.permissions.includes("audit:read")
+          ? await listEntityAudit("product", String(id)) : [];
         if (!cancelled) {
           setAudit(
             events.map((e) => ({
@@ -143,7 +144,7 @@ export function ProductDetailPage({ user, editing = false }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, user]);
 
   if (!Number.isFinite(id)) return <ErrorState message="Produto inválido." />;
   if (error && !row) return <ErrorState message={error} />;

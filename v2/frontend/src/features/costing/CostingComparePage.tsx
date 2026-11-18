@@ -93,7 +93,7 @@ export function CostingComparePage({ user }: Props) {
     <section className="panel dense" data-testid="costing-compare-page">
       <ContextBreadcrumb
         items={[
-          { label: "Custos", to: "/costing" },
+          { label: "Custo desembarcado", to: "/costing" },
           { label: "Caso", to: back },
           { label: "Comparar" },
         ]}

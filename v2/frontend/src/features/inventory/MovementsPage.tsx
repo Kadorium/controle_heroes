@@ -52,14 +52,14 @@ export function MovementsPage({ user }: Props) {
             productId = asNum;
           } else {
             const res = await fetch(
-              `/api/products?q=${encodeURIComponent(raw)}&limit=2`,
+              `/api/reporting/stock-explorer?q=${encodeURIComponent(raw)}&status=all&position_ids=DOMESTIC&position_ids=BONDED&position_ids=QUARANTINE&limit=2`,
               { credentials: "include" },
             );
             if (!res.ok) throw new Error("Não foi possível identificar o produto. Tente novamente; o filtro foi preservado.");
             if (res.ok) {
-              const list = (await res.json()) as Array<{ id: number }>;
-              if (list.length > 1) throw new Error("Mais de um produto encontrado. Refine a busca ou informe o código do produto.");
-              if (list[0]) productId = list[0].id;
+              const found = (await res.json()) as { total:number; rows:Array<{ product_id:number }> };
+              if (found.total > 1) throw new Error("Mais de um produto encontrado. Refine a busca ou informe o código do produto.");
+              if (found.rows[0]) productId = found.rows[0].product_id;
               else {
                 if (!cancelled) {
                   setRows([]);
@@ -110,9 +110,9 @@ export function MovementsPage({ user }: Props) {
   return (
     <div data-testid="inventory-movements-page">
       <Link to={stockReturn}>← Voltar ao estoque</Link>
-      <ContextBreadcrumb items={[{ label: "Aduana" }, { label: "Estoque" }]} />
+      <ContextBreadcrumb items={[{ label: "Produtos" }, { label: "Histórico de estoque" }]} />
       <PageHeader
-        title="Movimentações"
+        title="Histórico de estoque"
         subtitle="Histórico de entradas, reclassificações e ajustes"
       />
       <SectionCard title="Filtros">
@@ -148,7 +148,7 @@ export function MovementsPage({ user }: Props) {
           ) : null}
         </div>
       </SectionCard>
-      <SectionCard title="Movimentações">
+      <SectionCard title="Histórico de estoque">
         {error ? <p className="muted" role="alert">{error}</p> : null}
         {rows.length === 0 ? (
           <EmptyState

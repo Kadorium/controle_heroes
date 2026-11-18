@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { dashboardNavigation } from "./dashboardNavigation";
 import type { User } from "../auth/types";
 import {
   Button,
@@ -135,7 +136,7 @@ export function DashboardPage({ user: _user }: Props) {
         currency: currency || undefined,
         supplier_id: supplierId || undefined,
       }, controller.signal);
-      if (!controller.signal.aborted) setSnap(data);
+      if (!controller.signal.aborted) setSnap(dashboardNavigation(data));
     } catch (err) {
       if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Falha ao carregar o painel");
     } finally {

@@ -176,7 +176,7 @@ export function UsersListPage({ user }: Props) {
   return (
     <section className="panel dense" data-testid="users-list-page">
       <PageHeader
-        title="Usuários"
+        title="Usuários e acessos"
         subtitle="Acesso e papéis · IAM-light"
         actions={
           canWrite(user) ? (

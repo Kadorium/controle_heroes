@@ -40,12 +40,12 @@ export function SkuPositionPage({ user }: Props) {
         const p = await getSkuPosition(id);
         if (!cancelled) setPos(p);
         try {
-          const res = await fetch(`/api/products/${id}`, { credentials: "include" });
+          const res = await fetch(`/api/reporting/stock-explorer?product_id=${id}&status=all&limit=1`, { credentials: "include" });
           if (res.ok) {
-            const prod = (await res.json()) as { sku?: string; description?: string };
+            const prod = ((await res.json()) as { rows:Array<{ sku:string; name:string }> }).rows[0];
             if (!cancelled) {
               setProductLabel(
-                [prod.sku, prod.description].filter(Boolean).join(" — ") || null,
+                [prod?.sku, prod?.name].filter(Boolean).join(" — ") || null,
               );
             }
           }
@@ -114,8 +114,8 @@ export function SkuPositionPage({ user }: Props) {
     <div data-testid="sku-position-page">
       <ContextBreadcrumb
         items={[
-          { label: "Aduana" },
-          { label: "Estoque", to: "/inventory/movements" },
+          { label: "Produtos" },
+          { label: "Estoque atual", to: "/inventory/positions" },
           { label: productLabel ?? `Produto ${id}` },
         ]}
       />
@@ -173,7 +173,7 @@ export function SkuPositionPage({ user }: Props) {
         )}
       </SectionCard>
       <p>
-        <Link to="/inventory/movements">Ver movimentações</Link>
+        <Link to={`/inventory/movements?product_id=${id}`}>Histórico de estoque</Link>
       </p>
     </div>
   );

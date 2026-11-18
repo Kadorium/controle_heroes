@@ -87,7 +87,7 @@ export function CustomsListPage({ user }: Props) {
 
   return (
     <div data-testid="customs-list-page">
-      <ContextBreadcrumb items={[{ label: "Aduana" }, { label: "Processos" }]} />
+      <ContextBreadcrumb items={[{ label: "Importações" }, { label: "Operações" }]} />
       <PageHeader
         title="Processos aduaneiros"
         subtitle="Fila operacional · origem aduaneira"

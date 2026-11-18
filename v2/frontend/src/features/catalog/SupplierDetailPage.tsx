@@ -31,6 +31,7 @@ export function SupplierDetailPage({ user }: Props) {
     (location.state as { returnTo?: string } | null)?.returnTo || buildReturnTo("/catalog/suppliers");
   const id = Number(supplierId);
   const write = canWrite(user);
+  const readAudit = user.role === "admin" || user.permissions.includes("audit:read");
   const [row, setRow] = useState<Supplier | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,7 +53,7 @@ export function SupplierDetailPage({ user }: Props) {
         setCode(s.code ?? "");
         setCountry(s.country_code ?? "");
         setTaxId(s.tax_id ?? "");
-        const events = await listEntityAudit("supplier", String(id));
+        const events = readAudit ? await listEntityAudit("supplier", String(id)) : [];
         if (!cancelled) {
           setAudit(
             events.map((e) => ({
@@ -70,7 +71,7 @@ export function SupplierDetailPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, readAudit]);
 
   if (!Number.isFinite(id)) return <ErrorState message="Fornecedor inválido." />;
   if (error) return <ErrorState message={error} />;
@@ -181,7 +182,7 @@ export function SupplierDetailPage({ user }: Props) {
           </Button>
         </div>
       ) : null}
-      <AuditDocumentsBlock documents={[]} audit={audit} />
+      {readAudit && <AuditDocumentsBlock documents={[]} audit={audit} />}
     </section>
   );
 }

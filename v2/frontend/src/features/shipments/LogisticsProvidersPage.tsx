@@ -86,8 +86,8 @@ export function LogisticsProvidersPage({ user }: Props) {
     <section className="panel dense" data-testid="logistics-providers-page">
       <ContextBreadcrumb
         items={[
-          { label: "Logística", to: shipmentsReturn },
-          { label: "Prestadores" },
+          { label: "Importações", to: shipmentsReturn },
+          { label: "Prestadores logísticos" },
         ]}
       />
       <PageHeader

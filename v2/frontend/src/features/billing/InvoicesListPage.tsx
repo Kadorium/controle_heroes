@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { FxObligationAccess } from "../treasury/FxObligationAccess";
 import type { User } from "../auth/types";
 import { listInvoices, type InvoiceListItem } from "./billingApi";
 import {
@@ -126,14 +127,21 @@ export function PayablesListPage({ user: _user }: Props) {
   const fxMode = params.get("purpose") === "fx";
   const canFx = _user.role === "admin" || _user.permissions.includes("treasury:fx_read");
   const canBilling = _user.role === "admin" || _user.permissions.includes("billing:read");
+  const payableQuery = new URLSearchParams({ limit:"100" });
+  for (const key of ["order_id","invoice_id","status","due_before","due_after","offset"]) {
+    const value = params.get(key);
+    if (value) payableQuery.set(key,value);
+  }
+  const payableSearch = payableQuery.toString();
   const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!canBilling) return;
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch("/api/payables?limit=100", { credentials: "include" });
+        const res = await fetch(`/api/payables?${payableSearch}`, { credentials: "include" });
         if (!res.ok) throw new Error(await res.text());
         const data = (await res.json()) as Array<Record<string, unknown>>;
         if (!cancelled) setRows(data);
@@ -144,9 +152,9 @@ export function PayablesListPage({ user: _user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [canBilling, payableSearch]);
 
-  if (!canBilling) return <ErrorState message="Seu acesso não permite listar obrigações. Para abrir o câmbio, use o link de uma obrigação autorizada." />;
+  if (!canBilling) return canFx && fxMode ? <FxObligationAccess /> : <ErrorState message="Seu acesso não permite listar obrigações. Para abrir o câmbio, use o link de uma obrigação autorizada." />;
   if (error) return <ErrorState message={error} />;
   if (rows === null) return <LoadingState message="Carregando contas a pagar…" />;
 

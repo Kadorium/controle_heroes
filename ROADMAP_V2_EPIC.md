@@ -1,16 +1,13 @@
 # EPIC Controle V2 — Roadmap operacional
-
 > Produto: [`docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md`](docs/v2/BLUEPRINT_SISTEMA_EPIC_V2.md) · Índice: [`docs/README.md`](docs/README.md) · Snapshot imutável: [`docs/v2/archive/roadmap/ROADMAP_V2_EPIC_0.5.42_FULL.md`](docs/v2/archive/roadmap/ROADMAP_V2_EPIC_0.5.42_FULL.md) · Método: [`.cursor/rules/epic-v2.mdc`](.cursor/rules/epic-v2.mdc)
-
 ---
-
 # Parte A — Painel
 
 | Campo | Valor |
 |---|---|
-| Atualizado em | 2026-10-23 |
-| Última entrega | Auditoria integrada preservou a demonstração e encontrou falhas em custo incompleto, consulta financeira e cancelamento de edição |
-| Próxima entrega | Revisar os achados e priorizar correções; conferir no laptop e ratificar as regras econômicas antes do uso operacional |
+| Atualizado em | 2026-11-18 |
+| Última entrega | Menu consolidado em cinco áreas, com acesso completo às rotinas e validação de perfis e percursos |
+| Próxima entrega | Usar a navegação consolidada; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -113,7 +110,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.157** — auditoria integrada do build `receiving-stock-20261023.1`/e48f7c2, sem código de produto alterado. Lab8094/5452 separado da demo8082/5451; UI compra→financeiro→recebimento parcial/replay/concorrência, preços e tour405s. Falhas abertas: custo incompleto publicado0/COMPLETE, natureza FX, paginação/resumo AP, cancelar produto e foco. SHOW26/A preservados. Cobertura **PARTIAL**; físico **PENDENTE**; barras históricas inalteradas, sem novo aceite global |
+| Versão | **0.5.164** — consolidação da navegação **DONE**: cinco áreas + duas entradas secundárias; abas locais, fallback por permissão, câmbio contextual e filtros de indicadores preservados. Release `executive-20261118.1`, 8082/5458/schema 034. Gates: 255 testes frontend, 4 E2E existentes, 29 verificações de navegação/perfis, 10 percursos de negócio e 20 verificações na release. Escritas somente no clone de teste 8102/5460. Domínio, backend e denominadores inalterados |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -130,7 +127,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
 | Alembic head | código/release **034**; demo `epic_v2_test`/5451 = **034**, lab auditoria/5452 = **034**. Ambientes anteriores/operacionais não migrados nem revalidados nesta auditoria |
 
-**Próxima ação:** advisor revisar F-01…F-06 da auditoria integrada: custo incompleto/natureza FX, AP/paginação, cancelar produto e foco; reteste delimitado com alocação explícita da fatura. Conferência física e políticas operacionais pendentes. I-01 sem causa presumida; offsite e violação ingestion→foundation permanecem. Onda 2/IA/mídia e E3-B amplo não iniciados. Sem implementação nesta rodada nem aceite global/J#8.
+**Próxima ação:** usar a navegação consolidada e revisar o handoff entregue ao advisor. Política econômica para operação, conferência física e I-01/offsite seguem fora deste escopo; vídeos existentes preservados, ainda exibem a navegação anterior.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -143,6 +140,8 @@ Auditoria atual: [`AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-revisao-ex
 Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
 
 Manutenção: fase DONE → status+evidência aqui, detalhe em `docs/v2/etapa-*` (não no snapshot). Checkpoint de fase nova nasce em `etapa-*` antes de executar. Teto do arquivo vivo ≤300 linhas.
+
+Consolidação vigente: [`HANDOFF_CONSOLIDACAO_NAVEGACAO.md`](docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md). Mestre §13.5 e Blueprint UI/UX 3.14 descrevem a nova navegação. Histórico da apresentação em [`APRESENTACAO_ADVISOR_HANDOFF.md`](docs/v2/etapa-apresentacao-20261117/APRESENTACAO_ADVISOR_HANDOFF.md), preservado. `EPIC/Iniciar EPIC.exe` continua iniciando a release local 8082 e banco 5458; nenhuma escrita do ensaio de navegação foi promovida.
 
 ## B.2 Cadeia: evidência e costuras
 
@@ -238,6 +237,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 | E7-ARRIVAL-GATE | Customs | Nacionalização hoje **não** exige Shipment ARRIVED. Campanha demonstra chegada; **não** implementa a trava. Avaliar se chegada física/documental deve ser precondição |
 | MINOR_BACKLOG UI Horizon A | UI sob pedido | Aceite fechado |
 | Backlog J#5 residual (seed aduana/estoque; stubs SkuPosition) | Identity / Reporting | [`UI_ACCEPTANCE_J5.md`](docs/v2/etapa-j5/UI_ACCEPTANCE_J5.md) |
+| Indicadores com recorte sem filtro equivalente na fila | Reporting / UI futura | Alguns agregados de moedas, embarques em curso e custos publicados abrem filas mais amplas; não criar endpoint/métrica nesta consolidação. Limites no handoff; AP vencidas validada por conjunto e valor |
 | SCR-028 hub FX | UI futuro | Sem rota `/fx` |
 | Horizon B1 | Externo | J#5-REC DONE; resto NOT_STARTED |
 

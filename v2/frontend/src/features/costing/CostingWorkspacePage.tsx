@@ -251,7 +251,7 @@ export function CostingWorkspacePage({ user }: Props) {
     <div className="costing-refined" data-testid="costing-workspace">
       <ContextBreadcrumb
         items={[
-          { label: "Custos", to: "/costing" },
+          { label: "Custo desembarcado", to: "/costing" },
           { label: caseRow.process_code },
         ]}
       />

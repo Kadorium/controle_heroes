@@ -26,13 +26,15 @@ export function PayableFxPage({ user }: Props) {
   const [row, setRow] = useState<Payable | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fxTick, setFxTick] = useState(0);
-  const payablesReturn = buildReturnTo("/payables");
+  const canBilling = user.role === "admin" || user.permissions.includes("billing:read");
+  const payablesReturn = canBilling ? buildReturnTo("/payables") : "/payables?purpose=fx";
 
   useEffect(() => {
     if (!Number.isFinite(id) || id <= 0) {
       setError("Obrigação inválida");
       return;
     }
+    if (!canBilling) return;
     let cancelled = false;
     void getPayable(id)
       .then((p) => {
@@ -44,7 +46,7 @@ export function PayableFxPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, canBilling]);
 
   if (!canReadFx(user)) return <ErrorState message="Sem permissão de câmbio" />;
 
@@ -57,7 +59,7 @@ export function PayableFxPage({ user }: Props) {
       <ContextBreadcrumb
         items={[
           { label: "Financeiro", to: payablesReturn },
-          { label: "Contas a pagar", to: payablesReturn },
+          { label: canBilling ? "Contas a pagar" : "Câmbio por obrigação", to: payablesReturn },
           { label: titleLabel },
         ]}
       />
@@ -71,7 +73,7 @@ export function PayableFxPage({ user }: Props) {
         }
       />
       {error ? <ErrorState message={error} /> : null}
-      {!row && !error ? <LoadingState message="Carregando obrigação…" /> : null}
+      {canBilling && !row && !error ? <LoadingState message="Carregando obrigação…" /> : null}
       {row ? (
         <div data-testid="fx-payable-context">
           <SummaryGrid
