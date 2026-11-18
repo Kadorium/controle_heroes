@@ -1,0 +1,26 @@
+
+> epic-controle-v2-frontend@0.1.0 build
+> tsc --noEmit && vite build --outDir dist-navigation
+
+vite v5.4.21 building for production...
+transforming...
+✓ 1030 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-navigation/index.html                              0.40 kB │ gzip:   0.28 kB
+dist-navigation/assets/pdf.worker.min-CLrFZWeq.mjs  1,312.45 kB
+dist-navigation/assets/index-Bp2zwKZO.css              92.77 kB │ gzip:  18.15 kB
+dist-navigation/assets/index-CoWSD9W0.js            1,744.58 kB │ gzip: 490.46 kB
+node.exe : 
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\ricar\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: 
+https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.86s

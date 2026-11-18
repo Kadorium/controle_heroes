@@ -1,0 +1,36 @@
+{
+  "build": "executive-20261118.1",
+  "assets": [
+    "/assets/index-CoWSD9W0.js",
+    "/assets/index-Bp2zwKZO.css"
+  ],
+  "results": [
+    {
+      "runtime": "8082",
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/inventory/positions?q=SHOW26",
+      "result": "PASS",
+      "action": "Abri URL existente / Vi área e aba corretas / Conferi hierarquia visual"
+    },
+    {
+      "runtime": "8082",
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/inventory/receiving?state=all&q=SHOW26",
+      "result": "PASS",
+      "action": "Abri URL existente / Vi área e aba corretas / Conferi hierarquia visual"
+    },
+    {
+      "runtime": "8082",
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/costing",
+      "result": "PASS",
+      "action": "Abri URL existente / Vi área e aba corretas / Conferi hierarquia visual"
+    },
+    {
+      "runtime": "8102 / 5460",
+      "profile": "admin",
+      "result": "PASS",
+      "action": "Conferir documentos → packing fictício → PDF renderizado e campos da revisão"
+    }
+  ]
+}

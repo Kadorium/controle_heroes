@@ -1,0 +1,932 @@
+{
+  "build": {
+    "source_commit": "448ca3a8271d326c902babf7d061bff9eb71b7e4",
+    "uncommitted_candidate": true,
+    "manifest_sha256": "ccdffde8486c98773f87f5bdb0416670b09cde00d1de8c089ca6cb36df7c53b9",
+    "build_id": "executive-20261117.4",
+    "assets": {
+      "index-BfJ8vCu5.css": "b168b1c6d3380ad82b745521e293826b2a407f400f80e939f14ccf76d82d3590",
+      "index-BGdqJWCe.js": "c8140c0b8b56a4531278b4686d511b387ae69c72902d7e10cc725650a8964507",
+      "index-Buuf_WJm.css": "92f59922f1c01e17b997c2ab4b91587fb508df033db0b956541db5febe9cb881",
+      "index-C51lN8Hl.js": "83a4199f742ad685841c3a9b510b5512854d40c8e4b90cf87ccd02294b31ada7",
+      "index-C9e-7en0.js": "715d91024f97d18ef36d6052e3213af9122542f9e117f4a81de2fa2b7022684d",
+      "index-Cn5QD-CZ.css": "3d8697dbca24f70e3b919c452c636b164f63aee61b939278ae8e0763fa9efcbd",
+      "index-DH9h24PC.js": "1071dfb56ebd81475208893781593a68e9c52ce342c7fe8cab972ad58b36ab99",
+      "index-DJVy1TEr.js": "064c46420211c54bc4ad9ffd7fd16871a443b5de8e00645451808c6673812a2e",
+      "index-FiHJ5L7f.js": "56867b6f74bf6910525951f48d9a2201749319b5bdf468d526909d4307003556",
+      "index-ORcUhsQb.css": "d03616ce011996902ff11bf314a1e84fb1aac6a051a75d7e807b7e2904860306",
+      "index-uyDSAkfC.css": "69c8edd87e34042fd9850d8e82466ba0628ae307415003baa0adfdae3fcffb8f",
+      "pdf.worker.min-CLrFZWeq.mjs": "bc0d1b88ea0b66196b1d36a58ac243c6d92adfe725624e2a9fdd381bdf8ef434"
+    }
+  },
+  "links": [
+    {
+      "label": "Visão geral",
+      "href": "/dashboard"
+    },
+    {
+      "label": "Catálogo e preços",
+      "href": "/catalog/products"
+    },
+    {
+      "label": "Estoque atual",
+      "href": "/inventory/positions"
+    },
+    {
+      "label": "Recebimentos",
+      "href": "/inventory/receiving"
+    },
+    {
+      "label": "Movimentações",
+      "href": "/inventory/movements"
+    },
+    {
+      "label": "Pedidos",
+      "href": "/orders"
+    },
+    {
+      "label": "Faturas",
+      "href": "/invoices"
+    },
+    {
+      "label": "Conferir documentos",
+      "href": "/ingestion"
+    },
+    {
+      "label": "Fornecedores",
+      "href": "/catalog/suppliers"
+    },
+    {
+      "label": "Contas a pagar",
+      "href": "/payables"
+    },
+    {
+      "label": "Pagamentos",
+      "href": "/payments"
+    },
+    {
+      "label": "Câmbio por obrigação",
+      "href": "/payables?purpose=fx"
+    },
+    {
+      "label": "Custos de importação",
+      "href": "/costing"
+    },
+    {
+      "label": "Embarques",
+      "href": "/shipments"
+    },
+    {
+      "label": "Operações de importação",
+      "href": "/customs"
+    },
+    {
+      "label": "Prestadores logísticos",
+      "href": "/logistics-providers"
+    },
+    {
+      "label": "Usuários e acessos",
+      "href": "/admin/users"
+    }
+  ],
+  "evidence": [
+    {
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/inventory/positions",
+      "headings": [
+        "Estoque atual",
+        "Produtos"
+      ],
+      "controls": [
+        {
+          "text": "Catálogo e preços",
+          "href": "/catalog/products"
+        },
+        {
+          "text": "Estoque atual",
+          "href": "/inventory/positions"
+        },
+        {
+          "text": "Recebimentos",
+          "href": "/inventory/receiving"
+        },
+        {
+          "text": "Movimentações",
+          "href": "/inventory/movements"
+        },
+        {
+          "text": "Salvar visão",
+          "href": null
+        },
+        {
+          "text": "Excluir visão",
+          "href": null
+        },
+        {
+          "text": "Movimentos",
+          "href": "/inventory/movements"
+        },
+        {
+          "text": "Todas as opções",
+          "href": null
+        },
+        {
+          "text": "Todas as opções",
+          "href": null
+        },
+        {
+          "text": "Todas as opções",
+          "href": null
+        },
+        {
+          "text": "Todas as opções",
+          "href": null
+        },
+        {
+          "text": "Todas as opções",
+          "href": null
+        },
+        {
+          "text": "Modalidade: Beach Tennis ×",
+          "href": null
+        },
+        {
+          "text": "Disponibilidade: Disponível físico ×",
+          "href": null
+        },
+        {
+          "text": "Limpar filtros",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "▸ Ver composição",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "Bolas Heroes Beach Tennis · embalagem 3",
+          "href": null
+        },
+        {
+          "text": "Bolas Heroes Stage 2 · caixa 50",
+          "href": null
+        },
+        {
+          "text": "Camiseta Heroes The Bull · L",
+          "href": null
+        },
+        {
+          "text": "Camiseta Heroes The Bull · M",
+          "href": null
+        },
+        {
+          "text": "Camiseta Heroes The Bull · S",
+          "href": null
+        },
+        {
+          "text": "Camiseta Heroes The Bull · XL",
+          "href": null
+        },
+        {
+          "text": "Camiseta Heroes The Bull · XXL",
+          "href": null
+        },
+        {
+          "text": "Mochila Heroes Gravity Fierce",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Brown · L",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Brown · M",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Brown · S",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Purple · L",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Purple · M",
+          "href": null
+        },
+        {
+          "text": "Moletom Heroes Wave feminino · Purple · S",
+          "href": null
+        },
+        {
+          "text": "Overgrip Heroes High Level · pacote 3",
+          "href": null
+        },
+        {
+          "text": "Overgrip Heroes High Level · pacote 60 · Branco",
+          "href": null
+        },
+        {
+          "text": "Overgrip Heroes High Level · pacote 60 · Misto",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes ARION26",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes AURA26",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes FIERCE26",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes FOREST",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes HARLEY24",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes SHOW26",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes STARLIGHT26",
+          "href": null
+        },
+        {
+          "text": "Raquete Heroes THEBULL26",
+          "href": null
+        },
+        {
+          "text": "Anterior",
+          "href": null
+        },
+        {
+          "text": "Próxima",
+          "href": null
+        }
+      ]
+    },
+    {
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/inventory/receiving?state=all&q=SHOW26",
+      "headings": [
+        "Recebimentos"
+      ],
+      "controls": [
+        {
+          "text": "Catálogo e preços",
+          "href": "/catalog/products"
+        },
+        {
+          "text": "Estoque atual",
+          "href": "/inventory/positions"
+        },
+        {
+          "text": "Recebimentos",
+          "href": "/inventory/receiving"
+        },
+        {
+          "text": "Movimentações",
+          "href": "/inventory/movements"
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "Estoque atual",
+          "href": "/inventory/positions"
+        },
+        {
+          "text": "Atualizar",
+          "href": null
+        },
+        {
+          "text": "Consultar",
+          "href": null
+        },
+        {
+          "text": "Consultar",
+          "href": null
+        },
+        {
+          "text": "Consultar",
+          "href": null
+        }
+      ]
+    },
+    {
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/costing",
+      "headings": [
+        "Custo desembarcado por produto"
+      ],
+      "controls": [
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "Todos",
+          "href": null
+        },
+        {
+          "text": "Cobertura incompleta",
+          "href": null
+        },
+        {
+          "text": "Publicado",
+          "href": null
+        },
+        {
+          "text": "Iniciar",
+          "href": null
+        },
+        {
+          "text": "Iniciar",
+          "href": null
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/8"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/7"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/6"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/5"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/4"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/3"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/2"
+        },
+        {
+          "text": "Abrir",
+          "href": "/costing/1"
+        }
+      ]
+    },
+    {
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/payables?purpose=fx&pending=OPEN_BALANCE",
+      "headings": [
+        "Câmbio · escolha a obrigação"
+      ],
+      "controls": [
+        {
+          "text": "Atualizar",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "BRL 17.633,00",
+          "href": null
+        },
+        {
+          "text": "BRL 17.600,00",
+          "href": null
+        },
+        {
+          "text": "BRL 0,00",
+          "href": null
+        },
+        {
+          "text": "BRL 0,00",
+          "href": null
+        },
+        {
+          "text": "—",
+          "href": null
+        },
+        {
+          "text": "EUR 42.708,43",
+          "href": null
+        },
+        {
+          "text": "EUR 8.944,63",
+          "href": null
+        },
+        {
+          "text": "EUR 0,00",
+          "href": null
+        },
+        {
+          "text": "EUR 3.760,00",
+          "href": null
+        },
+        {
+          "text": "EUR 2.650,00",
+          "href": null
+        },
+        {
+          "text": "Não canceladas",
+          "href": null
+        },
+        {
+          "text": "Aberta",
+          "href": null
+        },
+        {
+          "text": "Parcialmente paga",
+          "href": null
+        },
+        {
+          "text": "Paga",
+          "href": null
+        },
+        {
+          "text": "Cancelada",
+          "href": null
+        },
+        {
+          "text": "",
+          "href": null
+        },
+        {
+          "text": "Mais filtros",
+          "href": null
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-A",
+          "href": "/invoices/2"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-A",
+          "href": "/orders/2"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/2/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/2/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C1",
+          "href": "/invoices/5"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C1",
+          "href": "/orders/5"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/7/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/7/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F0",
+          "href": "/invoices/7"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F0",
+          "href": "/orders/7"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/13/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/13/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/22/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/23/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/24/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/25/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/26/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C0",
+          "href": "/invoices/4"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C0",
+          "href": "/orders/4"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/5/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/5/fx"
+        },
+        {
+          "text": "DEMO-FAT-20261022",
+          "href": "/invoices/1"
+        },
+        {
+          "text": "DEMO-CEO-20261022",
+          "href": "/orders/1"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/1/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/1/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-UI-LOG",
+          "href": "/invoices/10"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-UI-LOG",
+          "href": "/orders/10"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/27/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/27/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-UI-PART",
+          "href": "/invoices/12"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-UI-PART",
+          "href": "/orders/12"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/30/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/30/fx"
+        },
+        {
+          "text": "FAT-DEMO-UI-1792769728665",
+          "href": "/invoices/11"
+        },
+        {
+          "text": "DEMO-UI-1792769728665",
+          "href": "/orders/11"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/29/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/29/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C1",
+          "href": "/invoices/5"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C1",
+          "href": "/orders/5"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/8/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/8/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F0",
+          "href": "/invoices/7"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F0",
+          "href": "/orders/7"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/14/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/14/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-B",
+          "href": "/invoices/3"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-B",
+          "href": "/orders/3"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/3/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/3/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C0",
+          "href": "/invoices/4"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C0",
+          "href": "/orders/4"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/6/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/6/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F2",
+          "href": "/invoices/9"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F2",
+          "href": "/orders/9"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/19/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/19/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C2",
+          "href": "/invoices/6"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C2",
+          "href": "/orders/6"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/11/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/11/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F1",
+          "href": "/invoices/8"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F1",
+          "href": "/orders/8"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/17/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/17/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C1",
+          "href": "/invoices/5"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C1",
+          "href": "/orders/5"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/9/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/9/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F0",
+          "href": "/invoices/7"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F0",
+          "href": "/orders/7"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/15/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/15/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F2",
+          "href": "/invoices/9"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F2",
+          "href": "/orders/9"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/20/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/20/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-C2",
+          "href": "/invoices/6"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-C2",
+          "href": "/orders/6"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/12/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/12/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F1",
+          "href": "/invoices/8"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F1",
+          "href": "/orders/8"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/18/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/18/fx"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-FAT-F2",
+          "href": "/invoices/9"
+        },
+        {
+          "text": "HEROES-EXEC-20261023-v1-F2",
+          "href": "/orders/9"
+        },
+        {
+          "text": "Câmbio",
+          "href": "/payables/21/fx"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/21/fx"
+        },
+        {
+          "text": "QA-RECEIVING-20261023",
+          "href": "/invoices/13"
+        },
+        {
+          "text": "QA-RECEIVING-20261023",
+          "href": "/orders/13"
+        },
+        {
+          "text": "Ver câmbio",
+          "href": "/payables/31/fx"
+        },
+        {
+          "text": "Anterior",
+          "href": null
+        },
+        {
+          "text": "Próxima",
+          "href": null
+        }
+      ]
+    },
+    {
+      "profile": "admin",
+      "url": "http://127.0.0.1:8082/catalog/suppliers",
+      "headings": [
+        "Fornecedores"
+      ],
+      "controls": [
+        {
+          "text": "Novo fornecedor",
+          "href": "/catalog/suppliers/new"
+        },
+        {
+          "text": "Buscar",
+          "href": null
+        },
+        {
+          "text": "Só ativos",
+          "href": null
+        },
+        {
+          "text": "Sem identificador fiscal",
+          "href": null
+        },
+        {
+          "text": "DEMONSTRAÇÃO - Atlas Sports",
+          "href": "/catalog/suppliers/1"
+        },
+        {
+          "text": "DEMONSTRAÇÃO Heroes Export",
+          "href": "/catalog/suppliers/2"
+        },
+        {
+          "text": "Fornecedor DEMO-UI-1792769728665",
+          "href": "/catalog/suppliers/3"
+        },
+        {
+          "text": "QA recebimento · fornecedor fictício",
+          "href": "/catalog/suppliers/4"
+        }
+      ]
+    }
+  ]
+}

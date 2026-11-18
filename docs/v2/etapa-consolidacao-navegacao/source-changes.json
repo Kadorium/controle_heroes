@@ -1,0 +1,155 @@
+[
+  {
+    "file": "v2/frontend/src/App.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/app-shell/AppShell.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/app-shell/areaNavigation.css",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/app-shell/AreaNavigation.tsx",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/app-shell/Navigation.test.tsx",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/app-shell/navigation.ts",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/admin/UsersListPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/billing/InvoiceDetailPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/billing/InvoicesListPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/catalog/ProductAreaNav.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/catalog/ProductDetailPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/catalog/SupplierAccess.test.tsx",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/catalog/SupplierDetailPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/costing/CostingComparePage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/costing/CostingListPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/costing/CostingWorkspacePage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/customs/CustomsDetailPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/customs/CustomsListPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/dashboard/dashboardNavigation.test.ts",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/dashboard/dashboardNavigation.ts",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/dashboard/DashboardPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/inventory/MovementsPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/inventory/ReceivingPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/inventory/SkuPositionPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/inventory/StockExplorer.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/inventory/StockPositionsPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "file": "v2/frontend/src/features/shipments/LogisticsProvidersPage.tsx",
+    "new": false,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/treasury/FxNavigation.test.tsx",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/treasury/FxObligationAccess.tsx",
+    "new": true,
+    "preexisting_wip": false
+  },
+  {
+    "file": "v2/frontend/src/features/treasury/PayableFxPage.tsx",
+    "new": false,
+    "preexisting_wip": true
+  },
+  {
+    "deleted": "v2/frontend/src/app-shell/AppShell.nav.test.tsx"
+  }
+]

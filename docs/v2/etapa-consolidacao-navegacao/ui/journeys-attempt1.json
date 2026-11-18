@@ -1,0 +1,151 @@
+{
+  "results": [
+    {
+      "name": "1 e 2 / produto com saldo, custo, histórico e retorno",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/positions?q=SHOW26&modality_ids=bt&item_kind_ids=&model_ids=&position_ids=DOMESTIC&location_ids=&status=positive&group_by=item_kind&measures=quantity%2Ccost%2Csale%2Cmargin&composition_measure=cost&composition_open=false&secondary_open=false&visible_filters=modality_ids%2Citem_kind_ids&columns=quantity%2Ccost%2Csale%2Cmargin&sort=name&price_list_id=1&limit=25&offset=0&product=3&case=2&version=2",
+      "detail": {
+        "opened": "http://127.0.0.1:8102/inventory/positions?q=SHOW26&modality_ids=bt&item_kind_ids=&model_ids=&position_ids=DOMESTIC&location_ids=&status=positive&group_by=item_kind&measures=quantity%2Ccost%2Csale%2Cmargin&composition_measure=cost&composition_open=false&secondary_open=false&visible_filters=modality_ids%2Citem_kind_ids&columns=quantity%2Ccost%2Csale%2Cmargin&sort=name&price_list_id=&limit=25&offset=0",
+        "saw": "SHOW26, base e versão do custo desembarcado",
+        "clicked": "Produto → compra → composição → histórico → voltar",
+        "result": "Filtro de produto e contexto do retorno preservados"
+      }
+    },
+    {
+      "name": "1 / catálogo inclui produto sem estoque",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "FAIL",
+      "url": "http://127.0.0.1:8102/inventory/positions?product=30",
+      "error": "expect(locator).toContainText(expected) failed\n\nLocator: locator('main')\nExpected substring: \"NAV18 Produto fictício sem estoque\"\nReceived string:    \"ProdutosEstoque atualCatálogo e preçosHistórico de estoqueEstoque atual›DEMO-HR-BALL3DEMO-HR-BALL3 · Posição atualBolas Heroes Beach Tennis · embalagem 3← VoltarDisponível19 PCTEntreposto0 PCTQuarentena0 PCTEstoque doméstico principal · 19 PCTHistórico de estoqueValor do saldo disponívelCusto do saldo R$ 581,0319 de 19 PCT com custo completoPreço de venda · Varejo demonstraçãoR$ 74,90 / PCTVenda potencialR$ 1.423,1019 PCT com preço vigenteOrigens do saldo e custoCompra / versãoSaldoBase da compraCusto / un.Custo do saldoCompra 6 · v1 →Revisado publicado · Estoque doméstico principal19 PCT19 PCTR$ 30,58R$ 581,03Venda potencial bruta. Custo gerencial por origem; não é avaliação contábil.Custo por compraSelecione a compra para consultar o custo e sua versão.HEROES-EXEC-20261023-v1-DI-C2HEROES-EXEC-20261023-v1-FAT-C21 versão disponível · com publicação →\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"to.have.text\" with timeout 5000ms\n  - waiting for locator('main')\n    - locator resolved to <main tabindex=\"-1\" id=\"main-content\" class=\"shell-main\">…</main>\n    - unexpected value \"ProdutosEstoque atualCatálogo e preçosHistórico de estoqueEstoque atual›Produto · Posição atualProduto← VoltarCarregando…\"\n    - locator resolved to <main tabindex=\"-1\" id=\"main-content\" class=\"shell-main\">…</main>\n    - unexpected value \"ProdutosEstoque atualCatálogo e preçosHistórico de estoqueEstoque atual›DEMO-HR-BALL3DEMO-HR-BALL3 · Posição atualBolas Heroes Beach Tennis · embalagem 3← VoltarDisponível19 PCTEntreposto0 PCTQuarentena0 PCTEstoque doméstico principal · 19 PCTHistórico de estoqueValor do saldo disponívelConsultando…Custo por compraSelecione a compra para consultar o custo e sua versão.HEROES-EXEC-20261023-v1-DI-C2HEROES-EXEC-20261023-v1-FAT-C21 versão disponível · com publicação →\"\n    12 × locator resolved to <main tabindex=\"-1\" id=\"main-content\" class=\"shell-main\">…</main>\n       - unexpected value \"ProdutosEstoque atualCatálogo e preçosHistórico de estoqueEstoque atual›DEMO-HR-BALL3DEMO-HR-BALL3 · Posição atualBolas Heroes Beach Tennis · embalagem 3← VoltarDisponível19 PCTEntreposto0 PCTQuarentena0 PCTEstoque doméstico principal · 19 PCTHistórico de estoqueValor do saldo disponívelCusto do saldo R$ 581,0319 de 19 PCT com custo completoPreço de venda · Varejo demonstraçãoR$ 74,90 / PCTVenda potencialR$ 1.423,1019 PCT com preço vigenteOrigens do saldo e custoCompra / versãoSaldoBase da compraCusto / un.Custo do saldoCompra 6 · v1 →Revisado publicado · Estoque doméstico principal19 PCT19 PCTR$ 30,58R$ 581,03Venda potencial bruta. Custo gerencial por origem; não é avaliação contábil.Custo por compraSelecione a compra para consultar o custo e sua versão.HEROES-EXEC-20261023-v1-DI-C2HEROES-EXEC-20261023-v1-FAT-C21 versão disponível · com publicação →\"\n"
+    },
+    {
+      "name": "3 / fatura → obrigação → câmbio → formulário de pagamento → retorno",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": "Contas filtradas pela fatura; câmbio existente; formulário com obrigação/moeda/valor; retorno preservado, sem registrar pagamento"
+    },
+    {
+      "name": "4 / pagamento com crédito em aberto e detalhe",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments?unallocated_only=1",
+      "detail": {
+        "opened": "Financeiro → Pagamentos realizados",
+        "clicked": "Somente crédito em aberto → Abrir → Voltar à fila",
+        "payment": "/payments/9",
+        "result": "Crédito e filtro de retorno mantidos"
+      }
+    },
+    {
+      "name": "5 / chegada, liberação e entrada física são etapas distintas",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/receiving?state=all&q=IMP-C82CF4785F64",
+      "detail": "Abri Embarques / Vi Chegou / Cliquei Operações → processo → Receber mercadorias / Resultado: fila da operação mostra liberado, recebido e pendente separadamente"
+    },
+    {
+      "name": "7 / documento de transporte ou importação pela entrada transversal",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "FAIL",
+      "url": "http://127.0.0.1:8102/ingestion",
+      "error": "No existing transport/import document in staging queue; prepare a minimal synthetic test document before completing"
+    },
+    {
+      "name": "9 / indicador vencido conserva período, moeda e conjunto",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payables?pending=OVERDUE&due_after=2020-01-01&due_before=2026-11-18&currency=EUR",
+      "detail": {
+        "opened": "Visão geral / vencidos no recorte EUR",
+        "clicked": "Abrir fila de vencidas",
+        "result": "Período/moeda/situação preservados",
+        "metric": {
+          "by_currency": [
+            {
+              "currency": "EUR",
+              "amount": "8944.63",
+              "count": 4
+            }
+          ],
+          "mixed_currency": false,
+          "total_count": 4,
+          "overdue_count": 4,
+          "state": "ok"
+        },
+        "queueTotal": 4,
+        "kpis": {
+          "mixed_currency": false,
+          "total_count": 4,
+          "overdue_count": 4,
+          "kpis_by_currency": [
+            {
+              "currency": "EUR",
+              "total_count": 4,
+              "open_balance": "8944.63",
+              "overdue_balance": "8944.63",
+              "overdue_count": 4,
+              "due_today_balance": "0.00",
+              "next_7d_balance": "0.00",
+              "next_30d_balance": "0.00"
+            }
+          ],
+          "unallocated_by_currency": [
+            {
+              "currency": "EUR",
+              "unallocated_candidates_count": 1,
+              "unallocated_candidates_total": "2550.00"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6 / estoque recebe parcialmente e consulta saldo/histórico",
+      "profile": "estoque",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "FAIL",
+      "url": "http://127.0.0.1:8102/inventory/movements?q=NAV18",
+      "error": "expect(locator).toContainText(expected) failed\n\nLocator: locator('main')\nExpected substring: \"NAV18-RECEBIMENTO\"\nReceived string:    \"ProdutosEstoque atualHistórico de estoqueNão foi possível identificar o produto. Tente novamente; o filtro foi preservado.Tentar novamente\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"to.have.text\" with timeout 5000ms\n  - waiting for locator('main')\n    14 × locator resolved to <main tabindex=\"-1\" id=\"main-content\" class=\"shell-main\">…</main>\n       - unexpected value \"ProdutosEstoque atualHistórico de estoqueNão foi possível identificar o produto. Tente novamente; o filtro foi preservado.Tentar novamente\"\n"
+    },
+    {
+      "name": "8 / cadastro autorizado sem acesso a Pedidos",
+      "profile": "nav_catalog",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "FAIL",
+      "url": "http://127.0.0.1:8102/catalog/suppliers/6",
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByTestId('supplier-detail-page')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByTestId('supplier-detail-page')\n"
+    },
+    {
+      "name": "FX exclusivo / acesso permitido sem consulta de Billing",
+      "profile": "nav_fx",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payables?purpose=fx",
+      "detail": "Financeiro → número da obrigação → câmbio existente; sem listagem de contas, sem escrita e sem novas permissões"
+    }
+  ],
+  "errors": [],
+  "mutations": [
+    {
+      "profile": "estoque",
+      "method": "POST",
+      "url": "http://127.0.0.1:8102/api/inventory/receiving/confirm",
+      "body": "{\"item_id\":43,\"quantity\":\"4\",\"unit\":\"UN\",\"location_code\":\"DOMESTIC-MAIN\",\"request_key\":\"857687ee-2534-4f96-9f5b-dc4813ec308d\"}"
+    },
+    {
+      "profile": "nav_catalog",
+      "method": "POST",
+      "url": "http://127.0.0.1:8102/api/suppliers",
+      "body": "{\"is_active\":true,\"name\":\"NAV18 Cadastro pela UI\",\"code\":\"NAV18-UI\",\"country_code\":\"BR\"}"
+    }
+  ]
+}

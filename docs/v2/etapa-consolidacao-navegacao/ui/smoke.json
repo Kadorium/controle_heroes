@@ -1,0 +1,453 @@
+{
+  "results": [
+    {
+      "name": "1366x768 expandida / Produtos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/movements",
+      "detail": {
+        "opened": "Produtos",
+        "clicked": [
+          "Estoque atual",
+          "Catálogo e preços",
+          "Histórico de estoque"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 expandida / Compras",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/catalog/suppliers",
+      "detail": {
+        "opened": "Compras",
+        "clicked": [
+          "Pedidos",
+          "Faturas",
+          "Fornecedores"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 expandida / Importações",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/logistics-providers",
+      "detail": {
+        "opened": "Importações",
+        "clicked": [
+          "Operações",
+          "Embarques",
+          "Receber mercadorias",
+          "Custo desembarcado",
+          "Prestadores logísticos"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 expandida / Financeiro",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": {
+        "opened": "Financeiro",
+        "clicked": [
+          "Contas a pagar",
+          "Pagamentos realizados"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 recolhida / Produtos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/movements",
+      "detail": {
+        "opened": "Produtos",
+        "clicked": [
+          "Estoque atual",
+          "Catálogo e preços",
+          "Histórico de estoque"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 recolhida / Compras",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/catalog/suppliers",
+      "detail": {
+        "opened": "Compras",
+        "clicked": [
+          "Pedidos",
+          "Faturas",
+          "Fornecedores"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 recolhida / Importações",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/logistics-providers",
+      "detail": {
+        "opened": "Importações",
+        "clicked": [
+          "Operações",
+          "Embarques",
+          "Receber mercadorias",
+          "Custo desembarcado",
+          "Prestadores logísticos"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1366x768 recolhida / Financeiro",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": {
+        "opened": "Financeiro",
+        "clicked": [
+          "Contas a pagar",
+          "Pagamentos realizados"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 expandida / Produtos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/movements",
+      "detail": {
+        "opened": "Produtos",
+        "clicked": [
+          "Estoque atual",
+          "Catálogo e preços",
+          "Histórico de estoque"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 expandida / Compras",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/catalog/suppliers",
+      "detail": {
+        "opened": "Compras",
+        "clicked": [
+          "Pedidos",
+          "Faturas",
+          "Fornecedores"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 expandida / Importações",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/logistics-providers",
+      "detail": {
+        "opened": "Importações",
+        "clicked": [
+          "Operações",
+          "Embarques",
+          "Receber mercadorias",
+          "Custo desembarcado",
+          "Prestadores logísticos"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 expandida / Financeiro",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": {
+        "opened": "Financeiro",
+        "clicked": [
+          "Contas a pagar",
+          "Pagamentos realizados"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 recolhida / Produtos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/movements",
+      "detail": {
+        "opened": "Produtos",
+        "clicked": [
+          "Estoque atual",
+          "Catálogo e preços",
+          "Histórico de estoque"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 recolhida / Compras",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/catalog/suppliers",
+      "detail": {
+        "opened": "Compras",
+        "clicked": [
+          "Pedidos",
+          "Faturas",
+          "Fornecedores"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 recolhida / Importações",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/logistics-providers",
+      "detail": {
+        "opened": "Importações",
+        "clicked": [
+          "Operações",
+          "Embarques",
+          "Receber mercadorias",
+          "Custo desembarcado",
+          "Prestadores logísticos"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "1440x900 recolhida / Financeiro",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": {
+        "opened": "Financeiro",
+        "clicked": [
+          "Contas a pagar",
+          "Pagamentos realizados"
+        ],
+        "observed": "URLs e seleção corretas; sem sobreposição na navegação"
+      }
+    },
+    {
+      "name": "Secundário / Visão geral",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/dashboard",
+      "detail": "Foco por teclado e Enter abriram /dashboard"
+    },
+    {
+      "name": "Secundário / Conferir documentos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/ingestion",
+      "detail": "Foco por teclado e Enter abriram /ingestion"
+    },
+    {
+      "name": "Secundário / Usuários e acessos",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/admin/users",
+      "detail": "Foco por teclado e Enter abriram /admin/users"
+    },
+    {
+      "name": "Link antigo de câmbio / recarga / voltar / avançar",
+      "profile": "admin",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/orders",
+      "detail": "URL antiga, purpose/currency e histórico do navegador preservados"
+    },
+    {
+      "name": "Perfil / comprador",
+      "profile": "comprador",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/ingestion",
+      "detail": {
+        "visible": [
+          "Visão geral",
+          "Produtos",
+          "Compras",
+          "Importações",
+          "Financeiro",
+          "Conferir documentos"
+        ],
+        "entryPoints": [
+          "/dashboard",
+          "/inventory/positions",
+          "/orders",
+          "/customs",
+          "/payables?pending=OPEN_BALANCE",
+          "/ingestion"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / aduana",
+      "profile": "aduana",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/costing",
+      "detail": {
+        "visible": [
+          "Visão geral",
+          "Importações"
+        ],
+        "entryPoints": [
+          "/dashboard",
+          "/customs"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / estoque",
+      "profile": "estoque",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/receiving",
+      "detail": {
+        "visible": [
+          "Visão geral",
+          "Produtos",
+          "Importações"
+        ],
+        "entryPoints": [
+          "/dashboard",
+          "/inventory/positions",
+          "/inventory/receiving"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / nav_catalog",
+      "profile": "nav_catalog",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/catalog/suppliers",
+      "detail": {
+        "visible": [
+          "Produtos",
+          "Compras"
+        ],
+        "entryPoints": [
+          "/catalog/products",
+          "/catalog/suppliers"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / nav_cost",
+      "profile": "nav_cost",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/costing",
+      "detail": {
+        "visible": [
+          "Importações"
+        ],
+        "entryPoints": [
+          "/costing"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / nav_stock",
+      "profile": "nav_stock",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/inventory/receiving",
+      "detail": {
+        "visible": [
+          "Produtos",
+          "Importações"
+        ],
+        "entryPoints": [
+          "/inventory/positions",
+          "/inventory/receiving"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / nav_logistics",
+      "profile": "nav_logistics",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/logistics-providers",
+      "detail": {
+        "visible": [
+          "Importações"
+        ],
+        "entryPoints": [
+          "/shipments"
+        ]
+      }
+    },
+    {
+      "name": "Perfil / nav_fx",
+      "profile": "nav_fx",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payables?purpose=fx",
+      "detail": {
+        "visible": [
+          "Financeiro"
+        ],
+        "entryPoints": [
+          "/payables?purpose=fx"
+        ],
+        "readOnlyFxLimitation": "FINANCEIRO\nCâmbio por obrigação\nCâmbio por obrigação\nNúmero da obrigação\nAbrir câmbio"
+      }
+    },
+    {
+      "name": "Perfil / nav_payments",
+      "profile": "nav_payments",
+      "runtime": "http://127.0.0.1:8102",
+      "result": "PASS",
+      "url": "http://127.0.0.1:8102/payments",
+      "detail": {
+        "visible": [
+          "Financeiro"
+        ],
+        "entryPoints": [
+          "/payments"
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

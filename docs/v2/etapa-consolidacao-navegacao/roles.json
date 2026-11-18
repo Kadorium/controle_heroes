@@ -1,0 +1,114 @@
+{
+  "admin": [
+    "users:read",
+    "users:write",
+    "documents:read",
+    "documents:write",
+    "audit:read",
+    "catalog:read",
+    "catalog:write",
+    "orders:read",
+    "orders:write",
+    "orders:cancel",
+    "billing:read",
+    "billing:write",
+    "billing:issue",
+    "billing:issue_without_doc",
+    "treasury:read",
+    "treasury:write",
+    "treasury:allocate",
+    "treasury:cancel",
+    "treasury:register_without_doc",
+    "treasury:fx_read",
+    "treasury:fx_write",
+    "treasury:fx_supersede",
+    "treasury:fx_without_document",
+    "treasury:fx_quote_refresh",
+    "reporting:read",
+    "logistics:read",
+    "logistics:write",
+    "customs:read",
+    "customs:write",
+    "customs:clear",
+    "customs:override",
+    "inventory:read",
+    "inventory:write",
+    "inventory:adjust",
+    "ingestion:read",
+    "ingestion:write",
+    "ingestion:commit",
+    "ingestion:purge",
+    "costing:read",
+    "costing:write",
+    "costing:publish",
+    "reconciliation:read",
+    "reconciliation:resolve"
+  ],
+  "comprador": [
+    "catalog:read",
+    "catalog:write",
+    "orders:read",
+    "orders:write",
+    "orders:cancel",
+    "documents:read",
+    "documents:write",
+    "audit:read",
+    "billing:read",
+    "billing:write",
+    "billing:issue",
+    "treasury:read",
+    "treasury:write",
+    "treasury:allocate",
+    "treasury:fx_read",
+    "treasury:fx_write",
+    "logistics:read",
+    "customs:read",
+    "inventory:read",
+    "ingestion:read",
+    "ingestion:write",
+    "costing:read",
+    "costing:write",
+    "reconciliation:read",
+    "reporting:read"
+  ],
+  "aduana": [
+    "customs:read",
+    "customs:write",
+    "customs:clear",
+    "documents:read",
+    "documents:write",
+    "audit:read",
+    "costing:read",
+    "reconciliation:read",
+    "reporting:read"
+  ],
+  "estoque": [
+    "inventory:read",
+    "inventory:write",
+    "inventory:adjust",
+    "documents:read",
+    "audit:read",
+    "reporting:read"
+  ],
+  "nav_catalog": [
+    "catalog:read",
+    "catalog:write"
+  ],
+  "nav_cost": [
+    "costing:read"
+  ],
+  "nav_stock": [
+    "inventory:read"
+  ],
+  "nav_logistics": [
+    "logistics:read",
+    "logistics:write"
+  ],
+  "nav_fx": [
+    "treasury:fx_read"
+  ],
+  "nav_payments": [
+    "treasury:read",
+    "treasury:write"
+  ]
+}

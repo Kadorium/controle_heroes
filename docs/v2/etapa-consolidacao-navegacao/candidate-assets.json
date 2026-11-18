@@ -1,0 +1,28 @@
+{
+  "build": "executive-20261118.1",
+  "files": {
+    "index.html": "07f1be9d69a86b852f5e8ce79dd63e6edd1bd8539f7c938cea64c1834b13ec9f",
+    "assets/index-Bp2zwKZO.css": "e8c42d63f613168f0cf1839f9341f06a4ad3da8147af3b166b39c0224a2a5096",
+    "assets/index-CoWSD9W0.js": "bc2255588d947bd8d43d7ace7b66018919388a3fa60d73c71e277a5802a87922",
+    "assets/pdf.worker.min-CLrFZWeq.mjs": "bc0d1b88ea0b66196b1d36a58ac243c6d92adfe725624e2a9fdd381bdf8ef434",
+    "assets/product-photos/demo-hr-arion26.webp": "63bf91c09ec249ab2b001281db93ec26f4c211095a92c8dd47d8091984bb84c2",
+    "assets/product-photos/demo-hr-ball3.png": "772c2dafc1adf86c9d0d5abdc0d59bdfed42ef1e5ce10631ffc7cc43564a6525",
+    "assets/product-photos/demo-hr-ball50.jpg": "08be5c8974d4990544fdccfb05013e40f2ded1e59169f64511eac8bbfec4e561",
+    "assets/product-photos/demo-hr-fierce26.webp": "b6c7345635f8bd1c3501af0e20f675110ae2a84424217ffbdf242c6b3a27b0d3",
+    "assets/product-photos/demo-hr-gravity.webp": "ab5abb052f82466ef182e7b7e39fe19c071a240408a3f22c503e40ddd2010c3f",
+    "assets/product-photos/demo-hr-grip3.webp": "7c07a851290ca5e0bfbbaeb6ce165331f7c9987597863202553435711617d98e",
+    "assets/product-photos/demo-hr-show26.webp": "b8f87a0b5fd72db11f25e836457969abf345ce5fd14e8f4cbf12ffec847e9869",
+    "e7-ui-accept/FatturaDoganale_202.pdf": "4169260097026ca68454c40197a462628fc08268d52472ca7262d6fe7f3a3e44",
+    "e7-ui-accept/Fattura_202.pdf": "c0b047adc4e6d0c96d76652536f2b80388198d527441c6fd46ef852a3e67b023",
+    "e7-ui-accept/PackingList_202.pdf": "6fb13dc628ccb32d4ad28c5b806fe4d16027a6643a3f5fce0b1f1081bccda65e",
+    "e7-ui-accept/PrintDeclaration_202.pdf": "1f815ececf9318d8bb8e29f059f4210423b7db34cb462b26cbe7216565bc52c4",
+    "e7-ui-accept/Solicitacao_Numerario.pdf": "7cbaaa1774b4509082582910e1572f0b5912808402211ce4266b65a4c1e9999f",
+    "product-photos/demo-hr-arion26.webp": "63bf91c09ec249ab2b001281db93ec26f4c211095a92c8dd47d8091984bb84c2",
+    "product-photos/demo-hr-ball3.png": "772c2dafc1adf86c9d0d5abdc0d59bdfed42ef1e5ce10631ffc7cc43564a6525",
+    "product-photos/demo-hr-ball50.jpg": "08be5c8974d4990544fdccfb05013e40f2ded1e59169f64511eac8bbfec4e561",
+    "product-photos/demo-hr-fierce26.webp": "b6c7345635f8bd1c3501af0e20f675110ae2a84424217ffbdf242c6b3a27b0d3",
+    "product-photos/demo-hr-gravity.webp": "ab5abb052f82466ef182e7b7e39fe19c071a240408a3f22c503e40ddd2010c3f",
+    "product-photos/demo-hr-grip3.webp": "7c07a851290ca5e0bfbbaeb6ce165331f7c9987597863202553435711617d98e",
+    "product-photos/demo-hr-show26.webp": "b8f87a0b5fd72db11f25e836457969abf345ce5fd14e8f4cbf12ffec847e9869"
+  }
+}

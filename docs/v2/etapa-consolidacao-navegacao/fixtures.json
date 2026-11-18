@@ -1,0 +1,933 @@
+{
+  "supplier": {
+    "id": 5,
+    "code": null,
+    "name": "NAV18 Fornecedor fictício",
+    "country_code": "BR",
+    "is_active": true,
+    "tax_id": null,
+    "created_at": "2026-11-18T19:14:31.393719-03:00",
+    "updated_at": "2026-11-18T19:14:31.393719-03:00"
+  },
+  "product": {
+    "id": 43,
+    "sku": "NAV18-RECEBIMENTO",
+    "description": "NAV18 Produto fictício para recebimento parcial",
+    "commercial_name": "NAV18 Produto fictício para recebimento parcial",
+    "short_description": null,
+    "long_description": null,
+    "fiscal_description": null,
+    "is_active": true,
+    "lifecycle_status": "ACTIVE",
+    "ean": null,
+    "size": null,
+    "color": null,
+    "ncm": null,
+    "country_of_origin": null,
+    "unit": null,
+    "net_weight_kg": null,
+    "supplier_sku": null,
+    "category_id": null,
+    "category_name": null,
+    "category_slug": null,
+    "subcategory": null,
+    "product_type_id": null,
+    "product_type_name": null,
+    "product_type_slug": null,
+    "taxonomy_status": null,
+    "taxonomy_reason": null,
+    "import_decision": null,
+    "short_generic": false,
+    "needs_review": false,
+    "needs_product_review": false,
+    "needs_classification_review": false,
+    "classification_note": null,
+    "attributes": {},
+    "sport": null,
+    "line": null,
+    "model": null,
+    "collection_year": null,
+    "garment_kind": null,
+    "gender": null,
+    "pack_qty": null,
+    "source_kind": "manual",
+    "import_batch_id": null,
+    "has_image": false,
+    "image_url": null,
+    "image_source": null,
+    "quality": {
+      "essential_ok": false,
+      "operation_ok": false,
+      "commercial_ok": false,
+      "pending_count": 7,
+      "summary": "Essencial incompleto · 7 pendências",
+      "items": [
+        {
+          "code": "name",
+          "layer": "essencial",
+          "ok": true,
+          "label": "Nome comercial",
+          "consequence": "Sem nome comercial o produto não se reconhece na lista."
+        },
+        {
+          "code": "category",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Categoria",
+          "consequence": "Sem categoria o produto não entra na navegação comercial."
+        },
+        {
+          "code": "type",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Tipo de produto",
+          "consequence": "Sem tipo não dá para saber quais características se aplicam."
+        },
+        {
+          "code": "ncm",
+          "layer": "operacao",
+          "ok": false,
+          "label": "NCM",
+          "consequence": "NCM não informado — informação fiscal pendente"
+        },
+        {
+          "code": "origin",
+          "layer": "operacao",
+          "ok": false,
+          "label": "Origem",
+          "consequence": "Origem não informada — informação fiscal pendente"
+        },
+        {
+          "code": "unit",
+          "layer": "operacao",
+          "ok": false,
+          "label": "Unidade",
+          "consequence": "Unidade não informada — informação operacional pendente"
+        },
+        {
+          "code": "short_description",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Descrição curta",
+          "consequence": "Descrição curta não informada — a ficha fica pobre para indicar o produto."
+        },
+        {
+          "code": "image",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Imagem",
+          "consequence": "Imagem não informada — mais difícil reconhecer na lista"
+        }
+      ],
+      "traits": [],
+      "quality_incomplete": true,
+      "needs_review": false,
+      "needs_product_review": false,
+      "needs_classification_review": false,
+      "short_generic": false,
+      "missing_image": true,
+      "missing_ncm": true,
+      "incomplete_mdm": true
+    },
+    "provenance": [
+      {
+        "field": "commercial_name",
+        "label": "Nome comercial",
+        "source": "manual",
+        "source_label": "Edição manual"
+      }
+    ],
+    "notices": [],
+    "created_at": "2026-11-18T19:14:31.419343-03:00",
+    "updated_at": "2026-11-18T19:14:31.419343-03:00"
+  },
+  "unit": {
+    "id": 43,
+    "sku": "NAV18-RECEBIMENTO",
+    "description": "NAV18 Produto fictício para recebimento parcial",
+    "commercial_name": "NAV18 Produto fictício para recebimento parcial",
+    "short_description": null,
+    "long_description": null,
+    "fiscal_description": null,
+    "is_active": true,
+    "lifecycle_status": "ACTIVE",
+    "ean": null,
+    "size": null,
+    "color": null,
+    "ncm": null,
+    "country_of_origin": null,
+    "unit": "UN",
+    "net_weight_kg": null,
+    "supplier_sku": null,
+    "category_id": null,
+    "category_name": null,
+    "category_slug": null,
+    "subcategory": null,
+    "product_type_id": null,
+    "product_type_name": null,
+    "product_type_slug": null,
+    "taxonomy_status": null,
+    "taxonomy_reason": null,
+    "import_decision": null,
+    "short_generic": false,
+    "needs_review": false,
+    "needs_product_review": false,
+    "needs_classification_review": false,
+    "classification_note": null,
+    "attributes": {},
+    "sport": null,
+    "line": null,
+    "model": null,
+    "collection_year": null,
+    "garment_kind": null,
+    "gender": null,
+    "pack_qty": null,
+    "source_kind": "manual",
+    "import_batch_id": null,
+    "has_image": false,
+    "image_url": null,
+    "image_source": null,
+    "quality": {
+      "essential_ok": false,
+      "operation_ok": false,
+      "commercial_ok": false,
+      "pending_count": 6,
+      "summary": "Essencial incompleto · 6 pendências",
+      "items": [
+        {
+          "code": "name",
+          "layer": "essencial",
+          "ok": true,
+          "label": "Nome comercial",
+          "consequence": "Sem nome comercial o produto não se reconhece na lista."
+        },
+        {
+          "code": "category",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Categoria",
+          "consequence": "Sem categoria o produto não entra na navegação comercial."
+        },
+        {
+          "code": "type",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Tipo de produto",
+          "consequence": "Sem tipo não dá para saber quais características se aplicam."
+        },
+        {
+          "code": "ncm",
+          "layer": "operacao",
+          "ok": false,
+          "label": "NCM",
+          "consequence": "NCM não informado — informação fiscal pendente"
+        },
+        {
+          "code": "origin",
+          "layer": "operacao",
+          "ok": false,
+          "label": "Origem",
+          "consequence": "Origem não informada — informação fiscal pendente"
+        },
+        {
+          "code": "unit",
+          "layer": "operacao",
+          "ok": true,
+          "label": "Unidade",
+          "consequence": "Unidade não informada — informação operacional pendente"
+        },
+        {
+          "code": "short_description",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Descrição curta",
+          "consequence": "Descrição curta não informada — a ficha fica pobre para indicar o produto."
+        },
+        {
+          "code": "image",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Imagem",
+          "consequence": "Imagem não informada — mais difícil reconhecer na lista"
+        }
+      ],
+      "traits": [],
+      "quality_incomplete": true,
+      "needs_review": false,
+      "needs_product_review": false,
+      "needs_classification_review": false,
+      "short_generic": false,
+      "missing_image": true,
+      "missing_ncm": true,
+      "incomplete_mdm": true
+    },
+    "provenance": [
+      {
+        "field": "commercial_name",
+        "label": "Nome comercial",
+        "source": "manual",
+        "source_label": "Edição manual"
+      }
+    ],
+    "notices": [],
+    "created_at": "2026-11-18T19:14:31.419343-03:00",
+    "updated_at": "2026-11-18T19:14:31.458402-03:00"
+  },
+  "no-stock": {
+    "id": 44,
+    "sku": "NAV18-SEM-ESTOQUE",
+    "description": "NAV18 Produto fictício sem estoque",
+    "commercial_name": "NAV18 Produto fictício sem estoque",
+    "short_description": null,
+    "long_description": null,
+    "fiscal_description": null,
+    "is_active": true,
+    "lifecycle_status": "ACTIVE",
+    "ean": null,
+    "size": null,
+    "color": null,
+    "ncm": null,
+    "country_of_origin": null,
+    "unit": null,
+    "net_weight_kg": null,
+    "supplier_sku": null,
+    "category_id": null,
+    "category_name": null,
+    "category_slug": null,
+    "subcategory": null,
+    "product_type_id": null,
+    "product_type_name": null,
+    "product_type_slug": null,
+    "taxonomy_status": null,
+    "taxonomy_reason": null,
+    "import_decision": null,
+    "short_generic": false,
+    "needs_review": false,
+    "needs_product_review": false,
+    "needs_classification_review": false,
+    "classification_note": null,
+    "attributes": {},
+    "sport": null,
+    "line": null,
+    "model": null,
+    "collection_year": null,
+    "garment_kind": null,
+    "gender": null,
+    "pack_qty": null,
+    "source_kind": "manual",
+    "import_batch_id": null,
+    "has_image": false,
+    "image_url": null,
+    "image_source": null,
+    "quality": {
+      "essential_ok": false,
+      "operation_ok": false,
+      "commercial_ok": false,
+      "pending_count": 7,
+      "summary": "Essencial incompleto · 7 pendências",
+      "items": [
+        {
+          "code": "name",
+          "layer": "essencial",
+          "ok": true,
+          "label": "Nome comercial",
+          "consequence": "Sem nome comercial o produto não se reconhece na lista."
+        },
+        {
+          "code": "category",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Categoria",
+          "consequence": "Sem categoria o produto não entra na navegação comercial."
+        },
+        {
+          "code": "type",
+          "layer": "essencial",
+          "ok": false,
+          "label": "Tipo de produto",
+          "consequence": "Sem tipo não dá para saber quais características se aplicam."
+        },
+        {
+          "code": "ncm",
+          "layer": "operacao",
+          "ok": false,
+          "label": "NCM",
+          "consequence": "NCM não informado — informação fiscal pendente"
+        },
+        {
+          "code": "origin",
+          "layer": "operacao",
+          "ok": false,
+          "label": "Origem",
+          "consequence": "Origem não informada — informação fiscal pendente"
+        },
+        {
+          "code": "unit",
+          "layer": "operacao",
+          "ok": false,
+          "label": "Unidade",
+          "consequence": "Unidade não informada — informação operacional pendente"
+        },
+        {
+          "code": "short_description",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Descrição curta",
+          "consequence": "Descrição curta não informada — a ficha fica pobre para indicar o produto."
+        },
+        {
+          "code": "image",
+          "layer": "comercial",
+          "ok": false,
+          "label": "Imagem",
+          "consequence": "Imagem não informada — mais difícil reconhecer na lista"
+        }
+      ],
+      "traits": [],
+      "quality_incomplete": true,
+      "needs_review": false,
+      "needs_product_review": false,
+      "needs_classification_review": false,
+      "short_generic": false,
+      "missing_image": true,
+      "missing_ncm": true,
+      "incomplete_mdm": true
+    },
+    "provenance": [
+      {
+        "field": "commercial_name",
+        "label": "Nome comercial",
+        "source": "manual",
+        "source_label": "Edição manual"
+      }
+    ],
+    "notices": [],
+    "created_at": "2026-11-18T19:14:31.479530-03:00",
+    "updated_at": "2026-11-18T19:14:31.479530-03:00"
+  },
+  "order": {
+    "id": 14,
+    "code": "NAV18-PARCIAL",
+    "external_ref": null,
+    "source_system": "MANUAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "supplier_is_active": true,
+    "status": "DRAFT",
+    "currency": "BRL",
+    "order_date": "2026-11-18",
+    "created_by_actor_id": "1",
+    "notes": "NAV18 ensaio isolado de navegação",
+    "version": 1,
+    "cancel_reason_code": null,
+    "cancelled_at": null,
+    "close_reason_code": null,
+    "closed_at": null,
+    "created_at": "2026-11-18T19:14:31.589084-03:00",
+    "updated_at": "2026-11-18T19:14:31.589084-03:00",
+    "items": [],
+    "priced_subtotal": null,
+    "unpriced_item_count": 0,
+    "commercial_total": null,
+    "documents": []
+  },
+  "item": {
+    "id": 14,
+    "code": "NAV18-PARCIAL",
+    "external_ref": null,
+    "source_system": "MANUAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "supplier_is_active": true,
+    "status": "DRAFT",
+    "currency": "BRL",
+    "order_date": "2026-11-18",
+    "created_by_actor_id": "1",
+    "notes": "NAV18 ensaio isolado de navegação",
+    "version": 2,
+    "cancel_reason_code": null,
+    "cancelled_at": null,
+    "close_reason_code": null,
+    "closed_at": null,
+    "created_at": "2026-11-18T19:14:31.589084-03:00",
+    "updated_at": "2026-11-18T19:14:31.630328-03:00",
+    "items": [
+      {
+        "id": 46,
+        "product_id": 43,
+        "line_kind": "PRODUCT",
+        "external_code": null,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price": "1.0000",
+        "line_total": "10.0000",
+        "position": 1
+      }
+    ],
+    "priced_subtotal": "10.0000",
+    "unpriced_item_count": 0,
+    "commercial_total": "10.0000",
+    "documents": []
+  },
+  "confirmed": {
+    "id": 14,
+    "code": "NAV18-PARCIAL",
+    "external_ref": null,
+    "source_system": "MANUAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "supplier_is_active": true,
+    "status": "CONFIRMED",
+    "currency": "BRL",
+    "order_date": "2026-11-18",
+    "created_by_actor_id": "1",
+    "notes": "NAV18 ensaio isolado de navegação",
+    "version": 3,
+    "cancel_reason_code": null,
+    "cancelled_at": null,
+    "close_reason_code": null,
+    "closed_at": null,
+    "created_at": "2026-11-18T19:14:31.589084-03:00",
+    "updated_at": "2026-11-18T19:14:31.657335-03:00",
+    "items": [
+      {
+        "id": 46,
+        "product_id": 43,
+        "line_kind": "PRODUCT",
+        "external_code": null,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price": "1.0000",
+        "line_total": "10.0000",
+        "position": 1
+      }
+    ],
+    "priced_subtotal": "10.0000",
+    "unpriced_item_count": 0,
+    "commercial_total": "10.0000",
+    "documents": []
+  },
+  "invoice": {
+    "id": 14,
+    "order_id": 14,
+    "order_code": "NAV18-PARCIAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "invoice_number": "NAV18-PARCIAL",
+    "invoice_type": "FINAL",
+    "status": "DRAFT",
+    "invoice_date": "2026-11-18",
+    "currency": "BRL",
+    "terms_mode": null,
+    "created_by_actor_id": "1",
+    "notes": null,
+    "version": 1,
+    "issued_at": null,
+    "cancelled_at": null,
+    "cancel_reason_code": null,
+    "issue_without_document": false,
+    "destination_iban": null,
+    "destination_bank": null,
+    "terms_from_document": false,
+    "net_amount": null,
+    "incomplete_line_count": 1,
+    "balance": null,
+    "payables_sum": null,
+    "items": [
+      {
+        "id": 91,
+        "order_item_id": 46,
+        "product_id": 43,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price_gross": "1.0000",
+        "discount_type": null,
+        "discount_unit_amount": null,
+        "discount_percent": null,
+        "line_gross_amount": "10.00",
+        "line_discount_amount": null,
+        "line_net_amount": null,
+        "position": 1
+      }
+    ],
+    "terms": [],
+    "payables": [],
+    "payables_preview": [],
+    "documents": [],
+    "blockers": [
+      "Há linhas com preço ou desconto incompletos",
+      "Defina scadenze (PERCENT ou AMOUNT)",
+      "Anexe o documento oficial da fatura (ou use override autorizado na emissão)"
+    ]
+  },
+  "invoice-items": {
+    "id": 14,
+    "order_id": 14,
+    "order_code": "NAV18-PARCIAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "invoice_number": "NAV18-PARCIAL",
+    "invoice_type": "FINAL",
+    "status": "DRAFT",
+    "invoice_date": "2026-11-18",
+    "currency": "BRL",
+    "terms_mode": null,
+    "created_by_actor_id": "1",
+    "notes": null,
+    "version": 2,
+    "issued_at": null,
+    "cancelled_at": null,
+    "cancel_reason_code": null,
+    "issue_without_document": false,
+    "destination_iban": null,
+    "destination_bank": null,
+    "terms_from_document": false,
+    "net_amount": "10.00",
+    "incomplete_line_count": 0,
+    "balance": "10.00",
+    "payables_sum": null,
+    "items": [
+      {
+        "id": 92,
+        "order_item_id": 46,
+        "product_id": 43,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price_gross": "1.0000",
+        "discount_type": "NONE",
+        "discount_unit_amount": null,
+        "discount_percent": null,
+        "line_gross_amount": "10.00",
+        "line_discount_amount": "0.00",
+        "line_net_amount": "10.00",
+        "position": 1
+      }
+    ],
+    "terms": [],
+    "payables": [],
+    "payables_preview": [],
+    "documents": [],
+    "blockers": [
+      "Defina scadenze (PERCENT ou AMOUNT)",
+      "Anexe o documento oficial da fatura (ou use override autorizado na emissão)"
+    ]
+  },
+  "terms": {
+    "id": 14,
+    "order_id": 14,
+    "order_code": "NAV18-PARCIAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "invoice_number": "NAV18-PARCIAL",
+    "invoice_type": "FINAL",
+    "status": "DRAFT",
+    "invoice_date": "2026-11-18",
+    "currency": "BRL",
+    "terms_mode": "PERCENT",
+    "created_by_actor_id": "1",
+    "notes": null,
+    "version": 3,
+    "issued_at": null,
+    "cancelled_at": null,
+    "cancel_reason_code": null,
+    "issue_without_document": false,
+    "destination_iban": null,
+    "destination_bank": null,
+    "terms_from_document": false,
+    "net_amount": "10.00",
+    "incomplete_line_count": 0,
+    "balance": "10.00",
+    "payables_sum": null,
+    "items": [
+      {
+        "id": 92,
+        "order_item_id": 46,
+        "product_id": 43,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price_gross": "1.0000",
+        "discount_type": "NONE",
+        "discount_unit_amount": null,
+        "discount_percent": null,
+        "line_gross_amount": "10.00",
+        "line_discount_amount": "0.00",
+        "line_net_amount": "10.00",
+        "position": 1
+      }
+    ],
+    "terms": [
+      {
+        "id": 27,
+        "sequence": 1,
+        "due_date": "2030-01-01",
+        "percent": "100.0000",
+        "amount": null
+      }
+    ],
+    "payables": [],
+    "payables_preview": [
+      {
+        "sequence": "1",
+        "due_date": "2030-01-01",
+        "amount": "10.00"
+      }
+    ],
+    "documents": [],
+    "blockers": [
+      "Anexe o documento oficial da fatura (ou use override autorizado na emissão)"
+    ]
+  },
+  "issued": {
+    "id": 14,
+    "order_id": 14,
+    "order_code": "NAV18-PARCIAL",
+    "supplier_id": 5,
+    "supplier_name": "NAV18 Fornecedor fictício",
+    "invoice_number": "NAV18-PARCIAL",
+    "invoice_type": "FINAL",
+    "status": "ISSUED",
+    "invoice_date": "2026-11-18",
+    "currency": "BRL",
+    "terms_mode": "PERCENT",
+    "created_by_actor_id": "1",
+    "notes": null,
+    "version": 4,
+    "issued_at": "2026-11-18T19:14:31.824899-03:00",
+    "cancelled_at": null,
+    "cancel_reason_code": null,
+    "issue_without_document": true,
+    "destination_iban": null,
+    "destination_bank": null,
+    "terms_from_document": false,
+    "net_amount": "10.00",
+    "incomplete_line_count": 0,
+    "balance": "10.00",
+    "payables_sum": "10.00",
+    "items": [
+      {
+        "id": 92,
+        "order_item_id": 46,
+        "product_id": 43,
+        "sku_snapshot": "NAV18-RECEBIMENTO",
+        "description_snapshot": "NAV18 Produto fictício para recebimento parcial",
+        "quantity": "10.0000",
+        "unit": "UN",
+        "unit_price_gross": "1.0000",
+        "discount_type": "NONE",
+        "discount_unit_amount": null,
+        "discount_percent": null,
+        "line_gross_amount": "10.00",
+        "line_discount_amount": "0.00",
+        "line_net_amount": "10.00",
+        "position": 1
+      }
+    ],
+    "terms": [
+      {
+        "id": 27,
+        "sequence": 1,
+        "due_date": "2030-01-01",
+        "percent": "100.0000",
+        "amount": null
+      }
+    ],
+    "payables": [
+      {
+        "id": 32,
+        "invoice_id": 14,
+        "payment_term_id": 27,
+        "sequence": 1,
+        "due_date": "2030-01-01",
+        "amount": "10.0000",
+        "balance": "10.0000",
+        "currency": "BRL",
+        "status": "OPEN",
+        "source_type": "INVOICE",
+        "source_id": 14,
+        "payee_display_name": null,
+        "payee_tax_id": null,
+        "destination_iban": null,
+        "destination_bank": null,
+        "order_id": 14,
+        "supplier_id": 5,
+        "version": 1
+      }
+    ],
+    "payables_preview": [
+      {
+        "sequence": "1",
+        "due_date": "2030-01-01",
+        "amount": "10.00"
+      }
+    ],
+    "documents": [],
+    "blockers": []
+  },
+  "process": {
+    "id": 11,
+    "code": "IMP-F44247A26FC6",
+    "external_reference": "NAV18-PARCIAL",
+    "status": "DRAFT",
+    "version": 1,
+    "notes": "NAV18 preparação via API; entrada física exclusivamente pela UI",
+    "submitted_at": null,
+    "cancelled_at": null,
+    "cancel_reason": null,
+    "created_at": "2026-11-18T19:14:31.946668-03:00",
+    "updated_at": "2026-11-18T19:14:31.946668-03:00",
+    "invoices": [],
+    "invoice_item_allocations": [],
+    "shipments": [],
+    "shipment_item_allocations": []
+  },
+  "link": {
+    "id": 11,
+    "code": "IMP-F44247A26FC6",
+    "external_reference": "NAV18-PARCIAL",
+    "status": "DRAFT",
+    "version": 2,
+    "notes": "NAV18 preparação via API; entrada física exclusivamente pela UI",
+    "submitted_at": null,
+    "cancelled_at": null,
+    "cancel_reason": null,
+    "created_at": "2026-11-18T19:14:31.946668-03:00",
+    "updated_at": "2026-11-18T19:14:32.006166-03:00",
+    "invoices": [
+      {
+        "id": 10,
+        "invoice_id": 14,
+        "notes": null,
+        "created_at": "2026-11-18T19:14:32.006166-03:00"
+      }
+    ],
+    "invoice_item_allocations": [],
+    "shipments": [],
+    "shipment_item_allocations": []
+  },
+  "allocate": {
+    "id": 11,
+    "code": "IMP-F44247A26FC6",
+    "external_reference": "NAV18-PARCIAL",
+    "status": "DRAFT",
+    "version": 3,
+    "notes": "NAV18 preparação via API; entrada física exclusivamente pela UI",
+    "submitted_at": null,
+    "cancelled_at": null,
+    "cancel_reason": null,
+    "created_at": "2026-11-18T19:14:31.946668-03:00",
+    "updated_at": "2026-11-18T19:14:32.024519-03:00",
+    "invoices": [
+      {
+        "id": 10,
+        "invoice_id": 14,
+        "notes": null,
+        "created_at": "2026-11-18T19:14:32.006166-03:00"
+      }
+    ],
+    "invoice_item_allocations": [
+      {
+        "id": 42,
+        "invoice_item_id": 92,
+        "allocated_qty": "10.0000"
+      }
+    ],
+    "shipments": [],
+    "shipment_item_allocations": []
+  },
+  "submitted": {
+    "id": 11,
+    "code": "IMP-F44247A26FC6",
+    "external_reference": "NAV18-PARCIAL",
+    "status": "SUBMITTED",
+    "version": 4,
+    "notes": "NAV18 preparação via API; entrada física exclusivamente pela UI",
+    "submitted_at": "2026-11-18T19:14:32.043333-03:00",
+    "cancelled_at": null,
+    "cancel_reason": null,
+    "created_at": "2026-11-18T19:14:31.946668-03:00",
+    "updated_at": "2026-11-18T19:14:32.046554-03:00",
+    "invoices": [
+      {
+        "id": 10,
+        "invoice_id": 14,
+        "notes": null,
+        "created_at": "2026-11-18T19:14:32.006166-03:00"
+      }
+    ],
+    "invoice_item_allocations": [
+      {
+        "id": 42,
+        "invoice_item_id": 92,
+        "allocated_qty": "10.0000"
+      }
+    ],
+    "shipments": [],
+    "shipment_item_allocations": []
+  },
+  "nat": {
+    "id": 15,
+    "process_id": 11,
+    "reference": "NAV18-LIBERACAO",
+    "status": "DRAFT",
+    "version": 1,
+    "notes": null,
+    "confirmed_at": null,
+    "reversed_at": null,
+    "created_at": "2026-11-18T19:14:32.109723-03:00",
+    "items": []
+  },
+  "nat-items": {
+    "id": 15,
+    "process_id": 11,
+    "reference": "NAV18-LIBERACAO",
+    "status": "DRAFT",
+    "version": 2,
+    "notes": null,
+    "confirmed_at": null,
+    "reversed_at": null,
+    "created_at": "2026-11-18T19:14:32.109723-03:00",
+    "items": [
+      {
+        "id": 43,
+        "doganale_line_id": null,
+        "invoice_item_id": 92,
+        "shipment_item_id": null,
+        "product_id": 43,
+        "quantity": "10.0000",
+        "notes": null
+      }
+    ]
+  },
+  "released": {
+    "id": 15,
+    "process_id": 11,
+    "reference": "NAV18-LIBERACAO",
+    "status": "CONFIRMED",
+    "version": 3,
+    "notes": null,
+    "confirmed_at": "2026-11-18T19:14:32.158336-03:00",
+    "reversed_at": null,
+    "created_at": "2026-11-18T19:14:32.109723-03:00",
+    "items": [
+      {
+        "id": 43,
+        "doganale_line_id": null,
+        "invoice_item_id": 92,
+        "shipment_item_id": null,
+        "product_id": 43,
+        "quantity": "10.0000",
+        "notes": null
+      }
+    ]
+  }
+}

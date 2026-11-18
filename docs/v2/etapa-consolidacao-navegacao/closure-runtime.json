@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-11-18T22:47:06.214863+00:00",
+  "build": "executive-20261118.1",
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-11-18T22:47:06.113513Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "034",
+    "alembic_expected": "034",
+    "schema_ok": true
+  },
+  "http_hashes": {
+    "index.html": "07f1be9d69a86b852f5e8ce79dd63e6edd1bd8539f7c938cea64c1834b13ec9f",
+    "assets/index-CoWSD9W0.js": "bc2255588d947bd8d43d7ace7b66018919388a3fa60d73c71e277a5802a87922",
+    "assets/index-Bp2zwKZO.css": "e8c42d63f613168f0cf1839f9341f06a4ad3da8147af3b166b39c0224a2a5096"
+  },
+  "verified_database": {
+    "5458": "epic_v2_test|5458|C:/Users/ricar/Desktop/projetos/EPIC/audit-runtime/executive-20261117/postgres",
+    "5460": "epic_v2_test|5460|C:/Users/ricar/Desktop/projetos/EPIC/audit-lab/navigation-20261118/postgres"
+  },
+  "implementation_commit": "86cf1c61944405ca966452c6db3f2b29664b5258",
+  "functional_changes_after_ui_validation": false
+}

@@ -1,0 +1,5 @@
+
+> epic-controle-v2-frontend@0.1.0 test
+> vitest run --reporter=json --outputFile=../../docs/v2/etapa-consolidacao-navegacao/unit-results.json
+
+JSON report written to C:/Users/ricar/Desktop/projetos/EPIC/Controle/docs/v2/etapa-consolidacao-navegacao/unit-results.json

@@ -1,0 +1,1139 @@
+--- a/v2/frontend/src/App.tsx
++++ b/v2/frontend/src/App.tsx
+@@ -103,7 +103,7 @@
+   }
+ 
+   const useApQueue =
+-    !!user && (user.role === "admin" || (user.permissions ?? []).includes("reporting:read"));
++    !!user && (user.role === "admin" || (can(user, "reporting:read") && can(user, "billing:read")));
+ 
+   return (
+     <Routes>
+--- a/v2/frontend/src/app-shell/AppShell.tsx
++++ b/v2/frontend/src/app-shell/AppShell.tsx
+@@ -1,52 +1,25 @@
+-import { NavLink, Outlet, useLocation } from "react-router-dom";
++import { Outlet } from "react-router-dom";
+ import { useState } from "react";
+ import type { User } from "../features/auth/types";
+ import { FxQuoteStrip } from "../features/treasury/FxPanels";
+ import { RuntimeBadge } from "./RuntimeBadge";
+ import { DemoTour } from "../features/demo/DemoTour";
+ import "./experience.css";
++import { AreaNavigation, PrimaryNavigation } from "./AreaNavigation";
+ 
+-const paths: Record<string, string> = {
+-  home: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
+-  stock: "m3 7 9-4 9 4v10l-9 4-9-4V7Zm0 0 9 4 9-4M12 11v10",
+-  product: "M3 3h9l9 9-9 9-9-9V3Zm5 5h.01",
+-  money: "M3 5h18v14H3zM3 9h18M7 14h4",
+-  operation: "M5 4h14v17H5zM9 2h6v5H9zM9 12h6M9 16h4",
+-};
+-function Icon({ name }: { name: string }) { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" aria-hidden="true"><path d={paths[name] ?? paths.operation} /></svg>; }
+ export function AppShell({ user, onLogout }: { user: User; onLogout: () => Promise<void> | void }) {
+-  const location = useLocation();
+   const [expanded, setExpanded] = useState(() => localStorage.getItem("epic.navigation.expanded") !== "false");
+-  const can = (p: string) => user.role === "admin" || user.permissions.includes(p);
+-  const link = (to: string, label: string, permission: string, icon="operation", testId?: string) => can(permission) ? <NavLink key={to} to={to} aria-label={label} title={!expanded ? label : undefined} data-testid={testId}
+-    className={() => (to.includes("?") ? location.pathname + location.search === to : location.pathname.startsWith(to) && !(to === "/payables" && location.search.includes("purpose=fx"))) ? "active" : ""}>
+-    <Icon name={icon} /><span className="shell-nav-label">{label}</span></NavLink> : null;
+-  const activeGroup:Record<string,boolean> = {
+-    "Produtos": /^\/(catalog\/(products|prices)|inventory)(\/|$)/.test(location.pathname),
+-    "Compras": /^\/(orders|invoices|ingestion|catalog\/suppliers)(\/|$)/.test(location.pathname),
+-    "Financeiro": /^\/(payables|payments|costing)(\/|$)/.test(location.pathname) || location.pathname.includes("/fx") || location.search.includes("purpose=fx"),
+-    "Logística e importação": /^\/(shipments|logistics-providers|customs)(\/|$)/.test(location.pathname),
+-    "Administração": /^\/admin(\/|$)/.test(location.pathname),
+-  };
+-  const group = (label: string, children: React.ReactNode, visible: boolean) => visible ? <details className="experience-nav-group" open={!expanded || activeGroup[label] ? true : undefined} data-active={activeGroup[label]||undefined}><summary title={label}>{expanded ? label : "···"}</summary>{children}</details> : null;
+   return <div className={`shell shell-sidebar-layout experience-shell ${expanded ? "experience-expanded" : "experience-collapsed"}`}>
+     <a className="skip-link" href="#main-content">Ir para o conteúdo</a>
+     <aside className="shell-sidebar" aria-label="Navegação principal">
+       <div className="experience-brand"><span className="experience-mark">E</span>{expanded && <div><strong>EPIC</strong><small>Controle</small></div>}
+         <button className="shell-rail-toggle" data-testid="shell-rail-toggle" aria-expanded={expanded} aria-label={expanded ? "Recolher navegação" : "Expandir navegação"} onClick={() => setExpanded(v => { localStorage.setItem("epic.navigation.expanded", String(!v)); return !v; })}>{expanded ? "‹" : "›"}</button></div>
+-      <nav className="shell-side-nav" aria-label="Módulos">
+-        {link("/dashboard", "Visão geral", "reporting:read", "home", "nav-dashboard")}
+-        {group("Produtos", <>{link("/catalog/products", "Catálogo e preços", "catalog:read", "product")}{link("/inventory/positions", "Estoque atual", "inventory:read", "stock", "nav-stock")}{link("/inventory/receiving", "Recebimentos", "inventory:read", "stock", "nav-receiving")}{link("/inventory/movements", "Movimentações", "inventory:read", "stock")}</>, can("catalog:read") || can("inventory:read"))}
+-        {group("Compras", <>{link("/orders", "Pedidos", "orders:read")}{link("/invoices", "Faturas", "billing:read")}{link("/ingestion", "Conferir documentos", "ingestion:read", "operation", "nav-ingestion")}{link("/catalog/suppliers", "Fornecedores", "catalog:read")}</>, can("orders:read") || can("billing:read") || can("ingestion:read") || can("catalog:read"))}
+-        {group("Financeiro", <>{link("/payables", "Contas a pagar", "billing:read", "money")}{link("/payments", "Pagamentos", "treasury:read", "money")}{link("/payables?purpose=fx", "Câmbio por obrigação", "treasury:fx_read", "money")}{link("/costing", "Custos de importação", "costing:read", "money", "nav-costing")}</>, can("billing:read") || can("treasury:read") || can("treasury:fx_read") || can("costing:read"))}
+-        {group("Logística e importação", <>{link("/shipments", "Embarques", "logistics:read", "stock")}{link("/customs", "Operações de importação", "customs:read", "operation")}{link("/logistics-providers", "Prestadores logísticos", "logistics:read")}</>, can("logistics:read") || can("customs:read"))}
+-        {group("Administração", <>{link("/admin/users", "Usuários e acessos", "users:read")}</>, can("users:read"))}
+-      </nav>
++      <PrimaryNavigation user={user} expanded={expanded} />
+       <div className="shell-side-footer"><RuntimeBadge /><div className="shell-fx-slot"><FxQuoteStrip user={user} /></div>
+         {expanded && <small className="experience-user">{user.name}</small>}<button className="shell-logout" aria-label="Sair" onClick={async () => { await fetch("/api/auth/logout", { method:"POST", credentials:"include" }); await onLogout(); }}>Sair</button></div>
+     </aside>
+     <div className="shell-content"><main id="main-content" className="shell-main" tabIndex={-1}>
+-      {import.meta.env.VITE_ENABLE_DEMO === "true" && user.role === "admin" ? <DemoTour /> : null}<Outlet />
++      {import.meta.env.VITE_ENABLE_DEMO === "true" && user.role === "admin" ? <DemoTour /> : null}<AreaNavigation user={user} /><Outlet />
+     </main></div>
+   </div>;
+ }
+--- a/v2/frontend/src/app-shell/areaNavigation.css
++++ b/v2/frontend/src/app-shell/areaNavigation.css
+@@ -0,0 +1,17 @@
++.consolidated-nav .nav-secondary { margin-top:24px; padding-top:16px; border-top:1px solid #e0e4e9; }
++.consolidated-nav .nav-secondary:empty { display:none; }
++.experience-shell .consolidated-nav a { min-height:44px; margin:4px 0; }
++.experience-shell .consolidated-nav a.active { box-shadow:inset 3px 0 #2459c4; }
++.experience-collapsed .consolidated-nav a { flex-direction:column; justify-content:center; gap:4px; padding:9px 1px; text-align:center; min-height:60px; }
++.experience-shell.experience-collapsed { --shell-sidebar-width:88px; }
++.experience-collapsed .experience-brand { align-items:center; margin-inline:auto; }
++.nav-rail-caption { display:block; font-size:10px; line-height:1.25; overflow-wrap:anywhere; max-width:62px; }
++.experience-collapsed .runtime-lane { padding:5px 2px; font-size:8px; overflow-wrap:normal; word-break:normal; text-align:center; }
++.area-navigation { display:flex; align-items:center; gap:16px; padding:0 0 13px; margin:0 0 20px; border-bottom:1px solid #e2e7ed; }
++.area-navigation-label { color:#62717d; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; flex-shrink:0; }
++.area-navigation-links { display:flex; flex-wrap:wrap; gap:5px; min-width:0; }
++.area-navigation a { padding:9px 12px; min-height:38px; border-radius:7px; color:#52606d; text-decoration:none; font-size:13px; line-height:20px; }
++.area-navigation a:hover { background:#f1f4f7; }
++.area-navigation a.active { background:#e9f4f0; color:#146e63; font-weight:650; }
++.area-navigation a:focus-visible,.consolidated-nav a:focus-visible { outline:3px solid #3478de; outline-offset:2px; }
++@media(max-width:1100px) { .area-navigation { gap:8px; align-items:flex-start; flex-direction:column; } }
+--- a/v2/frontend/src/app-shell/AreaNavigation.tsx
++++ b/v2/frontend/src/app-shell/AreaNavigation.tsx
+@@ -0,0 +1,53 @@
++import { Link, useLocation } from "react-router-dom";
++import type { User } from "../features/auth/types";
++import { activeNavigation, visibleNavigation } from "./navigation";
++import { buildReturnTo } from "../navigation/returnState";
++import "./areaNavigation.css";
++
++const paths: Record<string, string> = {
++  home: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
++  product: "m3 7 9-4 9 4v10l-9 4-9-4V7Zm0 0 9 4 9-4M12 11v10",
++  purchase: "M6 7h15l-2 9H7L4 3H1M8 21h.01M18 21h.01",
++  shipment: "M3 13h18l-3 7H6l-3-7ZM7 13V6h10v7M12 6V2M3 22q3-3 6 0 3-3 6 0 3-3 6 0",
++  money: "M3 5h18v14H3zM3 9h18M7 14h4",
++  document: "M6 2h8l4 4v16H6zM14 2v5h4M9 11h6M9 15h6",
++  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z",
++};
++
++export function PrimaryNavigation({ user, expanded }: { user: User; expanded: boolean }) {
++  const { pathname } = useLocation();
++  const areas = visibleNavigation(user);
++  const { area: active } = activeNavigation(areas, pathname);
++  return <nav className="shell-side-nav consolidated-nav" aria-label="Módulos">
++    {[false, true].map(secondary => <div key={String(secondary)} className={secondary ? "nav-secondary" : "nav-primary"}>
++      {areas.filter(area => !!area.secondary === secondary).map(area => <Link
++        key={area.id} to={area.sections[0].to} data-testid={`nav-${area.id}`}
++        className={active?.id === area.id ? "active" : undefined}
++        aria-current={active?.id === area.id ? "page" : undefined}
++        aria-label={area.label} title={!expanded ? area.label : undefined}>
++        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" aria-hidden="true"><path d={paths[area.icon]} /></svg>
++        <span className="shell-nav-label">{area.label}</span>
++        {!expanded && <span className="nav-rail-caption" aria-hidden="true">{area.label}</span>}
++      </Link>)}
++    </div>)}
++  </nav>;
++}
++
++export function AreaNavigation({ user }: { user: User }) {
++  const { pathname, search, state } = useLocation();
++  const { area, section: active } = activeNavigation(visibleNavigation(user), pathname);
++  if (!area || area.secondary || area.id === "overview") return null;
++  return <nav className="area-navigation" aria-label={`Área de ${area.label.toLocaleLowerCase("pt-BR")}`}>
++    <span className="area-navigation-label">{area.label}</span>
++    <div className="area-navigation-links">
++      {area.sections.map(section => <Link key={section.id}
++        to={active?.id === section.id && pathname === section.to.split("?")[0]
++          ? pathname + search : active?.id === section.id && !section.to.includes("?")
++            ? buildReturnTo(section.to) : section.to}
++        state={active?.id === section.id ? state : undefined}
++        aria-current={active?.id === section.id ? "page" : undefined}
++        className={active?.id === section.id ? "active" : undefined}
++        data-testid={`section-${section.id}`}>{section.label}</Link>)}
++    </div>
++  </nav>;
++}
+--- a/v2/frontend/src/app-shell/Navigation.test.tsx
++++ b/v2/frontend/src/app-shell/Navigation.test.tsx
+@@ -0,0 +1,79 @@
++import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
++import { MemoryRouter } from "react-router-dom";
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { AppShell } from "./AppShell";
++import { activeNavigation, visibleNavigation } from "./navigation";
++vi.mock("./RuntimeBadge", () => ({ RuntimeBadge: () => null }));
++vi.mock("../features/treasury/FxPanels", () => ({ FxQuoteStrip: () => null }));
++const admin = { id:1, email:"admin@example.com", name:"Admin", role:"admin", permissions:[] as string[] };
++const actor = (...permissions: string[]) => ({ ...admin, role:"restricted", permissions });
++afterEach(() => { cleanup(); localStorage.clear(); sessionStorage.clear(); });
++function mount(user = admin, path = "/dashboard") {
++  render(<MemoryRouter initialEntries={[path]}><AppShell user={user} onLogout={()=>{}} /></MemoryRouter>);
++  return within(screen.getByRole("navigation", { name:"Módulos" }));
++}
++describe("consolidated navigation", () => {
++  it("has five stable primary areas and two secondary entries opening work screens", () => {
++    const nav = mount();
++    expect(nav.getAllByRole("link").map(link => [link.textContent, link.getAttribute("href")])).toEqual([
++      ["Visão geral","/dashboard"], ["Produtos","/inventory/positions"], ["Compras","/orders"],
++      ["Importações","/customs"], ["Financeiro","/payables"], ["Conferir documentos","/ingestion"], ["Usuários e acessos","/admin/users"],
++    ]);
++    expect(nav.queryByRole("link", { name:"Estoque atual" })).toBeNull();
++  });
++  it.each([
++    ["inventory:read", [["products","/inventory/positions"],["imports","/inventory/receiving"]]],
++    ["catalog:read", [["products","/catalog/products"],["purchases","/catalog/suppliers"]]],
++    ["costing:read", [["imports","/costing"]]],
++    ["logistics:read", [["imports","/shipments"]]],
++    ["billing:read", [["purchases","/invoices"],["finance","/payables"]]],
++    ["treasury:read", [["finance","/payments"]]],
++    ["treasury:fx_read", [["finance","/payables?purpose=fx"]]],
++    ["users:read", [["access","/admin/users"]]],
++    ["ingestion:read", [["documents","/ingestion"]]],
++    ["customs:read", [["imports","/customs"]]],
++  ])("uses an authorized fallback for %s", (permission, expected) => {
++    expect(visibleNavigation(actor(permission as string)).map(a=>[a.id,a.sections[0].to])).toEqual(expected);
++  });
++  it("does not expose areas with no readable sections", () => {
++    expect(visibleNavigation(actor("inventory:write", "catalog:write"))).toEqual([]);
++  });
++  it("stock users can receive without customs or financial access", () => {
++    const nav=mount(actor("inventory:read","inventory:write","reporting:read"),"/inventory/receiving?item=4&state=all");
++    expect(nav.getByRole("link",{name:"Importações"})).toHaveAttribute("aria-current","page");
++    const local=within(screen.getByRole("navigation",{name:"Área de importações"}));
++    expect(local.getAllByRole("link").map(a=>a.textContent)).toEqual(["Receber mercadorias"]);
++    expect(local.getByRole("link")).toHaveAttribute("href","/inventory/receiving?item=4&state=all");
++    expect(nav.queryByRole("link",{name:"Financeiro"})).toBeNull();
++  });
++  it("removes duplicate FX tab when AP is allowed and keeps the old deep link active", () => {
++    mount(admin,"/payables/42/fx?origin=invoice");
++    expect(screen.queryByRole("link",{name:"Câmbio por obrigação"})).toBeNull();
++    expect(screen.getByRole("link",{name:"Contas a pagar"})).toHaveAttribute("aria-current","page");
++    expect(screen.getByRole("link",{name:"Financeiro"})).toHaveAttribute("aria-current","page");
++  });
++  it("preserves query parameters when reselecting the current list", () => {
++    mount(admin,"/payables?purpose=fx&currency=EUR&due_before=2026-12-01&offset=50");
++    expect(screen.getByRole("link",{name:"Contas a pagar"})).toHaveAttribute("href","/payables?purpose=fx&currency=EUR&due_before=2026-12-01&offset=50");
++  });
++  it.each([
++    ["/catalog/products/3/edit","products","catalog"], ["/catalog/prices/import","products","catalog"],
++    ["/inventory/sku/3","products","stock"], ["/inventory/movements","products","history"],
++    ["/invoices/4","purchases","invoices"], ["/orders/5/commercial","purchases","orders"],
++    ["/costing/2/compare","imports","costing"], ["/customs/funding/7","imports","operations"],
++    ["/logistics-providers","imports","providers"], ["/ingestion/7","documents","documents"],
++  ])("selects area and section for old detail URL %s", (path, area, section) => {
++    const active=activeNavigation(visibleNavigation(admin),path);
++    expect([active.area?.id,active.section?.id]).toEqual([area,section]);
++  });
++  it("matches path segments rather than prefixes of unrelated URLs", () => {
++    expect(activeNavigation(visibleNavigation(admin),"/orders-archive").area).toBeUndefined();
++  });
++  it("keeps all destinations and visible captions when collapsed", () => {
++    const nav=mount();fireEvent.click(screen.getByRole("button",{name:"Recolher navegação"}));
++    expect(localStorage.getItem("epic.navigation.expanded")).toBe("false");
++    expect(nav.getAllByRole("link")).toHaveLength(7);
++    expect(nav.getByRole("link",{name:"Importações"})).toHaveAttribute("title","Importações");
++    expect(nav.getByRole("link",{name:"Produtos"}).querySelector(".nav-rail-caption")).toHaveTextContent("Produtos");
++  });
++});
+--- a/v2/frontend/src/app-shell/navigation.ts
++++ b/v2/frontend/src/app-shell/navigation.ts
+@@ -0,0 +1,72 @@
++import type { User } from "../features/auth/types";
++
++export type NavigationSection = {
++  id: string;
++  label: string;
++  to: string;
++  permission: string;
++  paths?: string[];
++};
++export type NavigationArea = {
++  id: string;
++  label: string;
++  icon: string;
++  secondary?: boolean;
++  sections: NavigationSection[];
++};
++
++// Presentation only: section permissions remain owned by their pages and APIs.
++// Order is stable. The first permitted section is the area's entry point.
++export const NAVIGATION: NavigationArea[] = [
++  { id: "overview", label: "Visão geral", icon: "home", sections: [
++    { id: "dashboard", label: "Visão geral", to: "/dashboard", permission: "reporting:read" },
++  ] },
++  { id: "products", label: "Produtos", icon: "product", sections: [
++    { id: "stock", label: "Estoque atual", to: "/inventory/positions", permission: "inventory:read", paths: ["/inventory/positions", "/inventory/sku"] },
++    { id: "catalog", label: "Catálogo e preços", to: "/catalog/products", permission: "catalog:read", paths: ["/catalog/products", "/catalog/prices"] },
++    { id: "history", label: "Histórico de estoque", to: "/inventory/movements", permission: "inventory:read" },
++  ] },
++  { id: "purchases", label: "Compras", icon: "purchase", sections: [
++    { id: "orders", label: "Pedidos", to: "/orders", permission: "orders:read" },
++    { id: "invoices", label: "Faturas", to: "/invoices", permission: "billing:read" },
++    { id: "suppliers", label: "Fornecedores", to: "/catalog/suppliers", permission: "catalog:read" },
++  ] },
++  { id: "imports", label: "Importações", icon: "shipment", sections: [
++    { id: "operations", label: "Operações", to: "/customs", permission: "customs:read" },
++    { id: "shipments", label: "Embarques", to: "/shipments", permission: "logistics:read" },
++    { id: "receiving", label: "Receber mercadorias", to: "/inventory/receiving", permission: "inventory:read" },
++    { id: "costing", label: "Custo desembarcado", to: "/costing", permission: "costing:read" },
++    { id: "providers", label: "Prestadores logísticos", to: "/logistics-providers", permission: "logistics:read" },
++  ] },
++  { id: "finance", label: "Financeiro", icon: "money", sections: [
++    { id: "payables", label: "Contas a pagar", to: "/payables", permission: "billing:read" },
++    { id: "payments", label: "Pagamentos realizados", to: "/payments", permission: "treasury:read" },
++    // Existing FX URL remains available when the user cannot enter the AP queue.
++    { id: "fx", label: "Câmbio por obrigação", to: "/payables?purpose=fx", permission: "treasury:fx_read", paths: ["/payables"] },
++  ] },
++  { id: "documents", label: "Conferir documentos", icon: "document", secondary: true, sections: [
++    { id: "documents", label: "Conferir documentos", to: "/ingestion", permission: "ingestion:read" },
++  ] },
++  { id: "access", label: "Usuários e acessos", icon: "users", secondary: true, sections: [
++    { id: "users", label: "Usuários e acessos", to: "/admin/users", permission: "users:read" },
++  ] },
++];
++
++export function canNavigate(user: User, permission: string): boolean {
++  return user.role === "admin" || user.permissions.includes(permission);
++}
++
++export function visibleNavigation(user: User): NavigationArea[] {
++  return NAVIGATION.map(area => ({ ...area, sections: area.sections.filter(section =>
++    canNavigate(user, section.permission) && (section.id !== "fx" || !canNavigate(user, "billing:read")),
++  ) })).filter(area => area.sections.length > 0);
++}
++
++export function sectionMatches(section: NavigationSection, pathname: string): boolean {
++  return (section.paths ?? [section.to.split("?")[0]]).some(path => pathname === path || pathname.startsWith(path + "/"));
++}
++
++export function activeNavigation(areas: NavigationArea[], pathname: string) {
++  const area = areas.find(item => item.sections.some(section => sectionMatches(section, pathname)));
++  return { area, section: area?.sections.find(section => sectionMatches(section, pathname)) };
++}
+--- a/v2/frontend/src/features/admin/UsersListPage.tsx
++++ b/v2/frontend/src/features/admin/UsersListPage.tsx
+@@ -176,7 +176,7 @@
+   return (
+     <section className="panel dense" data-testid="users-list-page">
+       <PageHeader
+-        title="Usuários"
++        title="Usuários e acessos"
+         actions={
+           canWrite(user) ? (
+             <Link className="ui-button" to="/admin/users/new" data-testid="users-new-cta">
+--- a/v2/frontend/src/features/billing/InvoiceDetailPage.tsx
++++ b/v2/frontend/src/features/billing/InvoiceDetailPage.tsx
+@@ -552,6 +552,11 @@
+             <Link className="ui-button ui-button--secondary" to={invoicesReturn}>
+               Voltar à fila
+             </Link>
++            {(inv.payables?.length ?? 0) > 0 && (user.role === "admin" || user.permissions.includes("billing:read")) && (
++              <Link className="ui-button ui-button--secondary" to={`/payables?invoice_id=${inv.id}&pending=ALL`}>
++                Contas desta fatura
++              </Link>
++            )}
+             {canCancelDraft ? (
+               <Button
+                 type="button"
+--- a/v2/frontend/src/features/billing/InvoicesListPage.tsx
++++ b/v2/frontend/src/features/billing/InvoicesListPage.tsx
+@@ -1,5 +1,6 @@
+ import { useEffect, useState } from "react";
+ import { useSearchParams } from "react-router-dom";
++import { FxObligationAccess } from "../treasury/FxObligationAccess";
+ import type { User } from "../auth/types";
+ import { listInvoices, type InvoiceListItem } from "./billingApi";
+ import {
+@@ -126,14 +127,21 @@
+   const fxMode = params.get("purpose") === "fx";
+   const canFx = _user.role === "admin" || _user.permissions.includes("treasury:fx_read");
+   const canBilling = _user.role === "admin" || _user.permissions.includes("billing:read");
++  const payableQuery = new URLSearchParams({ limit:"100" });
++  for (const key of ["order_id","invoice_id","status","due_before","due_after","offset"]) {
++    const value = params.get(key);
++    if (value) payableQuery.set(key,value);
++  }
++  const payableSearch = payableQuery.toString();
+   const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
+   const [error, setError] = useState<string | null>(null);
+ 
+   useEffect(() => {
++    if (!canBilling) return;
+     let cancelled = false;
+     void (async () => {
+       try {
+-        const res = await fetch("/api/payables?limit=100", { credentials: "include" });
++        const res = await fetch(`/api/payables?${payableSearch}`, { credentials: "include" });
+         if (!res.ok) throw new Error(await res.text());
+         const data = (await res.json()) as Array<Record<string, unknown>>;
+         if (!cancelled) setRows(data);
+@@ -144,9 +152,9 @@
+     return () => {
+       cancelled = true;
+     };
+-  }, []);
+-
+-  if (!canBilling) return <ErrorState message="Seu acesso não permite listar obrigações. Para abrir o câmbio, use o link de uma obrigação autorizada." />;
++  }, [canBilling, payableSearch]);
++
++  if (!canBilling) return canFx && fxMode ? <FxObligationAccess /> : <ErrorState message="Seu acesso não permite listar obrigações. Para abrir o câmbio, use o link de uma obrigação autorizada." />;
+   if (error) return <ErrorState message={error} />;
+   if (rows === null) return <LoadingState message="Carregando contas a pagar…" />;
+ 
+--- a/v2/frontend/src/features/catalog/ProductAreaNav.tsx
++++ b/v2/frontend/src/features/catalog/ProductAreaNav.tsx
+@@ -1,11 +1,5 @@
+-import {NavLink} from "react-router-dom";
+-import type {User} from "../auth/types";
++import type { User } from "../auth/types";
+ import "./productArea.css";
+ 
+-export function ProductAreaNav({user}:{user:User}){
+-  const can=(p:string)=>user.role==="admin"||user.permissions.includes(p);
+-  return <nav className="product-area-nav" aria-label="Área de produtos"><span>Produtos</span>
+-    {can("catalog:read")&&<NavLink to="/catalog/products">Catálogo e preços</NavLink>}
+-    {can("inventory:read")&&<><NavLink to="/inventory/positions">Estoque atual</NavLink><NavLink to="/inventory/receiving">Recebimentos</NavLink><NavLink to="/inventory/movements">Movimentações</NavLink></>}
+-  </nav>;
+-}
++// Compatibility for existing product surfaces; AppShell owns the shared area navigation.
++export function ProductAreaNav(_props: { user: User }) { return null; }
+--- a/v2/frontend/src/features/catalog/ProductDetailPage.tsx
++++ b/v2/frontend/src/features/catalog/ProductDetailPage.tsx
+@@ -130,7 +130,8 @@
+           setColorHints(colors);
+           if (tax) setTaxonomy(tax);
+         }
+-        const events = await listEntityAudit("product", String(id));
++        const events = user.role === "admin" || user.permissions.includes("audit:read")
++          ? await listEntityAudit("product", String(id)) : [];
+         if (!cancelled) {
+           setAudit(
+             events.map((e) => ({
+@@ -148,7 +149,7 @@
+     return () => {
+       cancelled = true;
+     };
+-  }, [id, editing]);
++  }, [id, editing, user]);
+ 
+   if (!Number.isFinite(id)) return <ErrorState message="Produto inválido." />;
+   if (error && !row) return <ErrorState message={error} />;
+--- a/v2/frontend/src/features/catalog/SupplierAccess.test.tsx
++++ b/v2/frontend/src/features/catalog/SupplierAccess.test.tsx
+@@ -0,0 +1,15 @@
++import { cleanup, render, screen } from "@testing-library/react";
++import { MemoryRouter, Route, Routes } from "react-router-dom";
++import { afterEach, expect, it, vi } from "vitest";
++import { SupplierDetailPage } from "./SupplierDetailPage";
++import { getSupplier } from "./catalogApi";
++import { listEntityAudit } from "../customs/customsApi";
++vi.mock("./catalogApi",()=>({getSupplier:vi.fn(),patchSupplier:vi.fn()}));
++vi.mock("../customs/customsApi",()=>({listEntityAudit:vi.fn()}));
++afterEach(()=>{cleanup();vi.clearAllMocks();});
++it("catalog access alone opens the supplier without requesting audit",async()=>{
++ vi.mocked(getSupplier).mockResolvedValue({id:2,name:"Fornecedor permitido",code:null,country_code:null,tax_id:null,is_active:true} as Awaited<ReturnType<typeof getSupplier>>);
++ const user={id:11,name:"Catálogo",email:"c@example.com",role:"catalog-only",permissions:["catalog:read","catalog:write"]};
++ render(<MemoryRouter initialEntries={["/catalog/suppliers/2"]}><Routes><Route path="/catalog/suppliers/:supplierId" element={<SupplierDetailPage user={user}/>}/></Routes></MemoryRouter>);
++ expect(await screen.findByRole("heading",{name:"Fornecedor permitido"})).toBeVisible();expect(listEntityAudit).not.toHaveBeenCalled();
++});
+--- a/v2/frontend/src/features/catalog/SupplierDetailPage.tsx
++++ b/v2/frontend/src/features/catalog/SupplierDetailPage.tsx
+@@ -31,6 +31,7 @@
+     (location.state as { returnTo?: string } | null)?.returnTo || buildReturnTo("/catalog/suppliers");
+   const id = Number(supplierId);
+   const write = canWrite(user);
++  const readAudit = user.role === "admin" || user.permissions.includes("audit:read");
+   const [row, setRow] = useState<Supplier | null>(null);
+   const [error, setError] = useState<string | null>(null);
+   const [busy, setBusy] = useState(false);
+@@ -52,7 +53,7 @@
+         setCode(s.code ?? "");
+         setCountry(s.country_code ?? "");
+         setTaxId(s.tax_id ?? "");
+-        const events = await listEntityAudit("supplier", String(id));
++        const events = readAudit ? await listEntityAudit("supplier", String(id)) : [];
+         if (!cancelled) {
+           setAudit(
+             events.map((e) => ({
+@@ -70,7 +71,7 @@
+     return () => {
+       cancelled = true;
+     };
+-  }, [id]);
++  }, [id, readAudit]);
+ 
+   if (!Number.isFinite(id)) return <ErrorState message="Fornecedor inválido." />;
+   if (error) return <ErrorState message={error} />;
+@@ -181,7 +182,7 @@
+           </Button>
+         </div>
+       ) : null}
+-      <AuditDocumentsBlock documents={[]} audit={audit} />
++      {readAudit && <AuditDocumentsBlock documents={[]} audit={audit} />}
+     </section>
+   );
+ }
+--- a/v2/frontend/src/features/costing/CostingComparePage.tsx
++++ b/v2/frontend/src/features/costing/CostingComparePage.tsx
+@@ -93,7 +93,7 @@
+     <section className="panel dense" data-testid="costing-compare-page">
+       <ContextBreadcrumb
+         items={[
+-          { label: "Custos", to: "/costing" },
++          { label: "Custo desembarcado", to: "/costing" },
+           { label: "Caso", to: back },
+           { label: "Comparar" },
+         ]}
+--- a/v2/frontend/src/features/costing/CostingListPage.tsx
++++ b/v2/frontend/src/features/costing/CostingListPage.tsx
+@@ -76,7 +76,7 @@
+ 
+   return (
+     <div data-testid="costing-queue">
+-      <ContextBreadcrumb items={[{ label: "Custos" }, { label: "Custos de importação" }]} />
++      <ContextBreadcrumb items={[{ label: "Importações" }, { label: "Custo desembarcado" }]} />
+       <PageHeader
+         title="Custo desembarcado por produto"
+         subtitle="Valores brutos" help={SUBTITLE}
+--- a/v2/frontend/src/features/costing/CostingWorkspacePage.tsx
++++ b/v2/frontend/src/features/costing/CostingWorkspacePage.tsx
+@@ -254,7 +254,7 @@
+     <div className="costing-refined" data-testid="costing-workspace">
+       <ContextBreadcrumb
+         items={[
+-          { label: "Custos", to: "/costing" },
++          { label: "Custo desembarcado", to: "/costing" },
+           { label: caseRow.process_code },
+         ]}
+       />
+--- a/v2/frontend/src/features/customs/CustomsDetailPage.tsx
++++ b/v2/frontend/src/features/customs/CustomsDetailPage.tsx
+@@ -222,14 +222,16 @@
+     <div data-testid="customs-detail-page">
+       <ContextBreadcrumb
+         items={[
+-          { label: "Aduana" },
+-          { label: "Processos", to: "/customs" },
++          { label: "Importações" },
++          { label: "Operações", to: "/customs" },
+           { label: process.code },
+         ]}
+       />
+       <PageHeader
+         title={process.code}
+         subtitle={`Status: ${statusLabel(process.status)} · v${process.version}`}
++        actions={(user.role === "admin" || user.permissions.includes("inventory:read")) ?
++          <Link className="ui-button ui-button--secondary" to={`/inventory/receiving?state=all&q=${encodeURIComponent(process.code)}`}>Receber mercadorias</Link> : undefined}
+       />
+       <div className="form-actions" style={{ marginBottom: "0.75rem" }}>
+         <StatusBadge status={process.status} entity="customs" />
+--- a/v2/frontend/src/features/customs/CustomsListPage.tsx
++++ b/v2/frontend/src/features/customs/CustomsListPage.tsx
+@@ -87,7 +87,7 @@
+ 
+   return (
+     <div data-testid="customs-list-page">
+-      <ContextBreadcrumb items={[{ label: "Aduana" }, { label: "Processos" }]} />
++      <ContextBreadcrumb items={[{ label: "Importações" }, { label: "Operações" }]} />
+       <PageHeader
+         title="Operações de importação"
+         actions={
+--- a/v2/frontend/src/features/dashboard/dashboardNavigation.test.ts
++++ b/v2/frontend/src/features/dashboard/dashboardNavigation.test.ts
+@@ -0,0 +1,31 @@
++import { describe, expect, it } from "vitest";
++import { dashboardNavigation } from "./dashboardNavigation";
++import type { DashboardSnapshot, DashboardWidget } from "./dashboardApi";
++const widget=(id:string,extra:Partial<DashboardWidget>={}):DashboardWidget=>({widget_id:id,metric_id:id,label:id,short_description:"",kind:"kpi_currency",status:"AVAILABLE",display:{},drill:"/payables",currencies:["EUR"],filters_applied:["date_from","date_to","currency","supplier_id"],filters_ignored:[],...extra});
++const snapshot=(widgets:DashboardWidget[]):DashboardSnapshot=>({generated_at:"2026-11-18T12:00:00Z",view_id:null,view_name:null,base_preset:"executiva",filters:{date_from:"2026-11-01",date_to:"2027-02-28",currency:"EUR",supplier_id:2},lane:{lane:"Teste",includes_trial_mass:true},widgets,home_ok:true,fallback_path:"/orders",default_preset:"executiva"});
++describe("dashboard navigation preserves the metric's scope",()=>{
++ it("keeps overdue state, due period, currency and supplier",()=>{
++  const result=dashboardNavigation(snapshot([widget("ap.overdue")]));
++  const q=new URLSearchParams(result.widgets[0].drill.split("?")[1]);
++  expect(Object.fromEntries(q)).toEqual({pending:"OVERDUE",due_after:"2026-11-01",due_before:"2027-02-28",currency:"EUR",supplier_id:"2"});
++ });
++ it("carries only applied filters and retains existing link parameters",()=>{
++  const result=dashboardNavigation(snapshot([widget("attention.inbox",{drill:"/payables?purpose=fx&currency=USD",filters_applied:["currency"]})]));
++  expect(result.widgets[0].drill).toBe("/payables?purpose=fx&currency=USD");
++ });
++ it("limits cash due to the three civil months and uses the response month",()=>{
++  const result=dashboardNavigation(snapshot([widget("ap.cash_due",{filters_applied:["date_to"]}),widget("ap.cash_committed",{display:{as_of_month:"2026-11-01"},filters_applied:["date_to"]})]));
++  expect(result.widgets[0].drill).toContain("due_before=2027-01-31");
++  expect(result.widgets[0].drill).toContain("due_after=2026-11-01");
++  expect(result.widgets[1].drill).not.toContain("due_after");
++ });
++ it("intersects the seven-day metric with the selected period",()=>{
++  const result=dashboardNavigation(snapshot([widget("ap.next_7d")]));
++  expect(result.widgets[0].drill).toContain("due_after=2026-11-19");
++  expect(result.widgets[0].drill).toContain("due_before=2026-11-25");
++ });
++ it("opens stock positions across regimes and does not invent permission or missing links",()=>{
++  const result=dashboardNavigation(snapshot([widget("goods.flow",{drill:"",display:{segments:[{key:"stock",href:"/inventory/movements"},{key:"confirmed",href:"/orders"},{key:"stock"}]}})]));
++  expect(result.widgets[0].display.segments).toEqual([{key:"stock",href:"/inventory/positions?status=positive&position_ids=&modality_ids=&item_kind_ids=&model_ids=&location_ids=&q="},{key:"confirmed",href:"/orders?status=CONFIRMED"},{key:"stock"}]);
++ });
++});
+--- a/v2/frontend/src/features/dashboard/dashboardNavigation.ts
++++ b/v2/frontend/src/features/dashboard/dashboardNavigation.ts
+@@ -0,0 +1,62 @@
++import type { DashboardSnapshot, DashboardWidget } from "./dashboardApi";
++
++function dated(date: Date) {
++  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
++}
++
++/** Carry only filters the metric actually applied and the destination supports. */
++export function dashboardNavigation(snapshot: DashboardSnapshot): DashboardSnapshot {
++  const month = snapshot.widgets.find(w => w.widget_id === "ap.cash_committed")?.display.as_of_month;
++  const generated = new Date(snapshot.generated_at);
++  const monthStart = typeof month === "string" ? month : dated(new Date(generated.getFullYear(), generated.getMonth(), 1));
++  const endOfQuarter = dated(new Date(Number(monthStart.slice(0,4)), Number(monthStart.slice(5,7))+2, 0));
++  const link = (href: string, w: DashboardWidget): string => {
++    if (!href.startsWith("/payables") || href.split("?")[0] !== "/payables") return href;
++    const [path, search] = href.split("?");
++    const params = new URLSearchParams(search);
++    const mapping = { date_from:"due_after", date_to:"due_before", currency:"currency", supplier_id:"supplier_id" } as const;
++    for (const [source, target] of Object.entries(mapping)) {
++      const value = snapshot.filters[source as keyof typeof mapping];
++      if (w.filters_applied.includes(source) && value != null && value !== "" && !params.has(target)) params.set(target, String(value));
++    }
++    if (w.widget_id.startsWith("ap.") || w.widget_id === "treasury.fx_exposure") {
++      params.set("pending", w.widget_id === "ap.overdue" ? "OVERDUE" : "OPEN_BALANCE");
++    }
++    if (["ap.cash_due","ap.cash_committed"].includes(w.widget_id)) {
++      if (w.widget_id === "ap.cash_due") params.set("due_after", monthStart);
++      // The agenda includes overdue plus three civil months, not all future payments.
++      const until = params.get("due_before");
++      let last = until && until < endOfQuarter ? until : endOfQuarter;
++      if (w.widget_id === "ap.cash_committed") {
++        const overdueEnd = dated(new Date(Number(monthStart.slice(0,4)),Number(monthStart.slice(5,7))-1,0));
++        if (last < overdueEnd) last = overdueEnd;
++      }
++      params.set("due_before", last);
++    }
++    if (w.widget_id === "ap.next_7d") {
++      const first = new Date(generated); first.setDate(first.getDate()+1);
++      const last = new Date(generated); last.setDate(last.getDate()+7);
++      const after=params.get("due_after"),before=params.get("due_before");
++      params.set("due_after",after && after>dated(first)?after:dated(first));
++      params.set("due_before",before && before<dated(last)?before:dated(last));
++    }
++    if (w.widget_id === "treasury.fx_exposure" && !params.has("currency") && w.currencies.length === 1) params.set("currency",w.currencies[0]);
++    return path + (params.size ? `?${params}` : "");
++  };
++  return { ...snapshot, widgets:snapshot.widgets.map(w => {
++    let display=w.display;
++    if (w.widget_id === "goods.flow" && Array.isArray(display.segments)) {
++      display={...display,segments:display.segments.map(segment => {
++        const row=segment as Record<string,unknown>;
++        if (row.key === "stock" && row.href) return {...row,href:"/inventory/positions?status=positive&position_ids=&modality_ids=&item_kind_ids=&model_ids=&location_ids=&q="};
++        if (row.key === "confirmed" && row.href) return {...row,href:"/orders?status=CONFIRMED"};
++        return row;
++      })};
++    }
++    if (Array.isArray(display.items)) display={...display,items:display.items.map(item=>{
++      const row=item as Record<string,unknown>;
++      return typeof row.href === "string" ? {...row,href:link(row.href,w)} : row;
++    })};
++    return {...w,display,drill:link(w.drill,w)};
++  }) };
++}
+--- a/v2/frontend/src/features/dashboard/DashboardPage.tsx
++++ b/v2/frontend/src/features/dashboard/DashboardPage.tsx
+@@ -1,5 +1,6 @@
+ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+ import { Link, Navigate, useSearchParams } from "react-router-dom";
++import { dashboardNavigation } from "./dashboardNavigation";
+ import type { User } from "../auth/types";
+ import {
+   Button,
+@@ -135,7 +136,7 @@
+         currency: currency || undefined,
+         supplier_id: supplierId || undefined,
+       }, controller.signal);
+-      if (!controller.signal.aborted) setSnap(data);
++      if (!controller.signal.aborted) setSnap(dashboardNavigation(data));
+     } catch (err) {
+       if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Falha ao carregar o painel");
+     } finally {
+--- a/v2/frontend/src/features/inventory/MovementsPage.tsx
++++ b/v2/frontend/src/features/inventory/MovementsPage.tsx
+@@ -53,14 +53,14 @@
+             productId = asNum;
+           } else {
+             const res = await fetch(
+-              `/api/products?q=${encodeURIComponent(raw)}&limit=2`,
++              `/api/reporting/stock-explorer?q=${encodeURIComponent(raw)}&status=all&position_ids=DOMESTIC&position_ids=BONDED&position_ids=QUARANTINE&limit=2`,
+               { credentials: "include" },
+             );
+             if (!res.ok) throw new Error("Não foi possível identificar o produto. Tente novamente; o filtro foi preservado.");
+             if (res.ok) {
+-              const list = (await res.json()) as Array<{ id: number }>;
+-              if (list.length > 1) throw new Error("Mais de um produto encontrado. Refine a busca ou informe o código do produto.");
+-              if (list[0]) productId = list[0].id;
++              const found = (await res.json()) as { total:number; rows:Array<{ product_id:number }> };
++              if (found.total > 1) throw new Error("Mais de um produto encontrado. Refine a busca ou informe o código do produto.");
++              if (found.rows[0]) productId = found.rows[0].product_id;
+               else {
+                 if (!cancelled) {
+                   setRows([]);
+@@ -111,9 +111,9 @@
+   return (
+     <div data-testid="inventory-movements-page"><ProductAreaNav user={user}/>
+       <Link to={stockReturn}>← Voltar ao estoque</Link>
+-      <ContextBreadcrumb items={[{ label: "Produtos" }, { label: "Movimentações" }]} />
++      <ContextBreadcrumb items={[{ label: "Produtos" }, { label: "Histórico de estoque" }]} />
+       <PageHeader
+-        title="Movimentações"
++        title="Histórico de estoque"
+         help="Histórico de entradas, transferências de situação e ajustes do estoque."
+       />
+       <SectionCard title="Filtros">
+@@ -149,7 +149,7 @@
+           ) : null}
+         </div>
+       </SectionCard>
+-      <SectionCard title="Movimentações">
++      <SectionCard title="Histórico de estoque">
+         {error ? <p className="muted" role="alert">{error}</p> : null}
+         {rows.length === 0 ? (
+           <EmptyState
+--- a/v2/frontend/src/features/inventory/ReceivingPage.tsx
++++ b/v2/frontend/src/features/inventory/ReceivingPage.tsx
+@@ -40,10 +40,10 @@
+    const value=await response.json() as Result;setResult(value);sessionStorage.removeItem(key);setPending(null);setUncertain(false);setQuantity(String(Math.max(0,Number(row?.pending_qty||0)-Number(value.quantity))));queue.retry();detail.retry();requestAnimationFrame(()=>document.getElementById('receipt-result')?.focus());
+   }catch(e){setError(e instanceof TypeError?'Resposta não recebida. Tente confirmar novamente; a operação não será duplicada.':(e as Error).message);}finally{flight.current=false;setBusy(false);}
+  }
+- if(!allowed)return <section><h1>Recebimentos</h1><p role="alert">Seu acesso não permite consultar recebimentos.</p></section>;
++ if(!allowed)return <section><h1>Receber mercadorias</h1><p role="alert">Seu acesso não permite consultar recebimentos.</p></section>;
+  const loadingError=(r:{busy:boolean;error:string|null;retry:()=>void})=>r.busy?<p role="status">Carregando…</p>:r.error?<p role="alert">{r.error} <button onClick={r.retry}>Tentar novamente</button></p>:null;
+  return <section className="receiving-page" data-testid="receiving-page"><ProductAreaNav user={user}/>
+-  <header><div className="page-title-row"><h1 ref={heading} tabIndex={-1}>Recebimentos</h1><HelpTip label="Recebimentos">Registre a entrada da mercadoria liberada. Para consultar o que já está disponível, abra Estoque atual.</HelpTip></div><div>{itemId>0&&<button disabled={busy||uncertain} onClick={back}>← Voltar à fila</button>}<Link to="/inventory/positions">Estoque atual</Link></div></header>
++  <header><div className="page-title-row"><h1 ref={heading} tabIndex={-1}>Receber mercadorias</h1><HelpTip label="Receber mercadorias">Registre a entrada da mercadoria liberada. Para consultar o que já está disponível, abra Estoque atual.</HelpTip></div><div>{itemId>0&&<button disabled={busy||uncertain} onClick={back}>← Voltar à fila</button>}<Link to="/inventory/positions">Estoque atual</Link></div></header>
+   {error&&<p className="receiving-error" role="alert">{error}</p>}
+   {result&&<div className="receiving-result" id="receipt-result" tabIndex={-1} role="status"><strong>Recebimento #{result.receipt_id} {result.status==='CONFIRMED'?'confirmado':'revertido'} · {number(result.quantity)} {row?.unit}</strong><span> {new Date(result.received_at!).toLocaleString('pt-BR')} · {result.location_code}</span><div><Link to={`/inventory/sku/${result.product_id}`}>Ver saldo</Link><Link to={`/inventory/movements?product_id=${result.product_id}`}>Ver histórico</Link></div></div>}
+   {pending?<section className="receiving-review"><h2 ref={reviewHeading} tabIndex={-1}>Conferir recebimento</h2><p><strong>{pending.label}</strong></p><dl><div><dt>Quantidade</dt><dd>{number(pending.body.quantity)} {pending.body.unit}</dd></div><div><dt>Destino</dt><dd>{pending.destination}</dd></div></dl>{uncertain&&<p>Confirmação em verificação. Repetir usa a mesma operação.</p>}<div className="receiving-actions"><button className="receiving-primary" disabled={busy||!writable} onClick={()=>void confirm()}>{busy?'Confirmando…':'Confirmar recebimento'}</button><button disabled={busy||uncertain} onClick={()=>{setPending(null);setError('');requestAnimationFrame(()=>document.getElementById('receipt-quantity')?.focus());}}>Alterar</button></div></section>:itemId>0?<>
+--- a/v2/frontend/src/features/inventory/SkuPositionPage.tsx
++++ b/v2/frontend/src/features/inventory/SkuPositionPage.tsx
+@@ -40,12 +40,12 @@
+         const p = await getSkuPosition(id);
+         if (!cancelled) setPos(p);
+         try {
+-          const res = await fetch(`/api/products/${id}`, { credentials: "include" });
++          const res = await fetch(`/api/reporting/stock-explorer?product_id=${id}&status=all&limit=1`, { credentials: "include" });
+           if (res.ok) {
+-            const prod = (await res.json()) as { sku?: string; description?: string };
++            const prod = ((await res.json()) as { rows:Array<{ sku:string; name:string }> }).rows[0];
+             if (!cancelled) {
+               setProductLabel(
+-                [prod.sku, prod.description].filter(Boolean).join(" — ") || null,
++                [prod?.sku, prod?.name].filter(Boolean).join(" — ") || null,
+               );
+             }
+           }
+@@ -114,8 +114,8 @@
+     <div data-testid="sku-position-page">
+       <ContextBreadcrumb
+         items={[
+-          { label: "Aduana" },
+-          { label: "Estoque", to: "/inventory/movements" },
++          { label: "Produtos" },
++          { label: "Estoque atual", to: "/inventory/positions" },
+           { label: productLabel ?? `Produto ${id}` },
+         ]}
+       />
+@@ -173,7 +173,7 @@
+         )}
+       </SectionCard>
+       <p>
+-        <Link to="/inventory/movements">Ver movimentações</Link>
++        <Link to={`/inventory/movements?product_id=${id}`}>Histórico de estoque</Link>
+       </p>
+     </div>
+   );
+--- a/v2/frontend/src/features/inventory/StockExplorer.tsx
++++ b/v2/frontend/src/features/inventory/StockExplorer.tsx
+@@ -34,7 +34,7 @@
+   const explore=putConfig(new URLSearchParams(),"",c).toString();
+   return <section className={`stock-explorer ${compact?"stock-explorer--compact":"experience-page"}`} data-testid={compact?"executive-stock":"stock-positions"}>
+     {!compact&&<ProductAreaNav user={user}/>}
+-    <header className="stock-title"><div>{compact?<h2>Estoque atual</h2>:<h1>Estoque atual</h1>}</div><div className="stock-title-actions"><label className="sr-only" htmlFor={prefix+"stock-view"}>Visão de estoque</label><select id={prefix+"stock-view"} aria-label="Visão de estoque" value={selectedView?.id||""} onChange={e=>{setDeleteOpen(false);setSaveOpen(false);const v=views.data?.find(x=>x.id===Number(e.target.value));const next=putConfig(new URLSearchParams(params),prefix,v?.config||base);if(v)next.set(prefix+"saved_view",String(v.id));else next.delete(prefix+"saved_view");setParams(next);}}><option value="">Consulta atual</option>{views.data?.map(v=><option key={v.id} value={v.id}>{v.name}{v.is_default?" ★":""}</option>)}</select><button id={prefix+"save-stock-view"} onClick={()=>{setName(selectedView?.name||"");setAsDefault(selectedView?.is_default||false);setDeleteOpen(false);setSaveOpen(v=>!v);}}>Salvar visão</button><button className="stock-delete-view" disabled={!selectedView||saving} title={selectedView?`Excluir ${selectedView.name}`:"Selecione uma visão salva para excluir"} onClick={()=>{setSaveOpen(false);setDeleteOpen(v=>!v);}}>Excluir visão</button>{compact?<Link to={`/inventory/positions?${explore}`}>Explorar estoque →</Link>:<Link to="/inventory/movements">Movimentos</Link>}</div></header>
++    <header className="stock-title"><div>{compact?<h2>Estoque atual</h2>:<h1>Estoque atual</h1>}</div><div className="stock-title-actions"><label className="sr-only" htmlFor={prefix+"stock-view"}>Visão de estoque</label><select id={prefix+"stock-view"} aria-label="Visão de estoque" value={selectedView?.id||""} onChange={e=>{setDeleteOpen(false);setSaveOpen(false);const v=views.data?.find(x=>x.id===Number(e.target.value));const next=putConfig(new URLSearchParams(params),prefix,v?.config||base);if(v)next.set(prefix+"saved_view",String(v.id));else next.delete(prefix+"saved_view");setParams(next);}}><option value="">Consulta atual</option>{views.data?.map(v=><option key={v.id} value={v.id}>{v.name}{v.is_default?" ★":""}</option>)}</select><button id={prefix+"save-stock-view"} onClick={()=>{setName(selectedView?.name||"");setAsDefault(selectedView?.is_default||false);setDeleteOpen(false);setSaveOpen(v=>!v);}}>Salvar visão</button><button className="stock-delete-view" disabled={!selectedView||saving} title={selectedView?`Excluir ${selectedView.name}`:"Selecione uma visão salva para excluir"} onClick={()=>{setSaveOpen(false);setDeleteOpen(v=>!v);}}>Excluir visão</button>{compact?<Link to={`/inventory/positions?${explore}`}>Explorar estoque →</Link>:<Link to="/inventory/movements">Histórico de estoque</Link>}</div></header>
+     {saveOpen&&<form className="stock-view-editor" onSubmit={e=>{e.preventDefault();void save(!!selectedView&&selectedView.name===name);}} onKeyDown={e=>{if(e.key==="Escape"){setSaveOpen(false);document.getElementById(prefix+"save-stock-view")?.focus();}}}><label>Nome da visão<input autoFocus required maxLength={128} value={name} onChange={e=>setName(e.target.value)}/></label><label><input type="checkbox" checked={asDefault} onChange={e=>setAsDefault(e.target.checked)}/> Usar como meu padrão</label><button type="submit" className="primary" disabled={saving}>{saving?"Salvando…":"Salvar"}</button><button type="button" onClick={()=>{setSaveOpen(false);document.getElementById(prefix+"save-stock-view")?.focus();}}>Cancelar</button></form>}
+     {deleteOpen&&selectedView&&<div className="stock-view-editor stock-view-delete" role="alertdialog" aria-label="Excluir visão salva"><div><strong>Excluir a visão “{selectedView.name}”?</strong><p>Apenas esta configuração pessoal será excluída. Produtos e saldos são preservados.</p></div><button className="stock-danger" disabled={saving} onClick={()=>void removeView()}>{saving?"Excluindo…":"Confirmar exclusão"}</button><button disabled={saving} onClick={()=>setDeleteOpen(false)}>Cancelar</button></div>}
+     {message&&<p role="status">{message}</p>}{views.error&&<p role="alert">Visões indisponíveis. <button onClick={views.retry}>Tentar novamente</button></p>}
+--- a/v2/frontend/src/features/inventory/StockPositionsPage.tsx
++++ b/v2/frontend/src/features/inventory/StockPositionsPage.tsx
+@@ -60,7 +60,7 @@
+     {row && !section && !docId && <>
+       <dl className="experience-stats">{Object.entries(regimes).map(([k,label])=><div key={k}><dt>{label}</dt><dd>{number(row.quantities[k as keyof typeof regimes])} <small>{row.unit||"unidade não informada"}</small></dd></div>)}</dl>
+       {row.balances.some(b=>Number(b.qty)!==0) && <p className="muted">{row.balances.filter(b=>Number(b.qty)!==0).map(b=>`${b.name} · ${number(b.qty)} ${row.unit||""}`).join(" / ")}</p>}
+-      <Link className="experience-link" to={`/inventory/movements?product_id=${productId}`} state={{stockReturn:location.pathname+location.search}}>Ver movimentos</Link>
++      <Link className="experience-link" to={`/inventory/movements?product_id=${productId}`} state={{stockReturn:location.pathname+location.search}}>Histórico de estoque</Link>
+       <StockValueDetail productId={productId} user={user} priceListId={Number(params.get("price_list_id"))||undefined} onOrigin={(caseId,versionId)=>go({case:String(caseId),version:String(versionId)})}/>
+       <section className="experience-cost"><div className="experience-cost-header"><h2>Custo por compra</h2>{selectedCase && <button onClick={()=>go({case:null,version:null})}>Escolher outra compra</button>}</div>
+         {!can("costing:read") ? <p className="muted">Custo não disponível para este acesso. A posição de estoque permanece disponível.</p> : <>{state(sources)}
+--- a/v2/frontend/src/features/shipments/LogisticsProvidersPage.tsx
++++ b/v2/frontend/src/features/shipments/LogisticsProvidersPage.tsx
+@@ -86,8 +86,8 @@
+     <section className="panel dense" data-testid="logistics-providers-page">
+       <ContextBreadcrumb
+         items={[
+-          { label: "Logística", to: shipmentsReturn },
+-          { label: "Prestadores" },
++          { label: "Importações", to: shipmentsReturn },
++          { label: "Prestadores logísticos" },
+         ]}
+       />
+       <PageHeader
+--- a/v2/frontend/src/features/treasury/FxNavigation.test.tsx
++++ b/v2/frontend/src/features/treasury/FxNavigation.test.tsx
+@@ -0,0 +1,31 @@
++import { cleanup, fireEvent, render, screen } from "@testing-library/react";
++import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
++import { afterEach, expect, it, vi } from "vitest";
++import { PayablesListPage } from "../billing/InvoicesListPage";
++import { PayableFxPage } from "./PayableFxPage";
++import { getPayable } from "../billing/billingApi";
++vi.mock("../billing/billingApi",()=>({getPayable:vi.fn(),listInvoices:vi.fn()}));
++vi.mock("./FxPanels",()=>({PayableFxPanel:()=> <div>FX permitido</div>}));
++const actor={id:11,name:"FX",email:"fx@example.com",role:"fx-only",permissions:["treasury:fx_read"]};
++afterEach(()=>{cleanup();vi.restoreAllMocks();sessionStorage.clear();});
++function Location(){return <p data-testid="location">{useLocation().pathname}</p>;}
++it("FX-only enters the existing obligation route without loading the AP list",()=>{
++ const fetchSpy=vi.spyOn(globalThis,"fetch");
++ render(<MemoryRouter initialEntries={["/payables?purpose=fx"]}><PayablesListPage user={actor}/><Location/></MemoryRouter>);
++ expect(fetchSpy).not.toHaveBeenCalled();
++ expect(screen.getByRole("button",{name:"Abrir câmbio"})).toBeDisabled();
++ fireEvent.change(screen.getByLabelText("Número da obrigação"),{target:{value:"2"}});
++ fireEvent.click(screen.getByRole("button",{name:"Abrir câmbio"}));
++ expect(screen.getByTestId("location")).toHaveTextContent("/payables/2/fx");
++});
++it("FX-only does not request billing context or display its loading state",()=>{
++ render(<MemoryRouter initialEntries={["/payables/2/fx"]}><Routes><Route path="/payables/:payableId/fx" element={<PayableFxPage user={actor}/>}/></Routes></MemoryRouter>);
++ expect(getPayable).not.toHaveBeenCalled();expect(screen.getByText("FX permitido")).toBeVisible();
++ expect(screen.queryByText("Carregando obrigação…")).toBeNull();
++ expect(screen.getByRole("link",{name:"Voltar à fila"})).toHaveAttribute("href","/payables?purpose=fx");
++});
++it("a user without billing or FX cannot enter the lookup or load the queue",()=>{
++ const fetchSpy=vi.spyOn(globalThis,"fetch");
++ render(<MemoryRouter initialEntries={["/payables?purpose=fx"]}><PayablesListPage user={{...actor,permissions:[]}}/></MemoryRouter>);
++ expect(screen.queryByLabelText("Número da obrigação")).toBeNull();expect(fetchSpy).not.toHaveBeenCalled();
++});
+--- a/v2/frontend/src/features/treasury/FxObligationAccess.tsx
++++ b/v2/frontend/src/features/treasury/FxObligationAccess.tsx
+@@ -0,0 +1,20 @@
++import { useState } from "react";
++import { useNavigate } from "react-router-dom";
++import { PageHeader } from "../../ui";
++
++/** An FX permission does not authorize listing the accounts payable queue. */
++export function FxObligationAccess() {
++  const [id,setId]=useState("");
++  const navigate=useNavigate();
++  const valid=/^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id));
++  return <section className="panel dense">
++    <PageHeader title="Câmbio por obrigação" />
++    <form onSubmit={event=>{event.preventDefault();if(valid)navigate(`/payables/${id}/fx`);}}>
++      <label htmlFor="fx-obligation-id">Número da obrigação</label>
++      <div className="stack-row">
++        <input id="fx-obligation-id" inputMode="numeric" value={id} onChange={event=>setId(event.target.value.trim())} />
++        <button type="submit" className="ui-button" disabled={!valid}>Abrir câmbio</button>
++      </div>
++    </form>
++  </section>;
++}
+--- a/v2/frontend/src/features/treasury/PayableFxPage.tsx
++++ b/v2/frontend/src/features/treasury/PayableFxPage.tsx
+@@ -26,13 +26,15 @@
+   const [row, setRow] = useState<Payable | null>(null);
+   const [error, setError] = useState<string | null>(null);
+   const [fxTick, setFxTick] = useState(0);
+-  const payablesReturn = buildReturnTo("/payables");
++  const canBilling = user.role === "admin" || user.permissions.includes("billing:read");
++  const payablesReturn = canBilling ? buildReturnTo("/payables") : "/payables?purpose=fx";
+ 
+   useEffect(() => {
+     if (!Number.isFinite(id) || id <= 0) {
+       setError("Obrigação inválida");
+       return;
+     }
++    if (!canBilling) return;
+     let cancelled = false;
+     void getPayable(id)
+       .then((p) => {
+@@ -44,7 +46,7 @@
+     return () => {
+       cancelled = true;
+     };
+-  }, [id]);
++  }, [id, canBilling]);
+ 
+   if (!canReadFx(user)) return <ErrorState message="Sem permissão de câmbio" />;
+ 
+@@ -57,7 +59,7 @@
+       <ContextBreadcrumb
+         items={[
+           { label: "Financeiro", to: payablesReturn },
+-          { label: "Contas a pagar", to: payablesReturn },
++          { label: canBilling ? "Contas a pagar" : "Câmbio por obrigação", to: payablesReturn },
+           { label: titleLabel },
+         ]}
+       />
+@@ -71,7 +73,7 @@
+         }
+       />
+       {error ? <ErrorState message={error} /> : null}
+-      {!row && !error ? <LoadingState message="Carregando obrigação…" /> : null}
++      {canBilling && !row && !error ? <LoadingState message="Carregando obrigação…" /> : null}
+       {row ? (
+         <div data-testid="fx-payable-context">
+           <SummaryGrid
+--- a/v2/frontend/src/app-shell/AppShell.nav.test.tsx
++++ b/v2/frontend/src/app-shell/AppShell.nav.test.tsx
+@@ -1,50 +0,0 @@
+-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+-import { MemoryRouter } from "react-router-dom";
+-import { afterEach, describe, expect, it, vi } from "vitest";
+-import { AppShell } from "./AppShell";
+-vi.mock("./RuntimeBadge",()=>({RuntimeBadge:()=>null}));
+-vi.mock("../features/treasury/FxPanels",()=>({FxQuoteStrip:()=>null}));
+-const admin={id:1,email:"admin@example.com",name:"Admin",role:"admin",permissions:[] as string[]};
+-afterEach(()=>{cleanup();localStorage.clear();});
+-const destinations=[
+-  ["Visão geral","/dashboard"],["Estoque atual","/inventory/positions"],["Catálogo e preços","/catalog/products"],
+-  ["Contas a pagar","/payables"],["Operações de importação","/customs"],["Pedidos","/orders"],["Faturas","/invoices"],
+-  ["Conferir documentos","/ingestion"],["Pagamentos","/payments"],["Câmbio por obrigação","/payables?purpose=fx"],
+-  ["Custos de importação","/costing"],["Embarques","/shipments"],["Movimentações","/inventory/movements"],
+-  ["Fornecedores","/catalog/suppliers"],["Prestadores logísticos","/logistics-providers"],["Usuários e acessos","/admin/users"],
+-];
+-describe("experience navigation",()=>{
+-  it("groups destinations by executive area without duplicate links",()=>{
+-    render(<MemoryRouter><AppShell user={admin} onLogout={()=>{}}/></MemoryRouter>);
+-    const nav=within(screen.getByRole("navigation",{name:"Módulos"}));
+-    for(const [name,href] of destinations){const a=nav.getByRole("link",{name});expect(a).toHaveAttribute("href",href);expect(a.querySelector("svg")).toBeTruthy();}
+-    expect(nav.getAllByRole("link")[1]).toHaveAttribute("href","/catalog/products");
+-    expect(screen.getByRole("link",{name:"Estoque atual"}).closest("details")?.querySelector("summary")?.textContent).toBe("Produtos");
+-    expect(screen.getByRole("link",{name:"Contas a pagar"}).closest("details")?.querySelector("summary")?.textContent).toBe("Financeiro");
+-  });
+-  it("does not give inventory readers access to financial, catalog or admin destinations",()=>{
+-    render(<MemoryRouter><AppShell user={{...admin,role:"operacao",permissions:["inventory:read"]}} onLogout={()=>{}}/></MemoryRouter>);
+-    const links=within(screen.getByRole("navigation",{name:"Módulos"})).getAllByRole("link");
+-    expect(links.map(l=>l.getAttribute("href"))).toEqual(["/inventory/positions","/inventory/receiving","/inventory/movements"]);
+-  });
+-  it("financial reader without reporting keeps payments and FX",()=>{
+-    render(<MemoryRouter><AppShell user={{...admin,role:"financeiro",permissions:["billing:read","treasury:read","treasury:fx_read"]}} onLogout={()=>{}}/></MemoryRouter>);
+-    expect(screen.getByRole("link",{name:"Câmbio por obrigação"})).toBeInTheDocument();
+-    expect(screen.getByRole("link",{name:"Contas a pagar"})).toBeInTheDocument();
+-    expect(screen.queryByRole("link",{name:"Visão geral"})).toBeNull();
+-  });
+-  it("stock role can receive without a misleading financial destination",()=>{
+-    render(<MemoryRouter><AppShell user={{...admin,role:"estoque",permissions:["inventory:read","inventory:write","reporting:read","documents:read","audit:read"]}} onLogout={()=>{}}/></MemoryRouter>);
+-    expect(screen.getByRole("link",{name:"Recebimentos"})).toHaveAttribute("href","/inventory/receiving");
+-    expect(screen.queryByRole("link",{name:"Contas a pagar"})).toBeNull();
+-    expect(screen.queryByRole("link",{name:"Operações"})).toBeNull();
+-  });
+-  it("collapse persists without removing destinations or their accessible names",()=>{
+-    render(<MemoryRouter><AppShell user={admin} onLogout={()=>{}}/></MemoryRouter>);
+-    fireEvent.click(screen.getByRole("button",{name:"Recolher navegação"}));
+-    expect(localStorage.getItem("epic.navigation.expanded")).toBe("false");
+-    expect(screen.getByRole("link",{name:"Estoque atual"})).toHaveAttribute("title","Estoque atual");
+-    fireEvent.click(screen.getByRole("button",{name:"Expandir navegação"}));
+-    expect(screen.getByTestId("shell-rail-toggle")).toHaveAttribute("aria-expanded","true");
+-  });
+-});
+--- a/ROADMAP_V2_EPIC.md
++++ b/ROADMAP_V2_EPIC.md
+@@ -9,8 +9,8 @@
+ | Campo | Valor |
+ |---|---|
+ | Atualizado em | 2026-11-18 |
+-| Última entrega | Lista das 17 opções do menu, com funções, diferenças e acessos repetidos, disponível para avaliação |
+-| Próxima entrega | Avaliar os nomes e a organização do menu a partir da lista; vídeo e sistema continuam disponíveis para apresentação |
++| Última entrega | Menu consolidado em cinco áreas, com acesso completo às rotinas e validação de perfis e percursos |
++| Próxima entrega | Usar a navegação consolidada; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
+ | Detalhe técnico | Parte B, abaixo |
+ 
+ ## A.1 Quanto está pronto
+@@ -113,7 +113,7 @@
+ 
+ | Item | Valor |
+ |---|---|
+-| Versão | **0.5.163** — inventário do menu **DONE**, avaliação de nomenclatura/organização **PENDENTE**: 17 destinos conferidos na UI e no código; funções, diferenças e redundâncias em `EPIC/MENU LATERAL - FUNCOES E DIFERENCAS.md`. Nenhuma alteração de interface/dados/release (`executive-20261117.4`, 8082/5458/schema 034). Vídeo executivo 5min00s e tutorial completo preservados. Gates de produto/vídeo anteriores permanecem históricos. Barras/denominadores inalterados |
++| Versão | **0.5.164** — consolidação da navegação **DONE**: cinco áreas + duas entradas secundárias; abas locais, fallback por permissão, câmbio contextual e filtros de indicadores preservados. Release `executive-20261118.1`, 8082/5458/schema 034. Gates: 255 testes frontend, 4 E2E existentes, 29 verificações de navegação/perfis, 10 percursos de negócio e 20 verificações na release. Escritas somente no clone de teste 8102/5460. Domínio, backend e denominadores inalterados |
+ | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
+ | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
+ | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
+@@ -130,7 +130,7 @@
+ | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
+ | Alembic head | código/release **034**; demo ativa `epic_v2_test`/5458 = **034**; labs5453/5454/5456 isolados. Anterior5451 preservada. Ambientes operacionais não migrados nem resetados nesta rodada |
+ 
+-**Próxima ação:** usuário avaliar o inventário do menu e as distinções entre transporte, entrada e histórico de estoque, além dos acessos repetidos. Não há alteração de navegação nesta entrega. Vídeo executivo, tutorial e executável permanecem disponíveis; conferência física, regras econômicas, I-01 histórico/offsite e aceites globais continuam pendentes. Handoff da apresentação registra o inventário e o histórico anterior.
++**Próxima ação:** usar a navegação consolidada e revisar o handoff entregue ao advisor. Política econômica para operação, conferência física e I-01/offsite seguem fora deste escopo; vídeos existentes preservados, ainda exibem a navegação anterior.
+ 
+ Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
+ 
+@@ -138,7 +138,7 @@
+ 
+ Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
+ 
+-Revisão atual e evidências: [`APRESENTACAO_ADVISOR_HANDOFF.md`](docs/v2/etapa-apresentacao-20261117/APRESENTACAO_ADVISOR_HANDOFF.md). A [auditoria anterior](docs/v2/etapa-revisao-experiencia/AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md) permanece histórica, inclusive falhas e cobertura daquela rodada. `EPIC/Iniciar EPIC.exe` liga banco 5458 e release8082, verifica a prontidão e abre o navegador; ícone derivado do PNG solicitado; código em `scripts/launcher/`, uso no [README](README.md#abrir-o-sistema-com-um-duplo-clique-windows). Dados da demo anterior copiados antes dos ensaios; nenhuma mutação dos testes foi promovida.
++Consolidação vigente: [`HANDOFF_CONSOLIDACAO_NAVEGACAO.md`](docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md). Mestre §13.5 e Blueprint UI/UX 3.14 descrevem a nova navegação. Histórico da apresentação em [`APRESENTACAO_ADVISOR_HANDOFF.md`](docs/v2/etapa-apresentacao-20261117/APRESENTACAO_ADVISOR_HANDOFF.md), preservado. `EPIC/Iniciar EPIC.exe` continua iniciando a release local 8082 e banco 5458; nenhuma escrita do ensaio de navegação foi promovida.
+ 
+ Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
+ 
+@@ -238,9 +238,9 @@
+ | E7-ARRIVAL-GATE | Customs | Nacionalização hoje **não** exige Shipment ARRIVED. Campanha demonstra chegada; **não** implementa a trava. Avaliar se chegada física/documental deve ser precondição |
+ | MINOR_BACKLOG UI Horizon A | UI sob pedido | Aceite fechado |
+ | Backlog J#5 residual (seed aduana/estoque; stubs SkuPosition) | Identity / Reporting | [`UI_ACCEPTANCE_J5.md`](docs/v2/etapa-j5/UI_ACCEPTANCE_J5.md) |
++| Indicadores com recorte sem filtro equivalente na fila | Reporting / UI futura | Alguns agregados de moedas, embarques em curso e custos publicados abrem filas mais amplas; não criar endpoint/métrica nesta consolidação. Limites no handoff; AP vencidas validada por conjunto e valor |
+ | SCR-028 hub FX | UI futuro | Sem rota `/fx` |
+ | Horizon B1 | Externo | J#5-REC DONE; resto NOT_STARTED |
+-
+ ## B.7 Histórico recente
+ 
+ | Rev | Resumo | Evidência |
+--- a/docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md
++++ b/docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md
+@@ -2,8 +2,8 @@
+ 
+ ```text
+ Status: referência de design (não canônico de domínio)
+-Versão: 3.13
+-Data: 2026-10-23
++Versão: 3.14
++Data: 2026-11-18
+ Autoridade: consultiva para arquitetura de informação e UX
+ Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
+ Status de implementação das superfícies: consultar o Roadmap
+@@ -15,7 +15,15 @@
+ 
+ **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
+ 
+-### Ajuste local 3.13 — recebimento por Estoque
++### Ajuste local 3.14 — navegação consolidada implementada
++
++Decisão vigente nesta superfície, autorizada na execução de 18/11/2026 e verificada no código/runtime: lateral estável com Visão geral, Produtos, Compras, Importações e Financeiro. Conferir documentos e Usuários e acessos ficam na seção secundária. Cada área abre uma tela existente e apresenta navegação local; não há hub de cartões nem repetição de destinos na lateral.
++
++Produtos reúne Estoque atual, Catálogo e preços e Histórico de estoque. Compras reúne Pedidos, Faturas e Fornecedores. Importações reúne Operações, Embarques, Receber mercadorias, Custo desembarcado e Prestadores logísticos. O recebimento atual usa exclusivamente liberações da importação; o custo é um trabalho por processo com resultado por produto, consultável também no detalhe do estoque. Financeiro reúne Contas a pagar e Pagamentos realizados; câmbio permanece na obrigação. Quando apenas FX é permitido, Financeiro conserva a URL existente `?purpose=fx` e permite informar a obrigação, sem carregar a lista de Billing.
++
++A área aparece quando ao menos uma seção é permitida; sua entrada é a primeira seção autorizada, sem exigir a permissão da entrada preferencial. URLs, parâmetros, regras de escrita e faixa de cotação permanecem. Na lateral recolhida, ícone e legenda continuam visíveis. Referência de implementação, matriz e limites: [handoff da consolidação](../etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md). Outras seções deste blueprint mantêm sua classificação histórica/candidata e não redefinem este mapa.
++
++### Ajuste local 3.13 — recebimento por Estoque (histórico; localização substituída por 3.14)
+ 
+ Recebimentos fica junto de Estoque na navegação, sem depender da página aduaneira. Fila compacta com busca e situação; produto/unidade, origem e liberado/recebido/pendente. Uma área ativa para quantidade/destino → conferência → resultado com saldo/histórico. Escape devolve foco; retorno preserva consulta. Resposta incerta mantém a confirmação identificada para retry, inclusive após recarga, sem gerar nova operação. Só leitura não oferece confirmar; bloqueio explica a próxima ação sem expor dados financeiros. Baseline r2, densidade, preços e oito etapas do tour permanecem.
+ 
+--- a/v2/frontend/e2e/rbac-roles.spec.ts
++++ b/v2/frontend/e2e/rbac-roles.spec.ts
+@@ -10,15 +10,15 @@
+   test("comprador vê Pedidos e não vê Usuários", async ({ page }) => {
+     await loginAs(page, "comprador@epic.com.br", PASSWORD);
+     const nav = page.getByRole("navigation", { name: /módulos/i });
+-    await expect(nav.getByRole("link", { name: "Pedidos" })).toBeVisible({ timeout: 15_000 });
++    await expect(nav.getByRole("link", { name: "Compras" })).toBeVisible({ timeout: 15_000 });
+     await expect(nav.getByRole("link", { name: "Usuários e acessos", exact: true })).toHaveCount(0);
+   });
+ 
+   test("aduana vê Processos; não vê Estoque nem publicar custo", async ({ page }) => {
+     await loginAs(page, "aduana@epic.com.br", PASSWORD);
+     const nav = page.getByRole("navigation", { name: /módulos/i });
+-    await expect(nav.getByRole("link", { name: "Operações", exact: true })).toBeVisible({ timeout: 15_000 });
+-    await expect(nav.getByRole("link", { name: "Estoque atual", exact: true })).toHaveCount(0);
++    await expect(nav.getByRole("link", { name: "Importações", exact: true })).toBeVisible({ timeout: 15_000 });
++    await expect(nav.getByRole("link", { name: "Produtos", exact: true })).toHaveCount(0);
+     await page.goto("/costing");
+     await expect(page.getByTestId("costing-publish")).toHaveCount(0);
+     await expect(page.getByTestId("costing-publish-partial")).toHaveCount(0);
+@@ -27,7 +27,7 @@
+   test("estoque vê Estoque e não vê Pedidos", async ({ page }) => {
+     await loginAs(page, "estoque@epic.com.br", PASSWORD);
+     const nav = page.getByRole("navigation", { name: /módulos/i });
+-    await expect(nav.getByRole("link", { name: "Estoque atual", exact: true })).toBeVisible({ timeout: 15_000 });
+-    await expect(nav.getByRole("link", { name: "Pedidos" })).toHaveCount(0);
++    await expect(nav.getByRole("link", { name: "Produtos", exact: true })).toBeVisible({ timeout: 15_000 });
++    await expect(nav.getByRole("link", { name: "Compras" })).toHaveCount(0);
+   });
+ });
+--- a/v2/frontend/e2e/i9-0-shell.spec.ts
++++ b/v2/frontend/e2e/i9-0-shell.spec.ts
+@@ -3,20 +3,20 @@
+ 
+ /**
+  * I9-0 shell TARGET — navegação Compras/Financeiro.
+- * Roda apenas via npm run e2e (epic_v2_test @ 8082).
++ * Executar somente com backend/banco de teste verificados (porta não prova isolamento).
+  */
+ test("I9-0 App Shell nav TARGET", async ({ page }) => {
+   await loginAs(page);
+ 
+   const nav = page.getByRole("navigation", { name: /módulos/i });
+-  await expect(nav.getByText(/^Compras e documentos$/i)).toBeVisible({ timeout: 15000 });
++  await expect(nav.getByText(/^Compras$/i)).toBeVisible({ timeout: 15000 });
+   await expect(nav.getByText(/^Financeiro$/i)).toBeVisible();
+ 
+-  await expect(nav.getByRole("link", { name: /^Pedidos$/i })).toBeVisible();
++  await expect(nav.getByRole("link", { name: /^Compras$/i })).toBeVisible();
+   await expect(nav.getByRole("link", { name: /^Visão geral$/i })).toBeVisible();
+-  await expect(nav.getByRole("link", { name: /^Faturas$/i })).toBeVisible();
+-  await expect(nav.getByRole("link", { name: /contas a pagar/i })).toBeVisible();
+-  await expect(nav.getByRole("link", { name: /^Pagamentos$/i })).toBeVisible();
++  await expect(nav.getByRole("link", { name: /^Produtos$/i })).toBeVisible();
++  await expect(nav.getByRole("link", { name: /^Importações$/i })).toBeVisible();
++  await expect(nav.getByRole("link", { name: /^Financeiro$/i })).toBeVisible();
+ 
+   // Novo pedido NÃO é item de sidebar — CTA contextual na fila
+   await expect(nav.getByRole("link", { name: /novo pedido/i })).toHaveCount(0);
+@@ -24,19 +24,19 @@
+   await expect(nav.locator('a[href="/fx"]')).toHaveCount(0);
+ 
+   await expect(page).toHaveURL(/\/dashboard/);
+-  await nav.getByRole("link", { name: /^Pedidos$/i }).click();
++  await nav.getByRole("link", { name: /^Compras$/i }).click();
+   await expect(page.getByTestId("orders-new-cta")).toBeVisible();
+ 
+-  await nav.getByRole("link", { name: /^Faturas$/i }).click();
++  await page.locator(".area-navigation").getByRole("link", { name: /^Faturas$/i }).click();
+   await expect(page).toHaveURL(/\/invoices/);
+ 
+-  await nav.getByRole("link", { name: /contas a pagar/i }).click();
++  await nav.getByRole("link", { name: /^Financeiro$/i }).click();
+   await expect(page).toHaveURL(/\/payables/);
+ 
+-  await nav.getByRole("link", { name: /^Pagamentos$/i }).click();
++  await page.locator(".area-navigation").getByRole("link", { name: /^Pagamentos realizados$/i }).click();
+   await expect(page).toHaveURL(/\/payments/);
+ 
+   await expandNavigation(page);
+-  await nav.getByRole("link", { name: /^Pedidos$/i }).click();
++  await nav.getByRole("link", { name: /^Compras$/i }).click();
+   await expect(page).toHaveURL(/\/orders/);
+ });
+--- a/v2/frontend/e2e/helpers/orderCreate.ts
++++ b/v2/frontend/e2e/helpers/orderCreate.ts
+@@ -1,7 +1,7 @@
+ import { expect, type Locator, type Page } from "@playwright/test";
+ 
+ /** Label atual do menu Financeiro. */
+-export const PAYMENTS_NAV = /^Pagamentos$/i;
++export const PAYMENTS_NAV = /^Pagamentos realizados$/i;
+ 
+ /** Login operacional de ensaio (epic_v2_test). Home do admin = Painel. */
+ export async function loginAs(
+@@ -20,11 +20,10 @@
+   await expandNavigation(page);
+ }
+ 
+-/** The current rail groups secondary destinations in disclosure controls. */
++/** Expand the current rail without changing the selected area. */
+ export async function expandNavigation(page: Page) {
+-  for (const group of await page.locator('.experience-nav-group').all()) {
+-    if (await group.getAttribute('open') === null) await group.locator('summary').click();
+-  }
++  const toggle = page.getByTestId("shell-rail-toggle");
++  if (await toggle.getAttribute("aria-expanded") === "false") await toggle.click();
+ }
+ 
+ /** Fila de pedidos — não é mais a home pós-login. */
+--- a/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
++++ b/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
+@@ -504,3 +504,10 @@
+ ### 13.4 Inventário do menu para avaliação — 18/11/2026
+ 
+ **DONE no escopo documental; avaliação da navegação PENDENTE.** Usuário relatou dúvida entre Embarques, Recebimentos e Movimentações e pediu um arquivo Markdown com todas as opções e funções. Entregue `EPIC/MENU LATERAL - FUNCOES E DIFERENCAS.md`: 17 destinos, cinco grupos, controles adicionais, finalidade, quando usar e distinções. Conferidos nomes/ordem/títulos na UI da .4 e comportamentos no código. Registrados acessos repetidos (Câmbio/Contas a pagar, recebimento dentro da importação e abas de Produtos) e diferenças entre nomes do menu e títulos. Exemplo ilustrativo separa transporte, liberação, entrada, histórico e saldo. Sem implementação, rebuild, alteração do banco ou nova alegação de aceite global. Evidência em `etapa-apresentacao-20261117/menu-inventory/navigation.json`; usuário avaliar a lista antes de definir outra organização.
++
++
++### 13.5 Consolidação da navegação — 18/11/2026
++
++**DONE no produto; fechamento Git registrado no handoff.** A autorização explícita atual substitui a avaliação pendente de §13.4, sem nova aprovação intermediária. Implementados cinco acessos principais e dois secundários, abas locais por permissão, entrada alternativa para acesso parcial e preservação das rotas. Recebimento e apuração de custo ficam em Importações, confirmados pelos owners e pelas filas reais; consulta de custo por produto permanece no estoque. Câmbio repetido sai da lateral; FX exclusivo usa a obrigação existente sem buscar dados de Billing. Fornecedores e histórico foram corrigidos para não depender de auditoria/catálogo não autorizados. Indicadores de AP conservam datas/moeda/situação; atalhos de fatura e operação preservam o contexto.
++
++255 testes frontend, 4 E2E existentes, 29 checks de navegação/perfis, 10 percursos funcionais e 20 checks finais na release passaram. Recebimento parcial e cadastros fictícios foram exercitados somente no clone verificado `epic_v2_test`/5460; documentos de teste preparados por API e conferidos pela UI. Release `executive-20261118.1` ativa no executável; 294 hashes verificados, backend/banco de demonstração intactos. Capturas em 1366×768 e 1440×900 com lateral expandida/recolhida. Relato único, limites, DOC_DELTA e Git: `docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md`. Vídeos e inventário anteriores ficam históricos; não foram regravados/reeditados.

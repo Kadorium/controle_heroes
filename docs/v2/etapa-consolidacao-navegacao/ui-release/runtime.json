@@ -1,0 +1,19 @@
+{
+  "baseURL": "http://127.0.0.1:8082",
+  "assets": [
+    "/assets/index-CoWSD9W0.js",
+    "/assets/index-Bp2zwKZO.css"
+  ],
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-11-18T22:30:09.287691Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "034",
+    "alembic_expected": "034",
+    "schema_ok": true
+  }
+}

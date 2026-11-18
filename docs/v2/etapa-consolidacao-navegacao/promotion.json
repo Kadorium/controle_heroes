@@ -1,0 +1,9 @@
+{
+  "build": "executive-20261118.1",
+  "files_verified": 294,
+  "backend_changed": false,
+  "database_changed": false,
+  "candidate_index_sha256": "07f1be9d69a86b852f5e8ce79dd63e6edd1bd8539f7c938cea64c1834b13ec9f",
+  "release_index_sha256": "07f1be9d69a86b852f5e8ce79dd63e6edd1bd8539f7c938cea64c1834b13ec9f",
+  "backup": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\backups\\navigation-before-20261118"
+}
