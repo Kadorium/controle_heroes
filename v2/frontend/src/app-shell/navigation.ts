@@ -33,8 +33,8 @@ export const NAVIGATION: NavigationArea[] = [
   ] },
   { id: "imports", label: "Importações", icon: "shipment", sections: [
     { id: "operations", label: "Operações", to: "/customs", permission: "customs:read" },
+    { id: "receiving", label: "Mercadorias a receber", to: "/inventory/receiving", permission: "inventory:read" },
     { id: "shipments", label: "Embarques", to: "/shipments", permission: "logistics:read" },
-    { id: "receiving", label: "Receber mercadorias", to: "/inventory/receiving", permission: "inventory:read" },
     { id: "costing", label: "Custo desembarcado", to: "/costing", permission: "costing:read" },
     { id: "providers", label: "Prestadores logísticos", to: "/logistics-providers", permission: "logistics:read" },
   ] },

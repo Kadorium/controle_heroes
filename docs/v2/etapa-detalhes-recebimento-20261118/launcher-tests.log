@@ -1,0 +1,15 @@
+Verificando o banco de dados...
+Iniciando o banco de dados...
+O sistema j� est� ligado. Conferindo o acesso...
+Aguardando o sistema ficar pronto...
+python : ..........
+No linha:3 caractere:1
++ python -m unittest discover -s scripts/launcher -p 'test_*.py' *> doc ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (..........:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+----------------------------------------------------------------------
+Ran 10 tests in 0.058s
+
+OK

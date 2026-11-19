@@ -1,0 +1,156 @@
+{
+  "base": "http://127.0.0.1:8082",
+  "build": "executive-20261118.2",
+  "profile": "admin",
+  "observations": [
+    {
+      "abri": "/orders/2",
+      "vi": "HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/orders/2/commercial",
+      "vi": "Pedido HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/customs/2",
+      "vi": "IMP-C82CF4785F64",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/orders/2",
+      "vi": "HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": false
+    },
+    {
+      "abri": "/orders/2/commercial",
+      "vi": "Pedido HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": false
+    },
+    {
+      "abri": "/customs/2",
+      "vi": "IMP-C82CF4785F64",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "expanded": false
+    },
+    {
+      "abri": "/orders/2",
+      "vi": "HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/orders/2/commercial",
+      "vi": "Pedido HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/customs/2",
+      "vi": "IMP-C82CF4785F64",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": true
+    },
+    {
+      "abri": "/orders/2",
+      "vi": "HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": false
+    },
+    {
+      "abri": "/orders/2/commercial",
+      "vi": "Pedido HEROES-EXEC-20261023-v1-A",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": false
+    },
+    {
+      "abri": "/customs/2",
+      "vi": "IMP-C82CF4785F64",
+      "cliquei": "Rolagem e assunto do cabeçalho",
+      "resultado": "Ação acessível, foco no destino e sem overflow",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "expanded": false
+    },
+    {
+      "abri": "Importações",
+      "vi": "Operações, Mercadorias a receber, Embarques, Custo desembarcado, Prestadores logísticos",
+      "cliquei": "Mercadorias a receber",
+      "resultado": "Fila global alcançável"
+    },
+    {
+      "abri": "/customs/2",
+      "vi": "Receber mercadorias",
+      "cliquei": "Abri recorte, recarreguei e voltei",
+      "resultado": "Identificador exato e retorno mantidos, sem confirmar"
+    }
+  ],
+  "errors": [],
+  "writes": [],
+  "indexSha256": "962bc0f5fce598f04187d02efb5cb2aeef8c4ac3f36c29a800703894d702516d",
+  "mainAsset": "/assets/index-BiZtNqBl.js",
+  "manifestBuild": "executive-20261118.2"
+}

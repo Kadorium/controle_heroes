@@ -35,6 +35,12 @@ describe("consolidated navigation", () => {
   ])("uses an authorized fallback for %s", (permission, expected) => {
     expect(visibleNavigation(actor(permission as string)).map(a=>[a.id,a.sections[0].to])).toEqual(expected);
   });
+  it.each(["/orders/5","/orders/5/commercial","/customs/5"])("does not stack area tabs above record headers at %s", path=>{
+    mount(admin,path);expect(screen.queryByRole("navigation",{name:/Área de/})).toBeNull();
+  });
+  it("keeps the five import work queues in the agreed order",()=>{
+    mount(admin,"/customs");expect(within(screen.getByRole("navigation",{name:"Área de importações"})).getAllByRole("link").map(x=>x.textContent)).toEqual(["Operações","Mercadorias a receber","Embarques","Custo desembarcado","Prestadores logísticos"]);
+  });
   it("does not expose areas with no readable sections", () => {
     expect(visibleNavigation(actor("inventory:write", "catalog:write"))).toEqual([]);
   });
@@ -42,7 +48,7 @@ describe("consolidated navigation", () => {
     const nav=mount(actor("inventory:read","inventory:write","reporting:read"),"/inventory/receiving?item=4&state=all");
     expect(nav.getByRole("link",{name:"Importações"})).toHaveAttribute("aria-current","page");
     const local=within(screen.getByRole("navigation",{name:"Área de importações"}));
-    expect(local.getAllByRole("link").map(a=>a.textContent)).toEqual(["Receber mercadorias"]);
+    expect(local.getAllByRole("link").map(a=>a.textContent)).toEqual(["Mercadorias a receber"]);
     expect(local.getByRole("link")).toHaveAttribute("href","/inventory/receiving?item=4&state=all");
     expect(nav.queryByRole("link",{name:"Financeiro"})).toBeNull();
   });

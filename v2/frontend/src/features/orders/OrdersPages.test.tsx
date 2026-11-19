@@ -1,5 +1,5 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OrdersListPage } from "./OrdersListPage";
 import { OrderCreatePage } from "./OrderCreatePage";
@@ -391,8 +391,8 @@ describe("OrderDetailPage RTL", () => {
       documents: [],
     });
     render(
-      <MemoryRouter initialEntries={["/orders/9"]}>
-        <OrderDetailPage user={writer} />
+      <MemoryRouter initialEntries={["/orders/9/commercial"]}>
+        <Routes><Route path="/orders/:orderId/commercial" element={<OrderDetailPage user={writer} />}/></Routes>
       </MemoryRouter>,
     );
     await waitFor(() => expect(screen.getByTestId("readonly-banner")).toBeInTheDocument());
@@ -448,8 +448,8 @@ describe("OrderDetailPage RTL", () => {
       kpis: { balance: "400.0000" },
     });
     render(
-      <MemoryRouter initialEntries={["/orders/9"]}>
-        <OrderDetailPage user={writer} />
+      <MemoryRouter initialEntries={["/orders/9/commercial"]}>
+        <Routes><Route path="/orders/:orderId/commercial" element={<OrderDetailPage user={writer} />}/></Routes>
       </MemoryRouter>,
     );
     await waitFor(() => expect(screen.getByTestId("close-open-ap-notice")).toBeInTheDocument());
@@ -529,7 +529,7 @@ describe("OrderDetailPage RTL", () => {
 
     render(
       <MemoryRouter initialEntries={["/orders/31/commercial"]}>
-        <OrderDetailPage user={writer} />
+        <Routes><Route path="/orders/:orderId/commercial" element={<OrderDetailPage user={writer} />}/></Routes>
       </MemoryRouter>,
     );
 
@@ -579,7 +579,7 @@ describe("OrderDetailPage RTL", () => {
     });
     render(
       <MemoryRouter initialEntries={["/orders/9/commercial"]}>
-        <OrderDetailPage user={writer} />
+        <Routes><Route path="/orders/:orderId/commercial" element={<OrderDetailPage user={writer} />}/></Routes>
       </MemoryRouter>,
     );
     await waitFor(() => expect(screen.getByTestId("order-schedule-empty")).toBeInTheDocument());

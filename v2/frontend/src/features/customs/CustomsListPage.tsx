@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { saveReturnState, loadReturnState } from "../../navigation/returnState";
 import type { User } from "../auth/types";
 import { canReadCustoms, canWriteCustoms } from "./customsPermissions";
 import { listImportProcesses, type ImportProcessListItem } from "./customsApi";
@@ -63,6 +64,13 @@ export function CustomsListPage({ user }: Props) {
     };
   }, [statusFilter, user, reloadKey]);
 
+  useEffect(() => {
+    if(!rows)return;
+    const saved=loadReturnState("/customs");
+    if(saved?.search===(params.toString()?`?${params}`:""))requestAnimationFrame(()=>window.scrollTo(0,saved.scrollY));
+  },[rows]);
+
+  const remember = (id:number) => saveReturnState("/customs",{search:params.toString()?`?${params}`:"",scrollY:window.scrollY,selectedId:String(id)});
   const kpis = useMemo(() => {
     const all = rows ?? [];
     const count = (s: string) => all.filter((r) => r.status === s).length;
@@ -144,7 +152,7 @@ export function CustomsListPage({ user }: Props) {
               {rows.map((r) => (
                 <tr key={r.id}>
                   <td>
-                    <Link to={`/customs/${r.id}`} data-testid={`customs-row-${r.id}`}>
+                    <Link to={`/customs/${r.id}`} onClick={()=>remember(r.id)} data-testid={`customs-row-${r.id}`}>
                       {r.code}
                     </Link>
                   </td>

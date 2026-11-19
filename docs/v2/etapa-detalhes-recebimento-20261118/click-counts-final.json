@@ -1,0 +1,27 @@
+{
+  "runtime": "8103/5461",
+  "profile": "admin",
+  "facts": [
+    {
+      "task": "Operação → fila contextual",
+      "clicks": 1,
+      "result": "Fila exata por process_id"
+    },
+    {
+      "task": "Operação → conferência",
+      "clicks": 3,
+      "result": "Item, quantidade e destino visíveis; não confirmei nesta medição"
+    },
+    {
+      "task": "Pedido → formulário de faturamento",
+      "clicks": 1,
+      "result": "Formulário visível e seção focada, sem rolagem manual"
+    }
+  ],
+  "previous": {
+    "operationToQueue": 1,
+    "operationToReview": "Não executado: nenhum item elegível no registro observado",
+    "orderToCommercial": 1,
+    "invoiceSectionY": 1940
+  }
+}

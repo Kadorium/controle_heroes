@@ -2,7 +2,7 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.14
+Versão: 3.15
 Data: 2026-11-18
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
@@ -14,6 +14,18 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 ```
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
+
+### Ajuste local 3.15 — detalhes de trabalho e recebimento contextual implementados
+
+Decisão vigente autorizada em 18/11/2026; release `executive-20261118.2`. Pedido (visão e comercial) e Operação usam identificação/status, uma ação principal quando sustentada pelos dados, secundária e Mais ações. Identificação e ação permanecem em cabeçalho compacto ao rolar. Assuntos são consultas independentes, com estado/resultado, sem sequência obrigatória nem escrita ao clicar. Breadcrumbs substituem as abas de área nesses detalhes; filas mantêm navegação local. Âncoras levam foco à seção sem esconder seu início.
+
+Importações: **Operações → Mercadorias a receber → Embarques → Custo desembarcado → Prestadores logísticos**. A ação é **Receber mercadorias**, a confirmação é **Confirmar entrada**, o assunto é **Entrada no estoque**. A fila continua independente de `customs:read` e é a entrada do perfil Estoque. Agrupamento global é somente dos itens da página, explicitamente rotulado. Não representa total de uma operação.
+
+Operação e fila abrem o mesmo recebimento atômico por item: seleção explícita, quantidade/unidade/destino, conferência e confirmação com chave idempotente. A gestão anterior de rascunhos/estornos permanece em seção expansível. A rota antiga permanece; `process_id` cria contexto exato e `return_to` preserva origem. O backend ainda não possui filtro por operação: o frontend lê todas as páginas autorizadas, valida completude e filtra pelo ID, sem consulta aduaneira pelo perfil Estoque. Mudança de total, duplicidade, página incompleta ou mais de 10.000 itens impede o recorte contextual e indica a fila global.
+
+Estados: quantidade liberada sem saldo pendente não comprova conclusão integral. 16 aplicáveis, 10 liberadas e 10 recebidas = parcial, resta liberar. Integral somente com alocações conferidas, escopo de liberação todo atendido e recebimentos correspondentes; sem denominador, limitar ao liberado. Unidades e moedas distintas não são somadas. Faturas vinculadas são informação; faturamento do Pedido usa quantidades por linha. Crédito é disponibilidade. Custo publicado informa versão, sem concluir apuração integral. A fila de custos limita a consulta atual a 50 operações; ausência nessa fonte é Sem informação.
+
+Prioridade estável: rascunho comercial oferece confirmar; na visão do Pedido, contas vencidas precedem revisar/faturar; pedido confirmado oferece faturar somente linhas elegíveis quando não houver prioridade de vencimento. Compromisso sem produto não bloqueia as outras linhas elegíveis. Operação oferece receber quando houver saldo elegível e permissão; senão, submeter rascunho autorizado. Fontes, permissões, limites e testes estão autocontidos no [relatório único](../../../../RELATORIO_EPIC_PARA_GPT.md). Não há novas regras de domínio, endpoints ou permissões.
 
 ### Ajuste local 3.14 — navegação consolidada implementada
 

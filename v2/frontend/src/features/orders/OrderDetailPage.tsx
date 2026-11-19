@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import {
@@ -23,6 +23,11 @@ import { OrderAdvancesPanel } from "../treasury/OrderAdvancesPanel";
 import { OrderPaymentSchedulePanel } from "./OrderPaymentSchedulePanel";
 import { fetchOrderSummary } from "../reporting/reportingApi";
 import { buildReturnTo } from "../../navigation/returnState";
+import { RecordWorkHeader, focusRecordSection, type RecordAction, type RecordTopic } from "../../ui/RecordWorkHeader";
+import { canNavigate } from "../../app-shell/navigation";
+import { useRead } from "../inventory/stockRead";
+import type { ApQueueResponse } from "../reporting/reportingApi";
+import { accountsWorkState, billingWorkState } from "./orderWorkState";
 import { OrderPdfPanel } from "./OrderPdfPanel";
 import { canExtractOrdine, discardOrdineIntake, type OrdineIntakeSession } from "./ordinePdfIntake";
 import type { OrdineFormDraft } from "./mapOrdinePreviewToForm";
@@ -40,7 +45,6 @@ import {
   MoneyDisplay,
   Notice,
   OperationalTable,
-  PageHeader,
   SectionCard,
   StatusBadge,
   TextInput,
@@ -60,6 +64,10 @@ function hasOpenPayableBalance(raw: string | null | undefined): boolean {
 export function OrderDetailPage({ user }: Props) {
   const { orderId } = useParams();
   const id = Number(orderId);
+  const location=useLocation();
+  const billingAllowed=canNavigate(user,"billing:read"), treasuryAllowed=canNavigate(user,"treasury:read"), reportingAllowed=canNavigate(user,"reporting:read");
+  const [qtyLoaded,setQtyLoaded]=useState(false),[qtyError,setQtyError]=useState<string|null>(null);
+  const accounts=useRead<ApQueueResponse>(billingAllowed && reportingAllowed?`/api/reporting/ap-queue?order_id=${id}&pending=ALL&limit=1`:null);
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
@@ -80,8 +88,9 @@ export function OrderDetailPage({ user }: Props) {
   const cockpitHref = `/orders/${id}`;
 
   const reloadQtys = useCallback(async (orderIdNum: number) => {
-    setQtys(await invoicedQuantities(orderIdNum));
-  }, []);
+    if(!billingAllowed)return;
+    setQtys(await invoicedQuantities(orderIdNum));setQtyLoaded(true);setQtyError(null);
+  }, [billingAllowed]);
 
   async function reload() {
     const data = await getOrder(id);
@@ -93,6 +102,7 @@ export function OrderDetailPage({ user }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+    setQtyLoaded(false);setQtyError(null);setError(null);
     void (async () => {
       try {
         const data = await getOrder(id);
@@ -101,8 +111,7 @@ export function OrderDetailPage({ user }: Props) {
           setOrderDate(data.order_date ?? "");
           setNotes(data.notes ?? "");
         }
-        const qtyRows = await invoicedQuantities(id);
-        if (!cancelled) setQtys(qtyRows);
+        if(billingAllowed) try {const qtyRows=await invoicedQuantities(id);if(!cancelled){setQtys(qtyRows);setQtyLoaded(true);setQtyError(null);}}catch(error){if(!cancelled)setQtyError((error as Error).message);}
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Erro");
       }
@@ -110,10 +119,10 @@ export function OrderDetailPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, billingAllowed]);
 
   useEffect(() => {
-    if (!order || (order.status !== "CONFIRMED" && order.status !== "CLOSED")) {
+    if (!reportingAllowed || !order || (order.status !== "CONFIRMED" && order.status !== "CLOSED")) {
       setOpenPayableBalance(null);
       return;
     }
@@ -128,18 +137,15 @@ export function OrderDetailPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [order?.id, order?.status, order?.version]);
+  }, [order?.id, order?.status, order?.version, reportingAllowed]);
 
   useEffect(() => {
-    if (!order) return;
-    if (window.location.hash === "#order-advances") {
-      const el = document.getElementById("order-advances");
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [order]);
+    if(!order || !location.hash)return;
+    const timer=window.setTimeout(()=>focusRecordSection(location.hash),80);return()=>window.clearTimeout(timer);
+  },[order?.id,location.hash]);
 
-  if (error && !order) return <ErrorState message={error} />;
-  if (!order) return <LoadingState message="Carregando pedido…" />;
+  if (error && (!order || order.id!==id)) return <ErrorState message={error} />;
+  if (!order || order.id!==id) return <LoadingState message="Carregando pedido…" />;
 
   const editable = order.status === "DRAFT" && canWriteOrders(user);
   const canCancel =
@@ -358,95 +364,37 @@ export function OrderDetailPage({ user }: Props) {
       ? `${supplierName} (inativo)`
       : supplierName;
 
+  const billing=qtyLoaded?billingWorkState(qtys,order.status):null;
+  const accountState=accounts.data?accountsWorkState(accounts.data):null;
+  const topics:RecordTopic[]=[{id:"items",label:"Itens",state:commitmentCount?(commitmentCount===(order.items?.length??0)?"Vínculo pendente":"Vinculação parcial"):"Itens do pedido",result:`${order.items?.length ?? 0} linhas${commitmentCount?` · ${commitmentCount} ${commitmentCount===1?"compromisso":"compromissos"}`:""}`,tone:commitmentCount?"partial":"info",href:"#order-items"}];
+  if(billingAllowed)topics.push({id:"billing",label:"Faturamento",state:qtyError?"Erro na consulta":billing?.state||"Carregando",result:qtyError||billing?.result||"Consultando quantidades por item",tone:qtyError?"error":billing?.tone||"loading",href:"#order-invoices"});
+  if(billingAllowed)topics.push({id:"accounts",label:"Contas e pagamentos",state:accounts.error?"Erro na consulta":accounts.busy?"Carregando":accountState?.state||"Consultar contas",result:accounts.error||accountState?.result||"Obrigações do pedido",tone:accounts.error?"error":accounts.busy?"loading":accountState?.tone||"info",href:`/payables?order_id=${id}&pending=ALL`});
+  if(treasuryAllowed)topics.push({id:"credit",label:"Crédito",state:"Consultar adiantamentos",result:"Disponibilidade e vínculos",tone:"info",href:"#order-advances"});
+  const primary:RecordAction|undefined=editable?{label:"Confirmar pedido",onClick:()=>setConfirmOpen(true),disabled:busy,testId:"confirm-order"}:accountState?.overdue?{label:"Ver contas vencidas",href:`/payables?order_id=${id}&pending=OVERDUE`}:billing?.eligible&&canNavigate(user,"billing:write")?{label:"Faturar itens",onClick:()=>focusRecordSection("order-invoices"),testId:"order-primary-invoice"}:undefined;
+  const more:RecordAction[]=[
+    ...(canClose?[{label:"Encerrar pedido",onClick:()=>setCloseOpen(true),disabled:busy,testId:"close-order"}]:[]),
+    ...(canReopen?[{label:"Reabrir pedido",onClick:()=>setReopenOpen(true),disabled:busy,testId:"reopen-order"}]:[]),
+    ...(canCancel?[{label:"Cancelar pedido…",onClick:()=>focusRecordSection("order-cancellation")}]:[]),
+    ...(treasuryAllowed?[{label:"Adiantamentos",onClick:()=>focusRecordSection("order-advances")}]:[]),
+    {label:"Documentos",onClick:()=>focusRecordSection("order-documents")},
+    {label:"Atualizar",onClick:()=>{void reload();accounts.retry();}},
+  ];
+
   return (
-    <section className="panel dense page-detail detail-shell" data-testid="order-detail">
+    <section className="panel dense page-detail detail-shell record-detail-page" data-testid="order-detail">
       <ContextBreadcrumb
         items={[
           { label: "Compras", to: ordersReturn },
           { label: "Pedidos", to: ordersReturn },
-          { label: order.code, to: cockpitHref },
+          { label: order.code, to: reportingAllowed?cockpitHref:undefined },
           { label: "Comercial" },
         ]}
       />
-      <PageHeader
-        title={`Pedido ${order.code}`}
-        subtitle={[supplierLabel, order.currency, formatDateOnly(order.order_date)]
-          .filter(Boolean)
-          .join(" · ")}
-        actions={
-          <div className="stack-row page-header-actions">
-            <Link
-              className="ui-button ui-button--secondary"
-              to={cockpitHref}
-              data-testid="commercial-cockpit-link"
-            >
-              Cockpit
-            </Link>
-            <Link className="ui-button ui-button--secondary" to={ordersReturn}>
-              Voltar à fila
-            </Link>
-            {editable ? (
-              <Button
-                busy={busy}
-                data-testid="confirm-order"
-                onClick={() => setConfirmOpen(true)}
-              >
-                Confirmar
-              </Button>
-            ) : null}
-            {canCancel ? (
-              <>
-                {order.status === "CONFIRMED" ? (
-                  <FormField label="Motivo do cancelamento" htmlFor="cancel-reason">
-                    <TextInput
-                      id="cancel-reason"
-                      data-testid="cancel-reason"
-                      value={reason}
-                      maxLength={64}
-                      placeholder="Descreva o motivo"
-                      onChange={(e) => setReason(e.target.value)}
-                      aria-label="Motivo do cancelamento"
-                    />
-                  </FormField>
-                ) : null}
-                <Button
-                  variant="secondary"
-                  busy={busy}
-                  data-testid="cancel-order"
-                  onClick={() => void onCancel()}
-                >
-                  Cancelar
-                </Button>
-              </>
-            ) : null}
-            {canClose ? (
-              <Button
-                variant="secondary"
-                busy={busy}
-                data-testid="close-order"
-                onClick={() => setCloseOpen(true)}
-              >
-                Encerrar pedido
-              </Button>
-            ) : null}
-            {canReopen ? (
-              <Button
-                variant="secondary"
-                busy={busy}
-                data-testid="reopen-order"
-                onClick={() => setReopenOpen(true)}
-              >
-                Reabrir
-              </Button>
-            ) : null}
-          </div>
-        }
-      />
-
-      <div className="stack-row">
-        <StatusBadge status={order.status} entity="order" />
-        <span className="muted">Revisão {order.version}</span>
-      </div>
+      <RecordWorkHeader title={`Pedido ${order.code}`} context={[supplierLabel,order.currency,formatDateOnly(order.order_date)].filter(Boolean).join(" · ")} status={<StatusBadge status={order.status} entity="order"/>} primary={primary} secondary={reportingAllowed?{label:"Visão do pedido",href:cockpitHref,testId:"commercial-cockpit-link"}:undefined} more={more} topics={topics}/>
+      {canCancel && <details id="order-cancellation" className="record-advanced"><summary>Cancelamento do pedido</summary>
+        {order.status==="CONFIRMED" && <FormField label="Motivo do cancelamento" htmlFor="cancel-reason"><TextInput id="cancel-reason" data-testid="cancel-reason" value={reason} maxLength={64} onChange={e=>setReason(e.target.value)}/></FormField>}
+        <Button variant="danger" busy={busy} data-testid="cancel-order" onClick={()=>void onCancel()}>Cancelar pedido</Button>
+      </details>}
 
       {order.status === "CANCELLED" && order.cancel_reason_code ? (
         <Notice tone="info" data-testid="cancel-reason-display">
@@ -462,8 +410,8 @@ export function OrderDetailPage({ user }: Props) {
 
       {order.status === "CONFIRMED" && hasCommitmentLines && canWriteOrders(user) ? (
         <Notice tone="info" data-testid="close-blocked-commitment">
-          Vincule os compromissos a produtos do catálogo. Sem isso este pedido não fatura, não embarca
-          e não entra no estoque — e não pode ser encerrado.
+          Vincule os compromissos a produtos para liberar essas linhas e permitir o encerramento.
+          As linhas já elegíveis continuam disponíveis para faturamento parcial.
         </Notice>
       ) : null}
 
@@ -584,7 +532,7 @@ export function OrderDetailPage({ user }: Props) {
         )}
       </SectionCard>
 
-      <SectionCard title="Itens">
+      <SectionCard id="order-items" title="Itens">
         {(order.items?.length ?? 0) === 0 ? (
           <EmptyState message="Nenhum item no pedido" />
         ) : (
@@ -722,12 +670,12 @@ export function OrderDetailPage({ user }: Props) {
 
       {/* Adiantamentos antes de Documentos: upload de câmbio fica no formulário,
           longe do anexo do pedido — evita confundir os dois file inputs (FIN-1C-FIX-1B). */}
-      <OrderAdvancesPanel
+      {treasuryAllowed && <OrderAdvancesPanel
         user={user}
         orderId={order.id}
         orderCurrency={order.currency}
         orderStatus={order.status}
-      />
+      />}
 
       <SectionCard title="Documentos" data-testid="order-documents">
         {(order.documents?.length ?? 0) === 0 ? (
@@ -765,18 +713,18 @@ export function OrderDetailPage({ user }: Props) {
         ) : null}
       </SectionCard>
 
-      <OrderInvoicesPanel
+      {billingAllowed && <OrderInvoicesPanel
         user={user}
         orderId={order.id}
         orderStatus={order.status}
         orderVersion={order.version}
-      />
+      />}
 
       <Button variant="secondary" onClick={() => void reload()}>
         Atualizar
       </Button>
 
-      <BindProductModal
+      {bindLine && <BindProductModal
         open={bindLine != null}
         orderId={order.id}
         expectedVersion={order.version}
@@ -784,7 +732,7 @@ export function OrderDetailPage({ user }: Props) {
         busy={bindBusy}
         onCancel={() => setBindLine(null)}
         onConfirm={onBindConfirm}
-      />
+      />}
 
       <ConfirmationModal
         open={closeOpen}

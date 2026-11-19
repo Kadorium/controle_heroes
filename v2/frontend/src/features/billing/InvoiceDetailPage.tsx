@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import {
   cancelInvoice,
@@ -24,6 +24,8 @@ import {
   lineAmounts,
   previewPercentPayables,
 } from "./invoiceMath";
+import { contextReturn, withContextReturn } from "../../navigation/contextReturn";
+import { canNavigate } from "../../app-shell/navigation";
 import { buildReturnTo } from "../../navigation/returnState";
 import {
   Button,
@@ -131,7 +133,7 @@ export function OrderInvoicesPanel({
         invoice_date: invoiceDate || undefined,
         order_item_ids: picked,
       });
-      nav(`/invoices/${inv.id}`);
+      nav(withContextReturn(`/invoices/${inv.id}`,`/orders/${orderId}/commercial#order-invoices`));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
     } finally {
@@ -154,11 +156,8 @@ export function OrderInvoicesPanel({
 
       {hasUnbillable ? (
         <Notice tone="info" data-testid="order-invoices-commitment-notice">
-          Este pedido tem linhas de categoria (compromisso), ainda sem produto de
-          catálogo. Vincule cada linha a um produto na aba Itens antes de importar a
-          Fattura. A Fattura traz a mesma linha genérica do pedido — não o
-          modelo/cor/tamanho final. Isso é definido no estoque após a nacionalização.
-        </Notice>
+          Linhas sem produto precisam de vínculo. Você pode faturar as demais linhas elegíveis.
+            </Notice>
       ) : null}
 
       {qtys.length > 0 ? (
@@ -240,7 +239,7 @@ export function OrderInvoicesPanel({
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>
-                  <Link to={`/invoices/${r.id}`}>{r.invoice_number}</Link>
+                  <Link to={withContextReturn(`/invoices/${r.id}`,`/orders/${orderId}/commercial#order-invoices`)}>{r.invoice_number}</Link>
                 </td>
                 <td>
                   <StatusBadge status={r.status} entity="invoice" />
@@ -289,7 +288,7 @@ export function OrderInvoicesPanel({
         <OrderFatturaPdfPanel
           user={user}
           orderId={orderId}
-          onImported={(invoiceId) => nav(`/invoices/${invoiceId}`)}
+          onImported={(invoiceId) => nav(withContextReturn(`/invoices/${invoiceId}`,`/orders/${orderId}/commercial#order-invoices`))}
         />
       ) : null}
     </SectionCard>
@@ -298,6 +297,9 @@ export function OrderInvoicesPanel({
 
 export function InvoiceDetailPage({ user }: Props) {
   const { invoiceId } = useParams();
+  const [searchParams]=useSearchParams();
+  const origin=contextReturn(searchParams.get("return_to"));
+  const returnOrigin=origin && ((origin.startsWith("/orders/") && canNavigate(user,"orders:read")) || (origin.startsWith("/customs/") && canNavigate(user,"customs:read"))) ? origin : null;
   const id = Number(invoiceId);
   const [inv, setInv] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -549,6 +551,7 @@ export function InvoiceDetailPage({ user }: Props) {
         subtitle={inv.currency}
         actions={
           <div className="stack-row page-header-actions">
+            {returnOrigin && <Link className="ui-button ui-button--secondary" to={returnOrigin}>{returnOrigin.startsWith("/customs/")?"Voltar à operação":"Voltar ao pedido"}</Link>}
             <Link className="ui-button ui-button--secondary" to={invoicesReturn}>
               Voltar à fila
             </Link>

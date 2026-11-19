@@ -1,0 +1,561 @@
+{
+  "build": "executive-20261118.1",
+  "results": [
+    {
+      "runtime": "8082 / 5458",
+      "profile": "admin",
+      "route": "/orders/2",
+      "headings": [
+        "HEROES-EXEC-20261023-v1-A",
+        "Cronograma de pagamento",
+        "Faturamento",
+        "Tesouraria",
+        "Documentos",
+        "Auditoria"
+      ],
+      "controls": [
+        {
+          "label": "Pedidos",
+          "href": "/orders",
+          "y": 24
+        },
+        {
+          "label": "Faturas",
+          "href": "/invoices",
+          "y": 24
+        },
+        {
+          "label": "Fornecedores",
+          "href": "/catalog/suppliers",
+          "y": 24
+        },
+        {
+          "label": "Compras",
+          "href": "/orders",
+          "y": 113
+        },
+        {
+          "label": "Pedidos",
+          "href": "/orders",
+          "y": 113
+        },
+        {
+          "label": "Adiantamentos",
+          "href": "/orders/2/commercial#order-advances",
+          "y": 155
+        },
+        {
+          "label": "Abrir comercial",
+          "href": "/orders/2/commercial",
+          "y": 156
+        },
+        {
+          "label": "Encerrar pedido",
+          "href": "/orders/2/commercial",
+          "y": 155
+        },
+        {
+          "label": "Há obrigações vencidas",
+          "href": "/payables?order_id=2",
+          "y": 689
+        },
+        {
+          "label": "Candidatos a alocação do mesmo fornecedor/moeda (podem ser de outros pedidos — não são a lista deste pedido)",
+          "href": "/payments",
+          "y": 725
+        },
+        {
+          "label": "HEROES-EXEC-20261023-v1-FAT-A",
+          "href": "/invoices/2",
+          "y": 929
+        },
+        {
+          "label": "16/10/2026",
+          "href": "/payables?order_id=2",
+          "y": 1075
+        },
+        {
+          "label": "Câmbio",
+          "href": "/payables/2/fx",
+          "y": 1075
+        },
+        {
+          "label": "EUR 1.000,00",
+          "href": "/payments/2",
+          "y": 1089
+        },
+        {
+          "label": "EUR 2.550,00",
+          "href": "/payments/3",
+          "y": 1363
+        }
+      ]
+    },
+    {
+      "runtime": "8082 / 5458",
+      "profile": "admin",
+      "route": "/orders/2/commercial",
+      "headings": [
+        "Pedido HEROES-EXEC-20261023-v1-A",
+        "Cabeçalho",
+        "Itens",
+        "Cronograma de pagamento",
+        "Adiantamentos (crédito)",
+        "Documentos",
+        "Faturas"
+      ],
+      "controls": [
+        {
+          "label": "Pedidos",
+          "href": "/orders",
+          "y": 24
+        },
+        {
+          "label": "Faturas",
+          "href": "/invoices",
+          "y": 24
+        },
+        {
+          "label": "Fornecedores",
+          "href": "/catalog/suppliers",
+          "y": 24
+        },
+        {
+          "label": "Compras",
+          "href": "/orders",
+          "y": 113
+        },
+        {
+          "label": "Pedidos",
+          "href": "/orders",
+          "y": 113
+        },
+        {
+          "label": "HEROES-EXEC-20261023-v1-A",
+          "href": "/orders/2",
+          "y": 113
+        },
+        {
+          "label": "Cockpit",
+          "href": "/orders/2",
+          "y": 170
+        },
+        {
+          "label": "Voltar à fila",
+          "href": "/orders",
+          "y": 170
+        },
+        {
+          "label": "Cancelar",
+          "href": null,
+          "y": 171
+        },
+        {
+          "label": "Encerrar pedido",
+          "href": null,
+          "y": 171
+        },
+        {
+          "label": "Definir cronograma",
+          "href": null,
+          "y": 890
+        },
+        {
+          "label": "Anexar PDF de câmbio deste adiantamento",
+          "href": null,
+          "y": 1742
+        },
+        {
+          "label": "Registrar adiantamento",
+          "href": null,
+          "y": 1802
+        },
+        {
+          "label": "Abrir",
+          "href": null,
+          "y": 1941
+        },
+        {
+          "label": "Baixar",
+          "href": null,
+          "y": 1941
+        },
+        {
+          "label": "Anexar documento do pedido (Ordine e afins)",
+          "href": null,
+          "y": 2054
+        },
+        {
+          "label": "HEROES-EXEC-20261023-v1-FAT-A",
+          "href": "/invoices/2",
+          "y": 2322
+        },
+        {
+          "label": "Escolher PDF da fatura",
+          "href": null,
+          "y": 2428
+        },
+        {
+          "label": "Atualizar",
+          "href": null,
+          "y": 2494
+        }
+      ]
+    },
+    {
+      "runtime": "8082 / 5458",
+      "profile": "admin",
+      "route": "/customs/2",
+      "headings": [
+        "IMP-C82CF4785F64",
+        "Resumo",
+        "Faturas",
+        "Alocações (fatura)",
+        "Embarques",
+        "Alocações (embarque)",
+        "Documentos",
+        "Doganale",
+        "Histórico de versões",
+        "Divergências",
+        "Numerário",
+        "Numerário #2 (Confirmado)",
+        "Residual nacionalizável",
+        "Liberações",
+        "Nova liberação",
+        "Residual recebível",
+        "Recebimentos",
+        "Novo recebimento",
+        "Auditoria"
+      ],
+      "controls": [
+        {
+          "label": "Operações",
+          "href": "/customs",
+          "y": 24
+        },
+        {
+          "label": "Embarques",
+          "href": "/shipments",
+          "y": 24
+        },
+        {
+          "label": "Receber mercadorias",
+          "href": "/inventory/receiving",
+          "y": 24
+        },
+        {
+          "label": "Custo desembarcado",
+          "href": "/costing",
+          "y": 24
+        },
+        {
+          "label": "Prestadores logísticos",
+          "href": "/logistics-providers",
+          "y": 24
+        },
+        {
+          "label": "Operações",
+          "href": "/customs",
+          "y": 96
+        },
+        {
+          "label": "Receber mercadorias",
+          "href": "/inventory/receiving?state=all&q=IMP-C82CF4785F64",
+          "y": 122
+        },
+        {
+          "label": "Cancelar processo",
+          "href": null,
+          "y": 460
+        },
+        {
+          "label": "abrir",
+          "href": "/invoices/2",
+          "y": 636
+        },
+        {
+          "label": "abrir",
+          "href": "/shipments/2",
+          "y": 849
+        },
+        {
+          "label": "Abrir",
+          "href": null,
+          "y": 1081
+        },
+        {
+          "label": "Baixar",
+          "href": null,
+          "y": 1081
+        },
+        {
+          "label": "Anexar documento",
+          "href": null,
+          "y": 1139
+        },
+        {
+          "label": "Criar versão",
+          "href": null,
+          "y": 1377
+        },
+        {
+          "label": "Registrar divergência",
+          "href": null,
+          "y": 1762
+        },
+        {
+          "label": "#22",
+          "href": "/payables",
+          "y": 2149
+        },
+        {
+          "label": "Abrir AP",
+          "href": "/payables",
+          "y": 2149
+        },
+        {
+          "label": "Registrar pagamento",
+          "href": "/payments/new?payable_id=22&amount=5000.00&currency=BRL",
+          "y": 2465
+        },
+        {
+          "label": "Cancelar (se conta a pagar aberta)",
+          "href": null,
+          "y": 2728
+        },
+        {
+          "label": "Criar liberação",
+          "href": null,
+          "y": 3196
+        },
+        {
+          "label": "Adicionar quantidades propostas ao rascunho",
+          "href": null,
+          "y": 3196
+        },
+        {
+          "label": "Reverter",
+          "href": null,
+          "y": 3553
+        },
+        {
+          "label": "Reverter",
+          "href": null,
+          "y": 3587
+        },
+        {
+          "label": "",
+          "href": null,
+          "y": 3694
+        },
+        {
+          "label": "Receber quantidades propostas",
+          "href": null,
+          "y": 3814
+        },
+        {
+          "label": "Ingestão",
+          "href": "/ingestion",
+          "y": 3947
+        }
+      ]
+    },
+    {
+      "runtime": "8082 / 5458",
+      "profile": "admin",
+      "route": "/inventory/receiving?state=all",
+      "headings": [
+        "Receber mercadorias"
+      ],
+      "controls": [
+        {
+          "label": "Operações",
+          "href": "/customs",
+          "y": 24
+        },
+        {
+          "label": "Embarques",
+          "href": "/shipments",
+          "y": 24
+        },
+        {
+          "label": "Receber mercadorias",
+          "href": "/inventory/receiving?state=all",
+          "y": 24
+        },
+        {
+          "label": "Custo desembarcado",
+          "href": "/costing",
+          "y": 24
+        },
+        {
+          "label": "Prestadores logísticos",
+          "href": "/logistics-providers",
+          "y": 24
+        },
+        {
+          "label": "",
+          "href": null,
+          "y": 102
+        },
+        {
+          "label": "Estoque atual",
+          "href": "/inventory/positions",
+          "y": 104
+        },
+        {
+          "label": "Atualizar",
+          "href": null,
+          "y": 174
+        },
+        {
+          "label": "Receber",
+          "href": null,
+          "y": 309
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 373
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 437
+        },
+        {
+          "label": "Receber",
+          "href": null,
+          "y": 501
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 565
+        },
+        {
+          "label": "Receber",
+          "href": null,
+          "y": 629
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 693
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 765
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 845
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 925
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1005
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1085
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1165
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1245
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1325
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1405
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1485
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1565
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1645
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1725
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1805
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1885
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 1965
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 2045
+        },
+        {
+          "label": "Consultar",
+          "href": null,
+          "y": 2125
+        },
+        {
+          "label": "Anterior",
+          "href": null,
+          "y": 2201
+        },
+        {
+          "label": "Próxima",
+          "href": null,
+          "y": 2201
+        }
+      ]
+    },
+    {
+      "task": "Operação → conferência, sem gravar",
+      "clicks": 1,
+      "queue": "http://127.0.0.1:8082/inventory/receiving?state=all&q=IMP-C82CF4785F64",
+      "result": "IMPORTAÇÕES\nOperações\nEmbarques\nReceber mercadorias\nCusto desembarcado\nPrestadores logísticos\nReceber mercadorias\nEstoque atual\nBuscar\nSituação\nA receber\nRecebidos\nBloqueados\nTodos\nAtualizar\n\nCarregando…"
+    },
+    {
+      "task": "Pedido → comercial / faturamento",
+      "clicks": 1,
+      "invoiceSectionY": 1940,
+      "result": "Exige rolar até Faturas após abrir o comercial; nenhuma gravação."
+    }
+  ]
+}

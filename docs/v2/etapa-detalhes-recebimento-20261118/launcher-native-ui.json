@@ -1,0 +1,20 @@
+{
+  "launcher": "EPIC/Iniciar EPIC.exe",
+  "exit_code": 0,
+  "runtime": "http://127.0.0.1:8082/dashboard",
+  "native_window": "Epic Controle V2 - Google Chrome",
+  "native_accessibility_observed": "API 127.0.0.1:8082 · DB epic_v2_test · alembic 034 · build executive-20261118.2 · env test",
+  "prior_cached_build": "receiving-stock-20261023.1",
+  "fix": "Launcher opens /?epic_ui=<SHA256 of installed index, first 16 hex>",
+  "configuration_changed": false,
+  "backend_changed": false,
+  "observed_navigation": [
+    "Visão geral",
+    "Produtos",
+    "Compras",
+    "Importações",
+    "Financeiro",
+    "Conferir documentos",
+    "Usuários e acessos"
+  ]
+}

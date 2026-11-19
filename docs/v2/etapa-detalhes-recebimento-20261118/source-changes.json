@@ -1,0 +1,152 @@
+[
+  {
+    "path": "v2/frontend/src/app-shell/AreaNavigation.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/app-shell/Navigation.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/app-shell/navigation.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/billing/InvoiceDetailPage.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/billing/OrderInvoicesPanel.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/customs/CustomsDetailPage.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/customs/CustomsListPage.tsx",
+    "method": "three-way delta, prior WIP excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/features/customs/NationalizationPanel.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/customs/operationWorkState.test.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/customs/operationWorkState.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/inventory/processReceiving.test.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/inventory/processReceiving.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/inventory/receiving.css",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/inventory/ReceivingPage.tsx",
+    "method": "queue rewritten by this delivery; prior untracked HelpTip remains local",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/features/orders/OrderCockpitPage.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/orders/OrderDetailPage.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/orders/OrdersPages.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/orders/orderWorkState.test.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/orders/orderWorkState.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/navigation/contextReturn.test.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/navigation/contextReturn.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/recordWorkHeader.css",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/RecordWorkHeader.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/RecordWorkHeader.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/e2e/elo-10-close-order.spec.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/e2e/inc2-billing.spec.ts",
+    "method": "three-way delta, prior WIP excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "ROADMAP_V2_EPIC.md",
+    "method": "current delivery state rows only; prior WIP excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "scripts/launcher/release_url.py",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "scripts/launcher/test_release_url.py",
+    "method": "delivery only",
+    "priorWIP": false
+  }
+]

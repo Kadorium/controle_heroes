@@ -1,0 +1,26 @@
+{
+  "database": "epic_v2_test",
+  "port": 5458,
+  "data_directory": "C:/Users/ricar/Desktop/projetos/EPIC/audit-runtime/executive-20261117/postgres",
+  "tables": {
+    "goods_receipt_lines": "7c93d15d054a44ebf9d16485a31a42ad",
+    "goods_receipts": "2ceaf31672bbf53c205ec7ed42bb3fe8",
+    "import_process_invoice_items": "9fd057a7c3b4265967a11377dbb6a619",
+    "import_process_invoices": "c12a2a4e92c9d2bf7682eb22041acbe5",
+    "import_process_shipment_items": "fac2d0932f3ff03c05d67f8f9754310a",
+    "import_process_shipments": "87ed753ad981c2721a5c2c999e196ad7",
+    "import_processes": "54cd02b7c7f5df3a64acaa81168eda91",
+    "invoices": "d8b914644675bfe448df3c9234fefd98",
+    "nationalization_items": "6fb2d00024f4fcd7af8872a261c2d253",
+    "nationalizations": "8c9f025801a4c4e8b3cb20f9aa8df70a",
+    "order_items": "5be8a583744223a5073aaa94a60b5346",
+    "orders": "340b17c525eeb27f017878f4d03d5058",
+    "payables": "ab779a64068c1245987962220db20856",
+    "payments": "d508ba110f4e9841710ff470fd187036",
+    "reporting_stock_views": "9bb202ac78b7422af08d0c59361b385d",
+    "stock_balances": "ccb5b45d3a2b1d37770bef17c8de5004",
+    "stock_locations": "18080458668fa24c507e000054c348be"
+  },
+  "release_manifest_sha256": "2de9563e87690b62c155f716228df7d25363d613bb0fe19103320082637ed298",
+  "verified_files": 294
+}

@@ -53,7 +53,7 @@ export function NationalizationPanel({
     const [nats, res, recRes] = await Promise.all([
       listNationalizations(processId),
       listClearanceResiduals(processId).catch(() => [] as ClearanceResidual[]),
-      listReceiptResiduals(processId).catch(() => []),
+      user.role === "admin" || user.permissions.includes("inventory:read") ? listReceiptResiduals(processId).catch(() => []) : Promise.resolve([]),
     ]);
     setRows(nats);
     setResiduals(res);
@@ -66,7 +66,7 @@ export function NationalizationPanel({
       }
       return next;
     });
-  }, [processId, inventoryTick]);
+  }, [processId, inventoryTick, user]);
 
   useEffect(() => {
     let cancelled = false;

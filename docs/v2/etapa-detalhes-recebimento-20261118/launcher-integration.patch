@@ -1,0 +1,19 @@
+--- a/scripts/launcher/start_epic.py
++++ b/scripts/launcher/start_epic.py
+@@ -13,6 +13,7 @@
+ import time
+ from urllib.error import URLError
+ from urllib.request import build_opener, ProxyHandler
++from release_url import current_release_url
+ 
+ 
+ SCRIPT_DIR = Path(__file__).resolve().parent
+@@ -283,7 +284,7 @@
+             base_url = start(config)
+         if not args.no_browser:
+             progress("Abrindo o navegador...")
+-            os.startfile(base_url + "/")
++            os.startfile(current_release_url(base_url, WORKSPACE / config["runtime"]))
+         progress("EPIC pronto: " + base_url)
+         return 0
+     except Exception as error:

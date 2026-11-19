@@ -36,7 +36,8 @@ export function PrimaryNavigation({ user, expanded }: { user: User; expanded: bo
 export function AreaNavigation({ user }: { user: User }) {
   const { pathname, search, state } = useLocation();
   const { area, section: active } = activeNavigation(visibleNavigation(user), pathname);
-  if (!area || area.secondary || area.id === "overview") return null;
+  // Details use their breadcrumb and record header; area tabs remain on work queues.
+  if (!area || area.secondary || area.id === "overview" || /^\/(orders|customs)\/\d+(?:\/|$)/.test(pathname)) return null;
   return <nav className="area-navigation" aria-label={`Área de ${area.label.toLocaleLowerCase("pt-BR")}`}>
     <span className="area-navigation-label">{area.label}</span>
     <div className="area-navigation-links">

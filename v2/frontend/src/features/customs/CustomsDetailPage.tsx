@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import type { User } from "../auth/types";
 import { DoganalePanel } from "./DoganalePanel";
 import { NumerarioPanel } from "./NumerarioPanel";
@@ -28,7 +28,7 @@ import {
   type ResidualShipmentItem,
 } from "./customsApi";
 import { listNationalizations, listReceipts } from "../inventory/inventoryApi";
-import { canReadCustoms, canWriteCustoms, conflictMessage, statusLabel } from "./customsPermissions";
+import { canReadCustoms, canWriteCustoms, conflictMessage } from "./customsPermissions";
 import {
   Button,
   ContextBreadcrumb,
@@ -40,7 +40,6 @@ import {
   formatQuantity,
   LoadingState,
   Notice,
-  PageHeader,
   SectionCard,
   StatusBadge,
   TextInput,
@@ -48,6 +47,15 @@ import {
   FORMAT_ABSENCE,
 } from "../../ui";
 import type { AuditEntry } from "../../ui";
+import { RecordWorkHeader, focusRecordSection, type RecordAction, type RecordTopic } from "../../ui/RecordWorkHeader";
+import { useRead } from "../inventory/stockRead";
+import { useProcessReceiving } from "../inventory/processReceiving";
+import type { ClearanceResidual } from "../inventory/inventoryApi";
+import type { CostingQueueRow } from "../costing/costingApi";
+import { canNavigate } from "../../app-shell/navigation";
+import { withContextReturn } from "../../navigation/contextReturn";
+import { buildReturnTo } from "../../navigation/returnState";
+import { entryState, releaseState, quantitiesByUnit } from "./operationWorkState";
 
 type TrailEntry = AuditEntry & { scope: string };
 
@@ -56,8 +64,14 @@ type Props = { user: User };
 export function CustomsDetailPage({ user }: Props) {
   const { processId } = useParams();
   const id = Number(processId);
+  const location = useLocation();
+  const canInventory = canNavigate(user,"inventory:read"), canReceive = canNavigate(user,"inventory:write");
+  const canAudit = canNavigate(user,"audit:read"), canDocuments = canNavigate(user,"documents:read");
+  const [scopeLoaded,setScopeLoaded] = useState(false);
   const writable = canWriteCustoms(user);
-  const [process, setProcess] = useState<ImportProcess | null>(null);
+  const [loadedProcess, setProcess] = useState<ImportProcess | null>(null);
+  const currentId=useRef(id);currentId.current=id;
+  const process=loadedProcess?.id===id?loadedProcess:null;
   const [invResiduals, setInvResiduals] = useState<ResidualInvoiceItem[]>([]);
   const [shpResiduals, setShpResiduals] = useState<ResidualShipmentItem[]>([]);
   const [docs, setDocs] = useState<
@@ -76,26 +90,33 @@ export function CustomsDetailPage({ user }: Props) {
   const [allocShpQty, setAllocShpQty] = useState("");
   const [inventoryTick, setInventoryTick] = useState(0);
 
+  const receiving = useProcessReceiving(canInventory && canReadCustoms(user) ? id : null,inventoryTick);
+  const clearance = useRead<ClearanceResidual[]>(canReadCustoms(user) ? `/api/import-processes/${id}/clearance-residuals?refresh=${inventoryTick}` : null);
+  const cost = useRead<CostingQueueRow[]>(canReadCustoms(user) && canNavigate(user,"costing:read") ? "/api/costing/queue" : null);
   const reload = useCallback(async () => {
+    setScopeLoaded(false);
     const p = await getImportProcess(id);
+    if(currentId.current!==id)return;
     setProcess(p);
     setExtRef(p.external_reference ?? "");
     const [ir, sr, d, processEvents, fundings, nats, dog, receipts] = await Promise.all([
       listInvoiceResiduals(id),
       listShipmentResiduals(id),
-      listProcessDocuments(id),
-      listEntityAudit("import_process", String(id)).catch(() => []),
+      canDocuments ? listProcessDocuments(id) : Promise.resolve([]),
+      canAudit ? listEntityAudit("import_process", String(id)).catch(() => []) : Promise.resolve([]),
       listFundingRequests(id).catch(() => []),
       listNationalizations(id).catch(() => []),
       getDoganale(id).catch(() => null),
-      listReceipts(id).catch(() => []),
+      canInventory && canAudit ? listReceipts(id).catch(() => []) : Promise.resolve([]),
     ]);
+    if(currentId.current!==id)return;
     setInvResiduals(ir);
     setShpResiduals(sr);
     setDocs(d);
+    setScopeLoaded(true);
 
     const related: Array<Promise<TrailEntry[]>> = [];
-    for (const f of fundings) {
+    for (const f of canAudit ? fundings : []) {
       related.push(
         listEntityAudit("customs_funding_request", String(f.id))
           .then((ev) =>
@@ -111,7 +132,7 @@ export function CustomsDetailPage({ user }: Props) {
           .catch(() => []),
       );
     }
-    for (const n of nats) {
+    for (const n of canAudit ? nats : []) {
       related.push(
         listEntityAudit("nationalization", String(n.id))
           .then((ev) =>
@@ -130,7 +151,7 @@ export function CustomsDetailPage({ user }: Props) {
     const dogVersionIds = new Set<number>();
     if (dog?.current_version_id) dogVersionIds.add(dog.current_version_id);
     for (const v of dog?.versions ?? []) dogVersionIds.add(v.id);
-    for (const vid of dogVersionIds) {
+    for (const vid of canAudit ? dogVersionIds : []) {
       related.push(
         listEntityAudit("doganale_version", String(vid))
           .then((ev) =>
@@ -163,6 +184,7 @@ export function CustomsDetailPage({ user }: Props) {
       );
     }
     const extra = (await Promise.all(related)).flat();
+    if(currentId.current!==id)return;
     const processRows: TrailEntry[] = processEvents.map((e) => ({
       id: e.id,
       action: e.action,
@@ -174,7 +196,7 @@ export function CustomsDetailPage({ user }: Props) {
     setAudit(
       [...processRows, ...extra].sort((a, b) => String(b.at ?? "").localeCompare(String(a.at ?? ""))),
     );
-  }, [id]);
+  }, [id, canAudit, canDocuments, canInventory]);
 
   useEffect(() => {
     if (!canReadCustoms(user)) return;
@@ -195,6 +217,11 @@ export function CustomsDetailPage({ user }: Props) {
       cancelled = true;
     };
   }, [reload, user]);
+
+  useEffect(()=>{
+    if(!process || !location.hash)return;
+    const timer=window.setTimeout(()=>focusRecordSection(location.hash),80);return()=>window.clearTimeout(timer);
+  },[process?.id,location.hash]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -217,37 +244,46 @@ export function CustomsDetailPage({ user }: Props) {
 
   const draft = process.status === "DRAFT";
   const structureLocked = !draft;
+  const customsReturn = buildReturnTo("/customs");
+  const receiptHref = withContextReturn(`/inventory/receiving?process_id=${id}&state=all`,location.pathname+location.search);
+  const linkedScope = process.shipment_item_allocations.length ? shpResiduals : invResiduals;
+  const fullScopeKnown = scopeLoaded && !draft && process.status !== "CANCELLED" && linkedScope.length>0 && linkedScope.every(row=>Number(row.residual_qty)===0);
+  const entry = receiving.data ? entryState(receiving.data,clearance.data,fullScopeKnown,process.status==="CANCELLED") : null;
+  const release = clearance.data ? releaseState(clearance.data) : null;
+  const eligible = receiving.data?.some(row=>row.state==="pending" && Number(row.pending_qty)>0) ?? false;
+  const canStartReceiving = canInventory && canReceive && eligible && process.status!=="CANCELLED";
+  const stateFor = (source:{busy:boolean;error:string|null},data:Pick<RecordTopic,"state"|"result"|"tone">|null) => source.busy ? {state:"Carregando",result:"Consultando a fonte",tone:"loading" as const} : source.error ? {state:"Erro na consulta",result:source.error,tone:"error" as const} : data || {state:"Sem informação",result:"Consultar o assunto",tone:"empty" as const};
+  const topics:RecordTopic[] = [
+    {id:"invoices",label:"Faturas",state:process.invoices.length?"Vinculadas":"Sem vínculo",result:`${process.invoices.length} ${process.invoices.length===1?"fatura vinculada":"faturas vinculadas"}`,tone:"info",href:"#customs-section-invoices"},
+    {id:"transport",label:"Transporte",state:process.shipments.length?"Vinculado":"Sem vínculo",result:`${process.shipments.length} ${process.shipments.length===1?"embarque vinculado":"embarques vinculados"}`,tone:"info",href:"#customs-section-shipments"},
+    {id:"release",label:"Liberação",...stateFor(clearance,release),href:"#customs-section-liberacoes"},
+  ];
+  if(canInventory) topics.push({id:"entry",label:"Entrada no estoque",...stateFor(receiving,entry),href:"#customs-entry"});
+  const currentCost=cost.data?.find(row=>row.import_process_id===id);
+  if(canNavigate(user,"costing:read")) topics.push({id:"cost",label:"Custo",...stateFor(cost,currentCost?{state:currentCost.current_status==="PUBLISHED"?"Versão publicada":currentCost.current_status?"Em apuração":"Sem versão",result:currentCost.partial_coverage?"Cobertura parcial — consultar composição":"Consultar base e composição",tone:"info"}:null),href:currentCost?.id?`/costing/${currentCost.id}`:"/costing"});
+  const submit = () => void run(async()=>{await submitImportProcess(id,process.version);});
+  const primary:RecordAction|undefined = canStartReceiving ? {label:"Receber mercadorias",href:receiptHref,testId:"customs-primary-receive"} : writable && draft ? {label:"Submeter operação",onClick:submit,disabled:busy||!process.external_reference,reason:!process.external_reference?"Informe e salve a referência DUIMP / DI na seção Dados da operação.":undefined,testId:"customs-primary-submit"} : undefined;
+  const more:RecordAction[] = [
+    ...(writable && process.status!=="CANCELLED" ? [{label:"Cancelar operação…",onClick:()=>focusRecordSection("customs-cancellation")}] : []),
+    ...(canDocuments ? [{label:"Documentos",onClick:()=>focusRecordSection("customs-section-docs")}] : []),
+    ...(canInventory ? [{label:"Gestão de recebimentos e estornos",onClick:()=>focusRecordSection("customs-receipts-management")}] : []),
+    {label:"Atualizar dados",onClick:()=>{void reload();receiving.retry();clearance.retry();cost.retry();}},
+  ];
 
   return (
-    <div data-testid="customs-detail-page">
+    <div className="record-detail-page" data-testid="customs-detail-page">
       <ContextBreadcrumb
         items={[
           { label: "Importações" },
-          { label: "Operações", to: "/customs" },
+          { label: "Operações", to: customsReturn },
           { label: process.code },
         ]}
       />
-      <PageHeader
-        title={process.code}
-        subtitle={`Status: ${statusLabel(process.status)} · v${process.version}`}
-        actions={(user.role === "admin" || user.permissions.includes("inventory:read")) ?
-          <Link className="ui-button ui-button--secondary" to={`/inventory/receiving?state=all&q=${encodeURIComponent(process.code)}`}>Receber mercadorias</Link> : undefined}
-      />
-      <div className="form-actions" style={{ marginBottom: "0.75rem" }}>
-        <StatusBadge status={process.status} entity="customs" />
-      </div>      {error ? (
-        <Notice tone="danger" data-testid="customs-error">
-          {error}
-        </Notice>
-      ) : null}
+      <RecordWorkHeader title={process.code} context={[process.external_reference,`Revisão ${process.version}`].filter(Boolean).join(" · ")} status={<StatusBadge status={process.status} entity="customs"/>} primary={primary} secondary={canInventory && !canStartReceiving ? {label:"Consultar mercadorias",href:receiptHref} : {label:"Dados da operação",onClick:()=>focusRecordSection("customs-section-resumo")}} more={more} topics={topics}/>
+      {error && <Notice tone="danger" data-testid="customs-error">{error}</Notice>}
 
-      <SectionCard title="Resumo" data-testid="customs-section-resumo">
-        <p>
-          Status: <strong>{statusLabel(process.status)}</strong>
-        </p>
-        <p>
-          Ref. externa: <strong data-testid="customs-detail-ext">{process.external_reference || "—"}</strong>
-        </p>
+      <SectionCard title="Dados da operação" data-testid="customs-section-resumo">
+        {!draft && <dl className="record-data"><div><dt>Referência DUIMP / DI</dt><dd>{process.external_reference || "Não informada"}</dd></div><div><dt>Notas</dt><dd>{process.notes || "Sem notas"}</dd></div></dl>}
         {writable && draft ? (
           <div className="form-actions">
             <FormField
@@ -284,11 +320,7 @@ export function CustomsDetailPage({ user }: Props) {
             type="button"
             disabled={busy}
             data-testid="customs-submit"
-            onClick={() =>
-              void run(async () => {
-                await submitImportProcess(id, process.version);
-              })
-            }
+            onClick={submit}
           >
             Submeter
           </Button>
@@ -299,7 +331,7 @@ export function CustomsDetailPage({ user }: Props) {
           </p>
         ) : null}
         {writable && process.status !== "CANCELLED" ? (
-          <div className="form-actions">
+          <details className="record-advanced" id="customs-cancellation"><summary>Cancelar operação</summary><div className="form-actions">
             <FormField label="Motivo cancelamento" htmlFor="customs-cancel-reason">
               <TextInput
                 id="customs-cancel-reason"
@@ -324,7 +356,7 @@ export function CustomsDetailPage({ user }: Props) {
             >
               Cancelar processo
             </Button>
-          </div>
+          </div></details>
         ) : null}
       </SectionCard>
 
@@ -337,7 +369,7 @@ export function CustomsDetailPage({ user }: Props) {
             {process.invoices.map((inv) => (
               <li key={inv.id}>
                 Fatura #{inv.invoice_id}{" "}
-                <Link to={`/invoices/${inv.invoice_id}`}>abrir</Link>{" "}
+                {canNavigate(user,"billing:read") && <Link to={withContextReturn(`/invoices/${inv.invoice_id}`,location.pathname+"#customs-section-invoices")}>abrir</Link>}{" "}
                 {writable && draft ? (
                   <Button
                     type="button"
@@ -470,7 +502,7 @@ export function CustomsDetailPage({ user }: Props) {
             {process.shipments.map((sh) => (
               <li key={sh.id}>
                 Embarque #{sh.shipment_id}{" "}
-                <Link to={`/shipments/${sh.shipment_id}`}>abrir</Link>{" "}
+                {canNavigate(user,"logistics:read") && <Link to={`/shipments/${sh.shipment_id}`}>abrir</Link>}{" "}
                 {writable && draft ? (
                   <Button
                     type="button"
@@ -620,7 +652,7 @@ export function CustomsDetailPage({ user }: Props) {
         ) : null}
       </SectionCard>
 
-      <SectionCard title="Documentos" data-testid="customs-section-docs">
+      {canDocuments && <SectionCard title="Documentos" data-testid="customs-section-docs">
         {docs.length === 0 ? (
           <p className="muted">Nenhum documento anexado.</p>
         ) : (
@@ -633,7 +665,7 @@ export function CustomsDetailPage({ user }: Props) {
             ))}
           </ul>
         )}
-        {writable ? (
+        {writable && canNavigate(user,"documents:write") ? (
           <FileUpload
             label="Anexar documento"
             data-testid="customs-doc-upload"
@@ -645,7 +677,7 @@ export function CustomsDetailPage({ user }: Props) {
             }}
           />
         ) : null}
-      </SectionCard>
+      </SectionCard>}
 
       <div data-testid="customs-section-doganale">
         <DoganalePanel user={user} processId={id} />
@@ -653,7 +685,7 @@ export function CustomsDetailPage({ user }: Props) {
       <div data-testid="customs-section-numerario">
         <NumerarioPanel user={user} processId={id} />
       </div>
-      <div data-testid="customs-section-liberacoes">
+      <div id="customs-section-liberacoes" data-testid="customs-section-liberacoes">
         <NationalizationPanel
           user={user}
           processId={id}
@@ -664,19 +696,21 @@ export function CustomsDetailPage({ user }: Props) {
           }}
         />
       </div>
-      <div data-testid="customs-section-recebimentos">
-        <ReceiptPanel
-          user={user}
-          processId={id}
-          refreshTick={inventoryTick}
-          onChanged={() => {
-            setInventoryTick((t) => t + 1);
-            void reload();
-          }}
-        />
-      </div>
+      {canInventory && <SectionCard id="customs-entry" title="Entrada no estoque" data-testid="customs-section-recebimentos">
+        {receiving.busy ? <p role="status">Carregando entrada no estoque…</p> : receiving.error ? <p role="alert">{receiving.error} <Button variant="secondary" onClick={receiving.retry}>Tentar novamente</Button></p> : entry ? <>
+          <h3 data-testid="entry-state">{entry.state}</h3><p>{entry.result}</p>
+          <p className="muted">Liberado: {quantitiesByUnit(receiving.data!,"released_qty")} · Recebido: {quantitiesByUnit(receiving.data!,"received_qty")} · Pendente do liberado: {quantitiesByUnit(receiving.data!,"pending_qty")}</p>
+          {clearance.data?.some(row=>Number(row.residual_qty)>0) && <p>O escopo da operação ainda tem saldo não liberado. Receber o saldo já liberado não conclui toda a operação.</p>}
+          {clearance.error && <p role="alert">Não foi possível conferir o escopo de liberação. A conclusão integral não está comprovada.</p>}
+          <Link className="ui-button ui-button--secondary" to={receiptHref}>{canStartReceiving?"Receber mercadorias":"Consultar mercadorias"}</Link>
+          {!canReceive && <p className="muted">Consulta de estoque; seu perfil não permite confirmar entradas.</p>}
+        </> : null}
+        <details className="record-advanced" id="customs-receipts-management"><summary>Gestão de recebimentos existentes e estornos</summary>
+          <ReceiptPanel user={user} processId={id} refreshTick={inventoryTick} onChanged={()=>{setInventoryTick(t=>t+1);void reload();}}/>
+        </details>
+      </SectionCard>}
 
-      <SectionCard title="Auditoria" data-testid="customs-section-audit">
+      {canAudit && <SectionCard title="Auditoria" data-testid="customs-section-audit">
         <Notice tone="info" data-testid="customs-audit-scope-notice">
           Esta trilha junta o processo, o Numerário, a Doganale, as liberações e os recebimentos.
           Commits de ingestão (Doganale, Print, Numerário PDF) ficam no documento em{" "}
@@ -709,7 +743,7 @@ export function CustomsDetailPage({ user }: Props) {
             </tbody>
           </table>
         )}
-      </SectionCard>
+      </SectionCard>}
     </div>
   );
 }

@@ -58,13 +58,13 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
     );
 
     expect(await screen.findByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /linhas de categoria \(compromisso\)/i,
+      /Linhas sem produto/i,
     );
     expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /Vincule cada linha a um produto/i,
+      /precisam de vínculo/i,
     );
     expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /estoque após a nacionalização/i,
+      /faturar as demais linhas elegíveis/i,
     );
     expect(screen.queryByText(/produtos reais chegam por ali/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/fantasma|inválido/i)).not.toBeInTheDocument();
@@ -106,7 +106,7 @@ describe("OrderInvoicesPanel RUX-3F I1", () => {
 
     await waitFor(() => expect(screen.getByTestId("create-invoice")).toBeInTheDocument());
     expect(screen.getByTestId("order-invoices-commitment-notice")).toHaveTextContent(
-      /Vincule cada linha a um produto/i,
+      /precisam de vínculo/i,
     );
     expect(screen.getByTestId("qty-available-10")).not.toHaveTextContent("—");
     expect(screen.getByTestId("qty-available-11")).toHaveTextContent("—");

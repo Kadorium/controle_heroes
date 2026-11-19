@@ -1,0 +1,15 @@
+
+Running 2 tests using 1 worker
+
+node.exe : (node:69736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\ricar\AppData\Roaming\ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:69736) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [chromium] › e2e\elo-10-close-order.spec.ts:7:1 › encerrar pedido CONFIRMED e reabrir (2.2s)
+  ok 2 [chromium] › e2e\inc2-billing.spec.ts:4:1 › Inc-2 billing issue flow (3.3s)
+
+  2 passed (7.6s)

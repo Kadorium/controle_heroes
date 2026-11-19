@@ -1,0 +1,68 @@
+[
+  {
+    "task": "Resposta interrompida e recarga",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Recebimento exato da operação 10",
+    "vi": "Conferência de 1 UN com destino explícito",
+    "cliquei": "Confirmei; interrompi só a resposta; recarreguei e repeti",
+    "resultado": "Mesmo recibo; uma entrada no banco; saldo 2 UN; dados recuperados",
+    "receiptId": 20,
+    "faultInjection": "Playwright abort after route.fetch real transaction"
+  },
+  {
+    "task": "Prioridade de contas vencidas",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Pedido 2 do clone",
+    "vi": "Atenção baseada no KPI de contas vencidas",
+    "cliquei": "Ver contas vencidas",
+    "resultado": "Fila com order_id=2 e pending=OVERDUE; nenhuma obrigação escolhida automaticamente"
+  },
+  {
+    "task": "Fila e formulário 1366 false",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Fila DET18 filtrada",
+    "vi": "Grupos, item, quantidade e destino legíveis",
+    "cliquei": "Teclado Enter e Escape; conferência sem confirmar",
+    "resultado": "Sem overflow; volta mantém filtro e foco"
+  },
+  {
+    "task": "Fila e formulário 1366 true",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Fila DET18 filtrada",
+    "vi": "Grupos, item, quantidade e destino legíveis",
+    "cliquei": "Teclado Enter e Escape; conferência sem confirmar",
+    "resultado": "Sem overflow; volta mantém filtro e foco"
+  },
+  {
+    "task": "Fila e formulário 1440 false",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Fila DET18 filtrada",
+    "vi": "Grupos, item, quantidade e destino legíveis",
+    "cliquei": "Teclado Enter e Escape; conferência sem confirmar",
+    "resultado": "Sem overflow; volta mantém filtro e foco"
+  },
+  {
+    "task": "Fila e formulário 1440 true",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Fila DET18 filtrada",
+    "vi": "Grupos, item, quantidade e destino legíveis",
+    "cliquei": "Teclado Enter e Escape; conferência sem confirmar",
+    "resultado": "Sem overflow; volta mantém filtro e foco"
+  },
+  {
+    "task": "Ausência, erro e recuperação",
+    "profile": "admin",
+    "runtime": "8103 / 5461 / executive-20261118.2",
+    "abri": "Fila global",
+    "vi": "Ausência sem registros e erro de leitura são distintos",
+    "cliquei": "Busca sem correspondência; falha 503 induzida; Tentar novamente",
+    "resultado": "Fila recuperada sem converter falha em zero",
+    "faultInjection": "503 only for read recovery test"
+  }
+]

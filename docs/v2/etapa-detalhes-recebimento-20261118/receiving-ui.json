@@ -1,0 +1,107 @@
+{
+  "build": "executive-20261118.2",
+  "results": [
+    {
+      "task": "Nada liberado",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "/customs/11",
+      "vi": "Entrada aguardando liberação",
+      "cliquei": "Assunto Entrada no estoque",
+      "resultado": "Sem ação de recebimento; não declara conclusão",
+      "indexSha256": "08a8e6b3af2458b2a4d32f98bcd98a60de3e1f52cac44f0e2d50faa68ddd1031"
+    },
+    {
+      "task": "Liberação parcial, sem entrada",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "/customs/11",
+      "vi": "10 UN liberadas de escopo de 16",
+      "cliquei": "Atualizei a operação",
+      "resultado": "A receber; liberação parcial",
+      "setup": "API de liberação existente; nenhuma entrada por API"
+    },
+    {
+      "task": "Entrada parcial pela operação",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "/customs/11 → recebimento por process_id",
+      "vi": "Somente item correto; quantidade e destino explícitos",
+      "cliquei": "Receber mercadorias → item → Conferir entrada → Confirmar entrada",
+      "resultado": "4 UN confirmadas, 6 UN pendentes do liberado; formulário manteve dados na validação e alteração",
+      "clicksOperationToReview": 3,
+      "itemId": 44,
+      "doubleClickPosts": 1,
+      "click_measurement": "See click-counts-final.json; validation/recovery steps were additional interactions."
+    },
+    {
+      "task": "Fila global por Estoque",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "estoque",
+      "abri": "Importações → Mercadorias a receber",
+      "vi": "Referências DET18-REF-1 e DET18-REF-10 em grupos distintos",
+      "cliquei": "Escolhi explicitamente o item da operação 1 e confirmei 6 UN",
+      "resultado": "Mesmo formulário e contrato; retorno conserva busca e situação; zero consultas aduaneiras",
+      "forbiddenCustomsQueries": 0
+    },
+    {
+      "task": "10 liberadas e recebidas de 16",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "/customs/11",
+      "vi": "Parcial — resta liberar",
+      "cliquei": "Recarreguei e consultei Entrada no estoque",
+      "resultado": "10 UN recebidas; não declara operação integralmente recebida"
+    },
+    {
+      "task": "Conclusão integral comprovada",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "/customs/11",
+      "vi": "Liberações 10+6 e entradas 4+6+6",
+      "cliquei": "Confirmei a entrada das 6 restantes e recarreguei",
+      "resultado": "Escopo integral recebido com alocações conferidas; 3 entradas, sem duplicação",
+      "receiptIds": [
+        19,
+        18,
+        17
+      ],
+      "apiCrossCheck": true
+    },
+    {
+      "task": "Item de outra operação rejeitado",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "Link com process_id da operação 1 e item da operação 10",
+      "vi": "Mensagem de vínculo incompatível",
+      "cliquei": "Abri o link direto",
+      "resultado": "Nenhuma confirmação disponível; não usa coincidência textual"
+    },
+    {
+      "task": "Saldo e histórico",
+      "runtime": "8103 / 5461 / epic_v2_test",
+      "profile": "admin",
+      "abri": "Saldo do produto DET18 e Histórico de estoque",
+      "vi": "16 UN e movimentações do produto",
+      "cliquei": "Abri saldo, histórico, recarreguei e usei voltar/avançar",
+      "resultado": "Saldo após entradas consultável; filtros por product_id preservados"
+    }
+  ],
+  "writes": [
+    {
+      "item_id": 44,
+      "quantity": "4",
+      "unit": "UN",
+      "location_code": "DOMESTIC-MAIN",
+      "request_key": "86f4d14b-d40e-4f84-8da6-946760c039a6"
+    },
+    {
+      "item_id": 45,
+      "quantity": "6.0000",
+      "unit": "UN",
+      "location_code": "DOMESTIC-MAIN",
+      "request_key": "bbc4ee81-ab27-4ca3-bb51-d9bb2a59e969"
+    }
+  ],
+  "errors": []
+}

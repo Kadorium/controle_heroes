@@ -16,8 +16,10 @@ test("encerrar pedido CONFIRMED e reabrir", async ({ page }) => {
     qty: "2",
     price: "10",
   });
+  await page.locator(".record-more summary").click();
   await page.getByTestId("cockpit-close-link").click();
   await expect(page.getByTestId("order-detail")).toBeVisible({ timeout: 15_000 });
+  await page.locator(".record-more summary").click();
   await page.getByTestId("close-order").click();
   await page.getByTestId("close-reason").fill("STORY_COMPLETE");
   await page.getByTestId("confirm-modal-ok").click();
@@ -33,11 +35,13 @@ test("encerrar pedido CONFIRMED e reabrir", async ({ page }) => {
   await page.goto(commercialUrl);
   await expect(page.getByTestId("order-detail")).toBeVisible();
   await expect(page.getByTestId("close-reason-display")).toContainText("STORY_COMPLETE");
+  await page.locator(".record-more summary").click();
   await expect(page.getByTestId("reopen-order")).toBeVisible();
 
   await page.getByTestId("reopen-order").click();
   await page.getByTestId("reopen-reason").fill("NEED_CORRECTION");
   await page.getByTestId("confirm-modal-ok").click();
+  await page.locator(".record-more summary").click();
   await expect(page.getByTestId("close-order")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("status-badge").first()).toHaveText("Confirmado");
 });

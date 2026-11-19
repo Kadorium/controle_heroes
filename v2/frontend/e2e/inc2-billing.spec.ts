@@ -60,11 +60,11 @@ test("Inc-2 billing issue flow", async ({ page }) => {
 
   await expect(page.getByTestId("discount-type-0")).toHaveCount(0);
 
-  await page.getByLabel("Principal").getByRole("link", { name: /^faturas$/i }).click();
+  await page.getByTestId("section-invoices").click();
   await expect(page.getByTestId("invoices-list")).toBeVisible();
   await expect(page.getByTestId("invoices-table")).toBeVisible();
   await expect(page.getByText(`F-${code}`)).toBeVisible();
 
-  await page.getByLabel("Principal").getByRole("link", { name: /contas a pagar/i }).click();
+  await page.getByTestId("nav-finance").click();
   await expect(page.getByTestId("ap-queue-page")).toBeVisible();
 });

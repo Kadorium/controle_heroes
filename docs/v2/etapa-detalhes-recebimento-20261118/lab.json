@@ -1,0 +1,10 @@
+{
+  "source_verified": "epic_v2_test|5458|C:/Users/ricar/Desktop/projetos/EPIC/audit-runtime/executive-20261117/postgres",
+  "test_port": 5461,
+  "test_database": "epic_v2_test",
+  "test_data_directory": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-lab\\details-20261118\\postgres",
+  "server_pid": 13084,
+  "url": "http://127.0.0.1:8103",
+  "backend": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-runtime\\executive-20261117\\v2",
+  "frontend": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\Controle\\v2\\frontend\\dist-details"
+}

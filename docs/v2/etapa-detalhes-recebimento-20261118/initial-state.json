@@ -1,0 +1,43 @@
+{
+  "branch": "feat/stock-executive-20261023",
+  "commit": "f601b02017f625f1bfdaa66d1d3ff12d3019dbe8",
+  "working_entries": 1737,
+  "index_empty": true,
+  "database": "epic_v2_test|5458|C:/Users/ricar/Desktop/projetos/EPIC/audit-runtime/executive-20261117/postgres",
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-11-19T01:45:35.964943Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "034",
+    "alembic_expected": "034",
+    "schema_ok": true
+  },
+  "build": {
+    "source_commit": "448ca3a8271d326c902babf7d061bff9eb71b7e4",
+    "uncommitted_candidate": true,
+    "manifest_sha256": "ccdffde8486c98773f87f5bdb0416670b09cde00d1de8c089ca6cb36df7c53b9",
+    "build_id": "executive-20261118.1",
+    "assets": {
+      "index-BfJ8vCu5.css": "b168b1c6d3380ad82b745521e293826b2a407f400f80e939f14ccf76d82d3590",
+      "index-BGdqJWCe.js": "c8140c0b8b56a4531278b4686d511b387ae69c72902d7e10cc725650a8964507",
+      "index-Bp2zwKZO.css": "e8c42d63f613168f0cf1839f9341f06a4ad3da8147af3b166b39c0224a2a5096",
+      "index-Buuf_WJm.css": "92f59922f1c01e17b997c2ab4b91587fb508df033db0b956541db5febe9cb881",
+      "index-C51lN8Hl.js": "83a4199f742ad685841c3a9b510b5512854d40c8e4b90cf87ccd02294b31ada7",
+      "index-C9e-7en0.js": "715d91024f97d18ef36d6052e3213af9122542f9e117f4a81de2fa2b7022684d",
+      "index-Cn5QD-CZ.css": "3d8697dbca24f70e3b919c452c636b164f63aee61b939278ae8e0763fa9efcbd",
+      "index-CoWSD9W0.js": "bc2255588d947bd8d43d7ace7b66018919388a3fa60d73c71e277a5802a87922",
+      "index-DH9h24PC.js": "1071dfb56ebd81475208893781593a68e9c52ce342c7fe8cab972ad58b36ab99",
+      "index-DJVy1TEr.js": "064c46420211c54bc4ad9ffd7fd16871a443b5de8e00645451808c6673812a2e",
+      "index-FiHJ5L7f.js": "56867b6f74bf6910525951f48d9a2201749319b5bdf468d526909d4307003556",
+      "index-ORcUhsQb.css": "d03616ce011996902ff11bf314a1e84fb1aac6a051a75d7e807b7e2904860306",
+      "index-uyDSAkfC.css": "69c8edd87e34042fd9850d8e82466ba0628ae307415003baa0adfdae3fcffb8f",
+      "pdf.worker.min-CLrFZWeq.mjs": "bc0d1b88ea0b66196b1d36a58ac243c6d92adfe725624e2a9fdd381bdf8ef434"
+    },
+    "navigation_delivery": "docs/v2/etapa-consolidacao-navegacao"
+  },
+  "backup": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\backups\\details-before-20261118"
+}

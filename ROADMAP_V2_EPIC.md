@@ -6,8 +6,8 @@
 | Campo | Valor |
 |---|---|
 | Atualizado em | 2026-11-18 |
-| Última entrega | Menu consolidado em cinco áreas, com acesso completo às rotinas e validação de perfis e percursos |
-| Próxima entrega | Usar a navegação consolidada; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
+| Última entrega | Pedido e importação com ações no topo, situação clara e recebimento no contexto da operação |
+| Próxima entrega | Usar os novos detalhes; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -110,7 +110,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.164** — consolidação da navegação **DONE**: cinco áreas + duas entradas secundárias; abas locais, fallback por permissão, câmbio contextual e filtros de indicadores preservados. Release `executive-20261118.1`, 8082/5458/schema 034. Gates: 255 testes frontend, 4 E2E existentes, 29 verificações de navegação/perfis, 10 percursos de negócio e 20 verificações na release. Escritas somente no clone de teste 8102/5460. Domínio, backend e denominadores inalterados |
+| Versão | **0.5.165** — detalhes de Pedido/Operação e recebimento contextual **DONE**. Release `executive-20261118.2`, 8082/5458/schema 034; cabeçalhos fixos, assuntos independentes, estados com fonte e recorte exato. Gates: 289 testes frontend; build/typecheck; 2 E2E existentes; 38 percursos/verificações UI; 10 testes do launcher; 14 verificações finais na release e abertura nativa pelo executável. Índice isolado: build + 280 testes. Escritas de ensaio somente 8103/5461; backend/ACL/banco ativo preservados; correção de cache na URL do launcher; relatório único na raiz |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -125,9 +125,9 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#7 | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** — [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
 | J#8 aceite UI | **DONE** — V1 arquivada — [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
-| Alembic head | código/release **034**; demo `epic_v2_test`/5451 = **034**, lab auditoria/5452 = **034**. Ambientes anteriores/operacionais não migrados nem revalidados nesta auditoria |
+| Alembic head | código/release **034**; demo ativa `epic_v2_test`/5458 = **034**; ensaio desta entrega isolado em 5461/034. Diretórios e processos conferidos; bancos anteriores e operacionais preservados |
 
-**Próxima ação:** usar a navegação consolidada e revisar o handoff entregue ao advisor. Política econômica para operação, conferência física e I-01/offsite seguem fora deste escopo; vídeos existentes preservados, ainda exibem a navegação anterior.
+**Próxima ação:** usar os detalhes e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`. Caso o volume exija, avaliar contrato de filtro exato por operação no recebimento e leitura direta de custo por operação; não implementados nesta entrega. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -135,7 +135,7 @@ Refinamento visual autorizado: composição só na Executiva de sistema; visões
 
 Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
 
-Auditoria atual: [`AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md`](docs/v2/etapa-revisao-experiencia/AUDITORIA_E2E_UX_EXECUTIVA_EPIC.md); pacote ZIP local com PNGs/logs selecionados. Auditoria antiga8084/5441 permanece histórica; não descreve release atual. Capacidades das barras não equivalem à cobertura/aceite desta auditoria, que continua parcial.
+Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.6 e Blueprint UI/UX 3.15. Evidência interna: `docs/v2/etapa-detalhes-recebimento-20261118/`. A consolidação de cinco áreas permanece; seu [handoff](docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md) é histórico. O executável abre .2 com chave da interface na URL para evitar HTML antigo em cache; banco 5458 preservado. Os 17 conjuntos de domínio comparados antes/depois não mudaram. Nenhum dado do clone foi promovido.
 
 Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
 
