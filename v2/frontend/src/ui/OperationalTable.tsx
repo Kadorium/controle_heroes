@@ -9,6 +9,7 @@ import {
 type Density = "standard" | "finance";
 
 type LegacyProps = TableHTMLAttributes<HTMLTableElement> & {
+  scrollLabel?: string;
   density?: Density;
   stickyHeader?: boolean;
   zebra?: boolean;
@@ -24,6 +25,7 @@ type LegacyProps = TableHTMLAttributes<HTMLTableElement> & {
 };
 
 type ColumnsProps<T> = Omit<TableHTMLAttributes<HTMLTableElement>, "children"> & {
+  scrollLabel?: string;
   density?: Density;
   stickyHeader?: boolean;
   zebra?: boolean;
@@ -63,6 +65,7 @@ export function OperationalTable<T>(props: Props<T>) {
 }
 
 function OperationalTableLegacy({
+  scrollLabel,
   density = "standard",
   stickyHeader = true,
   zebra = false,
@@ -84,7 +87,7 @@ function OperationalTableLegacy({
     .join(" ");
 
   return (
-    <div className={wrapClass}>
+    <div className={wrapClass} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}>
       <table className={tableClass} {...rest}>
         {children}
       </table>
@@ -93,6 +96,7 @@ function OperationalTableLegacy({
 }
 
 function OperationalTableColumns<T>({
+  scrollLabel,
   density = "standard",
   stickyHeader = true,
   zebra = false,
@@ -165,7 +169,7 @@ function OperationalTableColumns<T>({
       data-layout={layoutMode}
       data-testid="queue-shell"
     >
-      <div className={wrapClass}>
+      <div className={wrapClass} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}>
         <table className={tableClass} {...rest}>
           <colgroup>
             {visibleColumns.map((col) => (

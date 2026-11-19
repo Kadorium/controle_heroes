@@ -1,0 +1,31 @@
+{
+  "branch": "feat/stock-executive-20261023",
+  "commit": "a1b1719ec4a2b925d44e12455c6432e896e40364",
+  "working_entries": 1804,
+  "index_empty": true,
+  "build": {
+    "source_commit": "448ca3a8271d326c902babf7d061bff9eb71b7e4",
+    "manifest_sha256": "ccdffde8486c98773f87f5bdb0416670b09cde00d1de8c089ca6cb36df7c53b9",
+    "build_id": "executive-20261118.2",
+    "uncommitted_candidate": true,
+    "contains_preserved_wip": true,
+    "delivery_baseline_commit": "f601b02017f625f1bfdaa66d1d3ff12d3019dbe8",
+    "delivery_commit": "a1b1719ec4a2b925d44e12455c6432e896e40364",
+    "delivery": "details-receiving-20261118",
+    "tested_index_sha256": "962bc0f5fce598f04187d02efb5cb2aeef8c4ac3f36c29a800703894d702516d"
+  },
+  "health": {
+    "status": "ok",
+    "app": "Epic Controle V2",
+    "database": "ok",
+    "timestamp": "2026-11-19T03:43:40.611136Z",
+    "app_env": "test",
+    "runtime_lane": "Teste",
+    "logical_database": "epic_v2_test",
+    "alembic_head": "034",
+    "alembic_expected": "034",
+    "schema_ok": true
+  },
+  "runtime": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-runtime\\executive-20261117",
+  "backup": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\backups\\finish-before-20261119"
+}

@@ -1,0 +1,804 @@
+{
+  "runtime": "8104 / 5461",
+  "build": "executive-20261119.1",
+  "actions": [
+    {
+      "task": "Redimensionamento lento e limiares",
+      "steps": 128,
+      "transitionSweeps": 9,
+      "transitions": [
+        {
+          "viewport": 1920,
+          "width": 1406,
+          "available": 853,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos"
+          ],
+          "menu": [
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 5,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1648,
+          "width": 1334,
+          "available": 781,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…"
+          ],
+          "menu": [
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 4,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1528,
+          "width": 1214,
+          "available": 661,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido"
+          ],
+          "menu": [
+            "Cancelar pedido…",
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 3,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1384,
+          "width": 1070,
+          "available": 517,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido"
+          ],
+          "menu": [
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 2,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1256,
+          "width": 942,
+          "available": 389,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas"
+          ],
+          "menu": [
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 1,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1128,
+          "width": 814,
+          "available": 814,
+          "stacked": true,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos"
+          ],
+          "menu": [
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 5,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1096,
+          "width": 828,
+          "available": 275,
+          "stacked": false,
+          "visible": [
+            "Ver contas vencidas"
+          ],
+          "menu": [
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 1,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1080,
+          "width": 812,
+          "available": 812,
+          "stacked": true,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…",
+            "Adiantamentos"
+          ],
+          "menu": [
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 5,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 1048,
+          "width": 780,
+          "available": 780,
+          "stacked": true,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido",
+            "Cancelar pedido…"
+          ],
+          "menu": [
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 4,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        },
+        {
+          "viewport": 928,
+          "width": 660,
+          "available": 660,
+          "stacked": true,
+          "visible": [
+            "Ver contas vencidas",
+            "Visão do pedido",
+            "Encerrar pedido"
+          ],
+          "menu": [
+            "Cancelar pedido…",
+            "Adiantamentos",
+            "Documentos",
+            "Atualizar"
+          ],
+          "expected": 3,
+          "measurementError": 0,
+          "focus": null,
+          "overflow": 0
+        }
+      ],
+      "result": "Prefixo máximo estável, erro entre medidas/controles <=1 px; menu conforme largura útil"
+    },
+    {
+      "task": "Menu aberto e foco em ação",
+      "focused": "close-order",
+      "result": "Mesma instância durante redução/ampliação; Escape retorna ao gatilho; redistribuição ao sair do grupo"
+    },
+    {
+      "task": "Ação focada/ponteiro pressionado",
+      "result": "Controle mantido durante ativação, sem transação pela redistribuição"
+    },
+    {
+      "task": "Identificação longa",
+      "compact": false,
+      "width": 1052,
+      "available": 1052,
+      "stacked": true,
+      "visible": [
+        "Visão do pedido",
+        "Encerrar pedido",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 6,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "task": "Identificação longa",
+      "compact": true,
+      "width": 1052,
+      "available": 154,
+      "stacked": false,
+      "visible": [],
+      "menu": [
+        "Visão do pedido",
+        "Encerrar pedido",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "expected": 0,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    }
+  ],
+  "profiles": [
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1052,
+      "expanded": true,
+      "compact": false,
+      "available": 584,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1052,
+      "expanded": true,
+      "compact": true,
+      "available": 655,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1052,
+      "expanded": true,
+      "compact": false,
+      "available": 499,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1052,
+      "expanded": true,
+      "compact": true,
+      "available": 587,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/payables",
+      "width": 1366,
+      "expanded": true,
+      "result": "Fila em leitura acessível"
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1180,
+      "expanded": false,
+      "compact": false,
+      "available": 712,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1180,
+      "expanded": false,
+      "compact": true,
+      "available": 783,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1180,
+      "expanded": false,
+      "compact": false,
+      "available": 627,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1180,
+      "expanded": false,
+      "compact": true,
+      "available": 715,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/payables",
+      "width": 1366,
+      "expanded": false,
+      "result": "Fila em leitura acessível"
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1126,
+      "expanded": true,
+      "compact": false,
+      "available": 658,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1126,
+      "expanded": true,
+      "compact": true,
+      "available": 729,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1126,
+      "expanded": true,
+      "compact": false,
+      "available": 573,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1126,
+      "expanded": true,
+      "compact": true,
+      "available": 661,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/payables",
+      "width": 1440,
+      "expanded": true,
+      "result": "Fila em leitura acessível"
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1254,
+      "expanded": false,
+      "compact": false,
+      "available": 786,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2",
+      "width": 1254,
+      "expanded": false,
+      "compact": true,
+      "available": 857,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Consultar pedido",
+        "Adiantamentos",
+        "Ver contas do pedido"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1254,
+      "expanded": false,
+      "compact": false,
+      "available": 701,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/orders/2/commercial",
+      "width": 1254,
+      "expanded": false,
+      "compact": true,
+      "available": 789,
+      "stacked": false,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Adiantamentos",
+        "Atualizar"
+      ],
+      "menu": [],
+      "expected": 4,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_order_read",
+      "route": "/payables",
+      "width": 1440,
+      "expanded": false,
+      "result": "Fila em leitura acessível"
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1086,
+      "expanded": true,
+      "compact": false,
+      "available": 745,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1086,
+      "expanded": true,
+      "compact": true,
+      "available": 793,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1214,
+      "expanded": false,
+      "compact": false,
+      "available": 873,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1214,
+      "expanded": false,
+      "compact": true,
+      "available": 921,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1160,
+      "expanded": true,
+      "compact": false,
+      "available": 819,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1160,
+      "expanded": true,
+      "compact": true,
+      "available": 867,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1288,
+      "expanded": false,
+      "compact": false,
+      "available": 947,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    },
+    {
+      "role": "det_customs_read",
+      "route": "/customs/12",
+      "width": 1288,
+      "expanded": false,
+      "compact": true,
+      "available": 995,
+      "stacked": false,
+      "visible": [
+        "Consultar mercadorias",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "expected": 3,
+      "measurementError": 0,
+      "focus": null,
+      "overflow": 0
+    }
+  ],
+  "longText": [
+    {
+      "reference": "FIN19-PREFIXO-COMPARTILHADO-AAA-REFERENCIA-OPERACIONAL-FINAL-A",
+      "invoice": 20,
+      "abri": "Contas filtradas FIN19",
+      "vi": "Abreviação explícita e número distinto",
+      "cliquei": "Referência completa e Copiar",
+      "resultado": "Texto integral consultado/copied sem alteração dos dados"
+    },
+    {
+      "reference": "FIN19-PREFIXO-COMPARTILHADO-AAA-REFERENCIA-OPERACIONAL-FINAL-B",
+      "invoice": 21,
+      "abri": "Contas filtradas FIN19",
+      "vi": "Abreviação explícita e número distinto",
+      "cliquei": "Referência completa e Copiar",
+      "resultado": "Texto integral consultado/copied sem alteração dos dados"
+    },
+    {
+      "reference": "FIN19-PREFIXO-COMPARTILHADO-BBB-REFERENCIA-OPERACIONAL-FINAL-A",
+      "invoice": 22,
+      "abri": "Contas filtradas FIN19",
+      "vi": "Abreviação explícita e número distinto",
+      "cliquei": "Referência completa e Copiar",
+      "resultado": "Texto integral consultado/copied sem alteração dos dados"
+    }
+  ],
+  "flows": [],
+  "errors": [],
+  "writes": []
+}

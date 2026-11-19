@@ -2,8 +2,8 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.15
-Data: 2026-11-18
+Versão: 3.16
+Data: 2026-11-19
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
 Status de implementação das superfícies: consultar o Roadmap
@@ -14,6 +14,20 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 ```
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
+
+### Ajuste local 3.16 — acabamento financeiro e distribuição real de ações
+
+Decisão vigente autorizada em 19/11/2026, implementada em `executive-20261119.1`. **Substitui o teto de ações de 3.15:** todas as ações pertinentes e autorizadas que caibam ficam visíveis; no máximo uma recebe destaque principal. O restante da decisão3.15 permanece válido.
+
+`RecordWorkHeader` mede a largura útil, título/status e controles renderizados após fontes/layout, incluindo espaços e o gatilho de excedentes. Folga técnica: 2 px CSS. Mostra o maior prefixo permitido na ordem da tela; só o excedente fica em Mais ações, sem duplicação e sem menu vazio. Identificação longa pode ocupar a primeira linha; ação principal permanece acessível. Mesma regra no compacto. Durante foco no grupo, ponteiro pressionado ou menu aberto, mantém os controles existentes para não interromper ativação; podem quebrar linha. Redistribui ao terminar/sair da interação. Escape fecha e devolve foco ao gatilho. Secundárias com peso consistente, sem classificar Cancelar/Reabrir automaticamente como perigo.
+
+Ordem: Pedido/visão = principal vigente → Abrir comercial/Consultar pedido → Adiantamentos → Ver contas do pedido → Encerrar/Reabrir. Pedido/comercial = principal vigente → Visão do pedido → Encerrar ou Reabrir → Cancelar → Adiantamentos → Documentos → Atualizar. Operação = principal vigente → Dados da operação ou Consultar mercadorias → Cancelar → Documentos → Gestão de recebimentos e estornos → Atualizar dados. Itens ausentes por estado/permissão não reservam espaço. A prioridade principal, handlers e confirmações da 3.15 permanecem.
+
+Contas a pagar: política local, sem impor densidade financeira às demais tabelas. Datas inteiras e atraso na segunda linha; fornecedor/banco com reticências explícitas e abertura do texto completo; referências até 38 caracteres em até duas linhas quando comportadas, maiores abreviadas no meio com início/fim e número de entidade visível que distingue colisões. Detalhe mantém texto integral selecionável e Copiar; links originais preservados. Valores/moedas sem quebra, tabulares, alinhados pela direita; status em uma linha, 26 px de altura. Linhas normais observadas 62 px; conteúdo excepcional pode crescer, nunca escondido para caber.
+
+Fila mantém 11 colunas (atalho FX pode acrescentar sua coluna existente); largura mínima derivada das definições. Rolagem horizontal pertence à tabela, acessível por teclado e botões visíveis. Todas não é um controle desabilitado: filtro de moeda existente segue disponível. Resumo por moeda continua compacto; ausência difere de zero, ajuda junto ao rótulo, Por vincular conserva escopo total independente dos filtros. Câmbio/BRL usa o plano atual de Treasury; valores fornecidos, inclusive zero e BRL, são preservados. Duas ausências recebem rótulo único conforme fonte; numerário conserva inaplicabilidade. OVERDUE sai só da célula redundante quando o atraso está explícito; outras pendências permanecem.
+
+Alcance compartilhado: RecordWorkHeader nas duas visões do Pedido e no detalhe da Operação; OperationalTable ganha apenas rótulo/região focável opcional para rolagem. Composição/estilos financeiros são locais. Gates de tela completa em 1366×768 e 1440×900, lateral expandida/recolhida: zero overflow de página/colunas inacessíveis/colisões; eixos 0 px, filtro 0,094 px, seis/oito registros completos. Limites e medições, inclusive interação travada temporariamente para preservar foco, estão no [relatório único](../../../../RELATORIO_EPIC_PARA_GPT.md). Sem novas regras, contratos, cálculos, bibliotecas ou dados de demonstração alterados.
 
 ### Ajuste local 3.15 — detalhes de trabalho e recebimento contextual implementados
 

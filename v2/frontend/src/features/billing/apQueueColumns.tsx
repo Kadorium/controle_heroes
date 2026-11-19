@@ -1,13 +1,10 @@
 import type { ReactNode } from "react";
+import { ApProjection, ApReference, apPendingText } from "./apQueuePresentation";
 import {
-  EntityRef,
-  FxDisplay,
   MoneyDisplay,
   RowAction,
-  RowLink,
   StatusBadge,
   formatDateOnly,
-  formatPendencies,
   type OperationalColumnDef,
 } from "../../ui";
 
@@ -26,7 +23,7 @@ function orderLabel(code: unknown) {
 function dueCell(row: ApQueueRow): ReactNode {
   const days = Number(row.days_overdue);
   const due = formatDateOnly(String(row.due_date));
-  return days > 0 ? `${due} · ${days}d` : due;
+  return <span className="ap-cell-stack"><span className="ap-date">{due}</span>{days > 0 && <span className="ap-secondary ap-overdue">{days} {days === 1 ? "dia" : "dias"} em atraso</span>}</span>;
 }
 
 /** Política de colunas SCR-008 — estável em module scope (Onda B). */
@@ -36,7 +33,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Vencimento",
     visibility: "always",
     priority: 0,
-    minWidth: "8rem",
+    minWidth: "10rem",
     truncate: false,
     cell: (row) => dueCell(row),
   },
@@ -45,8 +42,8 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Fornecedor",
     visibility: "always",
     priority: 0,
-    minWidth: "10rem",
-    truncate: true,
+    minWidth: "15rem",
+    truncate: false,
     cell: (row) => {
       const isCustoms = row.source_type === "CUSTOMS_FUNDING";
       const name =
@@ -54,8 +51,8 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
           ? row.payee_display_name
           : null) || (row.supplier_name as string | null);
       return (
-        <span className="stack-tight">
-          <EntityRef primary={name} missingLabel="Fornecedor não identificado" />
+        <span className="ap-cell-stack">
+          {name ? <button type="button" className="ap-name" title={name} aria-label={`Ver nome completo e detalhes: ${name}`}>{name}</button> : <span>Fornecedor não identificado</span>}
           {isCustoms ? (
             <span className="muted" data-testid="ap-origin-customs">
               Numerário
@@ -70,15 +67,13 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Fatura",
     visibility: "always",
     priority: 0,
-    minWidth: "7rem",
+    minWidth: "12rem",
     truncate: false,
     cell: (row) => {
       const invText = invoiceLabel(row.invoice_number);
       if (invText === "—") return "—";
       return (
-        <RowLink to={`/invoices/${row.invoice_id}`} onClick={(e) => e.stopPropagation()}>
-          <span className="ap-reference" title={invText}>{invText}</span>
-        </RowLink>
+        <ApReference text={invText} href={`/invoices/${row.invoice_id}`} entity="Fatura" id={row.invoice_id}/>
       );
     },
   },
@@ -87,7 +82,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Saldo aberto",
     visibility: "always",
     priority: 0,
-    minWidth: "9rem",
+    minWidth: "10rem",
     align: "end",
     cellClassName: "nowrap ap-balance",
     cell: (row) => (
@@ -97,9 +92,11 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
   {
     id: "status",
     header: "Status",
+    headerClassName: "ap-status-cell",
+    cellClassName: "ap-status-cell",
     visibility: "always",
     priority: 0,
-    minWidth: "6rem",
+    minWidth: "11rem",
     cell: (row) => <StatusBadge status={String(row.status)} entity="payable" />,
   },
   {
@@ -107,15 +104,13 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Pedido",
     visibility: "standard",
     priority: 1,
-    minWidth: "7rem",
+    minWidth: "12rem",
     truncate: false,
     cell: (row) => {
       const ordText = orderLabel(row.order_code);
       if (ordText === "—") return "—";
       return (
-        <RowLink to={`/orders/${row.order_id}`} onClick={(e) => e.stopPropagation()}>
-          <span className="ap-reference" title={ordText}>{ordText}</span>
-        </RowLink>
+        <ApReference text={ordText} href={`/orders/${row.order_id}`} entity="Pedido" id={row.order_id}/>
       );
     },
   },
@@ -124,7 +119,7 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Valor original",
     visibility: "standard",
     priority: 1,
-    minWidth: "9rem",
+    minWidth: "10rem",
     align: "end",
     cellClassName: "nowrap",
     cell: (row) => (
@@ -136,50 +131,45 @@ export const AP_QUEUE_COLUMNS: OperationalColumnDef<ApQueueRow>[] = [
     header: "Câmbio / BRL",
     visibility: "wide",
     priority: 2,
-    minWidth: "8rem",
-    truncate: true,
+    minWidth: "12rem",
+    truncate: false,
     align: "end",
-    cell: (row) => (
-      <span className="stack-tight">
-        <FxDisplay rate={row.fx_projected_rate as string | null} />
-        <MoneyDisplay amount={row.fx_projected_brl as string | null} currency="BRL" />
-      </span>
-    ),
+    cell: (row) => <ApProjection row={row}/>,
   },
   {
     id: "pendencies",
     header: "Pendências",
     visibility: "wide",
     priority: 2,
-    minWidth: "8rem",
-    truncate: true,
-    cell: (row) => formatPendencies(row.pendencies),
+    minWidth: "12rem",
+    truncate: false,
+    cell: (row) => apPendingText(row),
   },
   {
     id: "iban",
     header: "Banco / IBAN",
     visibility: "wide",
     priority: 2,
-    minWidth: "12rem",
-    truncate: true,
+    minWidth: "15rem",
+    truncate: false,
     cell: (row) => {
       const bank = typeof row.destination_bank === "string" ? row.destination_bank.trim() : "";
       const iban = typeof row.destination_iban === "string" ? row.destination_iban.trim() : "";
       if (!bank && !iban) return "—";
       return (
-        <span className="stack-tight" data-testid="ap-destination-iban">
-          {bank || "—"}
-          {iban ? <span className="muted">{iban}</span> : null}
+        <span className="ap-cell-stack" data-testid="ap-destination-iban">
+          <button type="button" className="ap-name" title={bank} aria-label="Ver dados bancários completos">{bank || "Banco não informado"}</button>
+          {iban ? <button type="button" className="ap-name ap-secondary" title={iban} aria-label="Ver IBAN completo">{iban}</button> : null}
         </span>
       );
     },
   },
   {
     id: "fxAction",
-    header: "",
+    header: "Ação",
     visibility: "always",
     priority: 3,
-    minWidth: "4.5rem",
+    minWidth: "8rem",
     cell: (row) =>
       row.source_type === "CUSTOMS_FUNDING" || row.currency === "BRL" ? (
         <span className="muted">Não se aplica</span>

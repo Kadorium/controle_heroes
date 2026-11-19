@@ -1,0 +1,20 @@
+import { chromium,expect } from '@playwright/test';
+import {mkdirSync,writeFileSync} from 'node:fs';import{resolve}from'node:path';
+const out=resolve('../../docs/v2/etapa-acabamento-financeiro-20261119');mkdirSync(out+'/before',{recursive:true});
+const browser=await chromium.launch(),page=await browser.newPage({baseURL:'http://127.0.0.1:8082',viewport:{width:1366,height:768},locale:'pt-BR'});const result={base:'8082/5458',profile:'admin',build:'executive-20261118.2',ap:[],headers:[]};
+await page.goto('/login');await page.getByTestId('login-dev-shortcut').click();await expect(page.locator('.shell-side-nav')).toBeVisible();
+for(const width of [1366,1440])for(const expanded of [true,false]){
+ await page.setViewportSize({width,height:width===1366?768:900});const collapsed=await page.locator('.experience-collapsed').count();if(expanded&&collapsed)await page.getByRole('button',{name:'Expandir navegação'}).click();if(!expanded&&!collapsed)await page.getByRole('button',{name:'Recolher navegação'}).click();
+ await page.goto('/payables');await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);await expect(page.getByTestId('ap-table')).toBeVisible();
+ const measured=await page.evaluate(()=>{
+  const table=document.querySelector('[data-testid="ap-table"]'),wrap=table.parentElement,rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,b:r.bottom,right:r.right};};
+  const rows=[...table.querySelectorAll('tbody tr')],headers=[...table.querySelectorAll('th')],controls=[...document.querySelectorAll('.filter-bar-primary input,.filter-bar-primary select')];
+  const firstText=e=>{const walker=document.createTreeWalker(e,NodeFilter.SHOW_TEXT);let n;while(n=walker.nextNode())if(n.textContent.trim()){const range=document.createRange();range.selectNodeContents(n);return rect(range);}return rect(e);};
+  return {table:rect(table),wrap:{...rect(wrap),scrollWidth:wrap.scrollWidth,clientWidth:wrap.clientWidth,overflow:getComputedStyle(wrap).overflowX},pageOverflow:document.documentElement.scrollWidth-innerWidth,visibleRows:rows.filter(e=>{const r=e.getBoundingClientRect();return r.y>=0&&r.bottom<=innerHeight;}).length,rowHeights:rows.map(r=>r.getBoundingClientRect().height),columns:headers.map(h=>h.dataset.columnId),axes:headers.map((h,i)=>({column:h.dataset.columnId,header:firstText(h),cell:firstText(rows[0].children[i]),text:rows[0].children[i].innerText})),badges:[...table.querySelectorAll('.status-badge')].map(e=>({...rect(e),text:e.innerText})),filterControl:controls.map(rect),moreFilters:rect(document.querySelector('[data-testid="filter-bar-more-trigger"]')),summary:rect(document.querySelector('.ap-summary'))};
+ });result.ap.push({width,expanded,...measured});await page.screenshot({path:out+`/before/ap-${width}-${expanded?'expanded':'collapsed'}.png`});
+ for(const route of ['/orders/2','/orders/2/commercial','/customs/2']){
+  await page.goto(route);await page.waitForLoadState('networkidle');await expect(page.getByTestId('record-work-header')).toBeVisible();const data=await page.getByTestId('record-work-header').evaluate(e=>({width:e.clientWidth,identityWidth:e.querySelector('.record-identity').getBoundingClientRect().width,visible:[...e.querySelectorAll('.record-actions>.record-action')].map(x=>x.innerText),menu:[...e.querySelectorAll('.record-more-list .record-action')].map(x=>x.innerText)}));result.headers.push({route,width,expanded,...data});
+  if(width===1366&&expanded)await page.screenshot({path:out+'/before/'+route.replaceAll('/','-')+'.png'});
+ }
+}
+const response=await page.request.get('/api/reporting/ap-queue?pending=ALL&limit=100');writeFileSync(out+'/before/ap-data.json',JSON.stringify(await response.json(),null,2));writeFileSync(out+'/before/measurements.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result.ap.map(x=>({width:x.width,expanded:x.expanded,visibleRows:x.visibleRows,rowHeights:[...new Set(x.rowHeights)],columns:x.columns,moreFiltersCenter:x.moreFilters.y+x.moreFilters.h/2,controlCenter:x.filterControl.map(r=>r.y+r.h/2),overflow:x.pageOverflow}))));await browser.close();

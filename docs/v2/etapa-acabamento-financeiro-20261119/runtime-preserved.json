@@ -1,0 +1,12 @@
+{
+  "database": "epic_v2_test",
+  "port": 5458,
+  "domain_tables_unchanged": 82,
+  "backend_files_unchanged": 258,
+  "launcher_config_and_cache_unchanged": true,
+  "no_test_data_promoted": true,
+  "authentication_table_changed": [
+    "users"
+  ],
+  "authentication_note": "users hash changes with login; actual backend identity/public.py:142 updates last_login. Original before/after hashes retained; users, sessions and audit excluded from business immutability claim."
+}

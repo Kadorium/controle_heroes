@@ -1,0 +1,134 @@
+{
+  "runtime": "8104 / 5461",
+  "profile": "admin",
+  "journeys": [
+    {
+      "abri": "Contas FIN19",
+      "vi": "Três referências com diferenças no meio/final, número visível distinto",
+      "cliquei": "Referência completa e Copiar",
+      "resultado": "Conteúdo integral correto; rótulos/valores do detalhe com espaçamento uniforme"
+    },
+    {
+      "abri": "Fila com filtro fornecedor",
+      "vi": "Link original da fatura",
+      "cliquei": "Fatura, voltar do navegador e recarregar",
+      "resultado": "Destino correto e filtro preservado"
+    },
+    {
+      "abri": "Contas a pagar",
+      "vi": "Colunas finais acessíveis",
+      "cliquei": "Câmbio",
+      "resultado": "Fluxo proprietário da obrigação abriu; nenhum plano confirmado"
+    },
+    {
+      "abri": "Operação 12",
+      "vi": "Receber mercadorias no topo",
+      "cliquei": "Receber mercadorias e voltar",
+      "resultado": "Mesmo fluxo com ID e retorno exatos; nenhuma entrada confirmada"
+    }
+  ],
+  "measurements": [
+    {
+      "helpCenterDelta": 0,
+      "columns": [
+        {
+          "headerRight": 502,
+          "valueRights": [
+            502,
+            502,
+            502
+          ]
+        },
+        {
+          "headerRight": 708,
+          "valueRights": [
+            708,
+            708,
+            708
+          ]
+        },
+        {
+          "headerRight": 914,
+          "valueRights": [
+            914,
+            914,
+            914
+          ]
+        },
+        {
+          "headerRight": 1120,
+          "valueRights": [
+            1120,
+            1120,
+            1120
+          ]
+        },
+        {
+          "headerRight": 1326,
+          "valueRights": [
+            1326,
+            1326,
+            1326
+          ]
+        }
+      ],
+      "overflow": 0
+    },
+    {
+      "labelValueGaps": [
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625
+      ],
+      "overflow": 0
+    },
+    {
+      "labelValueGaps": [
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625
+      ],
+      "overflow": 0
+    },
+    {
+      "labelValueGaps": [
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625,
+        2.390625
+      ],
+      "overflow": 0
+    }
+  ],
+  "errors": [],
+  "writes": []
+}

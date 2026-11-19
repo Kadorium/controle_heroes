@@ -1,0 +1,495 @@
+--- a/v2/frontend/src/features/billing/apQueue.css
++++ b/v2/frontend/src/features/billing/apQueue.css
+@@ -1,32 +1,34 @@
+-.panel.dense.ap-refined { padding: 0; border: 0; box-shadow: none; background: transparent; }
+-.ap-refined .page-header h1 { font-size: 28px; }
+-.ap-refined .ap-context { font-size: 13px; color: #53647b; margin: 8px 0 16px; }
+-.ap-refined .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+-.ap-refined .kpi-card { border: 1px solid #e0e7ef; border-radius: 12px; padding: 16px; background: #fff; text-align: left; min-width: 0; }
+-.ap-refined .kpi-card:first-child { border-top: 3px solid #295acb; }
+-.ap-refined .kpi-value { font-size: clamp(20px, 1.8vw, 28px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+-.ap-refined .kpi-label { font-size: 13px; color: #53647b; margin-bottom: 8px; }
+-.ap-refined .filter-bar { border: 0; background: transparent; padding: 0; margin: 16px 0; }
+-.ap-refined .filter-bar-primary { align-items: end; }
+-.ap-refined .filter-bar-primary input { max-width: 100px; }
+-.ap-refined .operational-table-wrap { border: 1px solid #e0e7ef; border-radius: 12px; background: #fff; }
+-.ap-refined .ap-balance { font-weight: 650; font-variant-numeric: tabular-nums; }
+-.ap-refined [data-column-id="invoice"], .ap-refined [data-column-id="order"] { overflow-wrap: anywhere; }
+-.panel.dense.ap-refined { display:block; }
+-.ap-refined .page-header { margin:0 0 12px; padding:0; }
+-.ap-summary { margin:0 0 12px; border-block:1px solid #e2e6ec; padding:6px 0; }
+-.ap-summary-heading,.ap-summary-row { display:grid; grid-template-columns:56px repeat(5,minmax(0,1fr)); gap:10px; align-items:center; }
+-.ap-summary-heading { color:#5a6471; font-size:12px; padding:4px 0; }
+-.ap-summary-heading small { font-size:11px; }
+-.ap-summary-row { min-height:36px; }
+-.ap-summary-row button { text-align:left; background:transparent; border:0; border-radius:5px; padding:6px 0; font-size:16px; color:#1f2d41; font-weight:600; font-variant-numeric:tabular-nums; cursor:pointer; }
+-.ap-summary-row button:hover { background:#f0f4fa; }
+-.ap-summary-row button:focus-visible { outline:3px solid #647fe8; outline-offset:2px; }
+-.ap-summary-help { font-size:12px; color:#586476; margin-top:2px; }
+-.ap-summary-help summary { cursor:pointer; }
+-.ap-summary-help p { margin:5px 0; }
+-.ap-refined .filter-bar { margin:8px 0; }
+-.ap-refined .operational-table td { padding-block:8px; }
+-.ap-reference { display:block; max-width:100%; white-space:normal; overflow-wrap:anywhere; line-height:1.45; }
+-.ap-refined .status-badge{overflow-wrap:normal;word-break:normal;white-space:normal;line-height:1.35}
+-@media(max-width:1100px) { .ap-summary-heading,.ap-summary-row { gap:6px; grid-template-columns:42px repeat(5,minmax(0,1fr)); } .ap-summary-row button { font-size:14px; overflow-wrap:anywhere; } }
++.panel.dense.ap-refined{padding:0;border:0;box-shadow:none;background:transparent;display:block}
++.ap-refined .page-header{margin:0 0 4px;padding:0}.ap-refined .page-header h1{font-size:28px}
++.ap-summary{margin:0 0 4px;border-block:1px solid #e2e6ec;padding:2px 0;overflow-x:auto}
++.ap-summary-heading,.ap-summary-row{display:grid;grid-template-columns:56px repeat(5,minmax(170px,1fr));gap:10px;align-items:center;min-width:956px}
++.ap-summary-heading{color:#5a6471;font-size:12px;min-height:26px}
++.ap-summary-heading>span{display:flex;align-items:center;justify-content:flex-end;gap:4px;padding-inline:8px}
++.ap-summary-heading>span:first-child{justify-content:flex-start;padding-left:0}
++.ap-summary-row{min-height:32px}.ap-summary-row>strong{font-size:14px}
++.ap-summary-row button{text-align:right;white-space:nowrap;background:transparent;border:0;border-radius:5px;padding:4px 8px;font-size:16px;line-height:24px;color:#1f2d41;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer}
++.ap-summary-row button:hover{background:#f0f4fa}.ap-summary-row button:focus-visible{outline:3px solid #647fe8;outline-offset:-2px}
++.ap-refined .filter-bar{border:0;background:transparent;padding:0;margin:0;align-items:flex-end;gap:12px}
++.ap-refined .filter-bar-primary{align-items:flex-end}.ap-refined .filter-bar-primary input{max-width:100px}
++.ap-refined #ap-currency::placeholder{color:#263546;opacity:1}
++.ap-refined .filter-bar-more-trigger{min-height:32px}.ap-refined .filter-bar-active{flex-basis:100%}
++.ap-refined .filter-bar-more{align-self:flex-end}.ap-refined .filter-bar-more>.ui-button{height:32px;min-height:32px;padding-block:0}
++.ap-table-access{display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:28px;font-size:12px;color:#5a687b}
++.ap-table-access>div{display:flex;gap:8px;align-items:center}.ap-table-access button{width:32px;min-height:28px;border:1px solid #d3dce8;background:#fff;border-radius:5px;color:#234f83;cursor:pointer}
++.ap-refined .operational-table-wrap{border:1px solid #e0e7ef;border-radius:10px;background:#fff;overflow-x:auto;scrollbar-width:auto;scrollbar-color:#a0b0c5 #edf1f6}
++.ap-refined .operational-table-wrap:focus-visible{outline:2px solid #446fbb;outline-offset:2px}
++.ap-refined .operational-table th,.ap-refined .operational-table td{padding:8px 12px;box-sizing:border-box;vertical-align:middle;line-height:20px}
++.ap-refined .operational-table.density-finance th{height:36px;padding-block:6px;white-space:nowrap}.ap-refined .operational-table.density-finance td{height:62px;padding-block:6px;font-size:14px}
++.ap-refined .operational-table .ap-status-cell{text-align:center}
++.ap-refined .ap-balance{font-weight:650}.ap-refined .money{white-space:nowrap;font-variant-numeric:tabular-nums}
++.ap-refined .status-badge{white-space:nowrap;word-break:normal;line-height:20px;height:26px;box-sizing:border-box;display:inline-flex;align-items:center}
++.ap-cell-stack{display:flex;flex-direction:column;gap:0;min-width:0}.ap-cell-stack>span{line-height:20px}.ap-date{white-space:nowrap;font-variant-numeric:tabular-nums}
++.ap-secondary{color:#5c6878;font-size:13px}.ap-overdue{white-space:nowrap}
++.ap-name{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;border:0;border-radius:3px;padding:0;background:transparent;color:inherit;font:inherit;line-height:20px;min-height:24px;cursor:pointer}
++.ap-name:hover{text-decoration:underline}.ap-name:focus-visible,.ap-reference-details:focus-visible{outline:2px solid #446fbb;outline-offset:2px}
++.ap-refined .operational-table .row-link{padding:0;border:0;min-height:24px;font-size:14px;line-height:20px;max-width:100%;white-space:normal;overflow:visible;text-overflow:clip}
++.ap-reference{display:block;white-space:normal;overflow-wrap:anywhere;line-height:20px}.ap-reference-cell{display:flex;flex-direction:column;gap:0}
++.ap-reference-details{font-size:12px;line-height:20px;min-height:24px;text-align:left;color:#426992;background:transparent;border:0;padding:0;cursor:pointer;white-space:nowrap}
++.ap-full-text{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}.ap-full-text>span{overflow-wrap:anywhere;white-space:normal;user-select:text;max-width:100%}
++.ap-copy{font-size:12px;border:1px solid #d4dce7;background:#fff;border-radius:4px;padding:4px 8px;cursor:pointer;min-height:28px}.ap-detail-reference{display:flex;flex-direction:column;gap:4px}
++.ap-detail-summary .summary-grid-item{align-content:start}.ap-detail-summary .money{white-space:nowrap;font-variant-numeric:tabular-nums}
+--- a/v2/frontend/src/features/billing/apQueueColumns.tsx
++++ b/v2/frontend/src/features/billing/apQueueColumns.tsx
+@@ -1,0 +2 @@
++import { ApProjection, ApReference, apPendingText } from "./apQueuePresentation";
+@@ -3,2 +3,0 @@
+-  EntityRef,
+-  FxDisplay,
+@@ -7 +5,0 @@
+-  RowLink,
+@@ -10 +7,0 @@
+-  formatPendencies,
+@@ -29 +26 @@
+-  return days > 0 ? `${due} · ${days}d` : due;
++  return <span className="ap-cell-stack"><span className="ap-date">{due}</span>{days > 0 && <span className="ap-secondary ap-overdue">{days} {days === 1 ? "dia" : "dias"} em atraso</span>}</span>;
+@@ -39 +36 @@
+-    minWidth: "8rem",
++    minWidth: "10rem",
+@@ -48,2 +45,2 @@
+-    minWidth: "10rem",
+-    truncate: true,
++    minWidth: "15rem",
++    truncate: false,
+@@ -57,2 +54,2 @@
+-        <span className="stack-tight">
+-          <EntityRef primary={name} missingLabel="Fornecedor não identificado" />
++        <span className="ap-cell-stack">
++          {name ? <button type="button" className="ap-name" title={name} aria-label={`Ver nome completo e detalhes: ${name}`}>{name}</button> : <span>Fornecedor não identificado</span>}
+@@ -73 +70 @@
+-    minWidth: "9rem",
++    minWidth: "12rem",
+@@ -79,3 +76 @@
+-        <RowLink to={`/invoices/${row.invoice_id}`} onClick={(e) => e.stopPropagation()}>
+-          <span className="ap-reference" title={invText}>{invText}</span>
+-        </RowLink>
++        <ApReference text={invText} href={`/invoices/${row.invoice_id}`} entity="Fatura" id={row.invoice_id}/>
+@@ -90 +85 @@
+-    minWidth: "9rem",
++    minWidth: "10rem",
+@@ -99,0 +95,2 @@
++    headerClassName: "ap-status-cell",
++    cellClassName: "ap-status-cell",
+@@ -102 +99 @@
+-    minWidth: "9rem",
++    minWidth: "11rem",
+@@ -110 +107 @@
+-    minWidth: "9rem",
++    minWidth: "12rem",
+@@ -116,3 +113 @@
+-        <RowLink to={`/orders/${row.order_id}`} onClick={(e) => e.stopPropagation()}>
+-          <span className="ap-reference" title={ordText}>{ordText}</span>
+-        </RowLink>
++        <ApReference text={ordText} href={`/orders/${row.order_id}`} entity="Pedido" id={row.order_id}/>
+@@ -127 +122 @@
+-    minWidth: "9rem",
++    minWidth: "10rem",
+@@ -139,2 +134,2 @@
+-    minWidth: "8rem",
+-    truncate: true,
++    minWidth: "12rem",
++    truncate: false,
+@@ -142,6 +137 @@
+-    cell: (row) => (
+-      <span className="stack-tight">
+-        <FxDisplay rate={row.fx_projected_rate as string | null} />
+-        <MoneyDisplay amount={row.fx_projected_brl as string | null} currency="BRL" />
+-      </span>
+-    ),
++    cell: (row) => <ApProjection row={row}/>,
+@@ -154,3 +144,3 @@
+-    minWidth: "8rem",
+-    truncate: true,
+-    cell: (row) => formatPendencies(row.pendencies),
++    minWidth: "12rem",
++    truncate: false,
++    cell: (row) => apPendingText(row),
+@@ -163,2 +153,2 @@
+-    minWidth: "12rem",
+-    truncate: true,
++    minWidth: "15rem",
++    truncate: false,
+@@ -170,3 +160,3 @@
+-        <span className="stack-tight" data-testid="ap-destination-iban">
+-          {bank || "—"}
+-          {iban ? <span className="muted">{iban}</span> : null}
++        <span className="ap-cell-stack" data-testid="ap-destination-iban">
++          <button type="button" className="ap-name" title={bank} aria-label="Ver dados bancários completos">{bank || "Banco não informado"}</button>
++          {iban ? <button type="button" className="ap-name ap-secondary" title={iban} aria-label="Ver IBAN completo">{iban}</button> : null}
+@@ -179 +169 @@
+-    header: "",
++    header: "Ação",
+@@ -182 +172 @@
+-    minWidth: "6.5rem",
++    minWidth: "8rem",
+--- a/v2/frontend/src/features/billing/ApQueuePage.tsx
++++ b/v2/frontend/src/features/billing/ApQueuePage.tsx
+@@ -10 +9,0 @@
+-  EntityRef,
+@@ -15 +13,0 @@
+-  FxDisplay,
+@@ -35,0 +34 @@
++import { ApFullText, ApProjection } from './apQueuePresentation';
+@@ -298,0 +298 @@
++  const tableColumns: typeof AP_QUEUE_COLUMNS = params.get("purpose") === "fx" && (user.role === "admin" || user.permissions.includes("treasury:fx_read")) ? [...AP_QUEUE_COLUMNS, {id:"fx-action",header:"Câmbio",visibility:"always",priority:0,minWidth:"8rem",cell:(row:ApQueueRow)=><RowLink to={`/payables/${row.id}/fx`}>Ver câmbio</RowLink>}] : AP_QUEUE_COLUMNS;
+@@ -394 +394,6 @@
+-        <>
++        <div className="ap-table-area">
++          <div className="ap-table-access"><span>Selecione uma conta para ver os dados completos.</span><div>
++            <button type="button" aria-label="Colunas anteriores" onClick={e => e.currentTarget.closest('.ap-table-area')?.querySelector('.operational-table-wrap')?.scrollBy({left:-650,behavior:'smooth'})}>←</button>
++            <span>Mais colunas</span>
++            <button type="button" aria-label="Próximas colunas" onClick={e => e.currentTarget.closest('.ap-table-area')?.querySelector('.operational-table-wrap')?.scrollBy({left:650,behavior:'smooth'})}>→</button>
++          </div></div>
+@@ -396,0 +402,3 @@
++            layoutMode="wide"
++            style={{ minWidth: `calc(${tableColumns.map(column => column.minWidth || "8rem").join(" + ")})` }}
++            scrollLabel="Contas a pagar: todas as colunas, com rolagem horizontal"
+@@ -398 +406 @@
+-            columns={params.get("purpose") === "fx" && (user.role === "admin" || user.permissions.includes("treasury:fx_read")) ? [...AP_QUEUE_COLUMNS, {id:"fx-action",header:"Câmbio",visibility:"always",priority:0,minWidth:"8rem",cell:(row:ApQueueRow)=><RowLink to={`/payables/${row.id}/fx`}>Ver câmbio</RowLink>}] : AP_QUEUE_COLUMNS}
++            columns={tableColumns}
+@@ -428 +436 @@
+-        </>
++        </div>
+@@ -444,0 +453 @@
++              className="ap-detail-summary"
+@@ -477,2 +486 @@
+-                    <EntityRef
+-                      primary={
++                    <ApFullText text={String(
+@@ -486,3 +494 @@
+-                      }
+-                      missingLabel="Fornecedor não identificado"
+-                    />
++                       || "Fornecedor não identificado")}/>
+@@ -501 +507 @@
+-                      <RowLink to={`/orders/${selected.order_id}`}>{orderLabel(selected.order_code)}</RowLink>
++                      <span className="ap-detail-reference"><ApFullText text={orderLabel(selected.order_code)}/><RowLink to={`/orders/${selected.order_id}`}>Abrir pedido</RowLink></span>
+@@ -510,3 +516 @@
+-                      <RowLink to={`/invoices/${selected.invoice_id}`}>
+-                        {invoiceLabel(selected.invoice_number)}
+-                      </RowLink>
++                      <span className="ap-detail-reference"><ApFullText text={invoiceLabel(selected.invoice_number)}/><RowLink to={`/invoices/${selected.invoice_id}`}>Abrir fatura</RowLink></span>
+@@ -520,0 +525,2 @@
++                { label: "Banco", value: selected.destination_bank ? <ApFullText text={String(selected.destination_bank)}/> : "Não informado" },
++                { label: "IBAN", value: selected.destination_iban ? <ApFullText text={String(selected.destination_iban)}/> : "Não informado" },
+@@ -524,11 +530 @@
+-                    selected.source_type === "CUSTOMS_FUNDING" || selected.currency === "BRL" ? (
+-                      <span data-testid="ap-fx-na">Não se aplica</span>
+-                    ) : (
+-                      <span className="stack-tight">
+-                        <FxDisplay rate={selected.fx_projected_rate as string | null} />
+-                        <MoneyDisplay
+-                          amount={selected.fx_projected_brl as string | null}
+-                          currency="BRL"
+-                        />
+-                      </span>
+-                    ),
++                    <ApProjection row={selected as ApQueueRow}/>,
+--- a/v2/frontend/src/features/billing/apQueuePresentation.test.tsx
++++ b/v2/frontend/src/features/billing/apQueuePresentation.test.tsx
+@@ -0,0 +1,23 @@
++import { render,screen,cleanup } from "@testing-library/react";
++import { MemoryRouter } from "react-router-dom";
++import { afterEach,it,expect } from "vitest";
++import { ApProjection,ApReference,apPendingText } from "./apQueuePresentation";
++afterEach(cleanup);
++it("does not infer absence/zero/inapplicability from BRL alone",()=>{
++ const view=render(<ApProjection row={{id:1,currency:"BRL",fx_projected_rate:"0",fx_projected_brl:"0"}}/>);
++ expect(screen.getByText("BRL 0,00")).toBeVisible();expect(screen.queryByText(/Não aplicável/)).toBeNull();
++ view.rerender(<ApProjection row={{id:1,currency:"BRL"}}/>);expect(screen.getByText("Sem projeção cambial")).toBeVisible();
++ view.rerender(<ApProjection row={{id:1,currency:"EUR",fx_projected_rate:"5.1"}}/>);expect(screen.getByText("BRL não informado")).toBeVisible();
++ view.rerender(<ApProjection row={{id:1,currency:"BRL",source_type:"CUSTOMS_FUNDING"}}/>);expect(screen.getByText("Não aplicável ao numerário")).toBeVisible();
++});
++it("only removes overdue when the date actually communicates the delay",()=>{
++ expect(apPendingText({id:1,due_date:"2026-01-01",days_overdue:34,pendencies:["OVERDUE","MISSING_FX","OPEN_BALANCE","REVIEW_NEW"]})).toBe("Sem plano cambial, Saldo aberto, REVIEW_NEW");
++ expect(apPendingText({id:1,days_overdue:0,pendencies:["OVERDUE"]})).toBe("Vencido");
++});
++it("keeps middle-colliding references distinguishable and complete destinations accessible",()=>{
++ const references=["PREFIXO-COMPARTILHADO-AAA-MEIO-SUFIXO-COMPARTILHADO", "PREFIXO-COMPARTILHADO-BBB-MEIO-SUFIXO-COMPARTILHADO"];
++ render(<MemoryRouter>{references.map((text,i)=><ApReference key={text} text={text} id={i+1} entity="Fatura" href={`/invoices/${i+1}`}/>)}</MemoryRouter>);
++ expect(screen.getByRole("link",{name:`Fatura ${references[0]}`})).toHaveAttribute("href","/invoices/1");
++ expect(screen.getByRole("button",{name:"Ver referência completa: Fatura 1"})).toHaveTextContent("#1");
++ expect(screen.getByRole("button",{name:"Ver referência completa: Fatura 2"})).toHaveTextContent("#2");
++});
+--- a/v2/frontend/src/features/billing/apQueuePresentation.tsx
++++ b/v2/frontend/src/features/billing/apQueuePresentation.tsx
+@@ -0,0 +1,36 @@
++import { useState } from "react";
++import { FxDisplay, MoneyDisplay, RowLink, formatPendencies } from "../../ui";
++import type { ApQueueRow } from "./apQueueColumns";
++
++export function compactReference(value: string) {
++  return value.length > 38 ? `${value.slice(0, 10)}…${value.slice(-10)}` : value;
++}
++
++/** The full reference stays in its destination and in the selectable/copyable
++ * obligation details. The visible entity number disambiguates shortened refs. */
++export function ApReference({ text, href, entity, id }: { text:string; href:string; entity:string; id:unknown }) {
++  const compact = compactReference(text);
++  return <span className="ap-reference-cell">
++    <RowLink to={href} onClick={e => e.stopPropagation()} aria-label={`${entity} ${text}`} title={text}><span className="ap-reference">{compact}</span></RowLink>
++    {compact !== text && <button type="button" className="ap-reference-details" aria-label={`Ver referência completa: ${entity} ${String(id)}`}>#{String(id)} · referência completa</button>}
++  </span>;
++}
++
++export function ApFullText({ text }: {text:string}) {
++  const [copied,setCopied] = useState(false);
++  return <span className="ap-full-text"><span>{text}</span><button type="button" className="ap-copy" onClick={async () => { try { await navigator.clipboard.writeText(text);setCopied(true); } catch { setCopied(false); } }}>{copied ? "Copiado" : "Copiar"}</button></span>;
++}
++
++export function ApProjection({ row }: {row:ApQueueRow}) {
++  const rate=row.fx_projected_rate as string|null|undefined, brl=row.fx_projected_brl as string|null|undefined;
++  // These fields are the current Treasury plan, not the market quote or the
++  // nominal BRL obligation. Retain provided values even for a BRL obligation.
++  if (rate == null && brl == null) return <span className="ap-secondary">{row.source_type === "CUSTOMS_FUNDING" ? "Não aplicável ao numerário" : row.currency === "BRL" ? "Sem projeção cambial" : "Sem plano cambial"}</span>;
++  return <span className="ap-cell-stack"><span>{rate == null ? "Taxa não informada" : <FxDisplay rate={rate}/>}</span><span>{brl == null ? "BRL não informado" : <MoneyDisplay amount={brl} currency="BRL"/>}</span></span>;
++}
++
++export function apPendingText(row:ApQueueRow) {
++  const codes=Array.isArray(row.pendencies) ? row.pendencies.map(String) : typeof row.pendencies === "string" ? row.pendencies.split(/[,;]/).map(x=>x.trim()) : [];
++  const dateShown=Number(row.days_overdue)>0 && !!row.due_date;
++  return formatPendencies(codes.filter(code => code !== "OVERDUE" || !dateShown));
++}
+--- a/v2/frontend/src/features/orders/OrderDetailPage.tsx
++++ b/v2/frontend/src/features/orders/OrderDetailPage.tsx
+@@ -379 +379 @@
+-    {label:"Documentos",onClick:()=>focusRecordSection("order-documents")},
++    ...(canNavigate(user,"documents:read")?[{label:"Documentos",onClick:()=>focusRecordSection("order-documents")}]:[]),
+--- a/v2/frontend/src/ui/OperationalTable.tsx
++++ b/v2/frontend/src/ui/OperationalTable.tsx
+@@ -11,0 +12 @@
++  scrollLabel?: string;
+@@ -26,0 +28 @@
++  scrollLabel?: string;
+@@ -65,0 +68 @@
++  scrollLabel,
+@@ -87 +90 @@
+-    <div className={wrapClass}>
++    <div className={wrapClass} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}>
+@@ -95,0 +99 @@
++  scrollLabel,
+@@ -168 +172 @@
+-      <div className={wrapClass}>
++      <div className={wrapClass} role={scrollLabel ? "region" : undefined} aria-label={scrollLabel} tabIndex={scrollLabel ? 0 : undefined}>
+--- a/v2/frontend/src/ui/recordActionLayout.test.ts
++++ b/v2/frontend/src/ui/recordActionLayout.test.ts
+@@ -0,0 +1,19 @@
++import { expect, it } from "vitest";
++import { fitRecordActions } from "./recordActionLayout";
++
++it("uses rendered widths, trigger and gaps, with no numerical ceiling", () => {
++  expect(fitRecordActions([80,80,80,80,80], 450, 110, true)).toBe(5);
++  expect(fitRecordActions([180,80,80,80,80], 450, 110, true)).toBe(2);
++  expect(fitRecordActions([180,80,80,80,80], 230, 110, true)).toBe(1);
++  expect(fitRecordActions([], 0, 110, false)).toBe(0);
++});
++it("is monotone across slow resizing and always chooses the maximal ordered prefix", () => {
++  const widths=[134.4,98.8,163.6,94.2,200.8], trigger=116.5;
++  let previous=0;
++  for(let width=275;width<850;width+=0.25){
++    const count=fitRecordActions(widths,width,trigger,true);
++    expect(count).toBeGreaterThanOrEqual(previous);
++    if(count>1 && count<widths.length) expect(widths.slice(0,count).reduce((a,b)=>a+b,0)+8*count+trigger).toBeLessThanOrEqual(width-2);
++    previous=count;
++  }
++});
+--- a/v2/frontend/src/ui/recordActionLayout.ts
++++ b/v2/frontend/src/ui/recordActionLayout.ts
+@@ -0,0 +1,12 @@
++/** Ordered prefix, measured controls, including the overflow trigger. Two CSS pixels
++ * of slack absorb fractional font/layout rounding without a button-count limit. */
++export function fitRecordActions(widths: number[], available: number, trigger: number, primary: boolean, gap = 8) {
++  const sum = (count: number) => widths.slice(0, count).reduce((a, b) => a + b, 0) + Math.max(0, count - 1) * gap;
++  if (sum(widths.length) <= available - 2) return widths.length;
++  let count = primary ? 1 : 0;
++  for (let next = count + 1; next < widths.length; next++) {
++    if (sum(next) + gap + trigger > available - 2) break;
++    count = next;
++  }
++  return Math.min(count, widths.length);
++}
+--- a/v2/frontend/src/ui/recordWorkHeader.css
++++ b/v2/frontend/src/ui/recordWorkHeader.css
+@@ -2 +2 @@
+-.record-work-header{position:sticky;top:0;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:15px 0;background:#fff;border-bottom:1px solid #e3e8ee;min-height:83px;box-sizing:border-box}
++.record-work-header{position:sticky;top:0;z-index:35;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;background:#fff;border-bottom:1px solid #e3e8ee;min-height:83px;box-sizing:border-box}
+@@ -5,2 +5,2 @@
+-.record-identity{min-width:0;flex:1}.record-identity p{margin:7px 0 0;color:#637184;font-size:13px;overflow-wrap:anywhere}.record-actions{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex-shrink:0}.record-actions .ui-button{min-height:38px;white-space:nowrap;font-size:13px}
+-.record-action{display:flex;flex-direction:column;gap:5px}.record-action-reason{max-width:250px;font-size:12px;color:#815c26;line-height:1.4}.record-more{position:relative}.record-more summary{list-style:none;display:flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid #cfd8e5;border-radius:7px;cursor:pointer;min-height:38px;box-sizing:border-box;font-size:13px;background:white}.record-more summary::-webkit-details-marker{display:none}
++.record-identity{min-width:0;flex:0 1 auto;max-width:100%}.record-identity p{margin:7px 0 0;color:#637184;font-size:13px;overflow-wrap:anywhere}.record-actions{display:flex;align-items:flex-start;justify-content:flex-end;gap:8px;flex:1;min-width:0;flex-wrap:wrap}.record-actions .ui-button,.record-measures .ui-button{min-height:38px;white-space:nowrap;font-size:13px}
++.record-action{display:flex;flex-direction:column;gap:5px;max-width:100%}.record-action-reason{width:0;min-width:100%;overflow-wrap:anywhere;font-size:12px;color:#815c26;line-height:1.4}.record-more{position:relative}.record-more summary,.record-trigger-measure{list-style:none;display:flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid #cfd8e5;border-radius:7px;cursor:pointer;min-height:38px;box-sizing:border-box;font-size:13px;background:white;white-space:nowrap}.record-more summary::-webkit-details-marker{display:none}
+@@ -10 +10,3 @@
+-@media(max-width:1100px){.record-work-header{gap:12px;flex-wrap:wrap}.record-actions{flex-shrink:1;flex-wrap:wrap}.record-topics{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
++.record-work-header.actions-stacked{flex-wrap:wrap}.actions-stacked .record-identity{width:100%;flex-basis:100%}.actions-stacked .record-actions{justify-content:flex-start}
++.record-measures{position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none;display:flex;gap:0;width:max-content;white-space:nowrap}.record-measures>*{flex:none}.record-title-measure{display:block;white-space:nowrap}
++.record-actions .ui-button,.record-measures .ui-button{font-weight:400}.record-actions .record-primary,.record-measures .record-primary{font-weight:600}
+--- a/v2/frontend/src/ui/RecordWorkHeader.test.tsx
++++ b/v2/frontend/src/ui/RecordWorkHeader.test.tsx
+@@ -16 +16 @@
+- it("closes the actions menu with Escape and restores keyboard focus",()=>{
++ it("exposes actions until measured, without an unnecessary overflow menu",()=>{
+@@ -18 +18 @@
+-  const menu=document.querySelector("details")!;menu.open=true;fireEvent.keyDown(document,{key:"Escape"});expect(menu.open).toBe(false);expect(document.activeElement?.tagName).toBe("SUMMARY");
++  expect(document.querySelector("details")).toBeNull();expect(screen.getByRole("button",{name:"Atualizar"})).toBeVisible();
+--- a/v2/frontend/src/ui/RecordWorkHeader.tsx
++++ b/v2/frontend/src/ui/RecordWorkHeader.tsx
+@@ -1 +1 @@
+-import { useEffect, useRef, useState, type ReactNode } from "react";
++import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+@@ -2,0 +3 @@
++import { fitRecordActions } from "./recordActionLayout";
+@@ -27,0 +29,39 @@
++  // Caller order is the screen's order: primary, secondary, then the existing actions.
++  const actions = [primary, secondary, ...more].filter((item): item is RecordAction => !!item);
++  const [visibleCount, setVisibleCount] = useState(actions.length);
++  const [stacked, setStacked] = useState(false);
++  const [identityWidth, setIdentityWidth] = useState<number>();
++  const pointerActive = useRef(false), measureNow = useRef(() => {});
++  const signature = actions.map(a => `${a.testId || a.label}:${a.disabled}:${a.reason || ""}`).join("|");
++  useLayoutEffect(() => {
++    const root = header.current;
++    if (!root || typeof ResizeObserver === "undefined") return;
++    let frame = 0, cancelled = false;
++    const measure = () => {
++      const title = root.querySelector("h1")!, metric = root.querySelector<HTMLElement>(".record-title-measure")!;
++      const font = getComputedStyle(title); metric.style.font = font.font; metric.style.letterSpacing = font.letterSpacing;
++      const badge = root.querySelector<HTMLElement>(".record-title .status-badge");
++      const naturalIdentity = metric.getBoundingClientRect().width + (badge ? badge.getBoundingClientRect().width + 12 : 0);
++      const widths = [...root.querySelectorAll<HTMLElement>("[data-action-measure]")].map(e => e.getBoundingClientRect().width);
++      const trigger = root.querySelector<HTMLElement>(".record-trigger-measure")!.getBoundingClientRect().width;
++      const available = root.clientWidth;
++      if (available <= 0) return; // Hidden/unlaid-out host: wait for an actual measurement.
++      const minimumActions = (primary ? widths[0] || 0 : 0) + (actions.length > (primary ? 1 : 0) ? trigger + (primary ? 8 : 0) : 0);
++      const nextStacked = naturalIdentity + minimumActions + 18 > available;
++      setStacked(nextStacked); setIdentityWidth(nextStacked ? undefined : Math.ceil(naturalIdentity));
++      const actionBudget = nextStacked ? available : available - Math.ceil(naturalIdentity) - 16;
++      // Never reparent/remove a focused or activating control. During a resize the
++      // current controls may wrap; redistribute when the interaction leaves them.
++      const focused = root.querySelector(".record-actions")?.contains(document.activeElement);
++      if (!pointerActive.current && !focused && !menu.current?.open) {
++        setVisibleCount(fitRecordActions(widths, actionBudget, trigger, !!primary));
++      }
++    };
++    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); };
++    measureNow.current = schedule;
++    const observer = new ResizeObserver(schedule); observer.observe(root);
++    root.querySelectorAll("[data-action-measure],.record-title-measure,.record-title .status-badge").forEach(e => observer.observe(e));
++    void document.fonts?.ready.then(() => { if (!cancelled) schedule(); });
++    measure();
++    return () => { cancelled = true; cancelAnimationFrame(frame); observer.disconnect(); };
++  }, [signature, title, compact, !!primary]);
+@@ -37,0 +78 @@
++    const releasePointer = () => { if (pointerActive.current) { pointerActive.current = false; measureNow.current(); } };
+@@ -39 +80,3 @@
+-    return () => { observer?.disconnect(); document.removeEventListener("keydown", close); };
++    // A resize can move the control away from the pointer before release.
++    window.addEventListener("pointerup", releasePointer); window.addEventListener("pointercancel", releasePointer);
++    return () => { observer?.disconnect(); document.removeEventListener("keydown", close); window.removeEventListener("pointerup", releasePointer); window.removeEventListener("pointercancel", releasePointer); };
+@@ -42 +85 @@
+-    const props = { className: main ? "ui-button record-primary" : "ui-button ui-button--secondary", "data-testid": item.testId, "data-record-primary": main || undefined };
++    const props = { className: main ? "ui-button record-primary" : "ui-button ui-button--secondary", "data-testid": item.testId, "data-record-primary": main || undefined, "data-record-action": item.testId || item.label };
+@@ -52,4 +95,6 @@
+-    <header ref={header} className={`record-work-header ${compact ? "is-compact" : ""}`} data-testid="record-work-header">
+-      <div className="record-identity"><div className="record-title"><h1>{title}</h1>{status}</div>{context && <p>{context}</p>}</div>
+-      <div className="record-actions">{primary && action(primary, true)}{secondary && action(secondary)}
+-        {more.length > 0 && <details ref={menu} className="record-more"><summary>Mais ações <span aria-hidden="true">⋯</span></summary><div className="record-more-list">{more.map(item => action(item))}</div></details>}
++    <header ref={header} className={`record-work-header ${compact ? "is-compact" : ""} ${stacked ? "actions-stacked" : ""}`} data-testid="record-work-header">
++      <div className="record-identity" style={{width:identityWidth}}><div className="record-title"><h1>{title}</h1>{status}</div>{context && <p>{context}</p>}</div>
++      <div className="record-actions" onBlur={() => requestAnimationFrame(() => measureNow.current())}
++        onPointerDownCapture={() => { pointerActive.current = true; }}>
++        {actions.slice(0,visibleCount).map(item => action(item,item === primary))}
++        {visibleCount < actions.length && <details ref={menu} className="record-more" onToggle={() => measureNow.current()}><summary>Mais ações <span aria-hidden="true">⋯</span></summary><div className="record-more-list">{actions.slice(visibleCount).map(item => action(item))}</div></details>}
+@@ -56,0 +102 @@
++      <div className="record-measures" aria-hidden="true"><span className="record-title-measure">{title}</span>{actions.map(item => <span key={item.testId || item.label} data-action-measure className={item === primary ? "ui-button record-primary" : "ui-button ui-button--secondary"}>{item.label}</span>)}<span className="record-trigger-measure">Mais ações <span>⋯</span></span></div>
+--- a/ROADMAP_V2_EPIC.md
++++ b/ROADMAP_V2_EPIC.md
+@@ -11,3 +11,3 @@
+-| Atualizado em | 2026-11-18 |
+-| Última entrega | Pedido e importação com ações no topo, situação clara e recebimento no contexto da operação |
+-| Próxima entrega | Usar os novos detalhes; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
++| Atualizado em | 2026-11-19 |
++| Última entrega | Contas a pagar alinhadas e ações dos detalhes distribuídas pelo espaço disponível |
++| Próxima entrega | Conferir o acabamento no uso; avaliar separadamente as regras econômicas e a atualização dos vídeos |
+@@ -116 +116 @@
+-| Versão | **0.5.165** — detalhes de Pedido/Operação e recebimento contextual **DONE**. Release `executive-20261118.2`, 8082/5458/schema 034; cabeçalhos fixos, assuntos independentes, estados com fonte e recorte exato. Gates: 289 testes frontend; build/typecheck; 2 E2E existentes; 38 percursos/verificações UI; 10 testes do launcher; 14 verificações finais na release e abertura nativa pelo executável. Índice isolado: build + 280 testes. Escritas de ensaio somente 8103/5461; backend/ACL/banco ativo preservados; correção de cache na URL do launcher; relatório único na raiz |
++| Versão | **0.5.166** — acabamento financeiro e ações responsivas **DONE**. Release `executive-20261119.1`, 8082/5458/schema 034. Teto fixo substituído por medidas reais; AP com 11 colunas acessíveis, linhas de 62 px, seis registros completos em 1366×768. Gates: build/typecheck, 33 testes; índice sem WIP: build + 32 testes; matriz UI de 4 composições AP e 24 cabeçalhos, 28 observações de leitura, 128 larguras+9 limiares, referências e fluxos. Matriz repetida na release, abertura nativa pelo executável. 82 tabelas de negócio e 258 arquivos backend preservados; autenticação atualiza last_login. Relatório único na raiz |
+@@ -133 +133 @@
+-**Próxima ação:** usar os detalhes e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`. Caso o volume exija, avaliar contrato de filtro exato por operação no recebimento e leitura direta de custo por operação; não implementados nesta entrega. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
++**Próxima ação:** usar o acabamento financeiro e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`, com cinco estados curtos para Ricardo observar, sem gate obrigatório de aprovação. Recebimento acima de 10.000 itens e custo além da fila atual exigem avaliação específica de contrato. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
+@@ -141 +141 @@
+-Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.6 e Blueprint UI/UX 3.15. Evidência interna: `docs/v2/etapa-detalhes-recebimento-20261118/`. A consolidação de cinco áreas permanece; seu [handoff](docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md) é histórico. O executável abre .2 com chave da interface na URL para evitar HTML antigo em cache; banco 5458 preservado. Os 17 conjuntos de domínio comparados antes/depois não mudaram. Nenhum dado do clone foi promovido.
++Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.7 e Blueprint UI/UX 3.16. Evidência interna: `docs/v2/etapa-acabamento-financeiro-20261119/`. Estado anterior .2 e resultados de domínio são históricos. O executável abre .1 de 19/11, com hash novo na URL e mesma correção de cache. Banco 5458 e backend preservados; somente frontend promovido. Escritas FIN19 restritas ao clone 5461/8104. Nenhum dado de ensaio promovido; hashes de users variam por login e não entram na alegação de imutabilidade de negócio.
+--- a/docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md
++++ b/docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md
+@@ -5,2 +5,2 @@
+-Versão: 3.15
+-Data: 2026-11-18
++Versão: 3.16
++Data: 2026-11-19
+@@ -16,0 +17,14 @@
++
++### Ajuste local 3.16 — acabamento financeiro e distribuição real de ações
++
++Decisão vigente autorizada em 19/11/2026, implementada em `executive-20261119.1`. **Substitui o teto de ações de 3.15:** todas as ações pertinentes e autorizadas que caibam ficam visíveis; no máximo uma recebe destaque principal. O restante da decisão3.15 permanece válido.
++
++`RecordWorkHeader` mede a largura útil, título/status e controles renderizados após fontes/layout, incluindo espaços e o gatilho de excedentes. Folga técnica: 2 px CSS. Mostra o maior prefixo permitido na ordem da tela; só o excedente fica em Mais ações, sem duplicação e sem menu vazio. Identificação longa pode ocupar a primeira linha; ação principal permanece acessível. Mesma regra no compacto. Durante foco no grupo, ponteiro pressionado ou menu aberto, mantém os controles existentes para não interromper ativação; podem quebrar linha. Redistribui ao terminar/sair da interação. Escape fecha e devolve foco ao gatilho. Secundárias com peso consistente, sem classificar Cancelar/Reabrir automaticamente como perigo.
++
++Ordem: Pedido/visão = principal vigente → Abrir comercial/Consultar pedido → Adiantamentos → Ver contas do pedido → Encerrar/Reabrir. Pedido/comercial = principal vigente → Visão do pedido → Encerrar ou Reabrir → Cancelar → Adiantamentos → Documentos → Atualizar. Operação = principal vigente → Dados da operação ou Consultar mercadorias → Cancelar → Documentos → Gestão de recebimentos e estornos → Atualizar dados. Itens ausentes por estado/permissão não reservam espaço. A prioridade principal, handlers e confirmações da 3.15 permanecem.
++
++Contas a pagar: política local, sem impor densidade financeira às demais tabelas. Datas inteiras e atraso na segunda linha; fornecedor/banco com reticências explícitas e abertura do texto completo; referências até 38 caracteres em até duas linhas quando comportadas, maiores abreviadas no meio com início/fim e número de entidade visível que distingue colisões. Detalhe mantém texto integral selecionável e Copiar; links originais preservados. Valores/moedas sem quebra, tabulares, alinhados pela direita; status em uma linha, 26 px de altura. Linhas normais observadas 62 px; conteúdo excepcional pode crescer, nunca escondido para caber.
++
++Fila mantém 11 colunas (atalho FX pode acrescentar sua coluna existente); largura mínima derivada das definições. Rolagem horizontal pertence à tabela, acessível por teclado e botões visíveis. Todas não é um controle desabilitado: filtro de moeda existente segue disponível. Resumo por moeda continua compacto; ausência difere de zero, ajuda junto ao rótulo, Por vincular conserva escopo total independente dos filtros. Câmbio/BRL usa o plano atual de Treasury; valores fornecidos, inclusive zero e BRL, são preservados. Duas ausências recebem rótulo único conforme fonte; numerário conserva inaplicabilidade. OVERDUE sai só da célula redundante quando o atraso está explícito; outras pendências permanecem.
++
++Alcance compartilhado: RecordWorkHeader nas duas visões do Pedido e no detalhe da Operação; OperationalTable ganha apenas rótulo/região focável opcional para rolagem. Composição/estilos financeiros são locais. Gates de tela completa em 1366×768 e 1440×900, lateral expandida/recolhida: zero overflow de página/colunas inacessíveis/colisões; eixos 0 px, filtro 0,094 px, seis/oito registros completos. Limites e medições, inclusive interação travada temporariamente para preservar foco, estão no [relatório único](../../../../RELATORIO_EPIC_PARA_GPT.md). Sem novas regras, contratos, cálculos, bibliotecas ou dados de demonstração alterados.
+--- a/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
++++ b/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
+@@ -522,0 +523,11 @@
++
++
++### 13.7 Acabamento financeiro e ações por largura disponível — 19/11/2026
++
++**DONE — executive-20261119.1.** Autorização desta rodada substitui o teto de botões da 13.6. Header mede título/status, fontes, controles e gatilho, com 2 px de folga; mantém principal e maior prefixo da ordem existente, excedente no menu. Foco/ponteiro/menu preservam identidade durante redimensionamento; redistribuição ao sair da interação. Mesma regra no compacto. Pedido/visão, Pedido/comercial e Operação verificados.
++
++Contas a pagar: referências alinhadas, nomes com reticências e acesso integral/cópia, atraso separado, status26px em linha, moeda/valor à direita, ausências cambiais explicadas conforme fonte, OVERDUE redundante removido sem apagar outras pendências. Resumo e filtros compactos/alinhados;11 colunas acessíveis por rolagem local/teclado/setas. Estilos específicos; OperationalTable recebe só acessibilidade opcional da rolagem. Detalhe da obrigação alinha rótulo/valor mesmo com textos longos.
++
++Gates atuais: build/typecheck e 33 testes; pacote versionável isolado sem WIP: build + 32 testes. UI: 4 composições AP, 24 cabeçalhos admin, 28 observações de leitura, 128 larguras e 9 limiares refinados, foco/menu/ponteiro, três referências parecidas/cópia, quatro fluxos de consulta, cinco filas consumidoras. AP de 5→6 registros completos em 1366×768 e 7→8 em1440×900, linhas 62 px, eixos 0 px, filtro 0,094 px. Matriz admin repetida em 8082; Chrome nativo aberto pelo executável com build e chave de cache novos. 82 tabelas de negócio e 258 arquivos backend preservados; login altera last_login, explicitamente separado. Fixtures FIN19 exclusivamente no clone8104/5461. Sem nova campanha de domínio, teste com Ricardo ou atualização de vídeos.
++
++Relatório único: `EPIC/RELATORIO_EPIC_PARA_GPT.md`; evidências internas em `docs/v2/etapa-acabamento-financeiro-20261119/`. Roadmap 0.5.166/Blueprint UI/UX 3.16. Trabalho anterior permanece local; commit seletivo exclui paginação anterior, CSS/global e demais WIP. Este mestre não versionado tem somente o delta desta rodada no patch de entrega. Próxima ação: usar e conferir cinco estados descritos no relatório; limites de contrato e economia seguem separados.

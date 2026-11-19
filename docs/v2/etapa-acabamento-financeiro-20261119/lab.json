@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:8104",
+  "database": "epic_v2_test",
+  "port": 5461,
+  "data_directory": "C:/Users/ricar/Desktop/projetos/EPIC/audit-lab/details-20261118/postgres",
+  "frontend": "v2/frontend/dist-finish",
+  "business_writes": true,
+  "write_scope": "Somente preparação API de fornecedor, produto, três pedidos e três faturas FIN19 no clone 5461; nenhuma alteração de registro operacional. Interface de validação sem transações.",
+  "fixture": "long-text-fixtures.json"
+}

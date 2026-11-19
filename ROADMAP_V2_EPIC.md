@@ -5,9 +5,9 @@
 
 | Campo | Valor |
 |---|---|
-| Atualizado em | 2026-11-18 |
-| Última entrega | Pedido e importação com ações no topo, situação clara e recebimento no contexto da operação |
-| Próxima entrega | Usar os novos detalhes; avaliar separadamente as regras econômicas para operação e a atualização dos vídeos |
+| Atualizado em | 2026-11-19 |
+| Última entrega | Contas a pagar alinhadas e ações dos detalhes distribuídas pelo espaço disponível |
+| Próxima entrega | Conferir o acabamento no uso; avaliar separadamente as regras econômicas e a atualização dos vídeos |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -110,7 +110,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 
 | Item | Valor |
 |---|---|
-| Versão | **0.5.165** — detalhes de Pedido/Operação e recebimento contextual **DONE**. Release `executive-20261118.2`, 8082/5458/schema 034; cabeçalhos fixos, assuntos independentes, estados com fonte e recorte exato. Gates: 289 testes frontend; build/typecheck; 2 E2E existentes; 38 percursos/verificações UI; 10 testes do launcher; 14 verificações finais na release e abertura nativa pelo executável. Índice isolado: build + 280 testes. Escritas de ensaio somente 8103/5461; backend/ACL/banco ativo preservados; correção de cache na URL do launcher; relatório único na raiz |
+| Versão | **0.5.166** — acabamento financeiro e ações responsivas **DONE**. Release `executive-20261119.1`, 8082/5458/schema 034. Teto fixo substituído por medidas reais; AP com 11 colunas acessíveis, linhas de 62 px, seis registros completos em 1366×768. Gates: build/typecheck, 33 testes; índice sem WIP: build + 32 testes; matriz UI de 4 composições AP e 24 cabeçalhos, 28 observações de leitura, 128 larguras+9 limiares, referências e fluxos. Matriz repetida na release, abertura nativa pelo executável. 82 tabelas de negócio e 258 arquivos backend preservados; autenticação atualiza last_login. Relatório único na raiz |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -127,7 +127,7 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
 | Alembic head | código/release **034**; demo ativa `epic_v2_test`/5458 = **034**; ensaio desta entrega isolado em 5461/034. Diretórios e processos conferidos; bancos anteriores e operacionais preservados |
 
-**Próxima ação:** usar os detalhes e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`. Caso o volume exija, avaliar contrato de filtro exato por operação no recebimento e leitura direta de custo por operação; não implementados nesta entrega. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
+**Próxima ação:** usar o acabamento financeiro e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`, com cinco estados curtos para Ricardo observar, sem gate obrigatório de aprovação. Recebimento acima de 10.000 itens e custo além da fila atual exigem avaliação específica de contrato. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
 
 Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
 
@@ -135,7 +135,7 @@ Refinamento visual autorizado: composição só na Executiva de sistema; visões
 
 Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
 
-Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.6 e Blueprint UI/UX 3.15. Evidência interna: `docs/v2/etapa-detalhes-recebimento-20261118/`. A consolidação de cinco áreas permanece; seu [handoff](docs/v2/etapa-consolidacao-navegacao/HANDOFF_CONSOLIDACAO_NAVEGACAO.md) é histórico. O executável abre .2 com chave da interface na URL para evitar HTML antigo em cache; banco 5458 preservado. Os 17 conjuntos de domínio comparados antes/depois não mudaram. Nenhum dado do clone foi promovido.
+Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.7 e Blueprint UI/UX 3.16. Evidência interna: `docs/v2/etapa-acabamento-financeiro-20261119/`. Estado anterior .2 e resultados de domínio são históricos. O executável abre .1 de 19/11, com hash novo na URL e mesma correção de cache. Banco 5458 e backend preservados; somente frontend promovido. Escritas FIN19 restritas ao clone 5461/8104. Nenhum dado de ensaio promovido; hashes de users variam por login e não entram na alegação de imutabilidade de negócio.
 
 Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
 

@@ -7,12 +7,10 @@ import {
   Button,
   DetailDrawer,
   EmptyState,
-  EntityRef,
   ErrorState,
   FilterBar,
   FilterChip,
   FormField,
-  FxDisplay,
   LoadingState,
   MoneyDisplay,
   OperationalTable,
@@ -33,6 +31,7 @@ import { saveReturnState } from "../../navigation/returnState";
 import { AP_QUEUE_COLUMNS, type ApQueueRow } from "./apQueueColumns";
 import "./apQueue.css";
 import {ApCompactSummary} from './ApCompactSummary';
+import { ApFullText, ApProjection } from './apQueuePresentation';
 
 type Props = { user: User };
 
@@ -296,6 +295,7 @@ export function ApQueuePage({ user }: Props) {
   }
 
   const rows: ApQueueRow[] = (data?.items ?? []) as ApQueueRow[];
+  const tableColumns: typeof AP_QUEUE_COLUMNS = params.get("purpose") === "fx" && (user.role === "admin" || user.permissions.includes("treasury:fx_read")) ? [...AP_QUEUE_COLUMNS, {id:"fx-action",header:"Câmbio",visibility:"always",priority:0,minWidth:"8rem",cell:(row:ApQueueRow)=><RowLink to={`/payables/${row.id}/fx`}>Ver câmbio</RowLink>}] : AP_QUEUE_COLUMNS;
 
   return (
     <section className="panel dense ap-refined" data-testid="ap-queue-page">
@@ -391,11 +391,19 @@ export function ApQueuePage({ user }: Props) {
         <EmptyState message="Nenhuma obrigação neste filtro" orientation="Limpe os filtros ou aguarde novas emissões." />
       ) : null}
       {!loading && !error && data && data.items.length > 0 ? (
-        <>
+        <div className="ap-table-area">
+          <div className="ap-table-access"><span>Selecione uma conta para ver os dados completos.</span><div>
+            <button type="button" aria-label="Colunas anteriores" onClick={e => e.currentTarget.closest('.ap-table-area')?.querySelector('.operational-table-wrap')?.scrollBy({left:-650,behavior:'smooth'})}>←</button>
+            <span>Mais colunas</span>
+            <button type="button" aria-label="Próximas colunas" onClick={e => e.currentTarget.closest('.ap-table-area')?.querySelector('.operational-table-wrap')?.scrollBy({left:650,behavior:'smooth'})}>→</button>
+          </div></div>
           <OperationalTable
             density="finance"
+            layoutMode="wide"
+            style={{ minWidth: `calc(${tableColumns.map(column => column.minWidth || "8rem").join(" + ")})` }}
+            scrollLabel="Contas a pagar: todas as colunas, com rolagem horizontal"
             data-testid="ap-table"
-            columns={params.get("purpose") === "fx" && (user.role === "admin" || user.permissions.includes("treasury:fx_read")) ? [...AP_QUEUE_COLUMNS, {id:"fx-action",header:"Câmbio",visibility:"always",priority:0,minWidth:"8rem",cell:(row:ApQueueRow)=><RowLink to={`/payables/${row.id}/fx`}>Ver câmbio</RowLink>}] : AP_QUEUE_COLUMNS}
+            columns={tableColumns}
             rows={rows}
             getRowId={(row) => String(row.id)}
             getRowTestId={(row) => `ap-row-${row.id}`}
@@ -415,7 +423,7 @@ export function ApQueuePage({ user }: Props) {
             total={data.total}
             loadedCount={data.items.length}
           />
-        </>
+        </div>
       ) : null}
 
       <DetailDrawer
@@ -432,6 +440,7 @@ export function ApQueuePage({ user }: Props) {
         {selected ? (
           <div className="stack">
             <SummaryGrid
+              className="ap-detail-summary"
               items={[
                 {
                   label: "Status",
@@ -464,8 +473,7 @@ export function ApQueuePage({ user }: Props) {
                 {
                   label: "Fornecedor",
                   value: (
-                    <EntityRef
-                      primary={
+                    <ApFullText text={String(
                         (typeof selected.payee_display_name === "string" &&
                         selected.payee_display_name.trim()
                           ? selected.payee_display_name
@@ -473,9 +481,7 @@ export function ApQueuePage({ user }: Props) {
                         (selected.supplier_resolved === false
                           ? null
                           : (selected.supplier_name as string | null))
-                      }
-                      missingLabel="Fornecedor não identificado"
-                    />
+                       || "Fornecedor não identificado")}/>
                   ),
                 },
                 {
@@ -488,7 +494,7 @@ export function ApQueuePage({ user }: Props) {
                   label: "Pedido",
                   value:
                     orderLabel(selected.order_code) !== "—" ? (
-                      <RowLink to={`/orders/${selected.order_id}`}>{orderLabel(selected.order_code)}</RowLink>
+                      <span className="ap-detail-reference"><ApFullText text={orderLabel(selected.order_code)}/><RowLink to={`/orders/${selected.order_id}`}>Abrir pedido</RowLink></span>
                     ) : (
                       "—"
                     ),
@@ -497,9 +503,7 @@ export function ApQueuePage({ user }: Props) {
                   label: "Fatura",
                   value:
                     invoiceLabel(selected.invoice_number) !== "—" ? (
-                      <RowLink to={`/invoices/${selected.invoice_id}`}>
-                        {invoiceLabel(selected.invoice_number)}
-                      </RowLink>
+                      <span className="ap-detail-reference"><ApFullText text={invoiceLabel(selected.invoice_number)}/><RowLink to={`/invoices/${selected.invoice_id}`}>Abrir fatura</RowLink></span>
                     ) : (
                       "—"
                     ),
@@ -508,20 +512,12 @@ export function ApQueuePage({ user }: Props) {
                   label: "Pendências",
                   value: formatPendencies(selected.pendencies),
                 },
+                { label: "Banco", value: selected.destination_bank ? <ApFullText text={String(selected.destination_bank)}/> : "Não informado" },
+                { label: "IBAN", value: selected.destination_iban ? <ApFullText text={String(selected.destination_iban)}/> : "Não informado" },
                 {
                   label: "Câmbio / BRL",
                   value:
-                    selected.source_type === "CUSTOMS_FUNDING" || selected.currency === "BRL" ? (
-                      <span data-testid="ap-fx-na">Não se aplica</span>
-                    ) : (
-                      <span className="stack-tight">
-                        <FxDisplay rate={selected.fx_projected_rate as string | null} />
-                        <MoneyDisplay
-                          amount={selected.fx_projected_brl as string | null}
-                          currency="BRL"
-                        />
-                      </span>
-                    ),
+                    <ApProjection row={selected as ApQueueRow}/>,
                 },
               ]}
             />

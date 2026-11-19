@@ -1,0 +1,72 @@
+[
+  {
+    "path": "v2/frontend/src/features/billing/apQueue.css",
+    "method": "presentation replaced in this scope; previous widths superseded",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/features/billing/apQueueColumns.tsx",
+    "method": "presentation replaced in this scope; previous widths superseded",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/features/billing/ApQueuePage.tsx",
+    "method": "delivery delta; existing pagination WIP excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/features/billing/apQueuePresentation.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/billing/apQueuePresentation.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/features/orders/OrderDetailPage.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/OperationalTable.tsx",
+    "method": "only opt-in scroll accessibility; prior global minWidth/data attributes excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "v2/frontend/src/ui/recordActionLayout.test.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/recordActionLayout.ts",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/recordWorkHeader.css",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/RecordWorkHeader.test.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "v2/frontend/src/ui/RecordWorkHeader.tsx",
+    "method": "delivery only",
+    "priorWIP": false
+  },
+  {
+    "path": "ROADMAP_V2_EPIC.md",
+    "method": "three-way delta, prior WIP excluded",
+    "priorWIP": true
+  },
+  {
+    "path": "docs/v2/blueprint UIUX/BLUEPRINT_UI_UX_EPIC_v3.md",
+    "method": "delivery only",
+    "priorWIP": false
+  }
+]

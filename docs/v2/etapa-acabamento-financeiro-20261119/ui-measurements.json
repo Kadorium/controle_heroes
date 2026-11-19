@@ -1,0 +1,5653 @@
+{
+  "base": "http://127.0.0.1:8104",
+  "build": "executive-20261119.1",
+  "ap": [
+    {
+      "width": 1366,
+      "expanded": true,
+      "table": {
+        "x": 249,
+        "y": 358.1875,
+        "w": 2032,
+        "h": 2578.5,
+        "right": 2281,
+        "bottom": 2936.6875
+      },
+      "tableWidth": 2032,
+      "viewport": 1366,
+      "wrapWidth": 1084,
+      "pageOverflow": 0,
+      "columns": [
+        "due",
+        "supplier",
+        "invoice",
+        "balance",
+        "status",
+        "order",
+        "amount",
+        "fx",
+        "pendencies",
+        "iban",
+        "fxAction"
+      ],
+      "rowHeights": [
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62
+      ],
+      "visibleRows": 6,
+      "axes": [
+        {
+          "id": "due",
+          "delta": 0
+        },
+        {
+          "id": "supplier",
+          "delta": 0
+        },
+        {
+          "id": "invoice",
+          "delta": 0
+        },
+        {
+          "id": "balance",
+          "delta": 0
+        },
+        {
+          "id": "status",
+          "delta": 0
+        },
+        {
+          "id": "order",
+          "delta": 0
+        },
+        {
+          "id": "amount",
+          "delta": 0
+        },
+        {
+          "id": "fx",
+          "delta": 0
+        },
+        {
+          "id": "pendencies",
+          "delta": 0
+        },
+        {
+          "id": "iban",
+          "delta": 0
+        },
+        {
+          "id": "fxAction",
+          "delta": 0
+        }
+      ],
+      "filterDelta": 0.09375,
+      "badges": [
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 412.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 438.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 474.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 500.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 536.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 562.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 598.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 624.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 660.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 686.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 722.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 748.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 784.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 810.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 846.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 872.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 908.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 934.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 970.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 996.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1032.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1058.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1094.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1120.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 1156.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 1182.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1218.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1244.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1280.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1306.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 1342.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 1368.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1404.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1430.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1466.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1492.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1528.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1554.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1590.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1616.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1652.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1678.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1714.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1740.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1776.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1802.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1838.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1864.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1900.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1926.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1962.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1988.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2024.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2050.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2086.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2112.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2148.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2174.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2210.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2236.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2272.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2298.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2334.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2360.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2396.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2422.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2458.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2484.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2520.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2546.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2582.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2608.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2644.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2670.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2706.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2732.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2768.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2794.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2830.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2856.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2892.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2918.1875,
+          "nowrap": "nowrap"
+        }
+      ],
+      "monetary": [
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 12.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 890,11",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.340,66",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 240,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.440,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 34.887,12",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 7.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 700,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 10.681,38",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 2.880,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 30.600,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 46.516,14",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 22.436,34",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.168,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 14.241,84",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.840,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 29.915,10",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.224,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.608,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        }
+      ],
+      "summaryRows": [
+        {
+          "currency": "BRL",
+          "values": [
+            {
+              "text": "BRL 123.474.441,90",
+              "right": 502,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 17.600,00",
+              "right": 708,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 914,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 1120,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "EUR",
+          "values": [
+            {
+              "text": "EUR 123.502.198,33",
+              "right": 502,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 8.944,63",
+              "right": 708,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 810,00",
+              "right": 914,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 3.760,00",
+              "right": 1120,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 2.650,00",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "USD",
+          "values": [
+            {
+              "text": "USD 123.456.789,90",
+              "right": 502,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 708,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 914,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 1120,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        }
+      ],
+      "summaryOverflow": 0
+    },
+    {
+      "width": 1366,
+      "expanded": false,
+      "table": {
+        "x": 121,
+        "y": 358.1875,
+        "w": 2032,
+        "h": 2578.5,
+        "right": 2153,
+        "bottom": 2936.6875
+      },
+      "tableWidth": 2032,
+      "viewport": 1366,
+      "wrapWidth": 1212,
+      "pageOverflow": 0,
+      "columns": [
+        "due",
+        "supplier",
+        "invoice",
+        "balance",
+        "status",
+        "order",
+        "amount",
+        "fx",
+        "pendencies",
+        "iban",
+        "fxAction"
+      ],
+      "rowHeights": [
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62
+      ],
+      "visibleRows": 6,
+      "axes": [
+        {
+          "id": "due",
+          "delta": 0
+        },
+        {
+          "id": "supplier",
+          "delta": 0
+        },
+        {
+          "id": "invoice",
+          "delta": 0
+        },
+        {
+          "id": "balance",
+          "delta": 0
+        },
+        {
+          "id": "status",
+          "delta": 0
+        },
+        {
+          "id": "order",
+          "delta": 0
+        },
+        {
+          "id": "amount",
+          "delta": 0
+        },
+        {
+          "id": "fx",
+          "delta": 0
+        },
+        {
+          "id": "pendencies",
+          "delta": 0
+        },
+        {
+          "id": "iban",
+          "delta": 0
+        },
+        {
+          "id": "fxAction",
+          "delta": 0
+        }
+      ],
+      "filterDelta": 0.09375,
+      "badges": [
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 412.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 438.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 474.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 500.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 536.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 562.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 598.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 624.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 660.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 686.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 722.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 748.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 784.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 810.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 846.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 872.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 908.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 934.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 970.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 996.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1032.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1058.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1094.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1120.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 1156.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 1182.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1218.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1244.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1280.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1306.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 1342.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 1368.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1404.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1430.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1466.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1492.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1528.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1554.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1590.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1616.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1652.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1678.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1714.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1740.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1776.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1802.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1838.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1864.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1900.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1926.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1962.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1988.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2024.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2050.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2086.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2112.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2148.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2174.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2210.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2236.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2272.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2298.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2334.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2360.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2396.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2422.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2458.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2484.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2520.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2546.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2582.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2608.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2644.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2670.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2706.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2732.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2768.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2794.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2830.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2856.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2892.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2918.1875,
+          "nowrap": "nowrap"
+        }
+      ],
+      "monetary": [
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 12.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 890,11",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.340,66",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 240,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.440,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 34.887,12",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 7.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 700,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 10.681,38",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 2.880,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 30.600,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 46.516,14",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 22.436,34",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.168,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 14.241,84",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.840,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 29.915,10",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.224,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.608,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        }
+      ],
+      "summaryRows": [
+        {
+          "currency": "BRL",
+          "values": [
+            {
+              "text": "BRL 123.474.441,90",
+              "right": 399.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 17.600,00",
+              "right": 631.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 862.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 1094.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "EUR",
+          "values": [
+            {
+              "text": "EUR 123.502.198,33",
+              "right": 399.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 8.944,63",
+              "right": 631.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 810,00",
+              "right": 862.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 3.760,00",
+              "right": 1094.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 2.650,00",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "USD",
+          "values": [
+            {
+              "text": "USD 123.456.789,90",
+              "right": 399.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 631.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 862.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 1094.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1326,
+              "nowrap": "nowrap"
+            }
+          ]
+        }
+      ],
+      "summaryOverflow": 0
+    },
+    {
+      "width": 1440,
+      "expanded": true,
+      "table": {
+        "x": 249,
+        "y": 358.1875,
+        "w": 2032,
+        "h": 2578.5,
+        "right": 2281,
+        "bottom": 2936.6875
+      },
+      "tableWidth": 2032,
+      "viewport": 1440,
+      "wrapWidth": 1158,
+      "pageOverflow": 0,
+      "columns": [
+        "due",
+        "supplier",
+        "invoice",
+        "balance",
+        "status",
+        "order",
+        "amount",
+        "fx",
+        "pendencies",
+        "iban",
+        "fxAction"
+      ],
+      "rowHeights": [
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62
+      ],
+      "visibleRows": 8,
+      "axes": [
+        {
+          "id": "due",
+          "delta": 0
+        },
+        {
+          "id": "supplier",
+          "delta": 0
+        },
+        {
+          "id": "invoice",
+          "delta": 0
+        },
+        {
+          "id": "balance",
+          "delta": 0
+        },
+        {
+          "id": "status",
+          "delta": 0
+        },
+        {
+          "id": "order",
+          "delta": 0
+        },
+        {
+          "id": "amount",
+          "delta": 0
+        },
+        {
+          "id": "fx",
+          "delta": 0
+        },
+        {
+          "id": "pendencies",
+          "delta": 0
+        },
+        {
+          "id": "iban",
+          "delta": 0
+        },
+        {
+          "id": "fxAction",
+          "delta": 0
+        }
+      ],
+      "filterDelta": 0.09375,
+      "badges": [
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 412.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 438.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 474.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 500.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 536.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 562.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 598.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 624.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 660.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 686.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 722.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 748.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 784.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 810.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 846.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 872.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 908.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 934.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 970.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 996.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1032.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1058.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1094.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1120.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 1156.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 1182.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1218.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1244.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1280.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1306.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 1022.46875,
+          "y": 1342.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1155.53125,
+          "bottom": 1368.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1404.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1430.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1466.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1492.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1528.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1554.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1590.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1616.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1652.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1678.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1714.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1740.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1776.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1802.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1838.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1864.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1900.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1926.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 1962.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 1988.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2024.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2050.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2086.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2112.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2148.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2174.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2210.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2236.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2272.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2298.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2334.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2360.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2396.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2422.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2458.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2484.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2520.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2546.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2582.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2608.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2644.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2670.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2706.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2732.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2768.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2794.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2830.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2856.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 1054.703125,
+          "y": 2892.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 1123.28125,
+          "bottom": 2918.1875,
+          "nowrap": "nowrap"
+        }
+      ],
+      "monetary": [
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 12.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 890,11",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.340,66",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 240,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.440,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 34.887,12",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 7.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 700,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 10.681,38",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 2.880,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 30.600,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 46.516,14",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 22.436,34",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.168,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 14.241,84",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.840,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 29.915,10",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.224,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.608,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        }
+      ],
+      "summaryRows": [
+        {
+          "currency": "BRL",
+          "values": [
+            {
+              "text": "BRL 123.474.441,90",
+              "right": 516.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 17.600,00",
+              "right": 737.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 958.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 1179.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1400,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "EUR",
+          "values": [
+            {
+              "text": "EUR 123.502.198,33",
+              "right": 516.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 8.944,63",
+              "right": 737.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 810,00",
+              "right": 958.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 3.760,00",
+              "right": 1179.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 2.650,00",
+              "right": 1400,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "USD",
+          "values": [
+            {
+              "text": "USD 123.456.789,90",
+              "right": 516.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 737.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 958.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 1179.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1400,
+              "nowrap": "nowrap"
+            }
+          ]
+        }
+      ],
+      "summaryOverflow": 0
+    },
+    {
+      "width": 1440,
+      "expanded": false,
+      "table": {
+        "x": 121,
+        "y": 358.1875,
+        "w": 2032,
+        "h": 2578.5,
+        "right": 2153,
+        "bottom": 2936.6875
+      },
+      "tableWidth": 2032,
+      "viewport": 1440,
+      "wrapWidth": 1278,
+      "pageOverflow": 0,
+      "columns": [
+        "due",
+        "supplier",
+        "invoice",
+        "balance",
+        "status",
+        "order",
+        "amount",
+        "fx",
+        "pendencies",
+        "iban",
+        "fxAction"
+      ],
+      "rowHeights": [
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62,
+        62
+      ],
+      "visibleRows": 8,
+      "axes": [
+        {
+          "id": "due",
+          "delta": 0
+        },
+        {
+          "id": "supplier",
+          "delta": 0
+        },
+        {
+          "id": "invoice",
+          "delta": 0
+        },
+        {
+          "id": "balance",
+          "delta": 0
+        },
+        {
+          "id": "status",
+          "delta": 0
+        },
+        {
+          "id": "order",
+          "delta": 0
+        },
+        {
+          "id": "amount",
+          "delta": 0
+        },
+        {
+          "id": "fx",
+          "delta": 0
+        },
+        {
+          "id": "pendencies",
+          "delta": 0
+        },
+        {
+          "id": "iban",
+          "delta": 0
+        },
+        {
+          "id": "fxAction",
+          "delta": 0
+        }
+      ],
+      "filterDelta": 0.09375,
+      "badges": [
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 412.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 438.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 474.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 500.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 536.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 562.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 598.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 624.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 660.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 686.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 722.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 748.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 784.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 810.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 846.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 872.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 908.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 934.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 970.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 996.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1032.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1058.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1094.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1120.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 1156.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 1182.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1218.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1244.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1280.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1306.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Parcialmente pago",
+          "x": 894.46875,
+          "y": 1342.1875,
+          "w": 133.0625,
+          "h": 26,
+          "right": 1027.53125,
+          "bottom": 1368.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1404.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1430.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1466.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1492.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1528.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1554.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1590.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1616.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1652.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1678.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1714.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1740.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1776.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1802.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1838.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1864.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1900.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1926.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 1962.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 1988.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2024.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2050.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2086.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2112.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2148.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2174.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2210.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2236.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2272.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2298.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2334.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2360.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2396.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2422.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2458.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2484.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2520.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2546.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2582.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2608.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2644.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2670.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2706.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2732.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2768.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2794.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2830.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2856.1875,
+          "nowrap": "nowrap"
+        },
+        {
+          "text": "Aberto",
+          "x": 926.703125,
+          "y": 2892.1875,
+          "w": 68.578125,
+          "h": 26,
+          "right": 995.28125,
+          "bottom": 2918.1875,
+          "nowrap": "nowrap"
+        }
+      ],
+      "monetary": [
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 12.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 890,11",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.340,66",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 240,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.440,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 5.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 8.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 1.400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.814,52",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 34.887,12",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 270,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.000,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 7.200,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.080,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 6.480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 400,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 700,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 1.780,23",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 10.681,38",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 480,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 2.880,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 5.100,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 30.600,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 7.752,69",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 46.516,14",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 3.739,39",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 22.436,34",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 528,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.168,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 630,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 2.373,64",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 14.241,84",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 640,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.840,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 576,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3.456,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 4.985,85",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 29.915,10",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 704,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.224,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 768,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 4.608,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 33,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 16,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 3,00",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "EUR 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "USD 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        },
+        {
+          "text": "BRL 61.728.394,95",
+          "nowrap": "nowrap",
+          "fits": true
+        }
+      ],
+      "summaryRows": [
+        {
+          "currency": "BRL",
+          "values": [
+            {
+              "text": "BRL 123.474.441,90",
+              "right": 412.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 17.600,00",
+              "right": 657.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 902.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "BRL 0,00",
+              "right": 1147.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1392,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "EUR",
+          "values": [
+            {
+              "text": "EUR 123.502.198,33",
+              "right": 412.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 8.944,63",
+              "right": 657.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 810,00",
+              "right": 902.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 3.760,00",
+              "right": 1147.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "EUR 2.650,00",
+              "right": 1392,
+              "nowrap": "nowrap"
+            }
+          ]
+        },
+        {
+          "currency": "USD",
+          "values": [
+            {
+              "text": "USD 123.456.789,90",
+              "right": 412.796875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 657.59375,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 902.390625,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "USD 0,00",
+              "right": 1147.1875,
+              "nowrap": "nowrap"
+            },
+            {
+              "text": "—",
+              "right": 1392,
+              "nowrap": "nowrap"
+            }
+          ]
+        }
+      ],
+      "summaryOverflow": 0
+    }
+  ],
+  "headers": [
+    {
+      "route": "/orders/2",
+      "width": 1052,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 452,
+      "available": 584,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos"
+      ],
+      "menu": [
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2",
+      "width": 1052,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 381,
+      "available": 655,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos"
+      ],
+      "menu": [
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1052,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 537,
+      "available": 499,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 2,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido"
+      ],
+      "menu": [
+        "Encerrar pedido",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1052,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 449,
+      "available": 587,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido"
+      ],
+      "menu": [
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/customs/12",
+      "width": 1086,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 325,
+      "available": 745,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos"
+      ],
+      "menu": [
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/customs/12",
+      "width": 1086,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 277,
+      "available": 793,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos"
+      ],
+      "menu": [
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2",
+      "width": 1180,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 452,
+      "available": 712,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos",
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "menu": [],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2",
+      "width": 1180,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 381,
+      "available": 783,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos",
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "menu": [],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1180,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 537,
+      "available": 627,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido"
+      ],
+      "menu": [
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1180,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 449,
+      "available": 715,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido",
+        "Cancelar pedido…"
+      ],
+      "menu": [
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/customs/12",
+      "width": 1214,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 325,
+      "available": 873,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos"
+      ],
+      "menu": [
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/customs/12",
+      "width": 1214,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 277,
+      "available": 921,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos"
+      ],
+      "menu": [
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1366
+    },
+    {
+      "route": "/orders/2",
+      "width": 1126,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 452,
+      "available": 658,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos"
+      ],
+      "menu": [
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2",
+      "width": 1126,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 381,
+      "available": 729,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos",
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "menu": [],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1126,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 537,
+      "available": 573,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido"
+      ],
+      "menu": [
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1126,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 449,
+      "available": 661,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 3,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido"
+      ],
+      "menu": [
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/customs/12",
+      "width": 1160,
+      "expanded": true,
+      "position": "top",
+      "profile": "admin",
+      "identity": 325,
+      "available": 819,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos"
+      ],
+      "menu": [
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/customs/12",
+      "width": 1160,
+      "expanded": true,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 277,
+      "available": 867,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos"
+      ],
+      "menu": [
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2",
+      "width": 1254,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 452,
+      "available": 786,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos",
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "menu": [],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2",
+      "width": 1254,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 381,
+      "available": 857,
+      "widths": [
+        142.84375,
+        116.03125,
+        116.265625,
+        151.75,
+        129.703125
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Abrir comercial",
+        "Adiantamentos",
+        "Ver contas do pedido",
+        "Encerrar pedido…"
+      ],
+      "menu": [],
+      "keys": [
+        "Ver contas vencidas",
+        "cockpit-commercial-link",
+        "cockpit-advances-link",
+        "Ver contas do pedido",
+        "cockpit-close-link"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1254,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 537,
+      "available": 701,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 4,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido",
+        "Cancelar pedido…"
+      ],
+      "menu": [
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/orders/2/commercial",
+      "width": 1254,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 449,
+      "available": 789,
+      "widths": [
+        142.84375,
+        123.078125,
+        120.1875,
+        131.90625,
+        116.265625,
+        102.1875,
+        79.265625
+      ],
+      "trigger": 109.078125,
+      "expected": 5,
+      "visible": [
+        "Ver contas vencidas",
+        "Visão do pedido",
+        "Encerrar pedido",
+        "Cancelar pedido…",
+        "Adiantamentos"
+      ],
+      "menu": [
+        "Documentos",
+        "Atualizar"
+      ],
+      "keys": [
+        "Ver contas vencidas",
+        "commercial-cockpit-link",
+        "close-order",
+        "Cancelar pedido…",
+        "Adiantamentos",
+        "Documentos",
+        "Atualizar"
+      ],
+      "hasMenu": true,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/customs/12",
+      "width": 1288,
+      "expanded": false,
+      "position": "top",
+      "profile": "admin",
+      "identity": 325,
+      "available": 947,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 6,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": false,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    },
+    {
+      "route": "/customs/12",
+      "width": 1288,
+      "expanded": false,
+      "position": "compact",
+      "profile": "admin",
+      "identity": 277,
+      "available": 995,
+      "widths": [
+        150.203125,
+        140.53125,
+        144.8125,
+        102.1875,
+        231.703125,
+        117.890625
+      ],
+      "trigger": 109.078125,
+      "expected": 6,
+      "visible": [
+        "Receber mercadorias",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "menu": [],
+      "keys": [
+        "customs-primary-receive",
+        "Dados da operação",
+        "Cancelar operação…",
+        "Documentos",
+        "Gestão de recebimentos e estornos",
+        "Atualizar dados"
+      ],
+      "hasMenu": false,
+      "primaryVisible": true,
+      "collision": false,
+      "compact": true,
+      "stacked": false,
+      "pageOverflow": 0,
+      "viewportWidth": 1440
+    }
+  ],
+  "journeys": [
+    {
+      "abri": "Pedido comercial",
+      "vi": "Encerrar pedido autorizado",
+      "cliquei": "Abri e fechei confirmação",
+      "resultado": "Handler/diálogo preservado; nenhuma confirmação"
+    },
+    {
+      "abri": "Contas a pagar",
+      "vi": "Filtros disponíveis",
+      "cliquei": "Mais filtros, Escape, EUR, recarga, limpar",
+      "resultado": "Query preservada e filtros operantes"
+    },
+    {
+      "abri": "/orders",
+      "vi": "Fila real e navegação local",
+      "cliquei": "Abri pelo destino",
+      "resultado": "Sem overflow de página; conteúdo preservado"
+    },
+    {
+      "abri": "/invoices",
+      "vi": "Fila real e navegação local",
+      "cliquei": "Abri pelo destino",
+      "resultado": "Sem overflow de página; conteúdo preservado"
+    },
+    {
+      "abri": "/payments",
+      "vi": "Fila real e navegação local",
+      "cliquei": "Abri pelo destino",
+      "resultado": "Sem overflow de página; conteúdo preservado"
+    },
+    {
+      "abri": "/customs",
+      "vi": "Fila real e navegação local",
+      "cliquei": "Abri pelo destino",
+      "resultado": "Sem overflow de página; conteúdo preservado"
+    },
+    {
+      "abri": "/inventory/receiving",
+      "vi": "Fila real e navegação local",
+      "cliquei": "Abri pelo destino",
+      "resultado": "Sem overflow de página; conteúdo preservado"
+    }
+  ],
+  "transitions": [],
+  "errors": [],
+  "writes": [],
+  "indexSha256": "9714b2d4d9a97972d1b8c7e271c9b5a8db54b0545e07bd099af1478c46fd165e"
+}

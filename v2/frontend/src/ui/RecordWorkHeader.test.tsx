@@ -13,8 +13,8 @@ describe("record work navigation",()=>{
   render(<MemoryRouter><RecordWorkHeader title="Operação" primary={{label:"Submeter operação",disabled:true,reason:"Informe a referência da declaração."}} topics={[]}/></MemoryRouter>);
   const button=screen.getByRole("button",{name:"Submeter operação"});expect(button).toBeDisabled();expect(button).toHaveAccessibleDescription("Informe a referência da declaração.");
  });
- it("closes the actions menu with Escape and restores keyboard focus",()=>{
+ it("exposes actions until measured, without an unnecessary overflow menu",()=>{
   render(<MemoryRouter><RecordWorkHeader title="Pedido" more={[{label:"Atualizar",onClick:vi.fn()}]} topics={[]}/></MemoryRouter>);
-  const menu=document.querySelector("details")!;menu.open=true;fireEvent.keyDown(document,{key:"Escape"});expect(menu.open).toBe(false);expect(document.activeElement?.tagName).toBe("SUMMARY");
+  expect(document.querySelector("details")).toBeNull();expect(screen.getByRole("button",{name:"Atualizar"})).toBeVisible();
  });
 });

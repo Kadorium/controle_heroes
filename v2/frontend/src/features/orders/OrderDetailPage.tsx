@@ -376,7 +376,7 @@ export function OrderDetailPage({ user }: Props) {
     ...(canReopen?[{label:"Reabrir pedido",onClick:()=>setReopenOpen(true),disabled:busy,testId:"reopen-order"}]:[]),
     ...(canCancel?[{label:"Cancelar pedido…",onClick:()=>focusRecordSection("order-cancellation")}]:[]),
     ...(treasuryAllowed?[{label:"Adiantamentos",onClick:()=>focusRecordSection("order-advances")}]:[]),
-    {label:"Documentos",onClick:()=>focusRecordSection("order-documents")},
+    ...(canNavigate(user,"documents:read")?[{label:"Documentos",onClick:()=>focusRecordSection("order-documents")}]:[]),
     {label:"Atualizar",onClick:()=>{void reload();accounts.retry();}},
   ];
 
