@@ -64,13 +64,15 @@ DOC_DELTA
 - Return to advisor: NONE | <paths>
 ```
 
-### 6.1 Pacote de retorno ao advisor
+### 6.1 Documento único ao usuário / GPT — preferência persistente
 
-- Evidências técnicas podem ser decompostas livremente em `docs/v2/etapa-*` (JSON, CSV, logs, scripts, fixtures, goldens, screenshots, layouts).
-- O pacote destinado à revisão do advisor contém por padrão no máximo **dois** arquivos Markdown:
-  1. `*_ADVISOR_HANDOFF.md` — obrigatório, autocontido para decisão;
-  2. `*_TECHNICAL_APPENDIX.md` — opcional, só se a análise aprofundada não couber no handoff sem prejudicar a leitura.
-- O handoff deve incluir, conforme aplicável: etapa, status, estado anterior/atual, hipóteses, gates, entregas, decisões (e ratificações), riscos, divergências, pendências, próxima etapa, DOC_DELTA, lista curta de evidências internas (dirs/paths âncora), arquivos relevantes alterados, recomendação.
-- Artefatos brutos **não** entram individualmente em `DOC_DELTA / Return to advisor`, salvo pedido explícito do advisor/usuário.
-- Exceção ao limite de dois Markdown: justificativa no próprio handoff ou solicitação explícita do usuário.
-- Detalhe do formulário DOC_DELTA: `docs/README.md` §3.
+Preferência expressa pelo usuário em 18/11/2026, válida para todas as próximas entregas deste projeto:
+
+- Atualizar sempre **o mesmo** `RELATORIO_EPIC_PARA_GPT.md` na raiz visível do projeto, ao lado de `Iniciar EPIC.exe`. Neste workspace, a raiz é `EPIC/`; o repositório Git está em `EPIC/Controle/`, portanto o relatório fica em `../RELATORIO_EPIC_PARA_GPT.md` a partir do repositório.
+- Esse é o único documento de revisão a devolver ao usuário/GPT/advisor por padrão. Não criar um novo handoff, apêndice, cópia datada ou ZIP a cada rodada, salvo pedido explícito.
+- Deve ser autocontido: contexto, objetivo, estado anterior/atual, mudanças, decisões e razões, rotas/permissões afetadas, arquivos, ambiente/build/banco, testes realmente executados, resultados, limitações, pendências, próxima etapa, Git e DOC_DELTA.
+- Manter o estado vigente no início e um histórico resumido das entregas; distinguir concluído, pendente e proposto. Consolidar informações superadas sem perder decisões ainda relevantes. O GPT deve entender o trabalho recebendo apenas esse arquivo.
+- Referências e evidências internas são opcionais para aprofundamento; não substituir a explicação por uma lista de links. Guardar logs/screenshots necessários nas pastas existentes, sem espalhar novos relatórios de revisão.
+- Preservar históricos encerrados e atualizar os documentos canônicos somente quando a governança exigir. O relatório único consolida a entrega, sem substituir a autoridade do Roadmap/Blueprint por assunto.
+- Na resposta final, fornecer o link do relatório único. Só listar anexos quando o usuário os pedir.
+- Detalhe do DOC_DELTA e do ponto de entrega: `docs/README.md` §3.

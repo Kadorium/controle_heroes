@@ -10,6 +10,7 @@ Ponto de entrada da documentação. O desenvolvimento ativo é a **V2**; a V1 é
 
 | Preciso saber | Documento | Autoridade | Ciclo de vida |
 |---|---|---|---|
+| O que enviar ao GPT/advisor sobre as mudanças | [`RELATORIO_EPIC_PARA_GPT.md`](../../RELATORIO_EPIC_PARA_GPT.md), na raiz `EPIC/`, ao lado do executável | Documento único de entrega, autocontido; consolida os documentos responsáveis por assunto | Ativo — atualizar o mesmo arquivo em cada entrega; preferência expressa em 18/11/2026 |
 | Onde estamos, o que vem agora, gates, ADRs | [`ROADMAP_V2_EPIC.md`](../ROADMAP_V2_EPIC.md) (Parte A = painel; Contrato = atualização A↔B; **Parte B = canônico**) | Canônico (estado/sequência = Parte B) | Ativo — checklist do Contrato após mudança operacional material |
 | Como o sistema deve funcionar (produto/arch/aceite) | [`BLUEPRINT_SISTEMA_EPIC_V2.md`](v2/BLUEPRINT_SISTEMA_EPIC_V2.md) | Canônico (produto) | Ativo — atualizar em mudança de domínio/arch |
 | Design de interface, Handoff, mockups | [Blueprint UI/UX](v2/blueprint%20UIUX/BLUEPRINT_UI_UX_EPIC_v3.md) · [Handoff](v2/blueprint%20UIUX/HANDOFF_UI_UX_EPIC_V2.md) · [MCK](v2/blueprint%20UIUX/mockups/) | Referência de design; autoridade e status de implementação definidos no Roadmap e nos próprios artefatos | Ativo / histórico conforme o artefato |
@@ -98,6 +99,6 @@ DOC_DELTA
 - **Evidence** — paths em `docs/v2/etapa-*` / `docs/evidence/` quando houver execução material; senão `NONE`.
 - **Roadmap status** — `UNCHANGED` se o Roadmap não mudou; caso contrário descrever a mudança e a versão. Incluir `A/B:` o que mudou em A, em B, ou `A inalterada`.
 - **Next TODO** — próxima ação confirmada **na Parte B do Roadmap** (não inventar aqui).
-- **Return to advisor** — paths que o advisor deve reler, ou `NONE`. Preferencialmente no máximo **dois** Markdown: `*_ADVISOR_HANDOFF.md` e, se necessário, `*_TECHNICAL_APPENDIX.md`. Evidência bruta permanece em `Evidence` / pasta `etapa-*` e **não** deve ser listada item a item (JSON, logs, fixtures, screenshots, scripts), salvo pedido explícito. Ver também [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) §6.1.
+- **Return to advisor** — por padrão, somente `EPIC/RELATORIO_EPIC_PARA_GPT.md`, atualizado no mesmo lugar a cada entrega. Preferência expressa do usuário em 18/11/2026: um único documento na raiz, detalhado e compreensível pelo GPT sem outros arquivos. Incluir contexto, mudanças, motivos, estado final, testes executados, limites, pendências, Git e DOC_DELTA; manter histórico resumido no mesmo arquivo. Não criar novos handoffs/apêndices/ZIPs para revisão, salvo pedido explícito. Evidências técnicas necessárias permanecem nas pastas existentes; arquivos históricos encerrados são preservados. A governança dos documentos canônicos continua vigente. Ver [`.cursor/rules/epic-v2.mdc`](../.cursor/rules/epic-v2.mdc) §6.1.
 
 Não criar pasta `etapa-*` só por edição documental de índice/regra/README.
