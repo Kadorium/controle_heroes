@@ -37,6 +37,27 @@ describe("NationalizationPanel E7-4", () => {
     vi.clearAllMocks();
   });
 
+  it("reconsulta o residual quando a estrutura da operação muda", async () => {
+    vi.mocked(api.listNationalizations).mockResolvedValue([]);
+    vi.mocked(api.listReceiptResiduals).mockResolvedValue([]);
+    vi.mocked(api.listClearanceResiduals).mockResolvedValue([]);
+    const view = render(<NationalizationPanel user={admin} processId={1} scopeRevision={1} />);
+    await waitFor(() => expect(screen.getByText("Sem alocação")).toBeInTheDocument());
+    vi.mocked(api.listClearanceResiduals).mockResolvedValue([{source_kind:"shipment_item",shipment_item_id:4,invoice_item_id:null,allocated_qty:"10",nationalized_qty:"0",residual_qty:"10",product_id:3,product_sku:"SHOW26",product_name:"Raquete",shipped_qty:"10"}]);
+    view.rerender(<NationalizationPanel user={admin} processId={1} scopeRevision={2} />);
+    await waitFor(() => expect(screen.getByTestId("nationalization-residual-table")).toHaveTextContent("SHOW26"));
+    expect(api.listClearanceResiduals).toHaveBeenCalledTimes(2);
+  });
+
+  it("não apresenta falha de consulta como ausência de alocação", async () => {
+    vi.mocked(api.listNationalizations).mockResolvedValue([]);
+    vi.mocked(api.listReceiptResiduals).mockResolvedValue([]);
+    vi.mocked(api.listClearanceResiduals).mockRejectedValue(new Error("Fonte indisponível"));
+    render(<NationalizationPanel user={admin} processId={1} />);
+    await waitFor(() => expect(screen.getByText("Fonte indisponível")).toBeInTheDocument());
+    expect(screen.queryByText("Sem alocação")).not.toBeInTheDocument();
+  });
+
   it("mostra produto derivado e residual, sem campo de ID cru", async () => {
     vi.mocked(api.listNationalizations).mockResolvedValue([]);
     vi.mocked(api.listReceiptResiduals).mockResolvedValue([]);

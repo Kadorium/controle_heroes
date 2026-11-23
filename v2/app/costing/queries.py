@@ -146,8 +146,34 @@ def get_version(db: Session, version_id: int):
     return row
 
 
-def queue(db: Session, *, limit: int = 50, offset: int = 0) -> list[dict]:
-    processes = customs_public.list_import_processes(db, limit=limit, offset=offset)
+def queue(db: Session, *, limit: int = 50, offset: int = 0, process_id: int | None = None) -> list[dict]:
+    try:
+        processes = ([customs_public.get_import_process(db, process_id)] if process_id is not None
+                     else customs_public.list_import_processes(db, limit=limit, offset=offset))
+    except customs_public.CustomsError as exc:
+        if exc.code == "process_not_found":
+            raise CostingNotFound("Operação", process_id) from exc
+        raise
+    return _queue_rows(db, processes)
+
+
+def queue_page(db: Session, *, q: str = "", situation: str = "", limit: int = 50, offset: int = 0) -> dict:
+    from app.costing.models import CostingCase, CostingVersion
+
+    included = excluded = None
+    if situation == "empty":
+        excluded = [r[0] for r in db.query(CostingCase.import_process_id).all()]
+    elif situation in ("blocked", "ready"):
+        query = db.query(CostingCase.import_process_id).join(
+            CostingVersion, CostingCase.current_published_id == CostingVersion.id)
+        query = query.filter(CostingVersion.partial_coverage.is_(True)) if situation == "blocked" else query.filter(CostingVersion.status == "PUBLISHED")
+        included = [r[0] for r in query.all()]
+    processes, total = customs_public.search_import_processes(
+        db, q=q, included_ids=included, excluded_ids=excluded, limit=limit, offset=offset)
+    return {"items": _queue_rows(db, processes), "total": total, "limit": limit, "offset": offset}
+
+
+def _queue_rows(db: Session, processes) -> list[dict]:
     out = []
     for p in processes:
         case = repo.get_case_by_process(db, p.id)

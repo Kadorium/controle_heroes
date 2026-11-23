@@ -7,13 +7,15 @@ import "./costingResult.css";
 export function CostingResult({ version, fxCopy }: { version: CostingVersion; fxCopy: string }) {
   const coverage = version.snapshot?.coverage?.coverage;
   const hasFreight = version.components.some(c => c.included && c.component_type === "FRETE_INTERNACIONAL");
+  const unavailable = version.included_total_brl == null;
   return <section className="cost-result" aria-label="Resultado da versão" data-testid="costing-result">
     <div className="cost-result-summary">
-      <div><span className="cost-result-label">Total incluído · BRL</span><strong data-testid="costing-included-total">{formatMoney(version.included_total_brl, "BRL")}</strong><small>Bruto visível: {formatMoney(version.gross_total_brl, "BRL")}</small></div>
+      <div><span className="cost-result-label">{unavailable ? "Total indisponível" : "Total incluído"} · BRL</span><strong data-testid="costing-included-total">{formatMoney(version.included_total_brl, "BRL")}</strong><small>Bruto visível: {formatMoney(version.gross_total_brl, "BRL")}</small></div>
       <div><span className="cost-result-label">Versão {version.version_number}</span><strong>{versionKindLabel(version.kind)}</strong><small>{versionStatusLabel(version.status)}{version.published_at ? ` · ${formatDateTime(version.published_at)}` : ""}</small></div>
       <div><span className="cost-result-label">Cobertura documental</span><strong>{version.partial_coverage || coverage === "INCOMPLETE" ? "Incompleta" : coverage === "COMPLETE" ? "Completa" : "Não informada"}</strong><small>{version.partial_coverage ? `${version.status === "DRAFT" ? "Prévia" : "Publicação"} parcial — não representa custo completo.` : "Conforme as fontes desta versão."}</small></div>
     </div>
     <div className="cost-result-qualifiers">
+      {unavailable && <p role="status">Faltam valores ou bases de rateio para apurar o custo. Os componentes conhecidos continuam consultáveis; ausência não é custo zero.</p>}
       <p data-testid="costing-fx-story">{fxCopy}</p>
       <p>Tributos brutos · base de quantidade faturada por SKU, não quantidade recebida.</p>
       {!hasFreight && <p data-testid="costing-freight-absent">Frete internacional sem componente incluído nesta versão. Ausência não significa frete a custo zero.</p>}

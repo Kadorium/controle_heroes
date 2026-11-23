@@ -1,0 +1,15 @@
+--- a/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
++++ b/docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md
+@@ -533,0 +534,12 @@
++
++### 13.8 Aceite operacional e vídeo narrado — 19 a 23/11/2026
++
++**DONE — executive-20261119.2.** Autorização explícita para backup/recuperação, limpeza da demo e nova história comercial depois do gate. Estado inicial0.5.166/3.16/.1 confirmado. Backup consistente do cluster5458, storage, código/WIP/Git/release/config; restauração em cluster5462 comprovou85 tabelas e368 arquivos iguais, seguida de consulta real pela UI. Antes do reset23/11,66 tabelas transacionais ainda coincidiam com o backup19/11. Removidos1138 registros/66 tabelas e66 arquivos revisados, preservando cadastros, usuários, ACL, preços, visões, cotação e auditoria. Nenhum reset em `epic_v2`.
++
++Correções incrementais: custo além da página50 e contexto exato; ausência monetária não vira zero; referências completas e tributos do numerário; soma declarada sem falsa divergência; revisão documental autorizada; edição de dinheiro/taxa sem corrida de foco; erro dentro da confirmação financeira; justificativa longa auditada sem estourar coluna; atualização do residual; pendência cambial BRL coerente; grid financeiro local do cockpit. Sem migração, novos módulos ou permissões.
++
++Gate atual:6 jornadas+22 variantes PASS, zero FAIL/PENDENTE/NÃO APLICÁVEL.77 testes backend,31 frontend, build/typecheck/drift; UI real admin/Estoque/Aduana/leitura,1366×768/1440×900 e laterais, cabeçalhos/teclado, AP11 colunas/62px/rolagem local. Limites10000/10001 e operação além de50 exercitados; retry com resposta perdida, estorno/reentrada, cancelamento, reabertura e reinício reconciliados. Não é certificação exaustiva nem teste de usabilidade com Ricardo. Histórico13.6/13.7 não conta como teste desta rodada.
++
++Após gate, EXE abriu a build validada, reset aplicado e51 cenas reais gravadas no runtime8082. Estado final:1 pedido,2 faturas,4 obrigações (1 paga),2 pagamentos,3 entradas4+6+6,16UN, custo REVISED11630BRL, aberto1200EUR/2000BRL, crédito100EUR,9 arquivos sem órfãos. MP4 narrado pt-BR13min34,821s, seis capítulos; H264/AAC1600×900, UI original1600×800 sem reduzir zoom, barras externas, cursor visível. Reprodução e decodificação integral verificadas; áudio medido, sem alegação de escuta humana. Relatório único e vídeo na raiz, fora do repositório. Evidência interna `etapa-aceite-video-20261119/`; Roadmap0.5.167/UIUX3.17/Sistema0.2.41. Release mantém WIP anterior; Git recebe somente deltas desta rodada.
++
++Próxima ação: usar vídeo/relatório e conferir os estados sugeridos da compra; política econômica operacional, offsite e conferência física permanecem separados. Recebimento contextual é limitado explicitamente a10000 itens e não possui snapshot transacional da fila; não declarar capacidade ilimitada.

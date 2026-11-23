@@ -166,7 +166,7 @@ describe("CostingWorkspacePage expenses", () => {
     expect(screen.queryByTestId("costing-expense-add")).not.toBeInTheDocument();
   });
 
-  it("mostra cobertura 6/6, câmbio documental e copy de publicar revisado", async () => {
+  it("distingue faturas do processo e referências ausentes", async () => {
     render(
       <MemoryRouter initialEntries={["/costing/2"]}>
         <Routes>
@@ -174,7 +174,9 @@ describe("CostingWorkspacePage expenses", () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(await screen.findByTestId("costing-coverage-invoices")).toHaveTextContent("6 de 6");
+    expect(await screen.findByTestId("costing-coverage-invoices")).toHaveTextContent("6 faturas no processo");
+    expect(screen.getByTestId("costing-coverage-invoices")).toHaveTextContent("Referências de fatura do Numerário não informadas nesta fonte");
+    expect(screen.getByTestId("costing-coverage-invoices")).not.toHaveTextContent("6 de 6");
     expect(screen.getByTestId("costing-fx-story")).toHaveTextContent(/documental da importação/i);
     expect(screen.getByTestId("costing-fx-story")).toHaveTextContent("5,920500");
     expect(screen.getByTestId("costing-fx-story")).toHaveTextContent(/não é câmbio bancário realizado/i);

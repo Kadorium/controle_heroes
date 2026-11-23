@@ -47,6 +47,26 @@ def process_counts_by_status(db: Session) -> dict[str, int]:
     return {**out, "operational_total": operational}
 
 
+def search_import_processes(
+    db: Session, *, q: str = "", included_ids: list[int] | None = None,
+    excluded_ids: list[int] | None = None, limit: int = 50, offset: int = 0,
+) -> tuple[list[ImportProcess], int]:
+    """Owner-scoped paginated lookup for authorized cross-domain read models."""
+    query = db.query(ImportProcess)
+    if q.strip():
+        value = q.strip()
+        query = query.filter(
+            ImportProcess.code.icontains(value, autoescape=True)
+            | ImportProcess.external_reference.icontains(value, autoescape=True)
+        )
+    if included_ids is not None:
+        query = query.filter(ImportProcess.id.in_(included_ids))
+    if excluded_ids:
+        query = query.filter(ImportProcess.id.not_in(excluded_ids))
+    total = query.count()
+    return query.order_by(ImportProcess.id.desc()).offset(offset).limit(limit).all(), total
+
+
 def find_process_for_invoice(db: Session, invoice_id: int) -> ImportProcess | None:
     link = repo.find_invoice_link(db, invoice_id)
     if not link:

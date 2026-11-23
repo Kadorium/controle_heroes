@@ -2,8 +2,8 @@
 
 ```text
 Status: referência de design (não canônico de domínio)
-Versão: 3.16
-Data: 2026-11-19
+Versão: 3.17
+Data: 2026-11-23
 Autoridade: consultiva para arquitetura de informação e UX
 Não substitui: Blueprint do Sistema, Roadmap, código ou decisões de domínio
 Status de implementação das superfícies: consultar o Roadmap
@@ -14,6 +14,18 @@ Natureza: consolidado Etapas 2–8 (Design System §26–§27; Handoff v1.0).
 ```
 
 **Precedência durante investigação:** o código evidencia o estado implementado. Divergências documentais resolvem-se nos documentos responsáveis. Benchmarks são evidência consultiva, sem autoridade.
+
+### Ajuste local 3.17 — continuidade das jornadas e estados honestos
+
+Implementado em `executive-20261119.2`, com escopo autorizado de aceite operacional. Preserva o padrão3.16 e a distribuição de ações por largura. Não cria módulos, regras financeiras ou um novo sistema visual.
+
+- Custo: a fila busca/pagina sobre a população autorizada, com total e filtros na URL; o detalhe da operação consulta seu identificador exato, sem depender dos primeiros50 resultados. Componentes conhecidos continuam consultáveis quando a base total falta; total/unitário ausentes aparecem como indisponíveis, nunca como zero. Zero existente permanece zero. Publicação revisada não significa realização integral.
+- Valores monetários/taxas: foco prepara o texto decimal local e seleciona de forma síncrona, evitando que edição por teclado altere a escala ou perca caracteres. Erros de vinculação aparecem dentro da confirmação e preservam o valor digitado; abrir outro diálogo limpa o erro anterior.
+- Operação: alteração de alocação/liberação atualiza a fonte de recebimento; erro de consulta não vira lista vazia. Recorte por ID exato, teto10000 explicitado, entrada parcial distinta de integral. A fonte mínima e o acesso do perfil Estoque permanecem independentes de `customs:read`.
+- Conferir documentos: Concluir revisão/Reabrir revisão expõe o comando de status existente para as famílias aplicáveis e somente com escrita autorizada. Confirmar numerário permanece ação própria, com seleção explícita do processo. Referências alfanuméricas completas são preservadas, incluindo zeros à esquerda.
+- Pedido/visão: somente seu grid financeiro usa largura mínima420px antes de acrescentar coluna. Valores/status não quebram; tabelas conservam rolagem local acessível. Contas a pagar mantém a composição3.16, sem redesign global.
+
+Limites históricos da3.15/3.16 sobre a primeira página de custo foram superados nesta revisão; o limite10000 do recebimento permanece. Evidência e resultados pertencem ao Roadmap/relatório único, sem transformar os alvos históricos abaixo em descrição integral do runtime atual.
 
 ### Ajuste local 3.16 — acabamento financeiro e distribuição real de ações
 

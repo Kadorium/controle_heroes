@@ -213,6 +213,8 @@ def preview_payload(
         sum((c["amount_brl"] for c in components if c.get("amount_brl") is not None), Decimal("0"))
     )
     sku_rows = _sku_rollup(lines, components)
+    if not sku_rows or any(row["total_brl"] is None for row in sku_rows):
+        included = None
     fx_statuses = sorted({str(l.get("fx_status") or "") for l in lines if l.get("fx_status")})
     fx_kind = "documental"
     if any(s in ("FX_OPEN", "FX_MISSING", "REVISED_MIXED") for s in fx_statuses):
@@ -314,6 +316,15 @@ def _sku_rollup(lines: list[dict], components: list[dict]) -> list[dict]:
         (l.get("invoice_item_id"), l.get("shipment_item_id")): (l.get("product_id"), l.get("sku_snapshot"))
         for l in lines
     }
+    missing_merchandise = {
+        (line.get("product_id"), line.get("sku_snapshot"))
+        for line in lines if parse_decimal(line.get("merchandise_brl")) is None
+    }
+    unavailable_buckets = {
+        _component_bucket({**comp, "included": True})
+        for comp in components
+        if comp.get("status") in ("missing_basis", "zero_basis", "manual_sum", "manual_missing_line")
+    }
     for comp in components:
         bucket = _component_bucket(comp)
         if not bucket:
@@ -330,12 +341,15 @@ def _sku_rollup(lines: list[dict], components: list[dict]) -> list[dict]:
     rows = []
     for key, qty in qty_by.items():
         parts = buckets.get(key) or {}
-        merch = money2(parts.get("merchandise", Decimal("0")))
-        freight = money2(parts.get("freight", Decimal("0")))
-        tax = money2(parts.get("tax", Decimal("0")))
-        expense = money2(parts.get("expense", Decimal("0")))
-        total = money2(merch + freight + tax + expense)
-        unit = money2(total / qty) if qty else None
+        def known_part(bucket):
+            return None if bucket in unavailable_buckets else money2(parts.get(bucket, Decimal("0")))
+        merch = None if key in missing_merchandise else known_part("merchandise")
+        freight = known_part("freight")
+        tax = known_part("tax")
+        expense = known_part("expense")
+        values = (merch, freight, tax, expense)
+        total = None if any(value is None for value in values) else money2(sum(values, Decimal("0")))
+        unit = money2(total / qty) if qty and total is not None else None
         rows.append(
             {
                 **meta[key],

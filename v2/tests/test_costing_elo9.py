@@ -163,7 +163,7 @@ def _e9_family(client, supplier_id, *, tag: str, number: str, net: str):
     return product, o, inv, sh
 
 
-def _e9_funding(client, process):
+def _e9_funding(client, process, tag):
     from test_costing_j6 import _funding
 
     return _funding(
@@ -187,7 +187,9 @@ def _e9_funding(client, process):
             {"position": 3, "label": "FRETE (ENTREGA)", "code": "FRETE__ENTREGA_", "amount": "5600.00"},
             {"position": 4, "label": "HONORÁRIOS", "code": "HONORARIOS", "amount": "22931.00"},
         ],
-        notes=E9_NOTES,
+        # Match the exact references actually issued by this fixture; a numeric
+        # substring must not stand in for an invoice with a different suffix.
+        notes="INV. " + "/".join(f"{number}-{tag}" for number, _ in E9_INVOICES),
     )
 
 
@@ -227,7 +229,7 @@ def test_six_invoices_fob_complete_and_freight_roles(admin_client):
     for _p, _o, inv, sh in families:
         proc = _link_and_allocate(c, proc, inv, sh)
         assert _p["sku"] != _p["ean"]
-    _e9_funding(c, proc)
+    _e9_funding(c, proc, tag)
     case = _open_case(c, proc["id"])
     r = c.post(f"/api/costing/cases/{case['id']}/recalculate", json={"kind": "REVISED"})
     assert r.status_code == 200, r.text
@@ -283,12 +285,12 @@ def test_five_of_six_invoices_incomplete(admin_client):
     proc = c.post("/api/import-processes", json={"external_reference": f"E9-5-{tag}"}).json()
     for _p, _o, inv, sh in families:
         proc = _link_and_allocate(c, proc, inv, sh)
-    _e9_funding(c, proc)
+    _e9_funding(c, proc, tag)
     case = _open_case(c, proc["id"])
     r = c.post(f"/api/costing/cases/{case['id']}/recalculate", json={"kind": "REVISED"})
     ver = r.json()
     assert ver["partial_coverage"] is True
-    assert "246" in ver["snapshot"]["coverage"]["extra_refs"]
+    assert f"246-{tag}" in ver["snapshot"]["coverage"]["extra_refs"]
     r = c.post(f"/api/costing/versions/{ver['id']}/publish", json={"reason": "não fecha"})
     assert r.status_code == 409
 

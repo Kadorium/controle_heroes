@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
@@ -326,14 +327,21 @@ def create_payment(
                 payment,
                 allow_without=payload.register_without_document,
             )
+            audit_reason = payload.reason_code or "PAYMENT_REGISTER"
+            audit_details = "without_doc" if payload.register_without_document else None
+            if len(audit_reason) > 64:
+                # The UI accepts a human justification. Preserve it in the text
+                # details instead of overflowing Audit.reason_code (varchar64).
+                audit_details = json.dumps({"reason": audit_reason, "without_document": payload.register_without_document}, ensure_ascii=False)
+                audit_reason = "PAYMENT_REGISTER_WITHOUT_DOCUMENT" if payload.register_without_document else "PAYMENT_REGISTER"
             audit_public.record_event(
                 uow.session,
                 actor_id=str(user.id),
                 entity_type="payment",
                 entity_id=str(payment.id),
                 action="register",
-                reason_code=payload.reason_code or "PAYMENT_REGISTER",
-                details="without_doc" if payload.register_without_document else None,
+                reason_code=audit_reason,
+                details=audit_details,
             )
             uow.commit()
             payment = treasury_public.get_payment(uow.session, payment.id)

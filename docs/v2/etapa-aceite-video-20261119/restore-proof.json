@@ -1,0 +1,23 @@
+{
+  "backup": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\backups\\journeys-before-20261119",
+  "restored": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-lab\\journeys-20261119",
+  "all_table_counts_and_hashes_equal": true,
+  "tables": 85,
+  "files_restored_and_verified": true,
+  "source_port": 5458,
+  "isolated_port": 5462,
+  "database": "epic_v2_test",
+  "code_bundle": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\backups\\journeys-before-20261119\\repository.bundle",
+  "dump_sha256": "5a1161ff70ede7c2c12122026f3c5ac47145c5d787d6ae1267182a139db1d047",
+  "ui_restore": {
+    "build": "executive-20261119.1",
+    "runtime": "http://127.0.0.1:8105",
+    "profile": "admin",
+    "path": "Compras > Pedidos > HEROES-EXEC-20261023-v1-A",
+    "observed": "Lista de 13 pedidos recuperada; pedido A e seus vínculos consultáveis pela interface.",
+    "evidence": [
+      "restore-orders.png",
+      "restore-order-detail.png"
+    ]
+  }
+}

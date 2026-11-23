@@ -287,6 +287,19 @@ export function IngestionWorkspacePage({ user }: Props) {
     });
   }
 
+  async function completeReview() {
+    if (!canWrite(user) || !doc) return;
+    const ready = doc.review_status !== "READY";
+    if (ready && !window.confirm("Concluir a revisão desta extração? Isso marca o documento como pronto; não cria pedido, fatura, obrigação nem pagamento.")) return;
+    await withBusy(async () => {
+      await patchDocumentReviewStatus(doc.id, {
+        review_status: ready ? "READY" : "IN_REVIEW",
+        expected_version: doc.version,
+      });
+      await load();
+    });
+  }
+
   async function saveRow(row: RowOut) {
     if (!canWrite(user)) return;
     await withBusy(async () => {
@@ -680,6 +693,11 @@ export function IngestionWorkspacePage({ user }: Props) {
 
       {canWrite(user) ? (
         <div className="ingestion-workspace-toolbar" data-testid="workspace-review-toolbar">
+          {!showOrdineCommit && doc.review_status !== "REJECTED" ? (
+            <Button type="button" disabled={busy} onClick={() => void completeReview()} data-testid="doc-review-complete">
+              {doc.review_status === "READY" ? "Reabrir revisão" : "Concluir revisão"}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="ghost"

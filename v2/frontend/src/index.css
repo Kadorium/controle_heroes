@@ -1127,9 +1127,14 @@ input[type="radio"] {
 
 .cockpit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
   gap: 1rem;
 }
+
+.cockpit-grid > * { min-width: 0; }
+.cockpit-grid .money,
+.cockpit-grid .status-badge { white-space: nowrap; overflow-wrap: normal; }
+.cockpit-grid .operational-table td { overflow-wrap: normal; }
 
 .alert-list {
   border: 1px solid var(--color-border-decorative);

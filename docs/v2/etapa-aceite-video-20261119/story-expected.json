@@ -1,0 +1,94 @@
+{
+  "story": "COMPRA-EPIC-2026-01",
+  "supplier": "DEMONSTRAÇÃO Heroes Export",
+  "unit": "UN",
+  "quantity": 16,
+  "unit_price_eur": "100",
+  "order_total_eur": "1600",
+  "invoices": [
+    {
+      "number": "FAT-EPIC-2026-01",
+      "quantity": 10,
+      "total_eur": "1000",
+      "terms": [
+        {
+          "amount": "400",
+          "due": "2026-11-29"
+        },
+        {
+          "amount": "600",
+          "due": "2026-12-29"
+        }
+      ]
+    },
+    {
+      "number": "FAT-EPIC-2026-02",
+      "quantity": 6,
+      "total_eur": "600",
+      "terms": [
+        {
+          "amount": "600",
+          "due": "2026-12-29"
+        }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "amount_eur": "200",
+      "initial_allocation": "0",
+      "advance": true
+    },
+    {
+      "amount_eur": "300",
+      "allocation_eur": "300"
+    }
+  ],
+  "later_advance_allocation_eur": "100",
+  "expected_open_eur": "1200",
+  "expected_unlinked_eur": "100",
+  "clearance": [
+    10,
+    6
+  ],
+  "receipts": [
+    4,
+    6,
+    6
+  ],
+  "expected_stock": 16,
+  "cost_expected": {
+    "kind": "REVISED",
+    "merchandise_brl": "9630.00",
+    "show_merchandise_brl": "6030.00",
+    "fierce_merchandise_brl": "3600.00",
+    "tax_brl": "1200.00",
+    "freight_brl": "600.00",
+    "dispatch_brl": "200.00",
+    "total_brl": "11630.00",
+    "allocation": "VALUE = merchandise_brl; round each component to cents; residual to final stable line",
+    "show_component_allocations": {
+      "1200": "751.40",
+      "600": "375.70",
+      "200": "125.23"
+    },
+    "show_total_brl": "7282.33",
+    "fierce_total_brl": "4347.67",
+    "scope": "Mixed realized FX on allocated EUR400 and planned FX on EUR1200; not final realized cost"
+  },
+  "products": [
+    {
+      "sku": "DEMO-HR-SHOW26",
+      "quantity": 10,
+      "unit": "UN",
+      "invoice": "FAT-EPIC-2026-01"
+    },
+    {
+      "sku": "DEMO-HR-FIERCE26",
+      "quantity": 6,
+      "unit": "UN",
+      "invoice": "FAT-EPIC-2026-02"
+    }
+  ],
+  "scope_decision": "Two order lines, two invoices, one shipment and one operation. Each commercial line has an unambiguous invoice/transport link. Automatic costing of multiple invoice lines against a single transport line is not claimed."
+}

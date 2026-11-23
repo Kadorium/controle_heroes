@@ -313,7 +313,7 @@ def _build_attention(
                 missing = 0
                 example_href = "/payables?pending=OPEN_BALANCE"
                 for row in open_q.get("items") or []:
-                    if int(row["id"]) not in plans:
+                    if row.get("currency") != "BRL" and int(row["id"]) not in plans:
                         missing += 1
                 if missing:
                     items.append(

@@ -50,10 +50,13 @@ export function RateInput({
       disabled={disabled}
       aria-invalid={invalid || undefined}
       onFocus={(e) => {
+        // Keep the visible string unchanged while the browser selects/pastes.
+        // Replacing it with the wire value here moves the selection and can
+        // append the newly entered amount to the previous one.
+        setDraft(e.currentTarget.value);
         setFocused(true);
-        setDraft(value);
         onFocus?.(e);
-        requestAnimationFrame(() => e.target.select());
+        e.currentTarget.select();
       }}
       onChange={(e) => {
         const next = e.target.value;

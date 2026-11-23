@@ -655,6 +655,12 @@ def commit_numerario(
     n_reference = _get_field_value(doc, "n_reference")
     declared_total = _get_field_value(doc, "declared_total_brl")
     awb_bl = _get_field_value(doc, "awb_bl")
+    invoice_refs = _parse_invoice_refs(doc)
+    funding_notes = f"Criado via ingestão Numerário — IR {document_id}"
+    if invoice_refs:
+        # Preserve the reviewed document references in the existing owner contract.
+        # Costing must not infer invoice numbers from an operation reference/year.
+        funding_notes += "\nFaturas: " + "/".join(invoice_refs)
 
     # Parse dates for funding_request
     from datetime import date as _date
@@ -687,7 +693,7 @@ def commit_numerario(
                 issue_date=issue_date,
                 due_date=due_date,
                 document_id=promoted_doc_id,
-                notes=f"Criado via ingestão Numerário — IR {document_id}",
+                notes=funding_notes,
                 idempotency_key=f"ING-NUM-{document_id}-P{pid}",
             )
             funding_id = fr.id

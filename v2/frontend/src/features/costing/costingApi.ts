@@ -36,6 +36,11 @@ export type CostingQueueRow = {
   updated_at: string | null;
 };
 
+export type CostingQueuePage = { items: CostingQueueRow[]; total: number; limit: number; offset: number };
+export function readCostingQueuePage(params: URLSearchParams) {
+  return api<CostingQueuePage>(`/api/costing/queue-page?${params}`);
+}
+
 export type CostingPair = {
   id: number;
   pair_type: string;

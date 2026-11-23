@@ -360,7 +360,7 @@ export function OrderCockpitPage({ user }: Props) {
               {payments.length === 0 ? (
                 <p className="muted">Nenhum pagamento realizado</p>
               ) : (
-                <OperationalTable density="standard" data-testid="cockpit-payments">
+                <OperationalTable density="standard" scrollLabel="Pagamentos deste pedido" data-testid="cockpit-payments">
                   <thead>
                     <tr>
                       <th className="num">Valor</th>

@@ -1,0 +1,95 @@
+{
+  "result": "PASS",
+  "duration_seconds": 814.821016,
+  "frames_seconds": 814.8,
+  "bytes": 33961904,
+  "sha256": "c9c1e9981d089b03704ba4ce8f121b8a85457c103303bcb4c2e901570376d7da",
+  "format": "H264 / AAC mono / 1600x900 / 25fps",
+  "full_decode_errors": 0,
+  "chapters": 6,
+  "native_ui_recorded_scenes": 51,
+  "visual_review": "51 original scene captures; 16 encoded frames covering opening, confirmations, chapters and ending; original viewport and values legible",
+  "audio": {
+    "input_i": "-16.74",
+    "input_tp": "-1.18",
+    "input_lra": "2.40",
+    "input_thresh": "-26.98",
+    "output_i": "-16.21",
+    "output_tp": "-1.50",
+    "output_lra": "2.50",
+    "output_thresh": "-26.45",
+    "normalization_type": "dynamic",
+    "target_offset": "0.21"
+  },
+  "playback": {
+    "result": "PASS",
+    "duration": 814.821016,
+    "checkpoints": [
+      {
+        "time": 1.258953,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 387,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 158.291701,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 566,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 330.325501,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 763,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 476.498057,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 929,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 635.091803,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 1143,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 716.998474,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 1329,
+        "dropped": 0,
+        "error": null
+      },
+      {
+        "time": 812.231824,
+        "paused": false,
+        "muted": false,
+        "volume": 1,
+        "decoded": 1463,
+        "dropped": 0,
+        "error": null
+      }
+    ],
+    "subjectiveListening": false
+  },
+  "listening": "No claim of subjective human listening; technical audibility and script/image correspondence checked."
+}

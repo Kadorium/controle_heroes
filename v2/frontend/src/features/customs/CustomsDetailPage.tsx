@@ -91,8 +91,8 @@ export function CustomsDetailPage({ user }: Props) {
   const [inventoryTick, setInventoryTick] = useState(0);
 
   const receiving = useProcessReceiving(canInventory && canReadCustoms(user) ? id : null,inventoryTick);
-  const clearance = useRead<ClearanceResidual[]>(canReadCustoms(user) ? `/api/import-processes/${id}/clearance-residuals?refresh=${inventoryTick}` : null);
-  const cost = useRead<CostingQueueRow[]>(canReadCustoms(user) && canNavigate(user,"costing:read") ? "/api/costing/queue" : null);
+  const clearance = useRead<ClearanceResidual[]>(canReadCustoms(user) ? `/api/import-processes/${id}/clearance-residuals?refresh=${inventoryTick}&revision=${process?.version ?? 0}` : null);
+  const cost = useRead<CostingQueueRow[]>(canReadCustoms(user) && canNavigate(user,"costing:read") ? `/api/costing/queue?process_id=${id}` : null);
   const reload = useCallback(async () => {
     setScopeLoaded(false);
     const p = await getImportProcess(id);
@@ -690,6 +690,7 @@ export function CustomsDetailPage({ user }: Props) {
           user={user}
           processId={id}
           inventoryTick={inventoryTick}
+          scopeRevision={process.version}
           onChanged={() => {
             setInventoryTick((t) => t + 1);
             void reload();

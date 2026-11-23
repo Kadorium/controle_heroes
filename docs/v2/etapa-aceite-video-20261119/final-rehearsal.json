@@ -1,0 +1,290 @@
+{
+  "build": "executive-20261119.2",
+  "runtime": "http://127.0.0.1:8105",
+  "profile": "admin",
+  "milestones": [
+    {
+      "label": "Compra sem operações",
+      "url": "http://127.0.0.1:8105/orders",
+      "at": "2026-11-19T09:23:40.305Z"
+    },
+    {
+      "label": "16 unidades e EUR 1.600",
+      "url": "http://127.0.0.1:8105/orders/new",
+      "at": "2026-11-19T09:23:40.872Z"
+    },
+    {
+      "label": "Documento de origem vinculado",
+      "url": "http://127.0.0.1:8105/orders/18/commercial",
+      "at": "2026-11-19T09:23:41.288Z"
+    },
+    {
+      "label": "Fatura 01: itens e vencimentos",
+      "url": "http://127.0.0.1:8105/invoices/22?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:41.909Z"
+    },
+    {
+      "label": "Confirmar emissão 01",
+      "url": "http://127.0.0.1:8105/invoices/22?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:41.976Z"
+    },
+    {
+      "label": "Obrigações geradas 01",
+      "url": "http://127.0.0.1:8105/invoices/22?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:42.063Z"
+    },
+    {
+      "label": "Fatura 02: itens e vencimentos",
+      "url": "http://127.0.0.1:8105/invoices/23?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:42.526Z"
+    },
+    {
+      "label": "Confirmar emissão 02",
+      "url": "http://127.0.0.1:8105/invoices/23?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:42.596Z"
+    },
+    {
+      "label": "Obrigações geradas 02",
+      "url": "http://127.0.0.1:8105/invoices/23?return_to=%2Forders%2F18%2Fcommercial%23order-invoices",
+      "at": "2026-11-19T09:23:42.695Z"
+    },
+    {
+      "label": "Compra integralmente faturada; EUR 1.600 a pagar",
+      "url": "http://127.0.0.1:8105/orders/18",
+      "at": "2026-11-19T09:23:42.977Z"
+    },
+    {
+      "label": "Plano EUR/BRL 6,0000; referência externa desatualizada",
+      "url": "http://127.0.0.1:8105/payables/46/fx",
+      "at": "2026-11-19T09:23:43.114Z"
+    },
+    {
+      "label": "Adiantamento de EUR 200, com câmbio de BRL 1.200",
+      "url": "http://127.0.0.1:8105/orders/18/commercial#order-advances",
+      "at": "2026-11-19T09:23:43.231Z"
+    },
+    {
+      "label": "Crédito registrado; obrigação ainda intacta",
+      "url": "http://127.0.0.1:8105/orders/18/commercial#order-advances",
+      "at": "2026-11-19T09:23:43.395Z"
+    },
+    {
+      "label": "Registrar pagamento de EUR 300",
+      "url": "http://127.0.0.1:8105/payments/new?supplier_id=2&payable_id=46&amount=400.0000&currency=EUR&order_id=18",
+      "at": "2026-11-19T09:23:43.658Z"
+    },
+    {
+      "label": "Pagamento registrado; vinculação ainda não confirmada",
+      "url": "http://127.0.0.1:8105/payments/20?payable_id=46",
+      "at": "2026-11-19T09:23:43.796Z"
+    },
+    {
+      "label": "Vincular EUR 300 à primeira obrigação",
+      "url": "http://127.0.0.1:8105/payments/20?payable_id=46",
+      "at": "2026-11-19T09:23:43.844Z"
+    },
+    {
+      "label": "Câmbio realizado: BRL 1.830",
+      "url": "http://127.0.0.1:8105/payments/20?payable_id=46",
+      "at": "2026-11-19T09:23:44.114Z"
+    },
+    {
+      "label": "Obrigação parcialmente paga; saldo EUR 100",
+      "url": "http://127.0.0.1:8105/payables/46/fx",
+      "at": "2026-11-19T09:23:44.173Z"
+    },
+    {
+      "label": "Complemento com EUR 100 do crédito; obrigação paga",
+      "url": "http://127.0.0.1:8105/payables/46/fx",
+      "at": "2026-11-19T09:23:44.292Z"
+    },
+    {
+      "label": "EUR 1.200 a pagar; EUR 100 por vincular",
+      "url": "http://127.0.0.1:8105/payables?pending=OPEN_BALANCE",
+      "at": "2026-11-19T09:23:44.837Z"
+    },
+    {
+      "label": "Pagamentos e crédito restantes rastreáveis",
+      "url": "http://127.0.0.1:8105/payments",
+      "at": "2026-11-19T09:23:44.889Z"
+    },
+    {
+      "label": "Embarque vinculado aos dois itens da compra",
+      "url": "http://127.0.0.1:8105/shipments/14",
+      "at": "2026-11-19T09:23:54.462Z"
+    },
+    {
+      "label": "Duas caixas, 16 unidades e documento de transporte",
+      "url": "http://127.0.0.1:8105/shipments/14",
+      "at": "2026-11-19T09:23:54.976Z"
+    },
+    {
+      "label": "Carga chegou a Santos; isso ainda não é liberação nem estoque",
+      "url": "http://127.0.0.1:8105/shipments/14",
+      "at": "2026-11-19T09:23:55.405Z"
+    },
+    {
+      "label": "Operação com duas faturas e 16 unidades alocadas; residual atualizado sem recarga",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:23:57.020Z"
+    },
+    {
+      "label": "Operação submetida; nada liberado e nada recebido",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:23:57.937Z"
+    },
+    {
+      "label": "Conferir documento original e extração de numerário",
+      "url": "http://127.0.0.1:8105/ingestion/4",
+      "at": "2026-11-19T09:24:37.459Z"
+    },
+    {
+      "label": "Referências integrais das duas faturas; processo escolhido explicitamente",
+      "url": "http://127.0.0.1:8105/ingestion/4",
+      "at": "2026-11-19T09:24:38.190Z"
+    },
+    {
+      "label": "Numerário registrado na operação; nenhum pagamento executado",
+      "url": "http://127.0.0.1:8105/ingestion/4",
+      "at": "2026-11-19T09:24:38.347Z"
+    },
+    {
+      "label": "Obrigação de BRL 2.000 criada; tributos e despesas preservados",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:24:38.809Z"
+    },
+    {
+      "label": "Liberadas 10 unidades; seis ainda aguardam liberação",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:24:39.300Z"
+    },
+    {
+      "label": "Conferir 4 unidades de SHOW26, operação e destino",
+      "url": "http://127.0.0.1:8105/inventory/receiving?process_id=65&state=all&return_to=%2Fcustoms%2F65&item=10046",
+      "at": "2026-11-19T09:24:39.539Z"
+    },
+    {
+      "label": "Entrada física confirmada: 4 unidades de SHOW26",
+      "url": "http://127.0.0.1:8105/inventory/receiving?process_id=65&state=all&return_to=%2Fcustoms%2F65&item=10046",
+      "at": "2026-11-19T09:24:39.796Z"
+    },
+    {
+      "label": "Operação atualizada: quatro recebidas, seis liberadas pendentes",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:24:39.909Z"
+    },
+    {
+      "label": "Conferir 6 unidades de SHOW26, operação e destino",
+      "url": "http://127.0.0.1:8105/inventory/receiving?process_id=65&state=all&return_to=%2Fcustoms%2F65&item=10046",
+      "at": "2026-11-19T09:24:40.090Z"
+    },
+    {
+      "label": "Entrada física confirmada: 6 unidades de SHOW26",
+      "url": "http://127.0.0.1:8105/inventory/receiving?process_id=65&state=all&return_to=%2Fcustoms%2F65&item=10046",
+      "at": "2026-11-19T09:24:40.326Z"
+    },
+    {
+      "label": "Todo o liberado recebido; operação continua parcial porque faltam seis unidades",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:24:40.553Z"
+    },
+    {
+      "label": "Conferir 6 unidades de FIERCE26, operação e destino",
+      "url": "http://127.0.0.1:8105/inventory/receiving?item=10047",
+      "at": "2026-11-19T09:24:41.420Z"
+    },
+    {
+      "label": "Entrada física confirmada: 6 unidades de FIERCE26",
+      "url": "http://127.0.0.1:8105/inventory/receiving?item=10047",
+      "at": "2026-11-19T09:24:41.567Z"
+    },
+    {
+      "label": "16 unidades recebidas; liberação e entrada integral comprovadas",
+      "url": "http://127.0.0.1:8105/customs/65",
+      "at": "2026-11-19T09:24:41.855Z"
+    },
+    {
+      "label": "Custo revisado de BRL 11.630; câmbio realizado e planejado identificados",
+      "url": "http://127.0.0.1:8105/costing/13",
+      "at": "2026-11-19T09:24:51.021Z"
+    },
+    {
+      "label": "Versão publicada, composição por produto e fontes rastreáveis",
+      "url": "http://127.0.0.1:8105/costing/13",
+      "at": "2026-11-19T09:24:51.098Z"
+    },
+    {
+      "label": "Estoque: dois produtos, 16 unidades e receita potencial separada do custo",
+      "url": "http://127.0.0.1:8105/inventory/positions",
+      "at": "2026-11-19T09:24:51.242Z"
+    },
+    {
+      "label": "SHOW26: dez unidades e custo de BRL 7.282,33",
+      "url": "http://127.0.0.1:8105/inventory/positions?product=3&price_list_id=1",
+      "at": "2026-11-19T09:24:51.390Z"
+    },
+    {
+      "label": "Histórico das entradas: quatro e seis unidades, com origem",
+      "url": "http://127.0.0.1:8105/inventory/movements?product_id=3",
+      "at": "2026-11-19T09:24:51.469Z"
+    },
+    {
+      "label": "Visão executiva: quanto pagar, estoque e próxima atenção",
+      "url": "http://127.0.0.1:8105/dashboard",
+      "at": "2026-11-19T09:24:51.830Z"
+    },
+    {
+      "label": "Indicador cambial abre exatamente as duas obrigações em EUR",
+      "url": "http://127.0.0.1:8105/payables?due_before=2027-02-17&pending=OPEN_BALANCE&currency=EUR",
+      "at": "2026-11-19T09:24:51.953Z"
+    },
+    {
+      "label": "Agenda: BRL 2.000 em novembro e EUR 1.200 em dezembro",
+      "url": "http://127.0.0.1:8105/payables?due_before=2027-01-31&pending=OPEN_BALANCE&due_after=2026-11-01",
+      "at": "2026-11-19T09:24:52.286Z"
+    },
+    {
+      "label": "Atenção: EUR 100 de adiantamento ainda por vincular",
+      "url": "http://127.0.0.1:8105/payments/19",
+      "at": "2026-11-19T09:24:52.539Z"
+    },
+    {
+      "label": "Do painel ao estoque, com filtros preservados",
+      "url": "http://127.0.0.1:8105/inventory/positions?q=&modality_ids=bt&item_kind_ids=&model_ids=&position_ids=DOMESTIC&location_ids=&status=positive&group_by=item_kind&measures=quantity%2Ccost%2Csale%2Cmargin&composition_measure=cost&composition_open=false&secondary_open=false&visible_filters=modality_ids%2Citem_kind_ids&columns=quantity%2Cunit_cost%2Ccost%2Cprice%2Csale%2Cmargin&sort=name&price_list_id=&limit=25&offset=0&product_id=",
+      "at": "2026-11-19T09:24:52.890Z"
+    },
+    {
+      "label": "Encerramento: compra, caixa, mercadorias e custo conectados",
+      "url": "http://127.0.0.1:8105/dashboard",
+      "at": "2026-11-19T09:24:53.134Z"
+    },
+    {
+      "label": "Checkpoint: seis jornadas repetidas na build index-Dv7-Q9UT.js e reconciliadas",
+      "url": "http://127.0.0.1:8105/dashboard",
+      "at": "2026-11-19T09:25:15.378Z"
+    }
+  ],
+  "story": {
+    "orderId": 18,
+    "invoices": [
+      {
+        "id": 22,
+        "number": "FAT-EPIC-2026-01",
+        "quantity": 10
+      },
+      {
+        "id": 23,
+        "number": "FAT-EPIC-2026-02",
+        "quantity": 6
+      }
+    ],
+    "payableId": 46,
+    "paymentId": 20,
+    "shipmentId": 14,
+    "processId": 65,
+    "documentId": 4,
+    "costCaseId": 13
+  },
+  "result": "PASS",
+  "asset": "index-Dv7-Q9UT.js"
+}

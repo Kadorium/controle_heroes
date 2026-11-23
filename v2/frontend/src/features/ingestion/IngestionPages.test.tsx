@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { User } from "../auth/types";
@@ -20,6 +20,7 @@ vi.mock("./ingestionApi", async () => {
     fetchAdapters: vi.fn(),
     classifyOccurrence: vi.fn(),
     fetchCommitPreview: vi.fn(),
+    patchDocumentReviewStatus: vi.fn(),
   };
 });
 
@@ -109,6 +110,28 @@ describe("IngestionWorkspacePage", () => {
         }),
       ),
     );
+  });
+
+  it("conclui a revisão com confirmação, sem registrar transação; leitor não vê a ação", async () => {
+    const doc = { id: 10, occurrence_id: 5, doc_type: "CONTRACT_TEST", review_status: "DRAFT", version: 7,
+      sections: [], fields: [], rows: [], issues: [], adapter_id: "contract_stub_v1" } as unknown as api.DocumentDetail;
+    vi.mocked(api.fetchIngestionDocument).mockResolvedValue(doc);
+    vi.mocked(api.patchDocumentReviewStatus).mockResolvedValue(doc);
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const view = (user: User) => <MemoryRouter initialEntries={["/ingestion/documents/10"]}>
+      <Routes><Route path="/ingestion/documents/:documentId" element={<IngestionWorkspacePage user={user} />} /></Routes>
+    </MemoryRouter>;
+    const rendered = render(view(writer));
+    fireEvent.click(await screen.findByTestId("doc-review-complete"));
+    expect(api.patchDocumentReviewStatus).not.toHaveBeenCalled();
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByTestId("doc-review-complete"));
+    await waitFor(() => expect(api.patchDocumentReviewStatus).toHaveBeenCalledWith(10, {review_status: "READY", expected_version: 7}));
+    rendered.unmount();
+    render(view({...writer, role: "viewer", permissions: ["ingestion:read"]}));
+    await screen.findByTestId("ingestion-workspace-page");
+    expect(screen.queryByTestId("doc-review-complete")).not.toBeInTheDocument();
+    confirm.mockRestore();
   });
 
   it("carrega IR, viewer e issues", async () => {

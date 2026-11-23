@@ -352,11 +352,13 @@ export function CostingWorkspacePage({ user }: Props) {
         </p>
         <ul data-testid="costing-coverage-story">
           <li data-testid="costing-coverage-invoices">
-            Mercadoria: {coverage?.invoice_count ?? invoiceFacts.length} de{" "}
-            {coverage?.mentioned_count || coverage?.mentioned_invoice_refs?.length || invoiceFacts.length} faturas
+            Mercadoria: {coverage?.invoice_count ?? invoiceFacts.length} faturas no processo
             {coverage?.process_invoice_numbers?.length
               ? ` (${(coverage.process_invoice_numbers ?? []).join(", ")})`
               : ""}
+            {coverage?.mentioned_invoice_refs?.length
+              ? ` · Numerário cita: ${coverage.mentioned_invoice_refs.join(", ")}`
+              : " · Referências de fatura do Numerário não informadas nesta fonte"}
           </li>
           <li data-testid="costing-coverage-fob">
             FOB: {coverage?.fob_amount ?? "—"} {coverage?.fob_currency ?? ""} vs mercadoria{" "}

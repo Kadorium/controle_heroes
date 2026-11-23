@@ -114,6 +114,7 @@ export function PaymentDetailPage({ user }: Props) {
   if (!pay) return <LoadingState message="Carregando pagamento…" />;
 
   function openAllocConfirm() {
+    setError(null);
     if (!previewLines.length) {
       setError("Informe ao menos um valor a alocar");
       return;
@@ -239,7 +240,7 @@ export function PaymentDetailPage({ user }: Props) {
                 variant="secondary"
                 data-testid="cancel-payment"
                 busy={busy}
-                onClick={() => setConfirmCancel(true)}
+                onClick={() => { setError(null); setConfirmCancel(true); }}
               >
                 Cancelar pagamento
               </Button>
@@ -412,6 +413,7 @@ export function PaymentDetailPage({ user }: Props) {
               A alocação é atômica. Isto reduz o saldo da obrigação e atualiza o residual do
               pagamento.
             </p>
+            {error ? <Notice tone="danger" data-testid="allocation-confirm-error">{error}</Notice> : null}
             <OperationalTable density="standard" data-testid="alloc-preview-list">
               <tbody>
                 {previewLines.map((l) => (
@@ -435,6 +437,7 @@ export function PaymentDetailPage({ user }: Props) {
         onCancel={() => setConfirmCancel(false)}
         onConfirm={() => void onCancelPayment()}
       >
+        {error ? <Notice tone="danger" data-testid="payment-cancel-error">{error}</Notice> : null}
         <p>
           Só é possível cancelar pagamentos REGISTERED sem alocações. Esta ação não reduz saldo de
           obrigações (não há alocações).

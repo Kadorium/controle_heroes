@@ -1,11 +1,17 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CostingListPage } from "./CostingListPage";
 
+const mocks = vi.hoisted(() => ({ queue: vi.fn() }));
 vi.mock("./costingApi", () => ({
-  listCostingQueue: () =>
-    Promise.resolve([
+  readCostingQueuePage: mocks.queue,
+  ensureCostingCase: vi.fn(),
+}));
+
+beforeEach(() => {
+  mocks.queue.mockReset();
+  mocks.queue.mockResolvedValue({ items: [
       {
         id: null,
         import_process_id: 9,
@@ -18,9 +24,8 @@ vi.mock("./costingApi", () => ({
         partial_coverage: null,
         updated_at: null,
       },
-    ]),
-  ensureCostingCase: vi.fn(),
-}));
+    ], total: 51, limit: 50, offset: 0 });
+});
 
 const admin = {
   id: 1,
@@ -43,6 +48,28 @@ describe("CostingListPage", () => {
     expect(
       screen.getByText(/Não representa tratamento contábil ou fiscal de recuperabilidade/i),
     ).toBeInTheDocument();
-    expect(screen.getByText("IMP-1")).toBeInTheDocument();
+    expect(await screen.findByText("IMP-1")).toBeInTheDocument();
+  });
+
+  it("preserva busca e situação ao paginar e reinicia página ao buscar", async () => {
+    render(<MemoryRouter initialEntries={["/costing?q=OP-01&sit=ready&offset=50"]}>
+      <CostingListPage user={admin} />
+    </MemoryRouter>);
+    await screen.findByText("IMP-1");
+    expect(mocks.queue.mock.calls[0][0].get("offset")).toBe("50");
+    fireEvent.click(screen.getByRole("button", {name:"Anterior"}));
+    await waitFor(() => expect(mocks.queue).toHaveBeenCalledTimes(2));
+    const previous = mocks.queue.mock.calls[1][0];
+    expect(Object.fromEntries(previous)).toEqual({q:"OP-01",situation:"ready",limit:"50",offset:"0"});
+    fireEvent.change(screen.getByLabelText("Código ou referência da operação"), {target:{value:"OP-010"}});
+    fireEvent.click(screen.getByRole("button", {name:"Buscar"}));
+    await waitFor(() => expect(mocks.queue).toHaveBeenCalledTimes(3));
+    expect(Object.fromEntries(mocks.queue.mock.calls[2][0])).toEqual({q:"OP-010",situation:"ready",limit:"50",offset:"0"});
+  });
+
+  it("não consulta dados sem permissão de leitura", () => {
+    render(<MemoryRouter><CostingListPage user={{...admin,role:"estoque",permissions:[]}} /></MemoryRouter>);
+    expect(screen.getByText("É preciso costing:read.")).toBeInTheDocument();
+    expect(mocks.queue).not.toHaveBeenCalled();
   });
 });

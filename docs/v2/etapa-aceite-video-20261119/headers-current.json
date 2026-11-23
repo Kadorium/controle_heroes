@@ -1,0 +1,363 @@
+[
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": false,
+    "position": "top",
+    "width": 1052,
+    "height": 83.75,
+    "top": 99,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": false,
+    "position": "bottom",
+    "width": 1052,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": true,
+    "position": "top",
+    "width": 1180,
+    "height": 83.75,
+    "top": 99,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": true,
+    "position": "bottom",
+    "width": 1180,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": false,
+    "position": "top",
+    "width": 1126,
+    "height": 83.75,
+    "top": 99,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": false,
+    "position": "bottom",
+    "width": 1126,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": true,
+    "position": "top",
+    "width": 1254,
+    "height": 83.75,
+    "top": 99,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "pedido",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": true,
+    "position": "bottom",
+    "width": 1254,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Abrir comercial",
+      "Adiantamentos",
+      "Ver contas do pedido",
+      "Encerrar pedido…"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": false,
+    "position": "top",
+    "width": 1086,
+    "height": 83.75,
+    "top": 50,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos"
+    ],
+    "overflow": [
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ]
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": false,
+    "position": "bottom",
+    "width": 1086,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": true,
+    "position": "top",
+    "width": 1214,
+    "height": 83.75,
+    "top": 50,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": true,
+    "position": "bottom",
+    "width": 1214,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": false,
+    "position": "top",
+    "width": 1160,
+    "height": 83.75,
+    "top": 50,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": false,
+    "position": "bottom",
+    "width": 1160,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": true,
+    "position": "top",
+    "width": 1288,
+    "height": 83.75,
+    "top": 50,
+    "compact": false,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  },
+  {
+    "screen": "operacao",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": true,
+    "position": "bottom",
+    "width": 1288,
+    "height": 58,
+    "top": 0,
+    "compact": true,
+    "pageOverflow": 0,
+    "collision": false,
+    "visible": [
+      "Consultar mercadorias",
+      "Cancelar operação…",
+      "Documentos",
+      "Gestão de recebimentos e estornos",
+      "Atualizar dados"
+    ],
+    "overflow": []
+  }
+]

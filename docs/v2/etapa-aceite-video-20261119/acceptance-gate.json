@@ -1,0 +1,175 @@
+{
+  "result": "PASS",
+  "at": "2026-11-23T15:23:08.245570+00:00",
+  "build_id": "executive-20261119.2",
+  "index_sha256": "85f2a6d358026d542924dcdb0fe2a3a432b82d7df6fcf70679f819580ad5278d",
+  "counts": {
+    "PASS": 28,
+    "FAIL": 0,
+    "PENDENTE": 0,
+    "NAO_APLICAVEL": 0
+  },
+  "journeys": [
+    {
+      "id": "J1 Compra/documentos/faturamento",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    },
+    {
+      "id": "J2 Contas/câmbio/pagamentos",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    },
+    {
+      "id": "J3 Transporte/importação/liberação",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    },
+    {
+      "id": "J4 Recebimento",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    },
+    {
+      "id": "J5 Estoque/custo",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    },
+    {
+      "id": "J6 Visão executiva",
+      "result": "PASS",
+      "evidence": "final-rehearsal.json; reconciliation-lab.json"
+    }
+  ],
+  "variants": [
+    {
+      "id": "V01 Quantidade",
+      "result": "PASS",
+      "observed": "UI rejeitou11 para saldo10;4 e complemento6 persistiram"
+    },
+    {
+      "id": "V02 Valor vinculado",
+      "result": "PASS",
+      "observed": "UI rejeitou1001 para pagamento1000 e601 para obrigação600; preservou valor digitado"
+    },
+    {
+      "id": "V03 Retry",
+      "result": "PASS",
+      "observed": "Resposta perdida depois do commit real de entrada; recarga/retry com mesma chave retornou o mesmo lançamento, sem saldo/histórico duplicados"
+    },
+    {
+      "id": "V04 Documento repetido",
+      "result": "PASS",
+      "observed": "Numerário processado permaneceu identificado na recarga; nenhuma segunda solicitação/obrigação"
+    },
+    {
+      "id": "V05 Reinício",
+      "result": "PASS",
+      "observed": "HTTP e PostgreSQL do laboratório reiniciados;9 hashes transacionais iguais; pedido/estoque reabertos na UI"
+    },
+    {
+      "id": "V06 Estorno",
+      "result": "PASS",
+      "observed": "Entrada6 revertida:saldo10; nova entrada6:saldo16; histórico+6/−6/+6"
+    },
+    {
+      "id": "V07 Cancelamento",
+      "result": "PASS",
+      "observed": "Pagamento não alocado cancelado pela UI; sem modificar obrigação/crédito; erro anterior ausente do novo diálogo"
+    },
+    {
+      "id": "V08 Reabertura",
+      "result": "PASS",
+      "observed": "Pedido encerrado/reaberto com motivo pela UI; saldoEUR1200/crédito100 preservados"
+    },
+    {
+      "id": "V09 Leitura",
+      "result": "PASS",
+      "observed": "Pedido/operação/documento/recebimento sem ações de escrita; item com saldo elegível somente consultável; POST403 verificado adicionalmente por API"
+    },
+    {
+      "id": "V10 Estoque",
+      "result": "PASS",
+      "observed": "Importações abriu diretamente Mercadorias a receber; recebeu6 pelo mesmo fluxo; nenhuma chamada aduaneira para montar fila"
+    },
+    {
+      "id": "V11 Aduana",
+      "result": "PASS",
+      "observed": "Operação/custo consultáveis, sem publicação/recebimento não autorizado; versão11630 visível"
+    },
+    {
+      "id": "V12 Vazio/zero",
+      "result": "PASS",
+      "observed": "Checkpoint vazio confirmado; ARION26 saldo0/preço conhecido/custo ausente; ausência não virou custo0"
+    },
+    {
+      "id": "V13 Custo sem base",
+      "result": "PASS",
+      "observed": "REALIZED incompleto mostrou total indisponível e bloqueio; REVISED11630 válido; zero legítimo protegido também por teste unitário"
+    },
+    {
+      "id": "V14 Semelhança",
+      "result": "PASS",
+      "observed": "OP-EPIC-2026-01 versus OP-EPIC-2026-010; IDs exatos; item da outra operação no URL recusado"
+    },
+    {
+      "id": "V15 Além de50",
+      "result": "PASS",
+      "observed": "51 operações preparadas por API; UI página2/busca/detalhe/retorno alcançou operação antiga"
+    },
+    {
+      "id": "V16 Teto contextual",
+      "result": "PASS",
+      "observed": "Fonte10001:erro explícito e sem ação; fonte10000:consulta completa/2 itens exatos; teto permanece, não é ilimitado"
+    },
+    {
+      "id": "V17 Financeiro largo",
+      "result": "PASS",
+      "observed": "11 colunas acessíveis por rolagem local nas4 composições; página sem overflow; linhas62px"
+    },
+    {
+      "id": "V18 Cabeçalho/teclado",
+      "result": "PASS",
+      "observed": "16 estados topo/fim/duas resoluções/lateral; adicional1000px com foco/menu/redimensionamento, sem ativação acidental"
+    },
+    {
+      "id": "V19 Moedas/unidades",
+      "result": "PASS",
+      "observed": "EUR/BRL separados;2caixas/16UN/8kg/9,6kg/0,08m³ reconciliados; sem somar medidas incompatíveis"
+    },
+    {
+      "id": "V20 Contexto",
+      "result": "PASS",
+      "observed": "Fatura↔pedido, obrigação↔pagamento, operação↔recebimento, painel→fila; recarga/voltar com contexto"
+    },
+    {
+      "id": "V21 Motivo longo",
+      "result": "PASS",
+      "observed": "Pagamento registrado na UI após correção; testeAPI confirma motivo integral/idempotência"
+    },
+    {
+      "id": "V22 Numerário/cobertura",
+      "result": "PASS",
+      "observed": "Original, seções, referências e processo conferidos na UI;2 referências reconhecidas e2000 conciliado sem falsa divergência"
+    }
+  ],
+  "technical": {
+    "backend_tests": 77,
+    "frontend_tests": 31,
+    "typecheck_build": "PASS",
+    "api_drift": "PASS",
+    "restore": "PASS including UI",
+    "launcher": "PASS original EXE and cache URL; served hash matches lab"
+  },
+  "scope": "Acceptance of the six demonstrated journeys and 22 directed variants; not exhaustive certification of all modules. Native inspection was interrupted by user input; launcher opening observed in window inventory and confirmed by startup log, served assets and independent real UI.",
+  "date_note": "Executed19/11; session resumed23/11. Same frozen artifact; J6 dates/drilldowns retested23/11, transaction hashes of live demo unchanged from backup.",
+  "final_test_review": "23/11: dois testes antigos de custo adaptados ao contrato paginado e ao texto de cobertura; duas regress?es novas de filtro/pagina??o/ACL. S? arquivos de teste alterados; build servida permanece congelada.",
+  "index_validation": {
+    "frontend_build": "PASS",
+    "frontend_tests": 31,
+    "backend_pass": 72,
+    "backend_fail": 5,
+    "baseline_same_failures": true,
+    "scope": "Additional clean-index check; does not describe served WIP composition. Historical files/schema/graph defects predate this delivery."
+  }
+}

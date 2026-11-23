@@ -2,7 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { User } from "../auth/types";
 import { canReadCosting, canWriteCosting } from "./costingPermissions";
-import { ensureCostingCase, listCostingQueue, type CostingQueueRow } from "./costingApi";
+import { ensureCostingCase, readCostingQueuePage, type CostingQueueRow, type CostingQueuePage } from "./costingApi";
 import {
   ContextBreadcrumb,
   EmptyState,
@@ -12,6 +12,8 @@ import {
   LoadingState,
   PageHeader,
   StatusBadge,
+  TextInput,
+  Button,
 } from "../../ui";
 
 type Props = { user: User };
@@ -29,17 +31,23 @@ function situation(row: CostingQueueRow): string {
 
 export function CostingListPage({ user }: Props) {
   const [params, setParams] = useSearchParams();
-  const filter = params.get("sit") ?? "";
-  const [rows, setRows] = useState<CostingQueueRow[] | null>(null);
+  const requestedFilter = params.get("sit") ?? "";
+  const filter = ["blocked", "ready", "empty"].includes(requestedFilter) ? requestedFilter : "";
+  const query = params.get("q") ?? "";
+  const requestedOffset = Number(params.get("offset"));
+  const offset = Number.isSafeInteger(requestedOffset) && requestedOffset > 0 ? requestedOffset : 0;
+  const [data, setData] = useState<CostingQueuePage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    listCostingQueue()
+    setData(null);
+    if (!canReadCosting(user)) return;
+    readCostingQueuePage(new URLSearchParams({ q: query, situation: filter, limit: "50", offset: String(offset) }))
       .then((data) => {
-        if (!cancelled) setRows(data);
+        if (!cancelled) setData(data);
       })
       .catch((e: Error) => {
         if (!cancelled) setError(e.message);
@@ -47,21 +55,17 @@ export function CostingListPage({ user }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [query, filter, offset, user]);
 
   if (!canReadCosting(user)) {
     return <ErrorState message="É preciso costing:read." />;
   }
   if (error) return <ErrorState message={error} />;
-  if (!rows) return <LoadingState />;
-
-  const filtered = rows.filter((r) => {
-    if (!filter) return true;
-    if (filter === "blocked") return r.partial_coverage === true;
-    if (filter === "ready") return r.current_status === "PUBLISHED";
-    if (filter === "empty") return !r.id;
-    return true;
-  });
+  function changeFilter(sit: string) {
+    const next = new URLSearchParams(params);
+    if (sit) next.set("sit", sit); else next.delete("sit");
+    next.delete("offset"); setParams(next);
+  }
 
   async function openCase(processId: number) {
     setBusy(processId);
@@ -82,20 +86,25 @@ export function CostingListPage({ user }: Props) {
         subtitle={SUBTITLE}
       />
       <FilterBar>
-        <FilterChip pressed={!filter} onClick={() => setParams({})}>
+        <form style={{display:"flex", gap:"8px", alignItems:"center"}} onSubmit={event => { event.preventDefault(); const next = new URLSearchParams(params); const value = String(new FormData(event.currentTarget).get("q") || "").trim(); if (value) next.set("q", value); else next.delete("q"); next.delete("offset"); setParams(next); }}>
+          <label className="sr-only" htmlFor="costing-search">Código ou referência da operação</label>
+          <TextInput id="costing-search" name="q" key={query} defaultValue={query} placeholder="Código ou referência" maxLength={200} />
+          <Button variant="secondary" type="submit">Buscar</Button>
+        </form>
+        <FilterChip pressed={!filter} onClick={() => changeFilter("")}>
           Todos
         </FilterChip>
-        <FilterChip pressed={filter === "blocked"} onClick={() => setParams({ sit: "blocked" })}>
+        <FilterChip pressed={filter === "blocked"} onClick={() => changeFilter("blocked")}>
           Cobertura incompleta
         </FilterChip>
-        <FilterChip pressed={filter === "ready"} onClick={() => setParams({ sit: "ready" })}>
+        <FilterChip pressed={filter === "ready"} onClick={() => changeFilter("ready")}>
           Publicado
         </FilterChip>
       </FilterBar>
-      {filtered.length === 0 ? (
+      {!data ? <LoadingState /> : data.items.length === 0 ? (
         <EmptyState
-          title="Nenhum processo nesta fila"
-          message="Abra um processo aduaneiro para iniciar o custo desembarcado."
+          title="Nenhuma operação encontrada"
+          message={query || filter ? "Revise a busca e a situação selecionadas." : "Abra uma operação para iniciar o custo desembarcado."}
           action={
             <Link to="/customs" className="btn">
               Ir para processos
@@ -116,7 +125,7 @@ export function CostingListPage({ user }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => (
+              {data.items.map((row) => (
                 <tr key={row.import_process_id}>
                   <td>{row.process_code}</td>
                   <td>{row.process_reference || "—"}</td>
@@ -145,6 +154,11 @@ export function CostingListPage({ user }: Props) {
           </table>
         </div>
       )}
+      {data && <nav aria-label="Páginas de custo" style={{display:"flex", gap:"12px", alignItems:"center", flexWrap:"wrap", marginTop:"12px"}}>
+        <span>{data.total === 0 ? "0 operações" : `${offset + 1}–${offset + data.items.length} de ${data.total} operações`}</span>
+        <Button variant="secondary" disabled={offset === 0} onClick={() => { const next = new URLSearchParams(params); next.set("offset", String(Math.max(0, offset - 50))); setParams(next); }}>Anterior</Button>
+        <Button variant="secondary" disabled={offset + data.items.length >= data.total} onClick={() => { const next = new URLSearchParams(params); next.set("offset", String(offset + 50)); setParams(next); }}>Próxima</Button>
+      </nav>}
     </div>
   );
 }

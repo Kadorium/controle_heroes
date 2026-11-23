@@ -24,7 +24,7 @@ import {
   TextInput,
 } from "../../ui";
 
-type Props = { user: User; processId: number; inventoryTick?: number; onChanged?: () => void };
+type Props = { user: User; processId: number; inventoryTick?: number; scopeRevision?: number; onChanged?: () => void };
 
 function residualKey(r: ClearanceResidual): string {
   return r.source_kind === "shipment_item"
@@ -36,6 +36,7 @@ export function NationalizationPanel({
   user,
   processId,
   inventoryTick = 0,
+  scopeRevision = 0,
   onChanged,
 }: Props) {
   const writable = canWriteCustoms(user);
@@ -52,8 +53,8 @@ export function NationalizationPanel({
   const reload = useCallback(async () => {
     const [nats, res, recRes] = await Promise.all([
       listNationalizations(processId),
-      listClearanceResiduals(processId).catch(() => [] as ClearanceResidual[]),
-      user.role === "admin" || user.permissions.includes("inventory:read") ? listReceiptResiduals(processId).catch(() => []) : Promise.resolve([]),
+      listClearanceResiduals(processId),
+      user.role === "admin" || user.permissions.includes("inventory:read") ? listReceiptResiduals(processId) : Promise.resolve([]),
     ]);
     setRows(nats);
     setResiduals(res);
@@ -66,7 +67,7 @@ export function NationalizationPanel({
       }
       return next;
     });
-  }, [processId, inventoryTick, user]);
+  }, [processId, inventoryTick, scopeRevision, user]);
 
   useEffect(() => {
     let cancelled = false;

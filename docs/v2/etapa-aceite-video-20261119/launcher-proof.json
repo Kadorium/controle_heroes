@@ -1,0 +1,11 @@
+{
+  "exe": "Iniciar EPIC.exe",
+  "url": "http://127.0.0.1:8082/dashboard",
+  "nativeWindowObserved": "Epic Controle V2 - Google Chrome, id 1051018 após iniciar EXE; usuário mudou de guia durante inspeção, sem interferir",
+  "badge": "API 127.0.0.1:8082 · DB epic_v2_test · alembic 034 · build executive-20261119.2 · env test",
+  "scripts": [
+    "/assets/index-Dv7-Q9UT.js"
+  ],
+  "indexSha256": "85f2a6d358026d542924dcdb0fe2a3a432b82d7df6fcf70679f819580ad5278d",
+  "at": "2026-11-23T15:20:35.840Z"
+}

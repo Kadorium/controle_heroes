@@ -5,9 +5,9 @@
 
 | Campo | Valor |
 |---|---|
-| Atualizado em | 2026-11-19 |
-| Última entrega | Contas a pagar alinhadas e ações dos detalhes distribuídas pelo espaço disponível |
-| Próxima entrega | Conferir o acabamento no uso; avaliar separadamente as regras econômicas e a atualização dos vídeos |
+| Atualizado em | 2026-11-23 |
+| Última entrega | Jornadas da compra ao estoque conferidas; demonstração renovada e vídeo narrado concluído |
+| Próxima entrega | Usar o vídeo e conferir a nova compra; avaliar separadamente as regras econômicas para uso operacional |
 | Detalhe técnico | Parte B, abaixo |
 
 ## A.1 Quanto está pronto
@@ -107,10 +107,9 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | Painel | 1/1 | 100 | painel de leitura; três visões (executiva, comercial, controle) | — |
 
 ## B.1 Estado atual
-
 | Item | Valor |
 |---|---|
-| Versão | **0.5.166** — acabamento financeiro e ações responsivas **DONE**. Release `executive-20261119.1`, 8082/5458/schema 034. Teto fixo substituído por medidas reais; AP com 11 colunas acessíveis, linhas de 62 px, seis registros completos em 1366×768. Gates: build/typecheck, 33 testes; índice sem WIP: build + 32 testes; matriz UI de 4 composições AP e 24 cabeçalhos, 28 observações de leitura, 128 larguras+9 limiares, referências e fluxos. Matriz repetida na release, abertura nativa pelo executável. 82 tabelas de negócio e 258 arquivos backend preservados; autenticação atualiza last_login. Relatório único na raiz |
+| Versão | **0.5.167** — aceite das seis jornadas e vídeo narrado **DONE**. Release `executive-20261119.2`, 8082/5458/schema 034. Rodada atual: 6 jornadas +22 variantes PASS, zero FAIL/PENDENTE; 77 testes backend,31 frontend, build/typecheck/drift. Backup restaurado em cluster separado e consultado pela UI. Reset autorizado de1138 registros/66 tabelas e66 arquivos; cadastros/ACL/config/auditoria preservados. Nova história UI reconciliada:16UN, custo revisado11630BRL, saldos1200EUR/2000BRL, crédito100EUR. Vídeo pt-BR13min34,821s; relatório único na raiz |
 | Fundação · Order-to-Pay (Inc-1…6) · Horizon A | **DONE** — [`etapa-inc-6/`](docs/v2/etapa-inc-6/) · [`etapa-9/`](docs/v2/etapa-9/) · [`etapa-9v/`](docs/v2/etapa-9v/) |
 | Logística (J#4) + Document Readiness | **DONE** — [`etapa-j4/`](docs/v2/etapa-j4/) · [`etapa-doc-readiness/`](docs/v2/etapa-doc-readiness/) |
 | Aduana + Inventory (J#5) | **DONE**; financeiro Customs **DONE** (BRL) — [`etapa-j5/`](docs/v2/etapa-j5/) · [`etapa-customs-funding/`](docs/v2/etapa-customs-funding/) |
@@ -125,19 +124,19 @@ Regra de verdade: estado canônico vive só na Parte B; A nunca afirma além de 
 | J#7 | **DONE** + **J7-EXEC-UX PASS** + **PAINEL-UX2 PASS** — [`PAINEL_UX2_ADVISOR_HANDOFF.md`](docs/v2/etapa-painel-ux2/PAINEL_UX2_ADVISOR_HANDOFF.md) |
 | J#8 aceite UI | **DONE** — V1 arquivada — [`J8_CLOSE_ADVISOR_HANDOFF.md`](docs/v2/etapa-j8/J8_CLOSE_ADVISOR_HANDOFF.md) |
 | J#5-REC | **DONE** — compromisso → vincular (SKU próprio) → estoque — [`J5_REC_ADVISOR_HANDOFF.md`](docs/v2/etapa-j5-rec/J5_REC_ADVISOR_HANDOFF.md) |
-| Alembic head | código/release **034**; demo ativa `epic_v2_test`/5458 = **034**; ensaio desta entrega isolado em 5461/034. Diretórios e processos conferidos; bancos anteriores e operacionais preservados |
+| Alembic head | código/release **034**; demo ativa `epic_v2_test`/5458 = **034**; ensaio desta entrega em cluster próprio5462/8105, pasta `audit-lab/journeys-20261119`. Testes automatizados em banco separado `epic_journey_unit` desse cluster. Diretórios/processos/storage conferidos; outros ambientes preservados |
 
-**Próxima ação:** usar o acabamento financeiro e revisar `EPIC/RELATORIO_EPIC_PARA_GPT.md`, com cinco estados curtos para Ricardo observar, sem gate obrigatório de aprovação. Recebimento acima de 10.000 itens e custo além da fila atual exigem avaliação específica de contrato. Política econômica, conferência física, I-01/offsite e vídeos seguem fora deste escopo.
+**Próxima ação:** usar `EPIC/EPIC_VISAO_EXECUTIVA.mp4` e o relatório único, conferir os cinco estados sugeridos na nova compra, sem nova aprovação obrigatória. Custo além de50 resolvido por consulta paginada/exata; recebimento contextual mantém teto explícito10000, verificado em10000/10001, sem contrato de snapshot. Política econômica operacional, conferência física e I-01/offsite seguem separados. Aceite atual é das jornadas/variantes executadas, não certificação exaustiva dos módulos.
 
-Manutenção pré-demo CEO: escopo autorizado executado em `epic_v2_test`; prontidão do roteiro separada da auditoria integral **PARTIAL**. Fontes, runtime, manifesto, gates e pendências: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md) e [`PRE_DEMO_CEO_PLAN.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_PLAN.md). Livro-razão e denominadores inalterados; sem promoção para operação.
+Histórico pré-demo CEO: escopo anterior executado em `epic_v2_test`; auditoria integral **PARTIAL**, separada do aceite atual. Fontes: [`PRE_DEMO_CEO_AUDIT.md`](docs/v2/etapa-pre-demo-ceo/PRE_DEMO_CEO_AUDIT.md). Livro-razão e denominadores inalterados; o aceite atual não reutiliza percentuais/testes históricos como prova.
 
 Refinamento visual autorizado: composição só na Executiva de sistema; visões pessoais e demais presets preservados; AP/Custo com variantes locais; presenter nativo e tour sem gravações. Preservação incremental inclui dist anterior completo. Implementação, gates e recuperação: [`UI_EXECUTIVA_REFINEMENT_PLAN.md §12`](docs/v2/etapa-pre-demo-ceo/ui-refinement/UI_EXECUTIVA_REFINEMENT_PLAN.md#12-execução-autorizada--22102026). Não é modernização integral nem encerramento de fase.
 
 Histórico de22/10: aprovação das capturas da170116 limitada ao roteiro ensaiado. Autorização posterior de23/10 permitiu integrar e promover localmente após G1, preservando a release anterior. Maximizar/restaurar/redimensionar e legibilidade humana continuam pendentes do apresentador; viewport nativo validado pelo runner não substitui essa conferência.
 
-Entrega vigente: `EPIC/RELATORIO_EPIC_PARA_GPT.md` (fora de Controle), mestre §13.7 e Blueprint UI/UX 3.16. Evidência interna: `docs/v2/etapa-acabamento-financeiro-20261119/`. Estado anterior .2 e resultados de domínio são históricos. O executável abre .1 de 19/11, com hash novo na URL e mesma correção de cache. Banco 5458 e backend preservados; somente frontend promovido. Escritas FIN19 restritas ao clone 5461/8104. Nenhum dado de ensaio promovido; hashes de users variam por login e não entram na alegação de imutabilidade de negócio.
+Entrega vigente: relatório único fora de Controle; mestre §13.8, UI/UX3.17 e Sistema0.2.41. Evidência `docs/v2/etapa-aceite-video-20261119/`. Executável abre .2 com indexSHA `85f2a6d358026d54…` e cache corrigido. Doze arquivos backend corrigidos e frontend promovidos; schema/config preservados. Após gate, reset da demo e gravação real, sem copiar ensaios. Backup:85 tabelas/368 arquivos verificados. Release contém WIP preservado; índice seletivo separado passou build/frontend31, backend72/77, com5 falhas preexistentes reproduzidas no HEAD anterior (fixtures/schema/grafo). Composição servida passou77. Consolidar esse WIP para reprodução integral pelo Git é etapa separada. Execução19/11, retomada/gravação23/11; fonte transacional intacta durante intervalo.
 
-Revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) consolida execução atual, matriz, imagens e GitHub. 31 SKUs Heroes, 12 compras/faturas e saldo SHOW26 de42UN/R$54.900; preços e margem potencial na política fictícia autorizada. Nova cópia/runtime/cluster/storage; release anterior recuperável. Sem publicação em produção nem aprovação contábil/tributária.
+Histórico da revisão de experiência: P01–P08 rejeitados; r2 aprovada. [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) conserva aquela execução. Massa antiga substituída pelo reset autorizado desta rodada; recuperável no backup. Política fictícia `DEMO_ORIGIN_FIFO_V1` permanece, sem publicação em produção nem aprovação contábil/tributária.
 
 Manutenção: fase DONE → status+evidência aqui, detalhe em `docs/v2/etapa-*` (não no snapshot). Checkpoint de fase nova nasce em `etapa-*` antes de executar. Teto do arquivo vivo ≤300 linhas.
 
@@ -245,6 +244,7 @@ Checkpoints I5-0…I5-6, J3-P0…I7: já em `etapa-j5/` e `etapa-j3/`.
 
 | Rev | Resumo | Evidência |
 |---|---|---|
+| **0.5.167** | 6 jornadas/22 variantes UI; custo paginado, ausência distinta de zero, referências documentais e edição monetária corrigidos; backup/restauração, reset e história nova. Vídeo narrado13min34,821s. Barras inalteradas | Relatório único na raiz; `etapa-aceite-video-20261119/` |
 | **0.5.156 / 0.5.155** | Recebimento estoque 034 sobre laptop/CSV 033; replay, saldo e concorrência testados, sem ampliar ACL. Demonstração anterior recuperável. Físico/global/I-01/arquitetura pendentes; barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.153** | Planning de estoque executivo e texto mínimo; inspeção da .3/catálogo real, proposta incorporada, parcela E4-S e recomendações; demo/dados/código preservados, sem avanço de barras | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |
 | **0.5.152** | Gate P→G1 integrado, leituras E0/posição/proveniência, shell r2, testes novos, demo local promovida com recuperação; físico pendente, barras inalteradas | [`INTEGRACAO_EXPERIENCIA_EPIC.md`](docs/v2/etapa-revisao-experiencia/INTEGRACAO_EXPERIENCIA_EPIC.md) |

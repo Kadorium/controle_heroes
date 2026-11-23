@@ -3713,6 +3713,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/costing/queue-page": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Queue Page */
+        get: operations["get_queue_page_api_costing_queue_page_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/costing/cases": {
         parameters: {
             query?: never;
@@ -17811,7 +17828,11 @@ export interface operations {
     };
     get_queue_api_costing_queue_get: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                offset?: number;
+                process_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -17825,6 +17846,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_queue_page_api_costing_queue_page_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                situation?: "" | "blocked" | "ready" | "empty";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

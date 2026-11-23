@@ -18,6 +18,7 @@ from app.costing.queries import (
     get_version,
     operational_summary,
     queue,
+    queue_page,
     version_to_dict,
     publish_blockers,
 )
@@ -37,5 +38,6 @@ __all__ = [
     "operational_summary",
     "publish_blockers",
     "queue",
+    "queue_page",
     "compare_versions",
 ]

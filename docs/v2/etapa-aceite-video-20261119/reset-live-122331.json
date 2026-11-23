@@ -1,0 +1,437 @@
+{
+  "target": "live",
+  "at": "2026-11-23T15:23:29.840271+00:00",
+  "port": 5458,
+  "data_directory": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-runtime\\executive-20261117\\postgres",
+  "removed": {
+    "cost_allocations": 247,
+    "cost_components": 46,
+    "costing_cases": 9,
+    "costing_expenses": 10,
+    "costing_lines": 57,
+    "costing_versions": 11,
+    "customs_divergences": 0,
+    "customs_doganale_lines": 0,
+    "customs_doganale_versions": 0,
+    "customs_doganales": 0,
+    "customs_expense_lines": 7,
+    "customs_funding_requests": 8,
+    "customs_provenances": 0,
+    "customs_tax_lines": 8,
+    "customs_value_bases": 8,
+    "document_links": 60,
+    "documents": 60,
+    "funding_payable_links": 5,
+    "fx_allocation_valuations": 0,
+    "fx_execution_allocations": 0,
+    "fx_executions": 0,
+    "fx_plan_rates": 23,
+    "goods_receipt_lines": 42,
+    "goods_receipts": 14,
+    "import_process_invoice_items": 41,
+    "import_process_invoices": 9,
+    "import_process_shipment_items": 36,
+    "import_process_shipments": 8,
+    "import_processes": 10,
+    "ingestion_batches": 0,
+    "ingestion_blobs": 0,
+    "ingestion_commit_attempts": 0,
+    "ingestion_commit_operations": 0,
+    "ingestion_document_set_members": 0,
+    "ingestion_document_sets": 0,
+    "ingestion_documents": 0,
+    "ingestion_fields": 0,
+    "ingestion_issues": 0,
+    "ingestion_metric_events": 0,
+    "ingestion_occurrences": 0,
+    "ingestion_review_changes": 0,
+    "ingestion_rows": 0,
+    "ingestion_sections": 0,
+    "inventory_movements": 45,
+    "inventory_receipt_operations": 4,
+    "invoice_items": 45,
+    "invoices": 13,
+    "nationalization_items": 42,
+    "nationalizations": 14,
+    "order_items": 45,
+    "order_payment_schedule_lines": 0,
+    "orders": 13,
+    "payables": 31,
+    "payment_allocation_batches": 10,
+    "payment_allocations": 10,
+    "payment_terms": 26,
+    "payments": 9,
+    "reconciliation_cases": 11,
+    "reconciliation_pairs": 11,
+    "shipment_document_summaries": 0,
+    "shipment_items": 38,
+    "shipment_package_contents": 2,
+    "shipment_packages": 2,
+    "shipment_references": 0,
+    "shipments": 10,
+    "stock_balances": 38
+  },
+  "reviewed_orphan_files": [
+    "storage/attachments/06/06014de629ce420d9eeb9838b2174f5d_4e0156ca",
+    "storage/attachments/47/479b5917cb8e45ec935be25b046babcd_0bbeaf35",
+    "storage/attachments/59/59d9cc7315e04e83bcac88fd520d72dc_786f6e4a",
+    "storage/attachments/b2/b28f4e35b143442f9e689dcb98cb4ec0_67e66dd9",
+    "storage/attachments/c4/c4ea15631e064bdea0596ecf22c2fbdc_a978f097",
+    "storage/attachments/ed/eddcf9d8298349e38a956af2a4c59da4_aa398785"
+  ],
+  "delete_order": [
+    "cost_allocations",
+    "costing_expenses",
+    "customs_divergences",
+    "customs_expense_lines",
+    "customs_provenances",
+    "customs_tax_lines",
+    "customs_value_bases",
+    "document_links",
+    "funding_payable_links",
+    "fx_allocation_valuations",
+    "fx_execution_allocations",
+    "import_process_invoice_items",
+    "import_process_invoices",
+    "import_process_shipment_items",
+    "import_process_shipments",
+    "ingestion_commit_operations",
+    "ingestion_document_set_members",
+    "ingestion_fields",
+    "ingestion_issues",
+    "ingestion_metric_events",
+    "ingestion_review_changes",
+    "ingestion_rows",
+    "inventory_movements",
+    "inventory_receipt_operations",
+    "order_payment_schedule_lines",
+    "reconciliation_pairs",
+    "shipment_document_summaries",
+    "shipment_package_contents",
+    "shipment_references",
+    "stock_balances",
+    "cost_components",
+    "costing_lines",
+    "customs_funding_requests",
+    "fx_executions",
+    "fx_plan_rates",
+    "goods_receipt_lines",
+    "ingestion_commit_attempts",
+    "ingestion_sections",
+    "payment_allocations",
+    "reconciliation_cases",
+    "shipment_packages",
+    "costing_versions",
+    "goods_receipts",
+    "ingestion_documents",
+    "nationalization_items",
+    "payables",
+    "payment_allocation_batches",
+    "costing_cases",
+    "customs_doganale_lines",
+    "ingestion_document_sets",
+    "ingestion_occurrences",
+    "nationalizations",
+    "payment_terms",
+    "payments",
+    "shipment_items",
+    "customs_doganale_versions",
+    "ingestion_batches",
+    "ingestion_blobs",
+    "invoice_items",
+    "shipments",
+    "customs_doganales",
+    "documents",
+    "invoices",
+    "order_items",
+    "import_processes",
+    "orders"
+  ],
+  "preserved_counts": {
+    "alembic_version": 1,
+    "audit_log": 1321,
+    "catalog_import_batches": 0,
+    "customs_payees": 2,
+    "fx_market_quotes": 92,
+    "logistics_providers": 2,
+    "product_categories": 3,
+    "product_types": 8,
+    "products": 42,
+    "reporting_dashboard_views": 0,
+    "reporting_stock_views": 9,
+    "roles": 4,
+    "sales_price_entries": 40,
+    "sales_price_lists": 3,
+    "sales_price_operations": 4,
+    "stock_locations": 3,
+    "suppliers": 4,
+    "user_sessions": 495,
+    "users": 4
+  },
+  "removed_files": [
+    {
+      "path": "storage\\attachments\\06\\06014de629ce420d9eeb9838b2174f5d_4e0156ca",
+      "sha256": "b4dff8d2158b2c34fb268a1a5efb46e8302e62c177ff7555a0256b6247fe169b"
+    },
+    {
+      "path": "storage\\attachments\\09\\09f12b26a6e84d3889f6fa46bc5d30f3_64c3e4f1",
+      "sha256": "ed6073ef558e40dbb77e3c0db3e9568730014ed8459c053630f125f3a4680723"
+    },
+    {
+      "path": "storage\\attachments\\0b\\0b4fafd806c1461fa40f4b1c6622e119_d2a449d4",
+      "sha256": "ed6073ef558e40dbb77e3c0db3e9568730014ed8459c053630f125f3a4680723"
+    },
+    {
+      "path": "storage\\attachments\\0c\\0c9c909b672b401785371a21e96137a6_163697c7",
+      "sha256": "934484da14627f3348da286248a1c8ef7fafe262f2ce8a90abc61077532b3ed2"
+    },
+    {
+      "path": "storage\\attachments\\0e\\0ec52ea83235460ba8216baa9a99e424_69dee01a",
+      "sha256": "105c22988e5baf8560dced3002140bc3135f944da6f97e64c5299953032aa898"
+    },
+    {
+      "path": "storage\\attachments\\12\\12b61c911bd940f088ba22f00438d5aa_d10e0645",
+      "sha256": "ccf8a1e80f8642d04d027422e796a730ded46dc479f912b8f4b3a71c7925822d"
+    },
+    {
+      "path": "storage\\attachments\\23\\23e4c1f6e25d44fe818dbdc0d4152284_63aa323f",
+      "sha256": "9f28842319ef1c0fdd193b4baefee3e341f3ef181134c96064e9baaead8664b6"
+    },
+    {
+      "path": "storage\\attachments\\24\\24cb19a5cb254fcda1d77f4e893f4f81_98c629ec",
+      "sha256": "deffdddf3d2688299a570a078d0a09909267ca46819794e0bfb554378faf52f6"
+    },
+    {
+      "path": "storage\\attachments\\2b\\2b004c63a9f04b6bacc321d781e8f601_28908cab",
+      "sha256": "cef0eace8861435de3204e669adfe09ab706e8683e773833c5d948e33abd615e"
+    },
+    {
+      "path": "storage\\attachments\\2c\\2c00e956de9a4398b8bca6a0974666b6_ebfe5258",
+      "sha256": "5eb52a1d6b0841d81286488c8c79a813b39f5493b8e185cfbfda7cf1c911c3e1"
+    },
+    {
+      "path": "storage\\attachments\\32\\323c8d8dfe4c420a9e77bb4c63e4c56d_89927028",
+      "sha256": "8e5e260e3d7db9e0f4bc179dcdc4796b2c178347ede95e356b7f0dd93e06ba01"
+    },
+    {
+      "path": "storage\\attachments\\3b\\3bdd3075a58644feb208beb9c2f76648_ae63638f",
+      "sha256": "8ee58ca42753772c6d6f83a1e57402e1d2d37ceefc517eae31e644274f2d9fd7"
+    },
+    {
+      "path": "storage\\attachments\\42\\42c70488744f44c8868b28c7eac79388_fa6ec48e",
+      "sha256": "934484da14627f3348da286248a1c8ef7fafe262f2ce8a90abc61077532b3ed2"
+    },
+    {
+      "path": "storage\\attachments\\43\\430fa88eacfc4395b5b6234c29613f0d_0a039560",
+      "sha256": "42f6bc91d1e93c90d0245895d17f9ea497321d128c79c33be653a9ae6bc846a4"
+    },
+    {
+      "path": "storage\\attachments\\44\\44d07b9722724afa9aea6ae007e6f0c6_ce8f53e9",
+      "sha256": "9ac98f2ad381ef2cac5b07257ad062a53687a6d3fc0e1686c0d99fc7a81160e8"
+    },
+    {
+      "path": "storage\\attachments\\47\\479b5917cb8e45ec935be25b046babcd_0bbeaf35",
+      "sha256": "98fed1084361dfa63bae1317708672f5bec5cfbeb22569fd173ea3bfaa51e21f"
+    },
+    {
+      "path": "storage\\attachments\\49\\49f80a5d2b0543f29d23d1d85c7ca23f_97d2d387",
+      "sha256": "3f96114669866e08081a01ab4f3efef0d1ef38ee330f1d5e4b7bef3e834ecdb6"
+    },
+    {
+      "path": "storage\\attachments\\4c\\4c2a1b7a8fdd4b4b83586420f6c2d111_d476ffef",
+      "sha256": "c2b2d0a9b138e849b586ceaf961dec6f45af459308f9e1930743132a68dc8e08"
+    },
+    {
+      "path": "storage\\attachments\\53\\53c5d97a644d474686cc75ef94bd0eee_9aea777c",
+      "sha256": "e0eacc63c1215ac00cbf1f54877b9d3fdb19e93a6498c0bfdb2c5c08c3f38dcb"
+    },
+    {
+      "path": "storage\\attachments\\54\\54e11f99de4e4fd38e291d5b4b30a7b5_abd67b7b",
+      "sha256": "db842bef3b469ffa1303678a696934caa1cbba59783e691aa19aaacdfb75031a"
+    },
+    {
+      "path": "storage\\attachments\\55\\55d04425473f4bd8bf63d0c84ac41a13_5dd62654",
+      "sha256": "b6f9bf86afc2f5c405d9afe526062b31096fa98624dc49d8ddfa133c29860d26"
+    },
+    {
+      "path": "storage\\attachments\\59\\59d9cc7315e04e83bcac88fd520d72dc_786f6e4a",
+      "sha256": "b4dff8d2158b2c34fb268a1a5efb46e8302e62c177ff7555a0256b6247fe169b"
+    },
+    {
+      "path": "storage\\attachments\\5d\\5d27e57d46484d6c86836170f901ccac_6768cc37",
+      "sha256": "c2b2d0a9b138e849b586ceaf961dec6f45af459308f9e1930743132a68dc8e08"
+    },
+    {
+      "path": "storage\\attachments\\5d\\5d9d4274fcb7482d92d10e361f6e1779_a6154bb3",
+      "sha256": "8ee58ca42753772c6d6f83a1e57402e1d2d37ceefc517eae31e644274f2d9fd7"
+    },
+    {
+      "path": "storage\\attachments\\5d\\5db2ff6e6a0d4b17bd444d7270e61426_245969e5",
+      "sha256": "f4b4209b091485bdad2258a394a0e661f21cd20d6139515d8db6239aa16b7e4c"
+    },
+    {
+      "path": "storage\\attachments\\61\\617646416bea45ff9af6b1f075a54426_ab74fa61",
+      "sha256": "58c5d8f537997c45c3a7fc2647a7c02409000281b52c333bb24e4ccbe85216a9"
+    },
+    {
+      "path": "storage\\attachments\\61\\61e0fa2c0455420cae1b0f79fe69d963_bc593432",
+      "sha256": "ccf29de9a1284369cd57aa3665773d72ad265cc92338ebe847604a71f6085159"
+    },
+    {
+      "path": "storage\\attachments\\62\\6219208ac46341aca5d5b7cd56d65dc1_18db0567",
+      "sha256": "43e49430d4bbfbcb7345f51647b994ae4adb58fbe75a583c4abd78eae1c21e72"
+    },
+    {
+      "path": "storage\\attachments\\63\\631685cabdb644958c8f579444a00765_3c65c731",
+      "sha256": "2c512ebfc2632827c567552193d0afe5d8dcb8cf6eeeddc28c43f767ce60027f"
+    },
+    {
+      "path": "storage\\attachments\\65\\65063db885be4af3926b0bb1c8aafa65_35bcda37",
+      "sha256": "f5be2aea6d0ad77f6aa8b51dc5cd354af7edf773b7ad94b9f688f6994e8a74a8"
+    },
+    {
+      "path": "storage\\attachments\\68\\6816a4198fb84f58ae1788206009f92f_71a959d0",
+      "sha256": "664562677e892c2a7bfc99aa55baa3ac77319d89b704bc25bcc48cbcb1f371ad"
+    },
+    {
+      "path": "storage\\attachments\\6d\\6d46e87d746344f98c15e7f427f1c849_f45f0a7b",
+      "sha256": "58c5d8f537997c45c3a7fc2647a7c02409000281b52c333bb24e4ccbe85216a9"
+    },
+    {
+      "path": "storage\\attachments\\72\\7214b1f5b6b54802bf1674e8962dcbd4_c4f02219",
+      "sha256": "9ac98f2ad381ef2cac5b07257ad062a53687a6d3fc0e1686c0d99fc7a81160e8"
+    },
+    {
+      "path": "storage\\attachments\\74\\748022e5dacc4535a122cbb640c46def_61c26948",
+      "sha256": "9f28842319ef1c0fdd193b4baefee3e341f3ef181134c96064e9baaead8664b6"
+    },
+    {
+      "path": "storage\\attachments\\75\\759921ff52e1441c895d3e667ff61248_da77d74a",
+      "sha256": "4f1169671fd1f72cbf821ac39537b18df39207f20ba500320072725e33cdf94a"
+    },
+    {
+      "path": "storage\\attachments\\7a\\7a89403fcd0145f98f1909c28a539c1c_90c29ff2",
+      "sha256": "8e5e260e3d7db9e0f4bc179dcdc4796b2c178347ede95e356b7f0dd93e06ba01"
+    },
+    {
+      "path": "storage\\attachments\\88\\88642cfd002447bc817337ee9429a637_d6fd7b85",
+      "sha256": "8a025e79e6511618cf324fc7e7da97e66173260d43b8df0ac294d43d63e8bea4"
+    },
+    {
+      "path": "storage\\attachments\\8d\\8d2e6b568ddb46118183216a3b345103_760157c3",
+      "sha256": "0a03cac94917f82fbe6626a93a44202bd463da1f73b8c0aa28623e193581a3c2"
+    },
+    {
+      "path": "storage\\attachments\\8d\\8df427fcab25434b86893fc496641a2a_4f6f9f38",
+      "sha256": "3ffb55f681118029aa2a7b984b3e574dc949e6aebec14b228306c6622b447e91"
+    },
+    {
+      "path": "storage\\attachments\\8f\\8f22c752b383428683d47b022eb25462_2af74dc8",
+      "sha256": "718e3711fb943a1ef351fdd6d67ed619488562a08c67a1e35f6096b3dcd88e96"
+    },
+    {
+      "path": "storage\\attachments\\96\\969cf4720ec2412db810cb24231ffce6_81741a42",
+      "sha256": "43e49430d4bbfbcb7345f51647b994ae4adb58fbe75a583c4abd78eae1c21e72"
+    },
+    {
+      "path": "storage\\attachments\\99\\9951b1032b92414fb0737cb85ac5a7f4_d7188186",
+      "sha256": "dff2c112bcbb452abeaeb88198da3bb20d301bdc7ecd361bf2e6d24f4707e956"
+    },
+    {
+      "path": "storage\\attachments\\b1\\b16e8c1fe41847a6ad7e9b06a82610dd_8b9e8858",
+      "sha256": "083bb37035e890beb02ad0787e6b2afbfde297f5cd40875a607f7854276bc69b"
+    },
+    {
+      "path": "storage\\attachments\\b2\\b28f4e35b143442f9e689dcb98cb4ec0_67e66dd9",
+      "sha256": "5ca07c54da1490aa4acd85ce5d3d0c140e547f48ba0ea4e4f0e5042b1c129bdc"
+    },
+    {
+      "path": "storage\\attachments\\b5\\b51b97fa7ee64f9b9f0b1c73ebed3a31_d5f10ee9",
+      "sha256": "cef0eace8861435de3204e669adfe09ab706e8683e773833c5d948e33abd615e"
+    },
+    {
+      "path": "storage\\attachments\\b5\\b5bfb341a9e940669dc94f9bf722b451_07d6b803",
+      "sha256": "5f4f6b43c99c0206b3d6e130fb40e9f12d918b7299312e97d7cd3e5c00f3eacf"
+    },
+    {
+      "path": "storage\\attachments\\c3\\c3fb5a6d672e4a8ba41caebfb4d6f850_c9943292",
+      "sha256": "1525c7ee360a837a0ef4dc167f871214aeb39da88e0131ce061220ae5a695b79"
+    },
+    {
+      "path": "storage\\attachments\\c4\\c4ea15631e064bdea0596ecf22c2fbdc_a978f097",
+      "sha256": "9e2b9a63e32643a1902474ca0d2924e34ecc04156dba3b309adf720edc053c41"
+    },
+    {
+      "path": "storage\\attachments\\c8\\c81e31101fed41a391df3835ec5e5e99_b85d10b5",
+      "sha256": "dae9fc21cf72561bb48a92c5e6cf782ca3abfc844f1caee1d878222d374accb8"
+    },
+    {
+      "path": "storage\\attachments\\d2\\d272ba9f3efb41a78cceb13d6f114ba4_a168d862",
+      "sha256": "dff2c112bcbb452abeaeb88198da3bb20d301bdc7ecd361bf2e6d24f4707e956"
+    },
+    {
+      "path": "storage\\attachments\\d3\\d32de6edd75e4c83bb7e59738d71a683_87b27e45",
+      "sha256": "718e3711fb943a1ef351fdd6d67ed619488562a08c67a1e35f6096b3dcd88e96"
+    },
+    {
+      "path": "storage\\attachments\\d6\\d6a80a6ffc634613b00718f713098d1f_93b8e1e3",
+      "sha256": "829d8815d990c836bfd88c37bc60571ff23aded2d6153a192f21ffb69c4656f5"
+    },
+    {
+      "path": "storage\\attachments\\d9\\d9b2857fb71a456dbe27f2b697f3ac74_644b5ffb",
+      "sha256": "3ffb55f681118029aa2a7b984b3e574dc949e6aebec14b228306c6622b447e91"
+    },
+    {
+      "path": "storage\\attachments\\da\\da787a8828f94ebb94dc38a688852319_f414670b",
+      "sha256": "956530905654145d2aa05e12a2c689b08348da53b6ae7f0ab0298a41fa0f076d"
+    },
+    {
+      "path": "storage\\attachments\\de\\de7da35eab9c4b1084446299127fc83f_3d57c22d",
+      "sha256": "ccf8a1e80f8642d04d027422e796a730ded46dc479f912b8f4b3a71c7925822d"
+    },
+    {
+      "path": "storage\\attachments\\e5\\e5fb96b1b67946589a84479d7af65049_442d8a75",
+      "sha256": "1525c7ee360a837a0ef4dc167f871214aeb39da88e0131ce061220ae5a695b79"
+    },
+    {
+      "path": "storage\\attachments\\e7\\e7d8ae3a5ff84299b33854e15a198d5f_7373167e",
+      "sha256": "86ec4aaac21b4353e980ce7b89b39f7d1de805cbf29a37880cbaa8aa91458c19"
+    },
+    {
+      "path": "storage\\attachments\\ec\\ec76996df23f4b67b5c34292349c8043_b5b2774f",
+      "sha256": "97e912190d97b3342b8eabc8b0d41e6b47d7f0d8778933ab2af143d1f4aaddfa"
+    },
+    {
+      "path": "storage\\attachments\\ed\\eddcf9d8298349e38a956af2a4c59da4_aa398785",
+      "sha256": "5ca07c54da1490aa4acd85ce5d3d0c140e547f48ba0ea4e4f0e5042b1c129bdc"
+    },
+    {
+      "path": "storage\\attachments\\f2\\f27851602cf14c628c9c90d59e0d9c50_491d23e1",
+      "sha256": "ccf29de9a1284369cd57aa3665773d72ad265cc92338ebe847604a71f6085159"
+    },
+    {
+      "path": "storage\\attachments\\f3\\f349380198eb4613b05fa93c5042ddee_206b9def",
+      "sha256": "86ec4aaac21b4353e980ce7b89b39f7d1de805cbf29a37880cbaa8aa91458c19"
+    },
+    {
+      "path": "storage\\attachments\\f4\\f41caecae1b64db1a61ce80cbb2de755_f9cf4e11",
+      "sha256": "f5be2aea6d0ad77f6aa8b51dc5cd354af7edf773b7ad94b9f688f6994e8a74a8"
+    },
+    {
+      "path": "storage\\attachments\\f4\\f46e3105d6af4d60a0f4ddafb7a78c74_cbca8006",
+      "sha256": "dae9fc21cf72561bb48a92c5e6cf782ca3abfc844f1caee1d878222d374accb8"
+    },
+    {
+      "path": "storage\\attachments\\f6\\f63a44ba38df413a968b335d5da977da_26e7776b",
+      "sha256": "183b9723b6b53566a93872dea332da68d4ad41a296ad9f18f0a3c5527ba3c934"
+    },
+    {
+      "path": "storage\\attachments\\f8\\f86ec7ca4fde41578d9b0bcafba3680a_f01399e3",
+      "sha256": "829d8815d990c836bfd88c37bc60571ff23aded2d6153a192f21ffb69c4656f5"
+    },
+    {
+      "path": "storage\\attachments\\f9\\f9db3e8591e044db88136f401380386b_2f10d5b9",
+      "sha256": "30eaa21d7edc61670a8984f4dc116d32477ed3d6f27e2828095ac86f9ba437b4"
+    }
+  ]
+}

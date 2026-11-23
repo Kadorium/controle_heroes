@@ -5,9 +5,9 @@
 | Campo | Valor |
 |---|---|
 | **Título** | Blueprint do Sistema Epic Controle V2 |
-| **Versão** | 0.2.40 |
+| **Versão** | 0.2.41 |
 | **Status** | Aprovado — baseline funcional e arquitetural da V2 |
-| **Data** | 2026-10-23 |
+| **Data** | 2026-11-23 |
 | **Objetivo** | Definir o **destino** do sistema V2 (produto, módulos, regras, telas, NFR, aceite) sem status de execução |
 
 ### 1.1 Documentos relacionados
@@ -505,7 +505,7 @@ Convenção: `rate` = BRL por 1 foreign. Positivo = favorável.
 | Entidades | CostingCase (1:1 processo); CostingVersion; CostingLine; CostComponent; CostAllocation; CostingExpense |
 | Funcionalidades | Sintetizar linhas; converter FX; ratear; coverage de fonte; draft/publish/supersede; Expense só se não houver owner anterior; frete por papel semântico (base CIF ≠ componente) |
 | Comandos | ensure_case, recalculate, set_freight_choice, add_expense, publish_version, revise_from_published |
-| Consultas | queue; case/version; compare |
+| Consultas | queue compatível; queue-page com total/filtros/paginação; case/version; compare |
 | **Deps permitidas** | Orders, Billing, Customs, Logistics, Treasury, Documents, Audit, **Reconciliation** (escreve pares via primitivos) |
 | **Proibido** | Catalog (snapshots na linha; DEC-J6-BOUNDARY); Inventory; Reporting (escrita); dono de FX (só lê Treasury); Payment/FOB/CIF/`structured_total` como custo; postar unit cost no estoque |
 | UI | «Custo desembarcado por produto»; subtítulo de tributos brutos obrigatório |
@@ -1198,6 +1198,8 @@ Importação CSV em tabela/canal existente: UTF-8, até 500 linhas/1 MB, SKU, pr
 
 Apresentação local: quantidade faturada da versão por SKU, não quantidade recebida. Câmbio documental, tributos brutos, cobertura e prévia/publicação parcial ficam visíveis junto ao resultado. Ausência de componente internacional incluído aparece como ausência de frete, não prova de custo zero; componente existente com zero explícito preserva zero. Fontes/documentos, ações e versões permanecem acessíveis; reorganização visual não recalcula nem publica custo.
 
+**Completude e ausência (0.2.41):** `GET /api/costing/queue-page` aplica busca/situação antes de paginar, retorna total/limit/offset e mantém `costing:read`; o contrato antigo `/queue` permanece compatível e aceita `process_id` exato. Costing consulta processos pela fachada pública Customs, sem exigir nova permissão aduaneira nem importar internals. Falta de base monetária/FX ou rateio indisponível conserva `null` nos componentes/resultados afetados e no total incluído; componentes conhecidos permanecem consultáveis. Zero explícito é preservado. A publicação continua sujeita aos bloqueios existentes. Cobertura compara referências integrais das faturas, normalizando apenas convenções explícitas de prefixo; não utiliza coincidência de dígitos soltos. As referências conferidas do numerário permanecem no campo existente de notas, sem nova coluna ou migração; bases FOB/CIF não viram despesas adicionais.
+
 **Proveniência por produto (leitura):** `GET /api/costing/products/{product_id}/sources` paginado e filtrável por caso; `GET /api/costing/products/{product_id}/versions/{version_id}`. Costing projeta linhas, snapshots e alocações persistidos; `current_published_id` orienta versão vigente, sem escolher compra ambígua. Componente atribuído ao produto e componente inteiro da compra aparecem separados. Customs/Orders/Documents fornecem relações via fachadas públicas; rótulos de pedido e fontes documentais respeitam ACL, além da autorização no conteúdo. Nenhuma chamada a ensure/recalculate/publish ao navegar. Sem valuation, preço ou margem improvisados; essas capacidades exigem decisões e contratos separados.
 
 ### 8.19 Conciliação
@@ -1539,6 +1541,7 @@ Arquivo alvo: `v2/tests/architecture/test_import_boundaries.py` (pytest + AST; s
 | 0.2.37 | 2026-10-23 | Integração r2: shell por tarefas; posição paginada owner Inventory/ACL própria; índice de fontes por produto owner Costing, versão/composição/PDF sem escrita; resumo Comercial por população filtrada e unidade. §§8.0/8.2/8.17/8.18; sem migration ou política financeira nova |
 | 0.2.38 | 2026-10-23 | Consulta comercial/econômica de estoque, preço vigente e visões pessoais; contratos públicos e ACL próprios; migration 032. Política PEPS/origem/preço/margem restrita a demonstração/teste, sem ratificação contábil de produção. §8.17.1 |
 | 0.2.40 | 2026-10-23 | Recebimento Inventory próprio, DTO operacional mínimo, confirmação atômica/idempotente e locks compartilhados; migration 034; matriz ACL preservada. §8.17 |
+| 0.2.41 | 2026-11-23 | Consulta paginada/exata de custo, ausência monetária distinta de zero e referências integrais de cobertura. §§5.13/8.18; compatibilidade/ACL preservadas, sem migração ou mudança de fórmula válida |
 | 0.2.39 | 2026-10-23 | Histórico de substituição/encerramento e CSV com prévia e confirmação idempotente; migration 033; sem mudança de regra financeira/ACL. §8.17.1 |
 | 0.2.36 | 2026-10-22 | Refinamento executivo autorizado: composição local do preset de sistema, escopo temporal explícito, Controle por contrato existente, tour responsivo de leitura; hierarquia AP/Custo. Sem alteração financeira, migrations ou promoção de fase; §§8.2/8.9/8.18 |
 | 0.2.35 | 2026-10-05 | Elo 10: close_order / reopen_order; COMMITMENT bloqueia close; §5.6 / §7.16 |

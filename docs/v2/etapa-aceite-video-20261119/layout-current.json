@@ -1,0 +1,150 @@
+[
+  {
+    "screen": "Contas a pagar",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": false,
+    "pageClient": 1366,
+    "pageScroll": 1366,
+    "table": 2032,
+    "viewport": 1084,
+    "overflow": "auto",
+    "rows": [
+      62,
+      62,
+      62
+    ],
+    "headers": [
+      "Vencimento",
+      "Fornecedor",
+      "Fatura",
+      "Saldo aberto",
+      "Status",
+      "Pedido",
+      "Valor original",
+      "Câmbio / BRL",
+      "Pendências",
+      "Banco / IBAN",
+      "Ação"
+    ],
+    "right": {
+      "scrollLeft": 948,
+      "max": 948,
+      "lastColumnRight": 1333,
+      "frameRight": 1334
+    }
+  },
+  {
+    "screen": "Contas a pagar",
+    "size": {
+      "width": 1366,
+      "height": 768
+    },
+    "collapsed": true,
+    "pageClient": 1366,
+    "pageScroll": 1366,
+    "table": 2032,
+    "viewport": 1212,
+    "overflow": "auto",
+    "rows": [
+      62,
+      62,
+      62
+    ],
+    "headers": [
+      "Vencimento",
+      "Fornecedor",
+      "Fatura",
+      "Saldo aberto",
+      "Status",
+      "Pedido",
+      "Valor original",
+      "Câmbio / BRL",
+      "Pendências",
+      "Banco / IBAN",
+      "Ação"
+    ],
+    "right": {
+      "scrollLeft": 820,
+      "max": 820,
+      "lastColumnRight": 1333,
+      "frameRight": 1334
+    }
+  },
+  {
+    "screen": "Contas a pagar",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": false,
+    "pageClient": 1440,
+    "pageScroll": 1440,
+    "table": 2032,
+    "viewport": 1158,
+    "overflow": "auto",
+    "rows": [
+      62,
+      62,
+      62
+    ],
+    "headers": [
+      "Vencimento",
+      "Fornecedor",
+      "Fatura",
+      "Saldo aberto",
+      "Status",
+      "Pedido",
+      "Valor original",
+      "Câmbio / BRL",
+      "Pendências",
+      "Banco / IBAN",
+      "Ação"
+    ],
+    "right": {
+      "scrollLeft": 874,
+      "max": 874,
+      "lastColumnRight": 1407,
+      "frameRight": 1408
+    }
+  },
+  {
+    "screen": "Contas a pagar",
+    "size": {
+      "width": 1440,
+      "height": 900
+    },
+    "collapsed": true,
+    "pageClient": 1440,
+    "pageScroll": 1440,
+    "table": 2032,
+    "viewport": 1278,
+    "overflow": "auto",
+    "rows": [
+      62,
+      62,
+      62
+    ],
+    "headers": [
+      "Vencimento",
+      "Fornecedor",
+      "Fatura",
+      "Saldo aberto",
+      "Status",
+      "Pedido",
+      "Valor original",
+      "Câmbio / BRL",
+      "Pendências",
+      "Banco / IBAN",
+      "Ação"
+    ],
+    "right": {
+      "scrollLeft": 754,
+      "max": 754,
+      "lastColumnRight": 1399,
+      "frameRight": 1400
+    }
+  }
+]

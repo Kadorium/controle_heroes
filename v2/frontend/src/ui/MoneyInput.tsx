@@ -65,10 +65,11 @@ export function MoneyInput({
         disabled={disabled}
         aria-invalid={invalid || undefined}
         onFocus={(e) => {
+          // Do not rewrite the text during focus/selection/paste.
+          setDraft(e.currentTarget.value);
           setFocused(true);
-          setDraft(value);
           onFocus?.(e);
-          requestAnimationFrame(() => e.target.select());
+          e.currentTarget.select();
         }}
         onChange={(e) => {
           const next = e.target.value;

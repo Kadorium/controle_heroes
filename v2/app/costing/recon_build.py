@@ -131,7 +131,8 @@ def build_pairs(
             )
         )
 
-    if coverage.get("funding_included") and coverage.get("funding_delta") is not None:
+    if (coverage.get("funding_included") and coverage.get("funding_delta") is not None
+            and not coverage.get("funding_math_ok")):
         ok = coverage.get("funding_math_ok")
         pairs.append(
             _pair(

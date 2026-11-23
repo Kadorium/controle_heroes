@@ -177,6 +177,8 @@ _EXPENSE_LABELS: set[str] = {
 
 
 def _classify_line(label_upper: str) -> str:
+    if label_upper.strip() in _TAX_CODES.values():
+        return "tax"
     for key in _TAX_CODES:
         if label_upper.startswith(key):
             return "tax"
@@ -184,6 +186,8 @@ def _classify_line(label_upper: str) -> str:
 
 
 def _line_code(label_upper: str) -> str:
+    if label_upper.strip() in _TAX_CODES.values():
+        return label_upper.strip()
     for key, code in _TAX_CODES.items():
         if label_upper.startswith(key):
             return code
@@ -225,11 +229,14 @@ def _extract_header(text: str) -> dict:
         m = re.search(r"S/REFER[EÊ]NCIA\s+(.+?)(?:\s+EMBARQUE|$)", line, re.IGNORECASE)
         if m:
             result.setdefault("s_reference", _compact(m.group(0)))
-            # Extract invoice numbers from "INV. 181/202/203/244/245/246"
-            inv_m = re.search(r"INV\.?\s+([\d/]+)", line, re.IGNORECASE)
+            # References are strings in Billing: preserve letters, hyphens and
+            # leading zeros. Stop at the documented EMBARQUE boundary instead
+            # of silently dropping/truncating alphanumeric invoice numbers.
+            inv_m = re.search(r"\bINV\.?\s+(.+?)(?:\s+EMBARQUE\b|$)", line, re.IGNORECASE)
             if inv_m:
                 refs = [r.strip() for r in inv_m.group(1).split("/") if r.strip()]
-                result.setdefault("invoice_refs", refs)
+                if refs and all(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", ref) for ref in refs):
+                    result.setdefault("invoice_refs", refs)
 
         # N/REFERÊNCIA: "N/REFERÊNCIA D00358/26 AWB/BL HKSTS26054756 INVOICE 181"
         m = re.search(r"N/REFER[EÊ]NCIA\s+(\S+)", line, re.IGNORECASE)
@@ -240,7 +247,7 @@ def _extract_header(text: str) -> dict:
         if m:
             result.setdefault("awb_bl", m.group(1))
 
-        m = re.search(r"INVOICE\s+(\d+)", line, re.IGNORECASE)
+        m = re.search(r"\bINVOICE\s+([A-Za-z0-9][A-Za-z0-9_.-]*)", line, re.IGNORECASE)
         if m:
             result.setdefault("invoice_ref_first", m.group(1))
 

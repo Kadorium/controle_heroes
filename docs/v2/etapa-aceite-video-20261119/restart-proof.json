@@ -1,0 +1,16 @@
+{
+  "database_path": "C:\\Users\\ricar\\Desktop\\projetos\\EPIC\\audit-lab\\journeys-20261119\\postgres",
+  "tables_equal": {
+    "orders": "6063fa4d68cf9156369927318063146c",
+    "invoices": "6badb41a0932ccf07d01505704de6829",
+    "payments": "e6d861d538ed291ac061068f84d90a74",
+    "payment_allocations": "245aee48950f820aa1d4c1122dfb5bb9",
+    "stock_balances": "a8d5c0753198f2f3547761876d38a960",
+    "inventory_movements": "ef9a454ef4f04d89e59e8b48bffde828",
+    "costing_versions": "b236cb1fdd6acfaa86485483ac4dae85",
+    "goods_receipts": "e4b1bc2b8478ecf6dbc6b25a3ab3d08a",
+    "customs_funding_requests": "a4379b9d3efd5c4e0fec35e7c4fc6537"
+  },
+  "result": "PASS",
+  "ui": "Abri Pedido após reinício HTTP+PostgreSQL / Vi pedido CONFIRMED e EUR1.200 em aberto / Cliquei Produtos / Resultado estoque R$11.630 persistido, sessão preservada"
+}

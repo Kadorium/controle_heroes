@@ -14,8 +14,26 @@ from app.costing.freight import (
 )
 from app.costing.money import money2, parse_decimal
 
-_INV_RE = re.compile(r"\b(?:INV[-\s]?)?(\d{3,})\b", re.I)
+_INVOICE_LIST_RE = re.compile(
+    r"\b(?:INV\.|INV(?=\s)|INVOICES?|FATURAS?)\s*:?\s*(.+?)(?=\s+EMBARQUE\b|$)",
+    re.I | re.M,
+)
 _FOB_RE = re.compile(r"\bFOB\b", re.I)
+
+
+def _invoice_references(text: str) -> set[str]:
+    """Only explicit invoice lists are evidence; years in operation codes are not."""
+    refs: set[str] = set()
+    for match in _INVOICE_LIST_RE.finditer(text):
+        tokens = [value for value in re.split(r"[/,\s]+", match.group(1).strip()) if value]
+        if tokens and all(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", value) for value in tokens):
+            refs.update(tokens)
+    return refs
+
+
+def _invoice_key(value: str) -> str:
+    # Historical numeric INV-181 and the document's explicit INV. 181 are equivalent.
+    return re.sub(r"^INV[-\s.]+(?=\d+$)", "", value.strip(), flags=re.I).casefold()
 
 
 def _is_fob(code: str | None, label: str | None) -> bool:
@@ -26,11 +44,7 @@ def _is_fob(code: str | None, label: str | None) -> bool:
 def analyze(facts: dict) -> dict:
     invoices = facts.get("invoices") or []
     process_numbers = {str(i.get("invoice_number") or "").strip() for i in invoices}
-    process_digits = set()
-    for n in process_numbers:
-        process_digits.update(_INV_RE.findall(n))
-        if n.isdigit():
-            process_digits.add(n)
+    process_keys = {_invoice_key(n) for n in process_numbers}
 
     merch = Decimal("0")
     merch_currency = None
@@ -60,8 +74,8 @@ def analyze(facts: dict) -> dict:
             continue
         funding_included = True
         declared = parse_decimal(fr.get("declared_total"))
-        text = " ".join(filter(None, [fr.get("reference"), fr.get("notes")]))
-        mentioned.update(_INV_RE.findall(text or ""))
+        text = "\n".join(filter(None, [fr.get("reference"), fr.get("notes")]))
+        mentioned.update(_invoice_references(text))
         for vb in fr.get("value_bases") or []:
             if _is_fob(vb.get("code"), vb.get("label")):
                 fob_amount = parse_decimal(vb.get("amount"))
@@ -83,7 +97,7 @@ def analyze(facts: dict) -> dict:
             elif role in (ROLE_DOMESTIC_REMOVAL, ROLE_DOMESTIC_DELIVERY):
                 domestic_expenses.append(ex)
 
-    extra_refs = sorted(n for n in mentioned if n not in process_digits and n not in process_numbers)
+    extra_refs = sorted(n for n in mentioned if _invoice_key(n) not in process_keys)
     if extra_refs:
         coverage = "INCOMPLETE"
         reasons.append(

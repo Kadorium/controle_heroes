@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
@@ -93,9 +94,18 @@ class ReviseBody(BaseModel):
 
 
 @router.get("/costing/queue")
-def get_queue(user=Depends(get_current_user), db: Session = Depends(get_db)):
+def get_queue(limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), process_id: int | None = Query(None, ge=1), user=Depends(get_current_user), db: Session = Depends(get_db)):
     enforce_permission(user, "costing:read")
-    return costing_public.queue(db)
+    try:
+        return costing_public.queue(db, limit=limit, offset=offset, process_id=process_id)
+    except CostingError as exc:
+        raise _map(exc) from exc
+
+
+@router.get("/costing/queue-page")
+def get_queue_page(q: str = Query("", max_length=200), situation: Literal["", "blocked", "ready", "empty"] = "", limit: int = Query(50, ge=1, le=100), offset: int = Query(0, ge=0), user=Depends(get_current_user), db: Session = Depends(get_db)):
+    enforce_permission(user, "costing:read")
+    return costing_public.queue_page(db, q=q, situation=situation, limit=limit, offset=offset)
 
 
 @router.post("/costing/cases", status_code=201)
